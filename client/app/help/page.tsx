@@ -1,0 +1,172 @@
+'use client';
+import { useState } from 'react';
+import Header from '@/components/layout/Header';
+import { useTaskContext } from '@/context/TaskContext';
+import { Search, BookOpen, MessageSquare, AlertTriangle, Settings, ChevronDown, ChevronRight, LifeBuoy } from 'lucide-react';
+
+const CATEGORIES = [
+  { icon: BookOpen, title: 'Tasks', desc: 'Create, assign, and track tasks.' },
+  { icon: MessageSquare, title: 'Follow-Ups', desc: 'Log and track communication updates.' },
+  { icon: AlertTriangle, title: 'Escalations', desc: 'Understand automated alert thresholds.' },
+  { icon: Settings, title: 'Settings', desc: 'Manage workspace preferences.' },
+];
+
+const FAQS = [
+  {
+    q: 'How do I create a new task?',
+    a: 'Click the "+ New Task" button in the top navigation bar. Fill in the title, priority, and other details, then save.'
+  },
+  {
+    q: 'What happens when a task reaches the escalation threshold?',
+    a: 'A high-priority warning banner appears on the task when enabled in Settings, highlighting it for immediate attention.'
+  },
+  {
+    q: 'Can I export my tasks?',
+    a: 'Yes. On the Tasks page, click the "Export" button in the toolbar and choose CSV or Excel format.'
+  },
+  {
+    q: 'How are follow-ups tracked?',
+    a: 'Each follow-up records the timestamp, method, and response. The latest response appears in the task table.'
+  }
+];
+
+export default function HelpCenterPage() {
+  const { filters, handleTaskCreated } = useTaskContext();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Header filters={filters} onTaskCreated={handleTaskCreated} />
+
+      <main style={{ flex: 1, overflowY: 'auto' }}>
+
+        {/* Hero */}
+        <section style={{
+          padding: '48px 32px 56px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: 8 }}>
+            How can we help?
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 28, maxWidth: 460, lineHeight: 1.5 }}>
+            Search our knowledge base or browse the categories below.
+          </p>
+
+          <div style={{ position: 'relative', width: '100%', maxWidth: 480 }}>
+            <Search style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', width: 16, height: 16 }} />
+            <input
+              type="text"
+              placeholder="Search for answers…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input"
+              style={{
+                paddingLeft: 40,
+                fontSize: 14,
+                borderRadius: 'var(--radius-lg)',
+                height: 42,
+              }}
+            />
+          </div>
+        </section>
+
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px' }}>
+
+          {/* Categories */}
+          <section style={{ marginTop: 32, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+              {CATEGORIES.map((cat, i) => {
+                const Icon = cat.icon;
+                return (
+                  <div key={i} className="card" style={{
+                    padding: 20,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.currentTarget.style.background = 'var(--bg-elevated)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.background = 'var(--bg-surface)';
+                  }}
+                  >
+                    <div style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', padding: 8, borderRadius: 'var(--radius-md)', display: 'inline-flex', marginBottom: 12 }}>
+                      <Icon style={{ width: 18, height: 18 }} />
+                    </div>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{cat.title}</h3>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>{cat.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* FAQ */}
+          <section style={{ marginBottom: 40 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)', marginBottom: 16 }}>FAQ</h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {FAQS.map((faq, i) => {
+                const isOpen = openFaq === i;
+                return (
+                  <div key={i} className="card" style={{
+                    overflow: 'hidden',
+                    borderColor: isOpen ? 'rgba(99,102,241,0.3)' : undefined,
+                    transition: 'border-color 0.15s',
+                  }}>
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : i)}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '12px 16px', background: 'transparent', border: 'none',
+                        cursor: 'pointer', textAlign: 'left',
+                        color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontSize: 13, fontWeight: 500,
+                      }}
+                    >
+                      <span>{faq.q}</span>
+                      {isOpen ? <ChevronDown style={{ width: 16, height: 16, flexShrink: 0 }} /> : <ChevronRight style={{ width: 16, height: 16, flexShrink: 0, color: 'var(--text-muted)' }} />}
+                    </button>
+
+                    <div style={{
+                      maxHeight: isOpen ? 200 : 0,
+                      opacity: isOpen ? 1 : 0,
+                      padding: isOpen ? '0 16px 14px' : '0 16px',
+                      transition: 'all 0.2s var(--ease-smooth)',
+                      overflow: 'hidden',
+                      color: 'var(--text-muted)',
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}>
+                      {faq.a}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Contact */}
+          <section className="card" style={{
+            padding: '28px 24px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+            marginBottom: 40,
+          }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>Need more help?</h2>
+              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13 }}>Our support team is available 24/7.</p>
+            </div>
+            <button className="btn btn-primary" style={{ fontSize: 13, padding: '8px 16px' }}>
+              <LifeBuoy style={{ width: 14, height: 14 }} />
+              Contact Support
+            </button>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}

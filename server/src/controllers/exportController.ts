@@ -1,0 +1,224 @@
+import { Request, Response, NextFunction } from 'express';
+import Task from '../models/Task';
+import FollowUp from '../models/FollowUp';
+import { buildQuery } from '../utils/buildQuery';
+import PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
+
+const PRIORITY_COLOURS: Record<string, string> = {
+  High: 'FF4444',
+  Medium: 'F59E0B',
+  Low: '22C55E',
+};
+
+const STATUS_COLOURS: Record<string, string> = {
+  InProgress: '3B82F6',
+  Pending: 'F59E0B',
+  Completed: '22C55E',
+};
+
+// ── GET /api/export/pdf ───────────────────────────────────────────────────────
+export async function exportPdf(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { filter, sort } = buildQuery(req.query);
+
+    // If specific IDs are requested (selection export)
+    if (req.query.ids && typeof req.query.ids === 'string') {
+      const ids = req.query.ids.split(',').filter(Boolean);
+      if (ids.length > 0) {
+        filter._id = { $in: ids };
+      }
+    }
+
+    const tasks = await Task.find(filter).sort(sort).lean();
+    const taskIds = tasks.map(t => t._id);
+
+    const summaries = await FollowUp.aggregate([
+      { $match: { taskId: { $in: taskIds }, isDeleted: false } },
+      { $group: { _id: '$taskId', count: { $sum: 1 } } }
+    ]);
+    const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
+
+    const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.pdf"');
+    doc.pipe(res);
+
+    // ── Title ───────────────────────────────────────────────────────────────
+    doc.fontSize(18).font('Helvetica-Bold').text('Task Manager Export', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    // ── Table header ────────────────────────────────────────────────────────
+    const colWidths = [35, 65, 120, 130, 80, 60, 70, 50, 130];
+    const headers = ['Sr', 'Task ID', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Reason/Remarks'];
+    const startX = doc.page.margins.left;
+    let x = startX;
+    const headerY = doc.y;
+    const rowH = 20;
+
+    doc.rect(startX, headerY, colWidths.reduce((a, b) => a + b, 0), rowH).fill('#1E293B');
+    doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Bold');
+    headers.forEach((h, i) => {
+      doc.text(h, x + 3, headerY + 5, { width: colWidths[i] - 6, ellipsis: true });
+      x += colWidths[i];
+    });
+
+    // ── Table rows ───────────────────────────────────────────────────────────
+    let rowY = headerY + rowH;
+    tasks.forEach((task: any, idx: number) => {
+      if (rowY > doc.page.height - doc.page.margins.bottom - rowH) {
+        doc.addPage();
+        rowY = doc.page.margins.top;
+      }
+
+      const bg = idx % 2 === 0 ? '#0F172A' : '#1E293B';
+      const totalW = colWidths.reduce((a, b) => a + b, 0);
+      doc.rect(startX, rowY, totalW, rowH).fill(bg);
+
+      const remarkOrReason =
+        task.workStatus === 'Completed' ? task.remarks : task.reason;
+
+      const cells = [
+        String(idx + 1),
+        task.taskId,
+        task.title,
+        task.description,
+        task.givenBy,
+        task.priority,
+        task.workStatus,
+        String(summaryMap.get(task._id.toString()) || 0),
+        remarkOrReason,
+      ];
+
+      x = startX;
+      doc.fillColor('#E2E8F0').font('Helvetica').fontSize(7);
+      cells.forEach((cell, i) => {
+        // Colour priority and status cells
+        if (i === 5) {
+          doc.fillColor(`#${PRIORITY_COLOURS[task.priority] || 'E2E8F0'}`);
+        } else if (i === 6) {
+          doc.fillColor(`#${STATUS_COLOURS[task.workStatus] || 'E2E8F0'}`);
+        } else {
+          doc.fillColor('#E2E8F0');
+        }
+        doc.text(cell || '', x + 3, rowY + 5, { width: colWidths[i] - 6, ellipsis: true });
+        x += colWidths[i];
+      });
+
+      rowY += rowH;
+    });
+
+    doc.end();
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ── GET /api/export/excel ─────────────────────────────────────────────────────
+export async function exportExcel(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { filter, sort } = buildQuery(req.query);
+
+    if (req.query.ids && typeof req.query.ids === 'string') {
+      const ids = req.query.ids.split(',').filter(Boolean);
+      if (ids.length > 0) {
+        filter._id = { $in: ids };
+      }
+    }
+
+    const tasks = await Task.find(filter).sort(sort).lean();
+    const taskIds = tasks.map(t => t._id);
+
+    const summaries = await FollowUp.aggregate([
+      { $match: { taskId: { $in: taskIds }, isDeleted: false } },
+      { $group: { _id: '$taskId', count: { $sum: 1 } } }
+    ]);
+    const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Task Manager';
+    workbook.created = new Date();
+
+    const sheet = workbook.addWorksheet('Tasks', {
+      pageSetup: { paperSize: 9, orientation: 'landscape' },
+    });
+
+    sheet.columns = [
+      { header: 'Sr No', key: 'sr', width: 6 },
+      { header: 'Task ID', key: 'taskId', width: 12 },
+      { header: 'Title', key: 'title', width: 25 },
+      { header: 'Description', key: 'description', width: 40 },
+      { header: 'Given By', key: 'givenBy', width: 15 },
+      { header: 'Priority', key: 'priority', width: 10 },
+      { header: 'Work Status', key: 'workStatus', width: 14 },
+      { header: 'F-Ups', key: 'fUps', width: 8 },
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Due Date', key: 'dueDate', width: 12 },
+      { header: 'Reason / Remarks', key: 'reasonRemarks', width: 35 },
+    ];
+
+    // ── Style header row ──────────────────────────────────────────────────────
+    const headerRow = sheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        bottom: { style: 'medium', color: { argb: 'FF334155' } },
+      };
+    });
+    headerRow.height = 24;
+
+    // ── Data rows ─────────────────────────────────────────────────────────────
+    tasks.forEach((task: any, idx: number) => {
+      const rowBg = idx % 2 === 0 ? 'FF0F172A' : 'FF1E293B';
+      const row = sheet.addRow({
+        sr: idx + 1,
+        taskId: task.taskId,
+        title: task.title,
+        description: task.description,
+        givenBy: task.givenBy,
+        priority: task.priority,
+        workStatus: task.workStatus,
+        fUps: summaryMap.get(task._id.toString()) || 0,
+        date: task.date ? new Date(task.date).toLocaleDateString('en-IN') : '',
+        dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-IN') : '',
+        reasonRemarks: task.workStatus === 'Completed' ? task.remarks : task.reason,
+      });
+
+      row.height = 20;
+      row.eachCell((cell, colNumber) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+        cell.font = { color: { argb: 'FFE2E8F0' }, size: 10 };
+        cell.alignment = { vertical: 'middle', wrapText: true };
+
+        // Priority colour
+        if (colNumber === 6) {
+          const colour = PRIORITY_COLOURS[task.priority];
+          if (colour) cell.font = { color: { argb: `FF${colour}` }, bold: true, size: 10 };
+        }
+        // Status colour
+        if (colNumber === 7) {
+          const colour = STATUS_COLOURS[task.workStatus];
+          if (colour) cell.font = { color: { argb: `FF${colour}` }, bold: true, size: 10 };
+        }
+      });
+    });
+
+    // ── Auto-filter ───────────────────────────────────────────────────────────
+    sheet.autoFilter = { from: 'A1', to: `K1` };
+
+    // ── Freeze header ─────────────────────────────────────────────────────────
+    sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    next(err);
+  }
+}
