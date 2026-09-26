@@ -128,7 +128,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
             >
-              AG
+              SG
             </button>
 
             {profileOpen && (
@@ -150,7 +150,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               >
                 {/* User info */}
                 <div style={{ padding: '12px 12px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: 4 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Antigravity</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Sushant Gupta</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Workspace Admin</div>
                 </div>
 
