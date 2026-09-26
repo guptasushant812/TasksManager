@@ -307,9 +307,9 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         {!loading && tasks.length > 0 && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 16px',
-            borderTop: '1px solid var(--border-subtle)',
-            fontSize: 12, color: 'var(--text-muted)',
+            padding: '16px',
+            borderTop: '4px solid var(--border)',
+            fontSize: 14, color: 'var(--text-primary)', fontWeight: 700
           }}>
             <span>
               {(pagination.page - 1) * (filters.limit || 10) + 1}–{Math.min(pagination.page * (filters.limit || 10), pagination.total)} of {pagination.total}
@@ -390,20 +390,46 @@ function PaginationBtn({ children, active, disabled, onClick }: { children: Reac
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: active ? 'var(--text-primary)' : 'transparent',
-        color: active ? 'var(--bg-base)' : 'var(--text-muted)',
-        border: 'none',
+        background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
+        color: active ? 'var(--bg-base)' : 'var(--text-primary)',
+        border: '4px solid var(--border)',
         borderRadius: 'var(--radius-sm)',
-        minWidth: 28, height: 28,
+        minWidth: 32, height: 32,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        fontSize: 12, fontWeight: active ? 600 : 400,
+        fontSize: 14, fontWeight: 900,
         transition: 'all 0.1s',
         opacity: disabled ? 0.3 : 1,
         padding: '0 4px',
+        boxShadow: active || disabled ? 'none' : '2px 2px 0px 0px var(--border)',
+        transform: active || disabled ? 'translate(2px, 2px)' : 'none',
       }}
-      onMouseEnter={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-      onMouseLeave={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; } }}
+      onMouseEnter={(e) => {
+        if (!active && !disabled) {
+          e.currentTarget.style.background = 'var(--bg-hover)';
+          e.currentTarget.style.transform = 'translate(-2px, -2px)';
+          e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active && !disabled) {
+          e.currentTarget.style.background = 'var(--bg-surface)';
+          e.currentTarget.style.transform = 'none';
+          e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+        }
+      }}
+      onMouseDown={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.transform = 'translate(2px, 2px)';
+          e.currentTarget.style.boxShadow = 'none';
+        }
+      }}
+      onMouseUp={(e) => {
+        if (!active && !disabled) {
+          e.currentTarget.style.transform = 'translate(-2px, -2px)';
+          e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+        }
+      }}
     >
       {children}
     </button>

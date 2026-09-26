@@ -186,24 +186,33 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
       title={title}
       onClick={onClick}
       style={{
-        background: 'transparent',
-        border: 'none',
+        background: 'var(--bg-surface)',
+        border: '4px solid var(--border)',
         borderRadius: 'var(--radius-sm)',
-        padding: 6,
+        padding: 4,
         cursor: 'pointer',
-        color: defaultColor || 'var(--text-muted)',
+        color: defaultColor || 'var(--text-primary)',
         transition: 'all 0.1s',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        boxShadow: '2px 2px 0px 0px var(--border)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'var(--bg-elevated)';
-        e.currentTarget.style.color = hoverColor || 'var(--text-primary)';
+        e.currentTarget.style.background = hoverColor || 'var(--bg-hover)';
+        if (hoverColor) e.currentTarget.style.color = '#fff';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent';
-        e.currentTarget.style.color = defaultColor || 'var(--text-muted)';
+        e.currentTarget.style.background = 'var(--bg-surface)';
+        if (hoverColor) e.currentTarget.style.color = defaultColor || 'var(--text-primary)';
+      }}
+      onMouseDown={(e) => {
+        e.currentTarget.style.transform = 'translate(2px, 2px)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+      onMouseUp={(e) => {
+        e.currentTarget.style.transform = 'translate(0, 0)';
+        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
       }}
     >
       {icon}

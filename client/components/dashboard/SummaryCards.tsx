@@ -40,50 +40,49 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  letterSpacing: '0.02em',
-                  color: isActive ? color : 'var(--text-muted)',
+                  fontSize: 16,
+                  fontWeight: 900,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: isActive ? '#fff' : color,
                   transition: 'color 0.2s',
                 }}>
                   {label}
                 </span>
                 {/* Status indicator dot */}
                 <div style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: color,
-                  opacity: isActive ? 1 : 0.4,
-                  transition: 'opacity 0.2s',
+                  width: 12,
+                  height: 12,
+                  borderRadius: 0,
+                  border: '2px solid var(--border)',
+                  background: isActive ? '#fff' : color,
+                  transition: 'background 0.2s',
                 }} />
               </div>
 
               {loading ? (
-                <div style={{ height: 36, display: 'flex', alignItems: 'center' }}>
+                <div style={{ height: 48, display: 'flex', alignItems: 'center' }}>
                   <div className="animate-spin" style={{
-                    width: 16, height: 16,
-                    border: `2px solid ${color}`,
+                    width: 24, height: 24,
+                    border: `4px solid ${isActive ? '#fff' : color}`,
                     borderTopColor: 'transparent',
                     borderRadius: '50%',
-                    opacity: 0.5,
                   }} />
                 </div>
               ) : (
                 <span style={{
-                  fontSize: 32,
-                  fontWeight: 700,
-                  color,
+                  fontSize: 48,
+                  fontWeight: 900,
+                  color: isActive ? '#fff' : color,
                   lineHeight: 1,
                   fontVariantNumeric: 'tabular-nums',
-                  letterSpacing: '-0.02em',
                 }}>
                   {count}
                 </span>
               )}
 
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {isActive ? 'Filtered — click to clear' : 'Click to filter'}
+              <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? '#fff' : 'var(--text-muted)' }}>
+                {isActive ? 'FILTERED — CLICK TO CLEAR' : 'CLICK TO FILTER'}
               </span>
             </div>
           );
@@ -92,22 +91,22 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
 
       {/* Secondary metrics row */}
       {(summary.overdueFollowUps !== undefined || summary.escalatedTasks !== undefined) && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div className="summary-card" style={{ padding: '14px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)' }}>Overdue Follow-Ups</span>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Awaiting response</div>
+              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Overdue Follow-Ups</span>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Awaiting response</div>
             </div>
-            <span style={{ fontSize: 20, fontWeight: 700, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 32, fontWeight: 900, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               {summary.overdueFollowUps || 0}
             </span>
           </div>
-          <div className="summary-card" style={{ padding: '14px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)' }}>Escalated</span>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Exceeding threshold</div>
+              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Escalated</span>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Exceeding threshold</div>
             </div>
-            <span style={{ fontSize: 20, fontWeight: 700, color: summary.escalatedTasks ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 32, fontWeight: 900, color: summary.escalatedTasks ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               {summary.escalatedTasks || 0}
             </span>
           </div>

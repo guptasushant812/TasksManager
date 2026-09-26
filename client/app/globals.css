@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   DESIGN SYSTEM — Refined dark palette with Japanese-inspired restraint
+   DESIGN SYSTEM — Neo-brutalism
    ───────────────────────────────────────────────────────────────────────────── */
 :root {
   /* Spatial scale (8pt grid) */
@@ -17,60 +16,60 @@
   --space-9: 48px;
   --space-10: 64px;
 
-  /* Surface colors — reduced contrast layers for depth without harshness */
-  --bg-base: #0a0a0c;
-  --bg-surface: #141416;
-  --bg-elevated: #1c1c1f;
-  --bg-card: rgba(20, 20, 22, 0.98);
-  --bg-hover: rgba(255, 255, 255, 0.04);
-  --bg-active: rgba(255, 255, 255, 0.06);
+  /* Surface colors — High Saturation Light Mode Palette */
+  --bg-base: #FFFDF5; /* Cream */
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFDF5;
+  --bg-card: #FFFFFF;
+  --bg-hover: #FFD93D; /* Vivid Yellow */
+  --bg-active: #FFD93D;
 
-  /* Border system — barely-there separators */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-focus: rgba(99, 102, 241, 0.5);
+  /* Border system — Hard Black Strokes */
+  --border: #000000;
+  --border-subtle: #000000;
+  --border-focus: #000000;
 
-  /* Typography — layered hierarchy */
-  --text-primary: #ececef;
-  --text-secondary: #8b8b92;
-  --text-muted: #56565c;
+  /* Typography — Unapologetic Visibility */
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: rgba(0, 0, 0, 0.7);
 
-  /* Accent — single intentional color */
-  --accent: #6366f1;
-  --accent-hover: #7c7ff7;
-  --accent-subtle: rgba(99, 102, 241, 0.08);
-  --accent-glow: rgba(99, 102, 241, 0.15);
+  /* Accent colors */
+  --accent: #FF6B6B; /* Hot Red */
+  --accent-hover: #FF4F4F;
+  --accent-subtle: #C4B5FD; /* Soft Violet */
+  --accent-glow: #000000;
 
-  /* Semantic colors — desaturated for dark UI harmony */
-  --high: #ef4444;
-  --high-bg: rgba(239, 68, 68, 0.08);
+  /* Semantic colors */
+  --high: #FF6B6B;
+  --high-bg: #FFFFFF;
 
-  --medium: #eab308;
-  --medium-bg: rgba(234, 179, 8, 0.08);
+  --medium: #FFD93D;
+  --medium-bg: #FFFFFF;
 
   --low: #22c55e;
-  --low-bg: rgba(34, 197, 94, 0.08);
+  --low-bg: #FFFFFF;
 
-  --inprogress: #6366f1;
-  --inprogress-bg: rgba(99, 102, 241, 0.08);
+  --inprogress: #C4B5FD;
+  --inprogress-bg: #FFFFFF;
 
-  --pending: #eab308;
-  --pending-bg: rgba(234, 179, 8, 0.08);
+  --pending: #FFD93D;
+  --pending-bg: #FFFFFF;
 
   --completed: #22c55e;
-  --completed-bg: rgba(34, 197, 94, 0.08);
+  --completed-bg: #FFFFFF;
 
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 999px;
+  /* Radii — Default is 0px (sharp) */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-full: 999px; /* Only for pills/circles */
 
-  /* Transitions */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-fast: 0.15s;
+  /* Transitions — Mechanical & snappy */
+  --ease-out: linear;
+  --ease-smooth: linear;
+  --duration-fast: 0.1s;
   --duration-normal: 0.2s;
   --duration-slow: 0.3s;
 
@@ -86,35 +85,44 @@
 }
 
 html {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv11', 'ss01';
   font-size: 14px;
   line-height: 1.5;
+  font-weight: 700;
 }
 
 body {
   min-height: 100vh;
   background-color: var(--bg-base);
+  /* Neo-brutalist halftone dot pattern overlay */
+  background-image: radial-gradient(#000 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
   overflow-x: hidden;
 }
 
-/* ─── Scrollbar — minimal, disappearing ───────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+/* Base override for bold typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900 !important;
+  text-transform: uppercase;
+}
 
-::selection { background: var(--accent-glow); color: #fff; }
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--bg-base); border-left: 4px solid #000; }
+::-webkit-scrollbar-thumb { background: #000; border: 2px solid var(--bg-base); }
 
-/* ─── Focus — accessible & subtle ─────────────────────────────────────────── */
+::selection { background: var(--bg-hover); color: #000; }
+
+/* ─── Focus ───────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 4px solid var(--border);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+  background-color: var(--bg-hover);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -124,19 +132,22 @@ body {
 /* ─── Card ─────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 4px solid var(--border);
   border-radius: var(--radius-lg);
-  transition: border-color var(--duration-normal) var(--ease-smooth);
+  box-shadow: 8px 8px 0px 0px var(--border);
+  transition: all var(--duration-normal) var(--ease-smooth);
 }
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-4px);
+  box-shadow: 12px 12px 0px 0px var(--border);
 }
 
 /* ─── Glass panel ──────────────────────────────────────────────────────────── */
 .glass {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 4px solid var(--border);
   border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0px 0px var(--border);
 }
 
 /* ─── Button system ────────────────────────────────────────────────────────── */
@@ -146,17 +157,21 @@ body {
   gap: 6px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth);
-  border: 1px solid transparent;
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px 0px var(--border);
   white-space: nowrap;
   line-height: 1;
   user-select: none;
 }
 .btn:active {
-  transform: scale(0.97);
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--border);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -167,51 +182,46 @@ body {
 .btn-primary {
   background: var(--accent);
   color: #fff;
-  border-color: transparent;
 }
 .btn-primary:hover {
   background: var(--accent-hover);
 }
 
 .btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 .btn-ghost:hover {
   background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: rgba(255,255,255,0.1);
 }
 
 .btn-danger {
-  background: transparent;
-  color: var(--high);
-  border-color: rgba(239,68,68,0.2);
+  background: var(--high);
+  color: #fff;
 }
 .btn-danger:hover {
-  background: var(--high-bg);
-  border-color: rgba(239,68,68,0.4);
+  background: #ff4d4d;
 }
 
 /* ─── Input system ─────────────────────────────────────────────────────────── */
 .input {
-  background: var(--bg-base);
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 4px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  padding: 9px 12px;
-  font-size: 13px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 700;
   font-family: inherit;
-  transition: border-color var(--duration-fast) var(--ease-smooth);
+  transition: all var(--duration-fast) var(--ease-smooth);
   width: 100%;
 }
 .input:focus {
-  border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px var(--accent-subtle);
+  background-color: var(--bg-hover);
+  box-shadow: 4px 4px 0px 0px var(--border);
 }
-.input::placeholder { color: rgba(255, 255, 255, 0.35); }
+.input::placeholder { color: var(--text-muted); font-weight: 500; }
 
 select.input { cursor: pointer; }
 select option {
@@ -237,21 +247,25 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 
 /* ─── Label ────────────────────────────────────────────────────────────────── */
 .label {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-primary);
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 /* ─── Badges ───────────────────────────────────────────────────────────────── */
 .badge {
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  border: 4px solid var(--border);
+  box-shadow: 2px 2px 0px 0px var(--border);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
@@ -293,18 +307,22 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
    ───────────────────────────────────────────────────────────────────────────── */
 .task-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px 0px var(--border);
+  background: var(--bg-surface);
 }
 
 .task-table th {
-  background: var(--bg-base);
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 10px 16px;
+  padding: 12px 16px;
   text-align: left;
   white-space: nowrap;
   user-select: none;
@@ -312,17 +330,17 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1px solid var(--border);
-  transition: color var(--duration-fast);
+  border-bottom: 4px solid var(--border);
+  transition: background var(--duration-fast);
 }
-.task-table th:hover { color: var(--text-secondary); }
+.task-table th:hover { background: var(--bg-hover); }
 
 .task-table td {
   padding: 12px 16px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   vertical-align: middle;
-  border-bottom: 1px solid var(--border-subtle);
-  transition: color var(--duration-fast);
+  border-bottom: 2px solid var(--border);
+  font-weight: 500;
 }
 
 .task-table tr {
@@ -365,7 +383,7 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 
 .modal-box {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 4px solid var(--border);
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 600px;
@@ -373,7 +391,7 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   overflow-y: auto;
   padding: var(--space-7);
   position: relative;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 16px 16px 0px 0px var(--border);
   animation: slideUp 0.25s var(--ease-out);
 }
 
@@ -383,28 +401,34 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 .pill {
   padding: 6px 14px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
+  border: 4px solid var(--border);
+  box-shadow: 2px 2px 0px 0px var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth);
   white-space: nowrap;
 }
 .pill:hover {
   background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: rgba(255,255,255,0.1);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px 0px var(--border);
+}
+.pill:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px var(--border);
 }
 .pill.active {
   background: var(--text-primary);
-  border-color: var(--text-primary);
   color: var(--bg-base);
 }
 .pill.today {
   border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -412,7 +436,7 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
    ───────────────────────────────────────────────────────────────────────────── */
 .summary-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 4px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   display: flex;
@@ -422,27 +446,25 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: 6px 6px 0px 0px var(--border);
 }
 .summary-card > * {
   z-index: 1;
   position: relative;
 }
 .summary-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: var(--bg-elevated);
+  transform: translateY(-4px);
+  box-shadow: 10px 10px 0px 0px var(--border);
 }
 
 .summary-card.active-inprogress {
-  border-color: var(--inprogress);
-  background: linear-gradient(145deg, rgba(99, 102, 241, 0.06), var(--bg-surface));
+  background: var(--inprogress);
 }
 .summary-card.active-pending {
-  border-color: var(--pending);
-  background: linear-gradient(145deg, rgba(234, 179, 8, 0.06), var(--bg-surface));
+  background: var(--pending);
 }
 .summary-card.active-completed {
-  border-color: var(--completed);
-  background: linear-gradient(145deg, rgba(34, 197, 94, 0.06), var(--bg-surface));
+  background: var(--completed);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -471,7 +493,8 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   width: 520px;
   max-width: 100vw;
   background: var(--bg-base);
-  border-left: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  box-shadow: -8px 0px 0px 0px var(--border);
   z-index: 95;
   display: flex;
   flex-direction: column;
@@ -685,9 +708,10 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 .fu-form {
   padding: 16px;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 4px solid var(--border);
   border-radius: var(--radius-lg);
   margin-bottom: 16px;
+  box-shadow: 4px 4px 0px 0px var(--border);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -895,3 +919,33 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   border-radius: var(--radius-sm);
 }
 
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-left {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out forwards;
+}
+.animate-slide-up {
+  animation: slide-up 0.2s ease-out forwards;
+}
+.animate-slide-left {
+  animation: slide-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

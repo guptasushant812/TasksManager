@@ -39,21 +39,38 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
 
   return (
     <div style={{
-      position: 'absolute',
-      top: 'calc(100% + 4px)',
+      position: 'fixed',
+      top: 0,
       left: 0,
-      zIndex: 50,
-      width: 360,
-    }} className="card animate-slide-down">
-      <div style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h3 style={{ margin: 0, fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>Filter & Sort</h3>
-          <button onClick={onClose} style={{ padding: '4px', cursor: 'pointer', border: 'none', background: 'transparent', color: 'var(--text-muted)' }}>
-            <X style={{ width: 16, height: 16 }} />
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      display: 'flex',
+      justifyContent: 'flex-end',
+      background: 'rgba(0,0,0,0.4)',
+    }} className="animate-fade-in" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      
+      <div style={{
+        width: '100%',
+        maxWidth: 400,
+        background: 'var(--bg-base)',
+        borderLeft: '4px solid var(--border)',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '-8px 0px 0px 0px var(--border)',
+      }} className="animate-slide-left">
+        
+        {/* Header */}
+        <div style={{ padding: '24px', borderBottom: '4px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+          <h3 style={{ margin: 0, fontWeight: 900, fontSize: 18, color: 'var(--text-primary)', textTransform: 'uppercase' }}>Filter & Sort</h3>
+          <button onClick={onClose} style={{ padding: '8px', cursor: 'pointer', border: '4px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', boxShadow: '2px 2px 0px 0px var(--border)' }} className="btn">
+            <X style={{ width: 16, height: 16, strokeWidth: 3 }} />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Content (Scrollable) */}
+        <div style={{ padding: '24px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Priority */}
           <div>
             <label className="label">Priority</label>
@@ -67,19 +84,45 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                     style={{
                       flex: 1,
                       textAlign: 'center',
-                      fontSize: 12,
-                      padding: '6px',
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      padding: '8px',
                       borderRadius: 'var(--radius-sm)',
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                      border: '1px solid',
-                      borderColor: isActive ? 'var(--border)' : 'var(--border-subtle)',
+                      fontWeight: 900,
+                      color: isActive ? '#fff' : 'var(--text-primary)',
+                      background: isActive ? 'var(--text-primary)' : 'var(--bg-surface)',
+                      border: '4px solid var(--border)',
                       transition: 'all 0.1s',
                       cursor: 'pointer',
+                      boxShadow: isActive ? 'none' : '2px 2px 0px 0px var(--border)',
+                      transform: isActive ? 'translate(2px, 2px)' : 'none',
                     }}
-                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-surface)';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(2px, 2px)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
+                    }}
+                    onMouseUp={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
                   >{p}</button>
                 );
               })}
@@ -99,19 +142,45 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                     style={{
                       flex: '1 1 calc(33.333% - 6px)',
                       textAlign: 'center',
-                      fontSize: 12,
-                      padding: '6px',
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      padding: '8px',
                       borderRadius: 'var(--radius-sm)',
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                      border: '1px solid',
-                      borderColor: isActive ? 'var(--border)' : 'var(--border-subtle)',
+                      fontWeight: 900,
+                      color: isActive ? '#fff' : 'var(--text-primary)',
+                      background: isActive ? 'var(--text-primary)' : 'var(--bg-surface)',
+                      border: '4px solid var(--border)',
                       transition: 'all 0.1s',
                       cursor: 'pointer',
+                      boxShadow: isActive ? 'none' : '2px 2px 0px 0px var(--border)',
+                      transform: isActive ? 'translate(2px, 2px)' : 'none',
                     }}
-                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-surface)';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(2px, 2px)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
+                    }}
+                    onMouseUp={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
                   >{s}</button>
                 );
               })}
@@ -170,20 +239,20 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
               <label className="label">Order</label>
               <button
                 className="btn btn-ghost"
-                style={{ width: '100%', height: '35px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: 6 }}
+                style={{ width: '100%', height: '48px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: 6 }}
                 onClick={() => setLocal((l) => ({ ...l, order: l.order === 'asc' ? 'desc' : 'asc' }))}
               >
-                {local.order === 'asc' ? <ArrowUp style={{ width: 14, height: 14 }} /> : <ArrowDown style={{ width: 14, height: 14 }} />}
+                {local.order === 'asc' ? <ArrowUp style={{ width: 14, height: 14, strokeWidth: 3 }} /> : <ArrowDown style={{ width: 14, height: 14, strokeWidth: 3 }} />}
                 {local.order === 'asc' ? 'Asc' : 'Desc'}
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border-subtle)' }}>
-            <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={reset}>Reset</button>
-            <button className="btn btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={apply}>Apply Filters</button>
-          </div>
+        {/* Actions (Sticky at bottom) */}
+        <div style={{ display: 'flex', gap: 16, padding: '24px', borderTop: '4px solid var(--border)', background: 'var(--bg-elevated)' }}>
+          <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={reset}>Reset</button>
+          <button className="btn btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={apply}>Apply Filters</button>
         </div>
       </div>
     </div>

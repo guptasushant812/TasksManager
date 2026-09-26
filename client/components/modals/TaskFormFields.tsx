@@ -156,7 +156,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             value={data.reason}
             onChange={(e) => onChange('reason', e.target.value)}
             rows={2}
-            style={{ resize: 'vertical', borderColor: 'var(--pending)', boxShadow: '0 0 0 1px rgba(245,158,11,0.1)' }}
+            style={{ resize: 'vertical', borderColor: 'var(--pending)' }}
           />
         </div>
       )}
@@ -172,7 +172,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             value={data.remarks}
             onChange={(e) => onChange('remarks', e.target.value)}
             rows={2}
-            style={{ resize: 'vertical', borderColor: 'var(--completed)', boxShadow: '0 0 0 1px rgba(34,197,94,0.1)' }}
+            style={{ resize: 'vertical', borderColor: 'var(--completed)' }}
           />
         </div>
       )}
