@@ -16,61 +16,50 @@
   --space-9: 48px;
   --space-10: 64px;
 
-  /* Surface colors — Hand-Drawn Paper Palette */
-  --bg-base: #fdfbf7;
-  /* Warm Paper */
-  --bg-surface: #ffffff;
-  --bg-elevated: #fdfbf7;
-  --bg-card: #ffffff;
-  --bg-hover: #e5e0d8;
-  /* Old Paper / Erased Pencil */
-  --bg-active: #e5e0d8;
+  /* Surface colors — Botanical / Organic */
+  --bg-base: #F9F8F4;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F9F8F4;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F2F0EB;
+  --bg-active: #DCCFC2;
 
-  /* Border system — Hard Black Strokes */
-  --border: #2d2d2d;
-  /* Pencil Lead */
-  --border-subtle: #e5e0d8;
-  --border-focus: #2d5da1;
-  /* Blue Ballpoint Pen */
+  /* Border system — Delicate & Soft */
+  --border: #E6E2DA;
+  --border-subtle: #F2F0EB;
+  --border-focus: #8C9A84;
 
-  /* Typography — Unapologetic Visibility */
-  --text-primary: #2d2d2d;
-  --text-secondary: #2d2d2d;
-  --text-muted: rgba(45, 45, 45, 0.7);
+  /* Typography — Forest Greens */
+  --text-primary: #2D3A31;
+  --text-secondary: #2D3A31;
+  --text-muted: rgba(45, 58, 49, 0.7);
 
   /* Accent colors */
-  --accent: #ff4d4d;
-  /* Red Correction Marker */
-  --accent-hover: #ff3333;
-  --accent-subtle: #2d5da1;
-  --accent-glow: #2d2d2d;
+  --accent: #8C9A84;
+  --accent-hover: #C27B66;
+  --accent-subtle: #DCCFC2;
+  --accent-glow: #2D3A31;
 
-  /* Semantic colors */
-  --high: #ff4d4d;
-  --high-bg: #ffffff;
+  /* Semantic colors (Muted natural tones) */
+  --high: #C27B66;
+  --high-bg: #FFFFFF;
+  --medium: #DCCFC2;
+  --medium-bg: #FFFFFF;
+  --low: #8C9A84;
+  --low-bg: #FFFFFF;
+  --inprogress: #8C9A84;
+  --inprogress-bg: #FFFFFF;
+  --pending: #DCCFC2;
+  --pending-bg: #FFFFFF;
+  --completed: #8C9A84;
+  --completed-bg: #FFFFFF;
 
-  --medium: #ff9900;
-  --medium-bg: #ffffff;
-
-  --low: #22c55e;
-  --low-bg: #ffffff;
-
-  --inprogress: #2d5da1;
-  --inprogress-bg: #ffffff;
-
-  --pending: #ff9900;
-  --pending-bg: #ffffff;
-
-  --completed: #22c55e;
-  --completed-bg: #ffffff;
-
-  /* Radii — Hand-drawn wobbly */
-  --radius-sm: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  --radius-md: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  --radius-lg: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  --radius-xl: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  /* Radii — Botanical Curves */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 40px;
   --radius-full: 999px;
-  /* Only for pills/circles */
 
   /* Transitions — Mechanical & snappy */
   --ease-out: linear;
@@ -149,7 +138,7 @@
 }
 
 html {
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-source-sans), sans-serif;
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -157,6 +146,17 @@ html {
   font-size: 16px;
   line-height: 1.5;
   font-weight: 400;
+}
+
+html:not(.dark)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 html h1,
@@ -340,41 +340,47 @@ h6 {
   background: #ff4d4d;
 }
 
-/* Hand-Drawn Light Mode Button Overrides */
+/* Botanical Light Mode Button Overrides */
 html:not(.dark) .btn {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 18px;
-  border-width: 3px;
+  font-family: var(--font-source-sans), sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: var(--radius-full);
+  border: none;
+  box-shadow: none;
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 4px 4px 0px 0px var(--border);
-  transform: translate(0, 0);
+  transform: none;
+  transition: all 500ms ease-out;
+  padding: 12px 24px;
 }
-html:not(.dark) .btn:hover {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 2px 2px 0px 0px var(--border);
-  transform: translate(2px, 2px);
+html:not(.dark) .btn-primary {
+  background: var(--text-primary);
+  color: #FFFFFF;
 }
-html:not(.dark) .btn:active {
-  box-shadow: 0px 0px 0px 0px var(--border);
-  transform: translate(4px, 4px);
+html:not(.dark) .btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 html:not(.dark) .btn-ghost {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
 }
 html:not(.dark) .btn-ghost:hover {
-  background: var(--accent-subtle);
-  color: #fff;
+  background: var(--accent);
+  color: #FFFFFF;
 }
 html:not(.dark) .btn-danger {
-  background: var(--bg-surface);
-  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--high);
+  color: var(--high);
 }
 html:not(.dark) .btn-danger:hover {
-  background: var(--accent);
-  color: #fff;
+  background: var(--high);
+  color: #FFFFFF;
 }
 
 /* Cyberpunk Dark Mode Button Overrides */
@@ -448,15 +454,20 @@ html:not(.dark) .btn-danger:hover {
 }
 
 html:not(.dark) .input {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 18px;
-  border-width: 3px;
-  background: var(--bg-surface);
+  font-family: var(--font-source-sans), sans-serif;
+  font-size: 16px;
+  border-width: 1px;
+  border-color: var(--border);
+  background: var(--bg-card);
+  border-radius: var(--radius-full);
+  padding: 14px 20px;
+  box-shadow: none;
+  font-weight: 400;
 }
 html:not(.dark) .input:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(45, 93, 161, 0.2);
-  background: var(--bg-surface);
+  box-shadow: 0 0 0 2px rgba(140, 154, 132, 0.2);
+  background: var(--bg-card);
 }
 
 .input:focus {
@@ -506,6 +517,18 @@ textarea.input {
   border: 4px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: 4px 4px 0px 0px var(--border);
+}
+
+html:not(.dark) .card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  background: var(--bg-card);
+  transition: all 500ms ease-out;
+}
+html:not(.dark) .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
 }
 
 .dark .card {
@@ -561,10 +584,11 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 html:not(.dark) .label {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 16px;
-  font-weight: 700;
+  font-family: var(--font-source-sans), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   text-transform: none;
+  color: var(--text-muted);
 }
 
 /* ─── Badges ───────────────────────────────────────────────────────────────── */
@@ -583,12 +607,16 @@ html:not(.dark) .label {
 }
 
 html:not(.dark) .badge {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 14px;
-  border-width: 2px;
+  font-family: var(--font-source-sans), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
   box-shadow: none;
-  font-weight: 700;
-  text-transform: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .badge-high {
