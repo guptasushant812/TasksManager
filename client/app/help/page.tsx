@@ -106,43 +106,63 @@ export default function HelpCenterPage() {
           </section>
 
           {/* FAQ */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)', marginBottom: 16 }}>FAQ</h2>
+          <section style={{ marginBottom: 64, marginTop: 40 }}>
+            <h2 style={{ fontSize: 36, fontWeight: 900, textAlign: 'center', letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: 40 }}>Frequently asked questions</h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 800, margin: '0 auto' }}>
               {FAQS.map((faq, i) => {
                 const isOpen = openFaq === i;
                 return (
-                  <div key={i} className="card" style={{
+                  <div key={i} style={{
+                    background: 'var(--bg-surface)',
+                    border: '4px solid var(--border)',
+                    boxShadow: '4px 4px 0px 0px var(--border)',
                     overflow: 'hidden',
-                    borderColor: isOpen ? 'rgba(99,102,241,0.3)' : undefined,
-                    transition: 'border-color 0.15s',
+                    transition: 'all 0.2s',
                   }}>
                     <button
                       onClick={() => setOpenFaq(isOpen ? null : i)}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '12px 16px', background: 'transparent', border: 'none',
+                        padding: '20px 24px', background: 'var(--bg-surface)', border: 'none',
                         cursor: 'pointer', textAlign: 'left',
-                        color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        fontSize: 13, fontWeight: 500,
+                        color: 'var(--text-primary)',
                       }}
                     >
-                      <span>{faq.q}</span>
-                      {isOpen ? <ChevronDown style={{ width: 16, height: 16, flexShrink: 0 }} /> : <ChevronRight style={{ width: 16, height: 16, flexShrink: 0, color: 'var(--text-muted)' }} />}
+                      <span style={{ fontSize: 18, fontWeight: 800 }}>{faq.q}</span>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        border: '4px solid var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: isOpen ? 'var(--accent)' : 'var(--bg-surface)',
+                        color: isOpen ? '#fff' : 'var(--text-primary)',
+                        flexShrink: 0,
+                        transition: 'background 0.2s'
+                      }}>
+                        {isOpen ? (
+                          <span style={{ fontSize: 24, lineHeight: 1, fontWeight: 900, marginTop: -2 }}>-</span>
+                        ) : (
+                          <span style={{ fontSize: 24, lineHeight: 1, fontWeight: 900, marginTop: -2 }}>+</span>
+                        )}
+                      </div>
                     </button>
 
                     <div style={{
-                      maxHeight: isOpen ? 200 : 0,
+                      maxHeight: isOpen ? 500 : 0,
                       opacity: isOpen ? 1 : 0,
-                      padding: isOpen ? '0 16px 14px' : '0 16px',
-                      transition: 'all 0.2s var(--ease-smooth)',
+                      background: 'rgba(0,0,0,0.03)',
+                      transition: 'all 0.3s ease-out',
                       overflow: 'hidden',
-                      color: 'var(--text-muted)',
-                      fontSize: 13,
-                      lineHeight: 1.6,
                     }}>
-                      {faq.a}
+                      <div style={{
+                        padding: '0px 24px 24px 24px',
+                        color: 'var(--text-muted)',
+                        fontSize: 16,
+                        lineHeight: 1.6,
+                        fontWeight: 600,
+                      }}>
+                        {faq.a}
+                      </div>
                     </div>
                   </div>
                 );
