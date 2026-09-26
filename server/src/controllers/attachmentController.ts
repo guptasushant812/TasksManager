@@ -34,8 +34,8 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
       });
       await attachment.save();
       const attObj = attachment.toObject();
-      delete attObj.data;
-      attachments.push(attObj);
+      const { data, ...rest } = attObj;
+      attachments.push(rest);
     }
 
     res.status(201).json(attachments);

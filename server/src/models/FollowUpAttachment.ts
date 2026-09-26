@@ -7,7 +7,7 @@ export interface IFollowUpAttachment extends Document {
   storedName?: string;
   mimeType: string;
   sizeBytes: number;
-  data: Buffer;
+  data?: Buffer;
   createdAt: Date;
   updatedAt: Date;
 }
