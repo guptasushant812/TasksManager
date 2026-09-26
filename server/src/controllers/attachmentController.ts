@@ -28,12 +28,14 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
         followUpId,
         taskId,
         originalName: file.originalname,
-        storedName: file.filename,
         mimeType: file.mimetype,
         sizeBytes: file.size,
+        data: file.buffer,
       });
       await attachment.save();
-      attachments.push(attachment);
+      const attObj = attachment.toObject();
+      delete attObj.data;
+      attachments.push(attObj);
     }
 
     res.status(201).json(attachments);
@@ -45,7 +47,7 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
 export async function listAttachments(req: Request, res: Response, next: NextFunction) {
   try {
     const { followUpId } = req.params;
-    const attachments = await FollowUpAttachment.find({ followUpId }).sort({ createdAt: 1 }).lean();
+    const attachments = await FollowUpAttachment.find({ followUpId }).select('-data').sort({ createdAt: 1 }).lean();
     res.json({ data: attachments });
   } catch (err) {
     next(err);
@@ -61,15 +63,20 @@ export async function downloadAttachment(req: Request, res: Response, next: Next
       return;
     }
 
-    const filePath = path.join(uploadDir, attachment.storedName);
-    if (!fs.existsSync(filePath)) {
-      res.status(404).json({ error: 'File not found on disk' });
-      return;
+    if (attachment.data) {
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${attachment.originalName}"`);
+      res.send(attachment.data);
+    } else {
+      const filePath = path.join(uploadDir, attachment.storedName || '');
+      if (!fs.existsSync(filePath)) {
+        res.status(404).json({ error: 'File not found on disk or database' });
+        return;
+      }
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${attachment.originalName}"`);
+      res.sendFile(filePath);
     }
-
-    res.setHeader('Content-Type', attachment.mimeType);
-    res.setHeader('Content-Disposition', `inline; filename="${attachment.originalName}"`);
-    res.sendFile(filePath);
   } catch (err) {
     next(err);
   }
@@ -84,9 +91,11 @@ export async function deleteAttachment(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const filePath = path.join(uploadDir, attachment.storedName);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    if (attachment.storedName) {
+      const filePath = path.join(uploadDir, attachment.storedName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
 
     res.json({ message: 'Attachment deleted' });
