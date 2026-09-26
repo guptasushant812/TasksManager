@@ -10,8 +10,8 @@ interface SummaryCardsProps {
 
 const CARDS: { key: WorkStatus; label: string; varName: string; activeClass: string }[] = [
   { key: 'InProgress', label: 'In Progress', varName: '--inprogress', activeClass: 'active-inprogress' },
-  { key: 'Pending',    label: 'Pending',     varName: '--pending',    activeClass: 'active-pending' },
-  { key: 'Completed',  label: 'Completed',   varName: '--completed',  activeClass: 'active-completed' },
+  { key: 'Pending', label: 'Pending', varName: '--pending', activeClass: 'active-pending' },
+  { key: 'Completed', label: 'Completed', varName: '--completed', activeClass: 'active-completed' },
 ];
 
 export default function SummaryCards({ summary, loading, activeStatus, onStatusClick }: SummaryCardsProps) {
@@ -24,13 +24,13 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
           const color = `var(${varName})`;
           const count = key === 'InProgress' ? summary.inProgress
             : key === 'Pending' ? summary.pending
-            : summary.completed;
+              : summary.completed;
 
           return (
             <div
               key={key}
               id={`summary-card-${key.toLowerCase()}`}
-              className={`summary-card hd-rotate hd-tape ${isActive ? activeClass : ''}`}
+              className={`summary-card ${isActive ? activeClass : ''}`}
               onClick={() => onStatusClick(isActive ? '' : key)}
               role="button"
               tabIndex={0}
@@ -92,7 +92,7 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
       {/* Secondary metrics row */}
       {(summary.overdueFollowUps !== undefined || summary.escalatedTasks !== undefined) && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div className="summary-card hd-rotate hd-tape-alt" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Overdue Follow-Ups</span>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Awaiting response</div>
@@ -101,7 +101,7 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
               {summary.overdueFollowUps || 0}
             </span>
           </div>
-          <div className="summary-card hd-rotate hd-tape-alt" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Escalated</span>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Exceeding threshold</div>
