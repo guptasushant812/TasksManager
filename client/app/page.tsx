@@ -62,7 +62,7 @@ export default function DashboardPage() {
             </h2>
           </div>
           
-          <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'visible' }}>
             {/* We reuse the TaskTable component which automatically syncs with the context filters */}
             <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
           </div>
