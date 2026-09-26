@@ -3,6 +3,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import Header from '@/components/layout/Header';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import CascadingFilterNav from '@/components/dashboard/CascadingFilterNav';
+import TaskTable from '@/components/tasks/TaskTable';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -14,7 +15,8 @@ export default function DashboardPage() {
     summaryLoading,
     handleTaskCreated,
     availableYears,
-    handleStatusClick
+    handleStatusClick,
+    refreshKey
   } = useTaskContext();
 
   return (
@@ -33,6 +35,15 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        {/* Time Filters */}
+        <section>
+          <CascadingFilterNav
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            availableYears={availableYears}
+          />
+        </section>
+
         {/* Summary metrics */}
         <section>
           <SummaryCards
@@ -43,9 +54,19 @@ export default function DashboardPage() {
           />
         </section>
 
-
-
-        {/* Action — clear next step */}
+        {/* Tasks Overview */}
+        <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
+              Tasks Overview {filters.status ? `(${filters.status})` : ''}
+            </h2>
+          </div>
+          
+          <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+            {/* We reuse the TaskTable component which automatically syncs with the context filters */}
+            <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
+          </div>
+        </section>        {/* Action — clear next step */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Link href="/tasks" style={{ textDecoration: 'none' }}>
             <button className="btn btn-primary" style={{ fontSize: 13, padding: '8px 16px' }}>
