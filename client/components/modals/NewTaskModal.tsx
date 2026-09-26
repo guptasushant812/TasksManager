@@ -21,7 +21,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       <div className="modal-box animate-slide-up" style={{ maxWidth: mode ? 700 : 500, padding: 0 }}>
         
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '4px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+        <div style={{ padding: '20px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {mode === null && 'Create New Task'}
@@ -68,8 +68,8 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 style={{
                   padding: '32px 24px', cursor: 'pointer', textAlign: 'center',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  border: '4px solid var(--border)', background: 'var(--bg-surface)',
-                  boxShadow: '4px 4px 0px 0px var(--border)',
+                  border: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-surface)',
+                  boxShadow: 'var(--box-shadow-brutalist)',
                   transition: 'all 0.1s ease'
                 }}
                 onMouseEnter={(e) => {
@@ -80,7 +80,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'var(--bg-surface)';
                   e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                 }}
                 onMouseDown={(e) => {
                   e.currentTarget.style.transform = 'translate(4px, 4px)';
@@ -91,7 +91,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
                 }}
               >
-                <div style={{ background: 'var(--text-primary)', padding: 12, borderRadius: 0, border: '4px solid var(--border)', color: 'var(--bg-base)' }}>
+                <div style={{ background: 'var(--text-primary)', padding: 12, borderRadius: 0, border: 'var(--border-width-layout) solid var(--border)', color: 'var(--bg-base)' }}>
                   <PenLine style={{ width: 32, height: 32 }} />
                 </div>
                 <div>
@@ -132,7 +132,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
                 }}
               >
-                <div style={{ background: 'var(--accent)', padding: 12, borderRadius: 0, border: '4px solid var(--border)', color: '#fff' }}>
+                <div style={{ background: 'var(--accent)', padding: 12, borderRadius: 0, border: 'var(--border-width-layout) solid var(--border)', color: '#fff' }}>
                   <Sparkles style={{ width: 32, height: 32 }} />
                 </div>
                 <div>

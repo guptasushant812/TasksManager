@@ -57,8 +57,8 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           background: 'var(--bg-surface)',
-          borderRight: '4px solid var(--border)',
-          boxShadow: '4px 0px 0px 0px var(--border)',
+          borderRight: 'var(--border-width-layout) solid var(--border)',
+          boxShadow: 'var(--box-shadow-brutalist)',
         }}
       >
         {/* Brand */}
@@ -67,21 +67,21 @@ export default function Sidebar() {
           padding: '0 20px',
           display: 'flex',
           alignItems: 'center',
-          borderBottom: '4px solid var(--border)',
+          borderBottom: 'var(--border-width-layout) solid var(--border)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 32,
               height: 32,
               background: 'var(--accent)',
-              border: '4px solid var(--border)',
+              border: 'var(--border-width-layout) solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 16,
               fontWeight: 900,
               color: '#000',
-              boxShadow: '2px 2px 0px 0px var(--border)',
+              boxShadow: 'var(--box-shadow-brutalist-sm)',
             }}>
               T
             </div>
@@ -121,15 +121,15 @@ export default function Sidebar() {
                     fontSize: 14,
                     textTransform: 'uppercase',
                     transition: 'all 0.1s',
-                    border: '4px solid var(--border)',
-                    boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
+                    border: 'var(--border-width-layout) solid var(--border)',
+                    boxShadow: isActive ? 'var(--box-shadow-brutalist)' : 'none',
                     transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-hover)';
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -146,7 +146,7 @@ export default function Sidebar() {
                     onMouseUp={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}>
                     <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />
@@ -159,7 +159,7 @@ export default function Sidebar() {
         </div>
 
         {/* Bottom nav */}
-        <div style={{ padding: '24px 16px', borderTop: '4px solid var(--border)' }}>
+        <div style={{ padding: '24px 16px', borderTop: 'var(--border-width-layout) solid var(--border)' }}>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {BOTTOM_ITEMS.map((item) => {
               const isActive = pathname === item.href;
@@ -177,15 +177,15 @@ export default function Sidebar() {
                     fontSize: 14,
                     textTransform: 'uppercase',
                     transition: 'all 0.1s',
-                    border: '4px solid var(--border)',
-                    boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
+                    border: 'var(--border-width-layout) solid var(--border)',
+                    boxShadow: isActive ? 'var(--box-shadow-brutalist)' : 'none',
                     transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-hover)';
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -202,7 +202,7 @@ export default function Sidebar() {
                     onMouseUp={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}>
                     <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />

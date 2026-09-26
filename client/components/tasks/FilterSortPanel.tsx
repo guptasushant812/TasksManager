@@ -54,7 +54,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
         width: '100%',
         maxWidth: 400,
         background: 'var(--bg-base)',
-        borderLeft: '4px solid var(--border)',
+        borderLeft: 'var(--border-width-layout) solid var(--border)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -62,9 +62,9 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
       }} className="animate-slide-left">
         
         {/* Header */}
-        <div style={{ padding: '24px', borderBottom: '4px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+        <div style={{ padding: '24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: 0, fontWeight: 900, fontSize: 18, color: 'var(--text-primary)', textTransform: 'uppercase' }}>Filter & Sort</h3>
-          <button onClick={onClose} style={{ padding: '8px', cursor: 'pointer', border: '4px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', boxShadow: '2px 2px 0px 0px var(--border)' }} className="btn">
+          <button onClick={onClose} style={{ padding: '8px', cursor: 'pointer', border: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', boxShadow: 'var(--box-shadow-brutalist-sm)' }} className="btn">
             <X style={{ width: 16, height: 16, strokeWidth: 3 }} />
           </button>
         </div>
@@ -91,24 +91,24 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                       fontWeight: 900,
                       color: isActive ? '#fff' : 'var(--text-primary)',
                       background: isActive ? 'var(--text-primary)' : 'var(--bg-surface)',
-                      border: '4px solid var(--border)',
+                      border: 'var(--border-width-layout) solid var(--border)',
                       transition: 'all 0.1s',
                       cursor: 'pointer',
-                      boxShadow: isActive ? 'none' : '2px 2px 0px 0px var(--border)',
+                      boxShadow: isActive ? 'none' : 'var(--box-shadow-brutalist-sm)',
                       transform: isActive ? 'translate(2px, 2px)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-hover)';
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-surface)';
                         e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
                       }
                     }}
                     onMouseDown={(e) => {
@@ -120,7 +120,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                     onMouseUp={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                   >{p}</button>
@@ -149,24 +149,24 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                       fontWeight: 900,
                       color: isActive ? '#fff' : 'var(--text-primary)',
                       background: isActive ? 'var(--text-primary)' : 'var(--bg-surface)',
-                      border: '4px solid var(--border)',
+                      border: 'var(--border-width-layout) solid var(--border)',
                       transition: 'all 0.1s',
                       cursor: 'pointer',
-                      boxShadow: isActive ? 'none' : '2px 2px 0px 0px var(--border)',
+                      boxShadow: isActive ? 'none' : 'var(--box-shadow-brutalist-sm)',
                       transform: isActive ? 'translate(2px, 2px)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-hover)';
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.background = 'var(--bg-surface)';
                         e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
                       }
                     }}
                     onMouseDown={(e) => {
@@ -178,7 +178,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                     onMouseUp={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                       }
                     }}
                   >{s}</button>
@@ -250,7 +250,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
         </div>
 
         {/* Actions (Sticky at bottom) */}
-        <div style={{ display: 'flex', gap: 16, padding: '24px', borderTop: '4px solid var(--border)', background: 'var(--bg-elevated)' }}>
+        <div style={{ display: 'flex', gap: 16, padding: '24px', borderTop: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-elevated)' }}>
           <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={reset}>Reset</button>
           <button className="btn btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={apply}>Apply Filters</button>
         </div>
