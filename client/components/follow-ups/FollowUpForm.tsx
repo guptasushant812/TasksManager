@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FollowUp, FollowUpFormData, FollowUpMethod, FOLLOW_UP_METHODS } from '@/types/followUp';
 import { toIsoDate } from '@/lib/dates';
 import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3 } from 'lucide-react';
@@ -44,6 +44,13 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Ensure state is perfectly synced if editingFollowUp changes while form is open
+  // (or during local dev Fast Refresh)
+  useEffect(() => {
+    setExistingAttachments(editingFollowUp?.attachments || []);
+    setRemovedAttachmentIds([]);
+  }, [editingFollowUp]);
 
   function handleChange(field: keyof FollowUpFormData, value: string) {
     setData((d) => ({ ...d, [field]: value }));
