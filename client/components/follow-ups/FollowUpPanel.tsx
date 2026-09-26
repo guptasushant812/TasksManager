@@ -16,7 +16,7 @@ interface FollowUpPanelProps {
 }
 
 export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUpPanelProps) {
-  const { followUps, loading, error, fetchFollowUps, createFollowUp, updateFollowUp, deleteFollowUp, uploadAttachments } = useFollowUps(task._id);
+  const { followUps, loading, error, fetchFollowUps, createFollowUp, updateFollowUp, deleteFollowUp, uploadAttachments, deleteAttachment } = useFollowUps(task._id);
   const [showForm, setShowForm] = useState(false);
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FollowUp | null>(null);
