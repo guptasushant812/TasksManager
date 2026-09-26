@@ -274,8 +274,8 @@ export default function SettingsPage() {
                       className="input"
                       style={{ width: '100%', fontSize: 14, padding: '8px 36px 8px 12px' }}
                       onChange={(e) => {
-                        const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
-                        current.password = e.target.value || 'TasksManager2026@';
+                        const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":900000}');
+                        current.password = e.target.value || 'Sushant2026@';
                         localStorage.setItem('securityConfig', JSON.stringify(current));
                         window.dispatchEvent(new Event('storage'));
                       }}
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                     className="input"
                     style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
                     onChange={(e) => {
-                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":300000}');
+                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
                       current.timeoutMs = parseInt(e.target.value);
                       localStorage.setItem('securityConfig', JSON.stringify(current));
                       window.dispatchEvent(new Event('storage'));

@@ -20,13 +20,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          password: parsed.password || 'TasksManager2026@',
+          password: parsed.password || 'Sushant2026@',
           timeoutMs: parsed.timeoutMs || 300000
         };
       }
     } catch (e) {}
     // default 5 minutes = 300000 ms
-    return { password: 'TasksManager2026@', timeoutMs: 300000 };
+    return { password: 'Sushant2026@', timeoutMs: 300000 };
   };
 
   useEffect(() => {
