@@ -159,6 +159,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
 
         {showForm && (
           <FollowUpForm
+            key={editingFollowUp ? editingFollowUp._id : 'new'}
             defaultContactPerson={task.contactPerson || ''}
             editingFollowUp={editingFollowUp}
             onSave={handleSave}
