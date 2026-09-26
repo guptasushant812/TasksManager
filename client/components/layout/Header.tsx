@@ -5,6 +5,7 @@ import NewTaskModal from '../modals/NewTaskModal';
 import ShareModal from '../modals/ShareModal';
 import { ChevronRight, Bell, Plus, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface HeaderProps {
   filters: TaskFilters;
@@ -158,34 +159,35 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   { label: 'Settings', href: '/settings' },
                   { label: 'Logout', href: '#' },
                 ].map((item) => (
-                  <button
-                    key={item.label}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      width: '100%',
-                      padding: '8px 12px',
-                      background: 'transparent',
-                      border: 'none',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                      color: item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)',
-                      fontSize: 13,
-                      fontWeight: 400,
-                      textAlign: 'left',
-                      transition: 'all 0.1s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)';
-                    }}
-                  >
-                    {item.label}
-                  </button>
+                  <Link key={item.label} href={item.href} onClick={() => setProfileOpen(false)} style={{ textDecoration: 'none' }}>
+                    <button
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: '100%',
+                        padding: '8px 12px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                        color: item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)',
+                        fontSize: 13,
+                        fontWeight: 400,
+                        textAlign: 'left',
+                        transition: 'all 0.1s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                        e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)';
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  </Link>
                 ))}
               </div>
             )}
