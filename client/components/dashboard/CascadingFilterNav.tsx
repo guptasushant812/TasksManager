@@ -50,7 +50,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         display: 'flex',
         alignItems: 'center',
         padding: '16px 20px',
-        borderBottom: '4px solid var(--border)',
+        borderBottom: 'var(--border-width-layout) solid var(--border)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <select
@@ -59,7 +59,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             aria-label="Select year"
             style={{
               background: 'var(--bg-surface)',
-              border: '4px solid var(--border)',
+              border: 'var(--border-width-layout) solid var(--border)',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--text-primary)',
               fontSize: 16,
@@ -67,7 +67,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               outline: 'none',
               cursor: 'pointer',
               fontWeight: 900,
-              boxShadow: '4px 4px 0px 0px var(--border)',
+              boxShadow: 'var(--box-shadow-brutalist)',
             }}
           >
             {[...availableYears].sort((a, b) => b - a).map((y) => (
@@ -83,7 +83,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
           aria-pressed={!filters.month}
           style={{
             background: !filters.month ? 'var(--text-primary)' : 'var(--bg-surface)',
-            border: '4px solid var(--border)',
+            border: 'var(--border-width-layout) solid var(--border)',
             fontSize: 14,
             fontWeight: 900,
             textTransform: 'uppercase',
@@ -94,21 +94,21 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             transition: 'all 0.1s',
             whiteSpace: 'nowrap',
             flexShrink: 0,
-            boxShadow: !filters.month ? 'none' : '2px 2px 0px 0px var(--border)',
+            boxShadow: !filters.month ? 'none' : 'var(--box-shadow-brutalist-sm)',
             transform: !filters.month ? 'translate(2px, 2px)' : 'none',
           }}
           onMouseEnter={(e) => {
             if (filters.month) {
               e.currentTarget.style.background = 'var(--bg-hover)';
               e.currentTarget.style.transform = 'translate(-2px, -2px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
             }
           }}
           onMouseLeave={(e) => {
             if (filters.month) {
               e.currentTarget.style.background = 'var(--bg-surface)';
               e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
             }
           }}
           onMouseDown={(e) => {
@@ -120,7 +120,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
           onMouseUp={(e) => {
             if (filters.month) {
               e.currentTarget.style.transform = 'translate(-2px, -2px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
             }
           }}
         >
@@ -137,7 +137,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               aria-pressed={isSelected}
               style={{
                 background: isSelected ? 'var(--text-primary)' : 'var(--bg-surface)',
-                border: '4px solid var(--border)',
+                border: 'var(--border-width-layout) solid var(--border)',
                 fontSize: 14,
                 fontWeight: 900,
                 textTransform: 'uppercase',
@@ -148,21 +148,21 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                 transition: 'all 0.1s',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                boxShadow: isSelected ? 'none' : '2px 2px 0px 0px var(--border)',
+                boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
                 transform: isSelected ? 'translate(2px, 2px)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.background = 'var(--bg-hover)';
                   e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.background = 'var(--bg-surface)';
                   e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
                 }
               }}
               onMouseDown={(e) => {
@@ -174,7 +174,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               onMouseUp={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                 }
               }}
             >
@@ -186,7 +186,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
 
       {/* ── Weeks (Progressive disclosure) ─────────────────────────── */}
       {filters.month && (
-        <div className="animate-slide-down" style={{ borderTop: '4px solid var(--border)' }}>
+        <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)' }}>
           <div style={{ padding: '12px 20px 0' }}>
             <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Select a Week (Optional)
@@ -205,7 +205,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                   aria-pressed={isSelected}
                   style={{
                     background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
-                    border: '4px solid var(--border)',
+                    border: 'var(--border-width-layout) solid var(--border)',
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
                     display: 'flex',
@@ -217,7 +217,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                     color: isSelected ? '#fff' : 'var(--text-primary)',
                     transition: 'all 0.1s',
                     flexShrink: 0,
-                    boxShadow: isSelected ? 'none' : '4px 4px 0px 0px var(--border)',
+                    boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist)',
                     transform: isSelected ? 'translate(4px, 4px)' : 'none',
                   }}
                   onMouseEnter={(e) => {
@@ -229,7 +229,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'none';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                     }
                   }}
                   onMouseDown={(e) => {
@@ -256,7 +256,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
 
       {/* ── Days (deepest drill-down) ──────────────────────────────── */}
       {selectedWeek && (
-        <div className="animate-slide-down" style={{ borderTop: '4px solid var(--border)', padding: '16px 20px', background: 'var(--bg-hover)' }}>
+        <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)', padding: '16px 20px', background: 'var(--bg-hover)' }}>
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {selectedWeek.days.map((day) => {
               const iso = toIsoDate(day);
@@ -271,7 +271,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                   aria-pressed={isSelected}
                   style={{
                     background: isSelected ? 'var(--text-primary)' : 'var(--bg-surface)',
-                    border: '4px solid var(--border)',
+                    border: 'var(--border-width-layout) solid var(--border)',
                     padding: '8px 12px',
                     borderRadius: 'var(--radius-md)',
                     display: 'flex',
@@ -283,21 +283,21 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                     transition: 'all 0.1s',
                     minWidth: 56,
                     flexShrink: 0,
-                    boxShadow: isSelected ? 'none' : '2px 2px 0px 0px var(--border)',
+                    boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
                     transform: isSelected ? 'translate(2px, 2px)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.background = 'var(--bg-hover)';
                       e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.background = 'var(--bg-surface)';
                       e.currentTarget.style.transform = 'none';
-                      e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
                     }
                   }}
                   onMouseDown={(e) => {
@@ -309,7 +309,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                   onMouseUp={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
                     }
                   }}
                 >

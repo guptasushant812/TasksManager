@@ -187,7 +187,7 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
       onClick={onClick}
       style={{
         background: 'var(--bg-surface)',
-        border: '4px solid var(--border)',
+        border: 'var(--border-width-layout) solid var(--border)',
         borderRadius: 'var(--radius-sm)',
         padding: 4,
         cursor: 'pointer',
@@ -196,7 +196,7 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '2px 2px 0px 0px var(--border)',
+        boxShadow: 'var(--box-shadow-brutalist-sm)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = hoverColor || 'var(--bg-hover)';
@@ -212,7 +212,7 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
       }}
       onMouseUp={(e) => {
         e.currentTarget.style.transform = 'translate(0, 0)';
-        e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
       }}
     >
       {icon}

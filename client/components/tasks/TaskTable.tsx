@@ -308,7 +308,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '16px',
-            borderTop: '4px solid var(--border)',
+            borderTop: 'var(--border-width-layout) solid var(--border)',
             fontSize: 14, color: 'var(--text-primary)', fontWeight: 700
           }}>
             <span>
@@ -392,7 +392,7 @@ function PaginationBtn({ children, active, disabled, onClick }: { children: Reac
       style={{
         background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
         color: active ? 'var(--bg-base)' : 'var(--text-primary)',
-        border: '4px solid var(--border)',
+        border: 'var(--border-width-layout) solid var(--border)',
         borderRadius: 'var(--radius-sm)',
         minWidth: 32, height: 32,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -401,21 +401,21 @@ function PaginationBtn({ children, active, disabled, onClick }: { children: Reac
         transition: 'all 0.1s',
         opacity: disabled ? 0.3 : 1,
         padding: '0 4px',
-        boxShadow: active || disabled ? 'none' : '2px 2px 0px 0px var(--border)',
+        boxShadow: active || disabled ? 'none' : 'var(--box-shadow-brutalist-sm)',
         transform: active || disabled ? 'translate(2px, 2px)' : 'none',
       }}
       onMouseEnter={(e) => {
         if (!active && !disabled) {
           e.currentTarget.style.background = 'var(--bg-hover)';
           e.currentTarget.style.transform = 'translate(-2px, -2px)';
-          e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
         }
       }}
       onMouseLeave={(e) => {
         if (!active && !disabled) {
           e.currentTarget.style.background = 'var(--bg-surface)';
           e.currentTarget.style.transform = 'none';
-          e.currentTarget.style.boxShadow = '2px 2px 0px 0px var(--border)';
+          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
         }
       }}
       onMouseDown={(e) => {
@@ -427,7 +427,7 @@ function PaginationBtn({ children, active, disabled, onClick }: { children: Reac
       onMouseUp={(e) => {
         if (!active && !disabled) {
           e.currentTarget.style.transform = 'translate(-2px, -2px)';
-          e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
         }
       }}
     >

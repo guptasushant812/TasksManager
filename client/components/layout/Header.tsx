@@ -43,7 +43,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     <>
       <header style={{
         height: 64,
-        borderBottom: '4px solid var(--border)',
+        borderBottom: 'var(--border-width-layout) solid var(--border)',
         background: 'var(--bg-surface)',
         position: 'sticky',
         top: 0,
@@ -85,7 +85,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             aria-label="Notifications"
             style={{
               background: 'var(--bg-surface)',
-              border: '4px solid var(--border)',
+              border: 'var(--border-width-layout) solid var(--border)',
               cursor: 'pointer',
               padding: 8,
               borderRadius: 'var(--radius-sm)',
@@ -93,12 +93,12 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '4px 4px 0px 0px var(--border)',
+              boxShadow: 'var(--box-shadow-brutalist)',
               transition: 'all 0.1s',
             }}
             onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
           >
             <Bell style={{ width: 18, height: 18, strokeWidth: 3 }} />
           </button>
@@ -114,7 +114,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 height: 40,
                 borderRadius: 'var(--radius-sm)',
                 background: 'var(--medium)',
-                border: '4px solid var(--border)',
+                border: 'var(--border-width-layout) solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -122,12 +122,12 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 fontWeight: 900,
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
-                boxShadow: '4px 4px 0px 0px var(--border)',
+                boxShadow: 'var(--box-shadow-brutalist)',
                 transition: 'all 0.1s',
               }}
               onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
             >
               SG
             </button>
@@ -142,9 +142,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   zIndex: 50,
                   width: 240,
                   background: 'var(--bg-surface)',
-                  border: '4px solid var(--border)',
+                  border: 'var(--border-width-layout) solid var(--border)',
                   borderRadius: 'var(--radius-md)',
-                  boxShadow: '8px 8px 0px 0px var(--border)',
+                  boxShadow: 'var(--box-shadow-brutalist)',
                   overflow: 'hidden',
                   padding: '12px',
                 }}
