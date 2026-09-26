@@ -14,7 +14,7 @@ const TABS = [
 
 export default function SettingsPage() {
   const { filters, handleTaskCreated } = useTaskContext();
-  const [activeTab, setActiveTab] = useState('escalation');
+  const [activeTab, setActiveTab] = useState('general');
 
   const { settings, updateSettings, loading } = useEscalation();
   const [isSaving, setIsSaving] = useState(false);
@@ -180,7 +180,73 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab !== 'escalation' && (
+          {activeTab === 'general' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>General Preferences</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.5 }}>
+                  Manage global application settings and aesthetics.
+                </p>
+              </div>
+
+              <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Theme Toggle */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                      Application Theme
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      Choose between Light (Neo-Brutalist) and Dark (Cyberpunk) modes.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', background: 'var(--bg-elevated)', border: '4px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+                    <button
+                      onClick={() => {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.theme = 'light';
+                      }}
+                      style={{
+                        padding: '6px 16px',
+                        border: 'none',
+                        background: 'transparent',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        color: 'var(--text-primary)',
+                        borderRight: '4px solid var(--border)',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      LIGHT
+                    </button>
+                    <button
+                      onClick={() => {
+                        document.documentElement.classList.add('dark');
+                        localStorage.theme = 'dark';
+                      }}
+                      style={{
+                        padding: '6px 16px',
+                        border: 'none',
+                        background: 'transparent',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        color: 'var(--text-primary)'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      DARK
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab !== 'escalation' && activeTab !== 'general' && (
             <div className="animate-fade-in card" style={{ padding: '40px', textAlign: 'center' }}>
               <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Coming Soon</p>
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>This section is under development.</p>
