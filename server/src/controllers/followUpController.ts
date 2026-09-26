@@ -21,7 +21,7 @@ export async function listFollowUps(req: Request, res: Response, next: NextFunct
       .lean();
 
     const followUpIds = followUps.map((fu) => fu._id);
-    const attachments = await mongoose.model('FollowUpAttachment').find({ followUpId: { $in: followUpIds } }).lean();
+    const attachments = await mongoose.model('FollowUpAttachment').find({ followUpId: { $in: followUpIds } }).select('-data').lean();
     
     const attachmentsByFollowUp = attachments.reduce((acc: Record<string, any[]>, att) => {
       const fuId = att.followUpId.toString();
