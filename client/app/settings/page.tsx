@@ -282,6 +282,44 @@ export default function SettingsPage() {
 
                 <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
+                {/* Auth Timeout */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                      Session Timeout
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      Lock the application after a period of inactivity or when you leave.
+                    </div>
+                  </div>
+                  <select
+                    className="input"
+                    style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
+                    onChange={(e) => {
+                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":300000}');
+                      current.timeoutMs = parseInt(e.target.value);
+                      localStorage.setItem('securityConfig', JSON.stringify(current));
+                      window.dispatchEvent(new Event('storage'));
+                    }}
+                    defaultValue={
+                      (() => {
+                        try {
+                          const conf = JSON.parse(localStorage.getItem('securityConfig') || '{}');
+                          return conf.timeoutMs || 300000;
+                        } catch(e) { return 300000; }
+                      })()
+                    }
+                  >
+                    <option value="300000">5 minutes (Default)</option>
+                    <option value="600000">10 minutes</option>
+                    <option value="900000">15 minutes</option>
+                    <option value="1800000">30 minutes</option>
+                    <option value="3600000">1 hour</option>
+                  </select>
+                </div>
+
+                <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
                 {/* Lock Application */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>

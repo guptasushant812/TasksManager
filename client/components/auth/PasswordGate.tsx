@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
@@ -17,24 +17,63 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem('securityConfig');
       if (stored) return JSON.parse(stored);
     } catch (e) {}
-    return { password: 'TasksManager2026@' };
+    // default 5 minutes = 300000 ms
+    return { password: 'TasksManager2026@', timeoutMs: 300000 };
   };
 
   useEffect(() => {
+    // Throttled activity tracker
+    let lastUpdate = Date.now();
+    const updateActivity = () => {
+      const now = Date.now();
+      if (now - lastUpdate > 5000) { // only write to localStorage every 5s max
+        localStorage.setItem('lastActiveTime', now.toString());
+        lastUpdate = now;
+      }
+    };
+
+    window.addEventListener('mousemove', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('mousedown', updateActivity);
+    window.addEventListener('touchstart', updateActivity);
+
     const checkAuth = () => {
-      const lockedState = localStorage.getItem('isAppLocked');
-      // Default to locked if it's the very first visit (null)
-      if (lockedState === 'true' || lockedState === null) {
+      // Manual explicit lock takes precedence
+      if (localStorage.getItem('isAppLocked') === 'true') {
         setIsLocked(true);
+        setLoading(false);
+        return;
+      }
+
+      const { timeoutMs } = getConfig();
+      const lastActive = localStorage.getItem('lastActiveTime');
+      
+      if (lastActive) {
+        const timePassed = Date.now() - parseInt(lastActive);
+        if (timePassed > timeoutMs) {
+          setIsLocked(true);
+          localStorage.setItem('isAppLocked', 'true'); // lock it formally
+        } else {
+          setIsLocked(false);
+        }
       } else {
-        setIsLocked(false);
+        // First visit ever
+        setIsLocked(true);
+        localStorage.setItem('isAppLocked', 'true');
       }
       setLoading(false);
     };
 
     checkAuth();
-    const interval = setInterval(checkAuth, 1000); // Check every second for manual locks
-    return () => clearInterval(interval);
+    const interval = setInterval(checkAuth, 2000); 
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('mousemove', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('mousedown', updateActivity);
+      window.removeEventListener('touchstart', updateActivity);
+    };
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,6 +81,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     const { password: correctPassword } = getConfig();
     if (password === correctPassword) {
       localStorage.setItem('isAppLocked', 'false');
+      localStorage.setItem('lastActiveTime', Date.now().toString());
       setIsLocked(false);
       setError(false);
       setPassword('');
