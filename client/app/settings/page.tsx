@@ -246,7 +246,74 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab !== 'escalation' && activeTab !== 'general' && (
+          {activeTab === 'security' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Security Configuration</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.5 }}>
+                  Manage access control and authentication timeouts.
+                </p>
+              </div>
+
+              <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Auth Password */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                      Master Password
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      Set the password required to access the application.
+                    </div>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="New password..."
+                    className="input"
+                    style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
+                    onChange={(e) => {
+                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
+                      current.password = e.target.value || 'TasksManager2026@';
+                      localStorage.setItem('securityConfig', JSON.stringify(current));
+                      window.dispatchEvent(new Event('storage'));
+                    }}
+                  />
+                </div>
+
+                <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+                {/* Auth Timeout */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                      Session Timeout
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                      How long until the application locks automatically.
+                    </div>
+                  </div>
+                  <select
+                    className="input"
+                    style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
+                    onChange={(e) => {
+                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
+                      current.timeoutMs = parseInt(e.target.value);
+                      localStorage.setItem('securityConfig', JSON.stringify(current));
+                      window.dispatchEvent(new Event('storage'));
+                    }}
+                  >
+                    <option value="5000">5 seconds (Testing)</option>
+                    <option value="600000">10 minutes</option>
+                    <option value="900000">15 minutes</option>
+                    <option value="1800000">30 minutes</option>
+                    <option value="3600000">1 hour</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab !== 'escalation' && activeTab !== 'general' && activeTab !== 'security' && (
             <div className="animate-fade-in card" style={{ padding: '40px', textAlign: 'center' }}>
               <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Coming Soon</p>
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>This section is under development.</p>
