@@ -321,27 +321,36 @@ h6 {
   background: #ff4d4d;
 }
 
-/* Professional Light Mode Button Overrides */
+/* Premium Floating Light Mode Button Overrides */
 html:not(.dark) .btn {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  border: 1px solid var(--border);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   background: var(--bg-surface);
   color: var(--text-primary);
   transform: none;
-  transition: all 150ms ease-in-out;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 10px 20px;
 }
 html:not(.dark) .btn-primary {
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent) 0%, #1d4ed8 100%);
+  border: 1px solid #1e40af;
   color: #FFFFFF;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 html:not(.dark) .btn-primary:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+  background: linear-gradient(180deg, #3b82f6 0%, var(--accent) 100%);
+  border-color: var(--accent);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
 }
 html:not(.dark) .btn-ghost {
   background: transparent;
@@ -436,18 +445,19 @@ html:not(.dark) .btn-danger:hover {
 html:not(.dark) .input {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  border-width: 1px;
-  border-color: var(--border);
+  border: 1px solid var(--border);
   background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
   font-weight: 500;
-  transition: all 150ms ease-in-out;
+  transition: all 250ms ease;
 }
 html:not(.dark) .input:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-subtle);
+  border-color: var(--accent);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.01),
+    0 0 0 3px var(--accent-subtle);
   background: var(--bg-surface);
 }
 
@@ -501,15 +511,23 @@ textarea.input {
 }
 
 html:not(.dark) .card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 4px 10px -2px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.03);
   background: var(--bg-card);
-  transition: all 150ms ease-in-out;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 html:not(.dark) .card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  transform: none;
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 10px 20px -5px rgba(37, 99, 235, 0.15),
+    0 4px 8px -2px rgba(37, 99, 235, 0.1);
 }
 
 .dark .card {
