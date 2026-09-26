@@ -110,7 +110,7 @@ export default function Sidebar() {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div style={{
+                  <div className="hd-rotate" style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-sm)',
                     display: 'flex',
@@ -166,7 +166,7 @@ export default function Sidebar() {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div style={{
+                  <div className="hd-rotate" style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-sm)',
                     display: 'flex',

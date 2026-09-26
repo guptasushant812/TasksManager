@@ -54,6 +54,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <select
+            className="hd-rotate"
             value={filters.year || ''}
             onChange={handleYearChange}
             aria-label="Select year"
@@ -79,6 +80,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
 
       <div style={{ padding: '16px 20px', display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none' }}>
         <button
+          className="hd-rotate"
           onClick={() => handleMonthSelect('')}
           aria-pressed={!filters.month}
           style={{
@@ -133,6 +135,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
           return (
             <button
               key={month}
+              className="hd-rotate"
               onClick={() => handleMonthSelect(monthNum)}
               aria-pressed={isSelected}
               style={{
@@ -201,6 +204,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               return (
                 <button
                   key={week.index}
+                  className="hd-rotate"
                   onClick={() => handleWeekSelect(week.index, week.start, week.end)}
                   aria-pressed={isSelected}
                   style={{
@@ -267,6 +271,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               return (
                 <button
                   key={iso}
+                  className="hd-rotate"
                   onClick={() => handleDaySelect(iso)}
                   aria-pressed={isSelected}
                   style={{

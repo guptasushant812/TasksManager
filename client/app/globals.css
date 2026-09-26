@@ -662,6 +662,46 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   HAND-DRAWN LAYOUT MODIFIERS (LIGHT MODE ONLY)
+   ───────────────────────────────────────────────────────────────────────────── */
+html:not(.dark) .hd-rotate {
+  rotate: -1deg;
+}
+html:not(.dark) .hd-rotate-even:nth-child(even),
+html:not(.dark) .hd-rotate:nth-child(even) {
+  rotate: 1.5deg;
+}
+html:not(.dark) .hd-rotate:hover {
+  rotate: -2deg;
+}
+html:not(.dark) .hd-rotate:nth-child(even):hover {
+  rotate: 2.5deg;
+}
+
+html:not(.dark) .hd-tape {
+  position: relative;
+}
+html:not(.dark) .hd-tape::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 70px;
+  height: 22px;
+  background: rgba(220, 220, 210, 0.7);
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  z-index: 10;
+  border-radius: 2px;
+  pointer-events: none;
+}
+html:not(.dark) .hd-tape-alt::after {
+  transform: translateX(-50%) rotate(2deg);
+  background: rgba(210, 220, 220, 0.7);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    FOLLOW-UP PANEL (slide-over)
    ───────────────────────────────────────────────────────────────────────────── */
 @keyframes slideInRight {
