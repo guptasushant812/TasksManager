@@ -103,7 +103,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   return (
     <div>
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
         <SearchBar value={searchInput} onChange={setSearchInput} />
 
         <div ref={filterRef} style={{ position: 'relative' }}>

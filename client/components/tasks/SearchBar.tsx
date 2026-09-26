@@ -8,7 +8,7 @@ interface SearchBarProps {
 
 export default function SearchBar({ value, onChange }: SearchBarProps) {
   return (
-    <div style={{ position: 'relative', flex: 1 }}>
+    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
       <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', width: 16, height: 16, pointerEvents: 'none' }} />
       <input
         id="task-search"

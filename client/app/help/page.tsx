@@ -43,7 +43,7 @@ export default function HelpCenterPage() {
 
         {/* Hero */}
         <section style={{
-          padding: '48px 32px 56px',
+          padding: 'clamp(32px, 5vw, 48px) clamp(16px, 4vw, 32px) clamp(36px, 6vw, 56px)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
           borderBottom: '1px solid var(--border-subtle)',
         }}>
@@ -72,7 +72,7 @@ export default function HelpCenterPage() {
           </div>
         </section>
 
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 clamp(12px, 3vw, 32px)' }}>
 
           {/* Categories */}
           <section style={{ marginTop: 32, marginBottom: 40 }}>

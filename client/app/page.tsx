@@ -23,11 +23,11 @@ export default function DashboardPage() {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main style={{ padding: '32px 32px 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <main style={{ padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 32px)' }}>
         
         {/* Page header — clear hierarchy, purposeful */}
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 4px 0', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 700, margin: '0 0 4px 0', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             Dashboard
           </h1>
           <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13 }}>
