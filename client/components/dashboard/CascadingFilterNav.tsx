@@ -77,7 +77,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         </div>
       </div>
 
-      <div style={{ padding: '16px 20px', display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none' }}>
+      <div style={{ padding: '16px 20px', display: 'flex', flexWrap: 'wrap', gap: 12 }}>
         <button
           onClick={() => handleMonthSelect('')}
           aria-pressed={!filters.month}
@@ -193,7 +193,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, padding: '16px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, padding: '16px 20px 24px' }}>
             {weeks.map((week) => {
               const isSelected = filters.weekIndex === week.index;
               const dateRange = `${formatDate(week.start)} – ${formatDate(week.end)}`;
@@ -257,7 +257,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
       {/* ── Days (deepest drill-down) ──────────────────────────────── */}
       {selectedWeek && (
         <div className="animate-slide-down" style={{ borderTop: '4px solid var(--border)', padding: '16px 20px', background: 'var(--bg-hover)' }}>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {selectedWeek.days.map((day) => {
               const iso = toIsoDate(day);
               const isSelected = filters.day === iso;
