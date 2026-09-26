@@ -11,27 +11,23 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Default config
-  const [config, setConfig] = useState({
-    password: 'TasksManager2026@',
-    timeoutMs: 15 * 60 * 1000 // 15 mins
-  });
-
-  useEffect(() => {
-    const storedConfig = localStorage.getItem('securityConfig');
-    if (storedConfig) {
-      try {
-        setConfig(JSON.parse(storedConfig));
-      } catch (e) {}
-    }
-  }, []);
+  // Helper to get fresh config
+  const getConfig = () => {
+    try {
+      const stored = localStorage.getItem('securityConfig');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return { password: 'TasksManager2026@', timeoutMs: 15 * 60 * 1000 };
+  };
 
   useEffect(() => {
     const checkAuth = () => {
       const authTime = localStorage.getItem('authTime');
+      const { timeoutMs } = getConfig();
+      
       if (authTime) {
         const timePassed = Date.now() - parseInt(authTime);
-        if (timePassed < config.timeoutMs) {
+        if (timePassed < timeoutMs) {
           setIsAuthenticated(true);
         } else {
           // Expired. Check if user is busy with a modal or typing.
@@ -52,22 +48,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     checkAuth();
     const interval = setInterval(checkAuth, 2000); // Check every 2 seconds
     return () => clearInterval(interval);
-  }, [config.timeoutMs]);
-
-  // Update config listener if changed from settings
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'securityConfig' && e.newValue) {
-        setConfig(JSON.parse(e.newValue));
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === config.password) {
+    const { password: correctPassword } = getConfig();
+    if (password === correctPassword) {
       localStorage.setItem('authTime', Date.now().toString());
       setIsAuthenticated(true);
       setError(false);
