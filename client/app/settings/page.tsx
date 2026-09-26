@@ -282,32 +282,32 @@ export default function SettingsPage() {
 
                 <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
-                {/* Auth Timeout */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                {/* Lock Application */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
-                      Session Timeout
+                      Lock Application
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      How long until the application locks automatically.
+                      Manually lock the app right now. You will need the master password to unlock.
                     </div>
                   </div>
-                  <select
-                    className="input"
-                    style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
-                    onChange={(e) => {
-                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
-                      current.timeoutMs = parseInt(e.target.value);
-                      localStorage.setItem('securityConfig', JSON.stringify(current));
+                  <button
+                    className="btn"
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--high)',
+                      borderColor: 'var(--high)',
+                      padding: '8px 16px',
+                      fontSize: 14,
+                    }}
+                    onClick={() => {
+                      localStorage.setItem('isAppLocked', 'true');
                       window.dispatchEvent(new Event('storage'));
                     }}
                   >
-                    <option value="5000">5 seconds (Testing)</option>
-                    <option value="600000">10 minutes</option>
-                    <option value="900000">15 minutes</option>
-                    <option value="1800000">30 minutes</option>
-                    <option value="3600000">1 hour</option>
-                  </select>
+                    Lock Now
+                  </button>
                 </div>
               </div>
             </div>
