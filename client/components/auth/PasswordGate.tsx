@@ -6,7 +6,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isPublic = pathname?.startsWith('/status');
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -17,36 +17,23 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem('securityConfig');
       if (stored) return JSON.parse(stored);
     } catch (e) {}
-    return { password: 'TasksManager2026@', timeoutMs: 15 * 60 * 1000 };
+    return { password: 'TasksManager2026@' };
   };
 
   useEffect(() => {
     const checkAuth = () => {
-      const authTime = localStorage.getItem('authTime');
-      const { timeoutMs } = getConfig();
-      
-      if (authTime) {
-        const timePassed = Date.now() - parseInt(authTime);
-        if (timePassed < timeoutMs) {
-          setIsAuthenticated(true);
-        } else {
-          // Expired. Check if user is busy with a modal or typing.
-          const isBusy = !!document.querySelector('.modal-overlay') || 
-                         document.activeElement?.tagName === 'INPUT' || 
-                         document.activeElement?.tagName === 'TEXTAREA';
-          if (isBusy) {
-            return; // Delay lockout
-          }
-          setIsAuthenticated(false);
-        }
+      const lockedState = localStorage.getItem('isAppLocked');
+      // Default to locked if it's the very first visit (null)
+      if (lockedState === 'true' || lockedState === null) {
+        setIsLocked(true);
       } else {
-        setIsAuthenticated(false);
+        setIsLocked(false);
       }
       setLoading(false);
     };
 
     checkAuth();
-    const interval = setInterval(checkAuth, 2000); // Check every 2 seconds
+    const interval = setInterval(checkAuth, 1000); // Check every second for manual locks
     return () => clearInterval(interval);
   }, []);
 
@@ -54,8 +41,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     e.preventDefault();
     const { password: correctPassword } = getConfig();
     if (password === correctPassword) {
-      localStorage.setItem('authTime', Date.now().toString());
-      setIsAuthenticated(true);
+      localStorage.setItem('isAppLocked', 'false');
+      setIsLocked(false);
       setError(false);
       setPassword('');
     } else {
@@ -72,7 +59,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     );
   }
   
-  if (isAuthenticated) return <>{children}</>;
+  if (!isLocked) return <>{children}</>;
 
   return (
     <div style={{
