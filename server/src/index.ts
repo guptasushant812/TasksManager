@@ -33,7 +33,7 @@ app.use('/api/export', exportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/escalations', escalationRoutes);
 app.use('/api/public', publicRoutes);
-app.get('/api/attachments/:id/download/:filename?', downloadAttachment);
+app.get('/api/f/:id/:filename?', downloadAttachment);
 
 // Health check
 app.get('/api/health', (_req, res) => {

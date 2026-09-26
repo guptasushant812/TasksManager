@@ -103,16 +103,27 @@ export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: Fo
             <div className="fu-field">
               <span className="fu-field-label">Attachments</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                {followUp.attachments.map(att => (
-                  <a
-                    key={att._id}
-                    href={`/api/attachments/${att._id}/download/${encodeURIComponent(att.originalName)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '4px 10px', background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                {followUp.attachments.map(att => {
+                  // Create a clean, professional URL slug (MNC style)
+                  const parts = att.originalName.split('.');
+                  let ext = parts.length > 1 ? parts.pop()?.toLowerCase() : '';
+                  // Fix double extensions (e.g. .jpg.jpeg -> .jpeg)
+                  if (parts.length > 0 && (parts[parts.length - 1].toLowerCase() === 'jpg' || parts[parts.length - 1].toLowerCase() === 'png')) {
+                    if (ext === 'jpeg' || ext === 'jpg') { parts.pop(); ext = 'jpg'; }
+                  }
+                  const base = parts.join('-').replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+                  const cleanName = ext ? `${base}.${ext}` : base;
+
+                  return (
+                    <a
+                      key={att._id}
+                      href={`/api/f/${att._id}/${cleanName}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '4px 10px', background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
                       fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none',
                       transition: 'all 0.15s'
                     }}
@@ -123,7 +134,8 @@ export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: Fo
                     <Paperclip style={{ width: 12, height: 12 }} />
                     {att.originalName}
                   </a>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
