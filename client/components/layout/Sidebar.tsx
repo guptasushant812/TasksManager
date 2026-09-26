@@ -49,9 +49,8 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-[70] transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-[70] transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
         style={{
           width: 'var(--sidebar-width)',
           height: '100vh',
@@ -110,7 +109,7 @@ export default function Sidebar() {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div className="hd-rotate" style={{
+                  <div style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-sm)',
                     display: 'flex',
@@ -126,30 +125,30 @@ export default function Sidebar() {
                     boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
                     transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = 'var(--bg-surface)';
-                      e.currentTarget.style.transform = 'none';
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-surface)';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'translate(2px, 2px)';
                       e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.transform = 'translate(2px, 2px)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                  onMouseUp={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
-                    }
-                  }}>
+                    }}
+                    onMouseUp={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}>
                     <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />
                     {item.label}
                   </div>
@@ -166,7 +165,7 @@ export default function Sidebar() {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div className="hd-rotate" style={{
+                  <div style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-sm)',
                     display: 'flex',
@@ -182,30 +181,30 @@ export default function Sidebar() {
                     boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
                     transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = 'var(--bg-surface)';
-                      e.currentTarget.style.transform = 'none';
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'var(--bg-surface)';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'translate(2px, 2px)';
                       e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.transform = 'translate(2px, 2px)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                  onMouseUp={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
-                    }
-                  }}>
+                    }}
+                    onMouseUp={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                        e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                      }
+                    }}>
                     <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />
                     {item.label}
                   </div>
