@@ -106,7 +106,7 @@ export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: Fo
                 {followUp.attachments.map(att => (
                   <a
                     key={att._id}
-                    href={`http://localhost:4000/api/attachments/${att._id}/download`}
+                    href={`/api/attachments/${att._id}/download`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
