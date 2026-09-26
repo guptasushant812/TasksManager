@@ -34,7 +34,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
   const nextFollowUpDate = latestActive?.nextFollowUpDate;
   const isOverdue = nextFollowUpDate && new Date(nextFollowUpDate) < new Date() && task.workStatus !== 'Completed';
 
-  const handleSave = useCallback(async (data: FollowUpFormData, files: File[]) => {
+  const handleSave = useCallback(async (data: FollowUpFormData, files: File[], removedAttachmentIds: string[] = []) => {
     let savedFollowUp: FollowUp;
     if (editingFollowUp) {
       savedFollowUp = await updateFollowUp(editingFollowUp._id, data);
@@ -46,11 +46,17 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
       await uploadAttachments(savedFollowUp._id, files);
     }
 
+    if (removedAttachmentIds && removedAttachmentIds.length > 0) {
+      for (const attId of removedAttachmentIds) {
+        await deleteAttachment(savedFollowUp._id, attId);
+      }
+    }
+
     setShowForm(false);
     setEditingFollowUp(null);
     await fetchFollowUps();
     onTaskUpdated?.();
-  }, [editingFollowUp, createFollowUp, updateFollowUp, uploadAttachments, fetchFollowUps, onTaskUpdated]);
+  }, [editingFollowUp, createFollowUp, updateFollowUp, uploadAttachments, deleteAttachment, fetchFollowUps, onTaskUpdated]);
 
   function handleEdit(fu: FollowUp) {
     setEditingFollowUp(fu);
