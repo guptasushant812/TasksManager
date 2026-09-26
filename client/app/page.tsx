@@ -62,10 +62,8 @@ export default function DashboardPage() {
             </h2>
           </div>
           
-          <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'visible' }}>
-            {/* We reuse the TaskTable component which automatically syncs with the context filters */}
-            <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
-          </div>
+          {/* We reuse the TaskTable component which automatically syncs with the context filters */}
+          <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
         </section>        {/* Action — clear next step */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Link href="/tasks" style={{ textDecoration: 'none' }}>
