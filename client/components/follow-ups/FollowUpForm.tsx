@@ -7,7 +7,7 @@ import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3 } from 'lucide-react'
 interface FollowUpFormProps {
   defaultContactPerson: string;
   editingFollowUp?: FollowUp | null;
-  onSave: (data: FollowUpFormData, files: File[]) => Promise<void>;
+  onSave: (data: FollowUpFormData, files: File[], removedAttachmentIds: string[]) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -39,6 +39,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
   const [showMore, setShowMore] = useState(
     isEditing && (!!data.notes || !!data.nextAction || !!data.nextFollowUpDate)
   );
+  const [existingAttachments, setExistingAttachments] = useState(editingFollowUp?.attachments || []);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -51,7 +53,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      if (files.length + newFiles.length > 5) {
+      if (existingAttachments.length + files.length + newFiles.length > 5) {
         setErrors((errs) => ({ ...errs, files: 'Maximum 5 files allowed' }));
         return;
       }
@@ -64,6 +66,12 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function removeExistingFile(index: number) {
+    const attToRemove = existingAttachments[index];
+    setRemovedAttachmentIds(prev => [...prev, attToRemove._id]);
+    setExistingAttachments(prev => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit() {
     const errs: Record<string, string> = {};
     if (!data.communicated.trim()) errs.communicated = 'What you communicated is required';
@@ -73,7 +81,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
 
     setSaving(true);
     try {
-      await onSave(data, files);
+      await onSave(data, files, removedAttachmentIds);
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
@@ -188,26 +196,79 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           <div>
             <label className="label">Attachments (Max 5)</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {files.map((file, i) => (
-                <div key={i} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)', fontSize: 12
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                    <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+              {/* Existing Attachments */}
+              {existingAttachments.map((att, i) => {
+                const isImage = att.mimeType.startsWith('image/');
+                const parts = att.originalName.split('.');
+                let ext = parts.length > 1 ? parts.pop()?.toLowerCase() : '';
+                const base = parts.join('-').replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+                const cleanName = ext ? `${base}.${ext}` : base;
+                const fileUrl = `/api/f/${att._id}/${cleanName}`;
+
+                return (
+                  <div key={att._id} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)', fontSize: 12
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                      {isImage ? (
+                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                          <img src={fileUrl} alt={att.originalName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.originalName}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 11 }}>View</a>
+                      <button
+                        type="button"
+                        onClick={() => removeExistingFile(i)}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
+                      >
+                        <X style={{ width: 14, height: 14 }} />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(i)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
-                  >
-                    <X style={{ width: 14, height: 14 }} />
-                  </button>
-                </div>
-              ))}
-              {files.length < 5 && (
+                );
+              })}
+
+              {/* New Files */}
+              {files.map((file, i) => {
+                const isImage = file.type.startsWith('image/');
+                const previewUrl = isImage ? URL.createObjectURL(file) : null;
+                
+                return (
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px dashed var(--accent)',
+                    borderRadius: 'var(--radius-md)', fontSize: 12
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                      {previewUrl ? (
+                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                          <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name} (New)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(i)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
+                    >
+                      <X style={{ width: 14, height: 14 }} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* Add File Button */}
+              {(existingAttachments.length + files.length) < 5 && (
                 <label style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   padding: '12px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
