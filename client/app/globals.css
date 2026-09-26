@@ -16,54 +16,54 @@
   --space-9: 48px;
   --space-10: 64px;
 
-  /* Surface colors — High Saturation Light Mode Palette */
-  --bg-base: #FFFDF5; /* Cream */
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FFFDF5;
-  --bg-card: #FFFFFF;
-  --bg-hover: #FFD93D; /* Vivid Yellow */
-  --bg-active: #FFD93D;
+  /* Surface colors — Hand-Drawn Paper Palette */
+  --bg-base: #fdfbf7; /* Warm Paper */
+  --bg-surface: #ffffff;
+  --bg-elevated: #fdfbf7;
+  --bg-card: #ffffff;
+  --bg-hover: #e5e0d8; /* Old Paper / Erased Pencil */
+  --bg-active: #e5e0d8;
 
   /* Border system — Hard Black Strokes */
-  --border: #000000;
-  --border-subtle: #000000;
-  --border-focus: #000000;
+  --border: #2d2d2d; /* Pencil Lead */
+  --border-subtle: #e5e0d8;
+  --border-focus: #2d5da1; /* Blue Ballpoint Pen */
 
   /* Typography — Unapologetic Visibility */
-  --text-primary: #000000;
-  --text-secondary: #000000;
-  --text-muted: rgba(0, 0, 0, 0.7);
+  --text-primary: #2d2d2d;
+  --text-secondary: #2d2d2d;
+  --text-muted: rgba(45, 45, 45, 0.7);
 
   /* Accent colors */
-  --accent: #FF6B6B; /* Hot Red */
-  --accent-hover: #FF4F4F;
-  --accent-subtle: #C4B5FD; /* Soft Violet */
-  --accent-glow: #000000;
+  --accent: #ff4d4d; /* Red Correction Marker */
+  --accent-hover: #ff3333;
+  --accent-subtle: #2d5da1;
+  --accent-glow: #2d2d2d;
 
   /* Semantic colors */
-  --high: #FF6B6B;
-  --high-bg: #FFFFFF;
+  --high: #ff4d4d;
+  --high-bg: #ffffff;
 
-  --medium: #FFD93D;
-  --medium-bg: #FFFFFF;
+  --medium: #ff9900;
+  --medium-bg: #ffffff;
 
   --low: #22c55e;
-  --low-bg: #FFFFFF;
+  --low-bg: #ffffff;
 
-  --inprogress: #C4B5FD;
-  --inprogress-bg: #FFFFFF;
+  --inprogress: #2d5da1;
+  --inprogress-bg: #ffffff;
 
-  --pending: #FFD93D;
-  --pending-bg: #FFFFFF;
+  --pending: #ff9900;
+  --pending-bg: #ffffff;
 
   --completed: #22c55e;
-  --completed-bg: #FFFFFF;
+  --completed-bg: #ffffff;
 
-  /* Radii — Default is 0px (sharp) */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  /* Radii — Hand-drawn wobbly */
+  --radius-sm: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-md: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-lg: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-xl: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --radius-full: 999px; /* Only for pills/circles */
 
   /* Transitions — Mechanical & snappy */
@@ -127,6 +127,12 @@
   --box-shadow-neon-lg: 0 0 10px #00ff88, 0 0 20px #00ff8860, 0 0 40px #00ff8830;
   --box-shadow-neon-secondary: 0 0 5px #ff00ff, 0 0 20px #ff00ff60;
   --box-shadow-neon-tertiary: 0 0 5px #00d4ff, 0 0 20px #00d4ff60;
+
+  /* Reset Radii to sharp for Cyberpunk */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 }
 
 /* ─── Global Reset & Theming ───────────────────────────────────────────────── */
@@ -137,14 +143,24 @@
 }
 
 html {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Patrick Hand', cursive;
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
+  font-weight: 400;
+}
+
+html h1, html h2, html h3, html h4, html h5, html h6 {
+  font-family: 'Kalam', cursive;
   font-weight: 700;
+}
+
+body:not(.dark) {
+  background-image: radial-gradient(#e5e0d8 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
 }
 
 /* Cyberpunk Dark Mode Font & Overlay */
