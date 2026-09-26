@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
-import { Settings as SettingsIcon, AlertTriangle, Bell, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, AlertTriangle, Bell, Shield, Eye, EyeOff } from 'lucide-react';
 
 const TABS = [
   { id: 'general', label: 'General', icon: SettingsIcon },
@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const { settings, updateSettings, loading } = useEscalation();
   const [isSaving, setIsSaving] = useState(false);
   const [localSettings, setLocalSettings] = useState({ enabled: false, threshold: 3 });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -266,18 +267,30 @@ export default function SettingsPage() {
                       Set the password required to access the application.
                     </div>
                   </div>
-                  <input
-                    type="password"
-                    placeholder="New password..."
-                    className="input"
-                    style={{ width: 200, fontSize: 14, padding: '8px 12px' }}
-                    onChange={(e) => {
-                      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
-                      current.password = e.target.value || 'TasksManager2026@';
-                      localStorage.setItem('securityConfig', JSON.stringify(current));
-                      window.dispatchEvent(new Event('storage'));
-                    }}
-                  />
+                  <div style={{ position: 'relative', width: 200 }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="New password..."
+                      className="input"
+                      style={{ width: '100%', fontSize: 14, padding: '8px 36px 8px 12px' }}
+                      onChange={(e) => {
+                        const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"TasksManager2026@","timeoutMs":900000}');
+                        current.password = e.target.value || 'TasksManager2026@';
+                        localStorage.setItem('securityConfig', JSON.stringify(current));
+                        window.dispatchEvent(new Event('storage'));
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                        background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ height: 1, background: 'var(--border-subtle)' }} />
