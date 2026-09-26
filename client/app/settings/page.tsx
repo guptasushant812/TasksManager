@@ -38,10 +38,10 @@ export default function SettingsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main style={{ flex: 1, padding: '32px 32px 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', gap: 40 }}>
+      <main style={{ flex: 1, padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', gap: 'clamp(20px, 4vw, 40px)', flexWrap: 'wrap' }}>
 
         {/* Settings navigation */}
-        <aside style={{ width: 200, flexShrink: 0 }}>
+        <aside style={{ width: 200, flexShrink: 0, minWidth: 'min(200px, 100%)' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 20px 0', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             Settings
           </h1>

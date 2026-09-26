@@ -693,9 +693,125 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 /* ─────────────────────────────────────────────────────────────────────────────
    RESPONSIVE
    ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Sidebar toggle visibility — pure CSS, no Tailwind dependency ────────── */
+/* The Sidebar component uses Tailwind classes (lg:hidden, lg:relative etc.)
+   which may not compile if Tailwind isn't fully configured. These rules serve
+   as a safety net and also add mobile-specific refinements. */
+
+@media (max-width: 1023px) {
+  /* Ensure the main content area doesn't reserve space for sidebar */
+  body > div > div:last-child,
+  body > [data-nextjs-scroll-focus-boundary] > div > div:last-child {
+    margin-left: 0 !important;
+  }
+}
+
+/* ── Smallest screens: ≤ 480px ───────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Hide breadcrumb prefix on very small screens */
+  .breadcrumb-prefix {
+    display: none !important;
+  }
+}
+
+/* ── Mobile: ≤ 640px ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  /* Follow-Up Panel — full screen on mobile */
   .fu-panel {
     width: 100vw;
+  }
+
+  /* Modal — tighter padding, full width */
+  .modal-overlay {
+    padding: var(--space-3);
+    align-items: flex-end;
+  }
+  .modal-box {
+    max-width: 100%;
+    max-height: 92vh;
+    padding: var(--space-5);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  /* Summary cards — single column stack */
+  .summary-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Task table — enable horizontal scroll, keep readable */
+  .task-table {
+    font-size: 12px;
+  }
+  .task-table th {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+  .task-table td {
+    padding: 10px 10px;
+  }
+
+  /* Pill buttons — smaller on mobile */
+  .pill {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  /* Buttons — slightly smaller */
+  .btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* Input — slightly smaller */
+  .input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  /* Follow-up entry header — stack on mobile */
+  .fu-entry-header {
+    flex-wrap: wrap;
+  }
+  .fu-entry-actions {
+    opacity: 1;
+  }
+
+  /* Follow-up form */
+  .fu-form {
+    padding: 12px;
+  }
+
+  /* Task actions — always visible on mobile (no hover) */
+  .task-actions {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Small-medium tablets & large phones: 641px–768px ────────────────────── */
+@media (max-width: 768px) {
+  .modal-box {
+    max-width: 100%;
+    max-height: 90vh;
+  }
+
+  /* Summary cards — 2 columns */
+  .summary-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── Tablets portrait: ≤ 1024px ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .fu-panel {
+    width: min(520px, 100vw);
+  }
+}
+
+/* ── Large desktop: ≥ 1440px ─────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .modal-box {
+    max-width: 680px;
   }
 }
 
@@ -778,3 +894,4 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   animation: shimmer 2s infinite linear;
   border-radius: var(--radius-sm);
 }
+

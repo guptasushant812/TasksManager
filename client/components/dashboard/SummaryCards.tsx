@@ -18,7 +18,7 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Primary metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div className="summary-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {CARDS.map(({ key, label, varName, activeClass }) => {
           const isActive = activeStatus === key;
           const color = `var(${varName})`;

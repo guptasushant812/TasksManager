@@ -50,13 +50,14 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
+        padding: '0 clamp(12px, 3vw, 24px)',
+        gap: 8,
       }}>
         {/* Breadcrumb */}
-        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 13 }} aria-label="Breadcrumb">
-          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>TasksManager</span>
-          <ChevronRight style={{ width: 14, height: 14, margin: '0 6px', color: 'var(--text-muted)', opacity: 0.5 }} />
-          <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{getPageName()}</span>
+        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 13, minWidth: 0, overflow: 'hidden' }} aria-label="Breadcrumb">
+          <span className="breadcrumb-prefix" style={{ color: 'var(--text-muted)', fontWeight: 400, whiteSpace: 'nowrap' }}>TasksManager</span>
+          <ChevronRight className="breadcrumb-prefix" style={{ width: 14, height: 14, margin: '0 6px', color: 'var(--text-muted)', opacity: 0.5, flexShrink: 0 }} />
+          <span style={{ color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap' }}>{getPageName()}</span>
         </nav>
 
         {/* Actions */}

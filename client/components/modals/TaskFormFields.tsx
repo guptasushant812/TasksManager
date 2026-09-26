@@ -62,7 +62,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       </div>
 
       {/* Given By & Contact Person */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
         <div>
           <label className="label" htmlFor="field-givenBy">Given By</label>
           <input
@@ -88,7 +88,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       </div>
 
       {/* Priority & Status row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
         <div>
           <label className="label">Priority</label>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -118,7 +118,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       </div>
 
       {/* Date row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
         <div>
           <label className="label" htmlFor="field-date">Task Date *</label>
           <input
