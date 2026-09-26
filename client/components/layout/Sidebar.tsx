@@ -59,82 +59,99 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           background: 'var(--bg-surface)',
-          borderRight: '1px solid var(--border-subtle)',
+          borderRight: '4px solid var(--border)',
+          boxShadow: '4px 0px 0px 0px var(--border)',
         }}
       >
         {/* Brand */}
         <div style={{
-          height: 56,
+          height: 64,
           padding: '0 20px',
           display: 'flex',
           alignItems: 'center',
-          borderBottom: '1px solid var(--border-subtle)',
+          borderBottom: '4px solid var(--border)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               background: 'var(--accent)',
-              borderRadius: 7,
+              border: '4px solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#fff',
+              fontSize: 16,
+              fontWeight: 900,
+              color: '#000',
+              boxShadow: '2px 2px 0px 0px var(--border)',
             }}>
               T
             </div>
-            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+            <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               TasksManager
             </span>
           </div>
         </div>
 
         {/* Navigation */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 12px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 16px' }}>
           <div style={{
             padding: '0 8px',
-            marginBottom: 8,
-            fontSize: 10,
-            fontWeight: 600,
+            marginBottom: 12,
+            fontSize: 12,
+            fontWeight: 900,
             color: 'var(--text-muted)',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
           }}>
             Navigation
           </div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
                   <div style={{
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-md)',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-sm)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    background: isActive ? 'var(--accent-subtle)' : 'transparent',
-                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                    fontWeight: isActive ? 600 : 400,
-                    fontSize: 13,
-                    transition: 'all 0.15s',
-                    borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+                    gap: 12,
+                    background: isActive ? 'var(--bg-hover)' : 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
+                    fontWeight: 900,
+                    fontSize: 14,
+                    textTransform: 'uppercase',
+                    transition: 'all 0.1s',
+                    border: '4px solid var(--border)',
+                    boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
+                    transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.color = 'var(--text-primary)';
+                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      e.currentTarget.style.background = 'var(--bg-surface)';
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'translate(2px, 2px)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onMouseUp={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
                     }
                   }}>
-                    <item.icon style={{ width: 16, height: 16 }} />
+                    <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />
                     {item.label}
                   </div>
                 </Link>
@@ -144,37 +161,53 @@ export default function Sidebar() {
         </div>
 
         {/* Bottom nav */}
-        <div style={{ padding: '12px', borderTop: '1px solid var(--border-subtle)' }}>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ padding: '24px 16px', borderTop: '4px solid var(--border)' }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {BOTTOM_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
                   <div style={{
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-md)',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-sm)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    background: isActive ? 'var(--accent-subtle)' : 'transparent',
-                    color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-                    fontWeight: isActive ? 600 : 400,
-                    fontSize: 13,
-                    transition: 'all 0.15s',
+                    gap: 12,
+                    background: isActive ? 'var(--bg-hover)' : 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
+                    fontWeight: 900,
+                    fontSize: 14,
+                    textTransform: 'uppercase',
+                    transition: 'all 0.1s',
+                    border: '4px solid var(--border)',
+                    boxShadow: isActive ? '4px 4px 0px 0px var(--border)' : 'none',
+                    transform: isActive ? 'translate(-2px, -2px)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.color = 'var(--text-primary)';
+                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = 'var(--text-muted)';
+                      e.currentTarget.style.background = 'var(--bg-surface)';
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'translate(2px, 2px)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onMouseUp={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                      e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
                     }
                   }}>
-                    <item.icon style={{ width: 16, height: 16 }} />
+                    <item.icon style={{ width: 18, height: 18, strokeWidth: 3 }} />
                     {item.label}
                   </div>
                 </Link>

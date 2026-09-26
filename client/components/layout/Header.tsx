@@ -41,9 +41,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   return (
     <>
       <header style={{
-        height: 56,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-base)',
+        height: 64,
+        borderBottom: '4px solid var(--border)',
+        background: 'var(--bg-surface)',
         position: 'sticky',
         top: 0,
         zIndex: 40,
@@ -54,18 +54,17 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
         gap: 8,
       }}>
         {/* Breadcrumb */}
-        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 13, minWidth: 0, overflow: 'hidden' }} aria-label="Breadcrumb">
-          <span className="breadcrumb-prefix" style={{ color: 'var(--text-muted)', fontWeight: 400, whiteSpace: 'nowrap' }}>TasksManager</span>
-          <ChevronRight className="breadcrumb-prefix" style={{ width: 14, height: 14, margin: '0 6px', color: 'var(--text-muted)', opacity: 0.5, flexShrink: 0 }} />
-          <span style={{ color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap' }}>{getPageName()}</span>
+        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 16, minWidth: 0, overflow: 'hidden' }} aria-label="Breadcrumb">
+          <span className="breadcrumb-prefix" style={{ color: 'var(--text-primary)', fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>TasksManager</span>
+          <ChevronRight className="breadcrumb-prefix" style={{ width: 18, height: 18, margin: '0 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }} />
+          <span style={{ color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{getPageName()}</span>
         </nav>
 
         {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             className="btn btn-ghost"
             onClick={() => setShowShareModal(true)}
-            style={{ fontSize: 13, padding: '6px 12px', height: 32 }}
           >
             Share
           </button>
@@ -74,9 +73,8 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             id="btn-new-task"
             className="btn btn-primary"
             onClick={() => setShowModal(true)}
-            style={{ fontSize: 13, padding: '6px 14px', height: 32 }}
           >
-            <Plus style={{ width: 14, height: 14 }} />
+            <Plus style={{ width: 16, height: 16, strokeWidth: 3 }} />
             New Task
           </button>
 
@@ -85,21 +83,23 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             type="button"
             aria-label="Notifications"
             style={{
-              background: 'transparent',
-              border: 'none',
+              background: 'var(--bg-surface)',
+              border: '4px solid var(--border)',
               cursor: 'pointer',
-              padding: 6,
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--text-muted)',
+              padding: 8,
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'color 0.15s',
+              boxShadow: '4px 4px 0px 0px var(--border)',
+              transition: 'all 0.1s',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
           >
-            <Bell style={{ width: 18, height: 18 }} />
+            <Bell style={{ width: 18, height: 18, strokeWidth: 3 }} />
           </button>
 
           {/* Profile avatar */}
@@ -109,22 +109,24 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               onClick={() => setProfileOpen(!profileOpen)}
               aria-label="User menu"
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: '50%',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
+                width: 40,
+                height: 40,
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--medium)',
+                border: '4px solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
+                fontSize: 16,
+                fontWeight: 900,
+                color: 'var(--text-primary)',
                 cursor: 'pointer',
-                transition: 'border-color 0.15s',
+                boxShadow: '4px 4px 0px 0px var(--border)',
+                transition: 'all 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)'; }}
             >
               AG
             </button>
@@ -135,15 +137,15 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 style={{
                   position: 'absolute',
                   right: 0,
-                  top: 'calc(100% + 8px)',
+                  top: 'calc(100% + 12px)',
                   zIndex: 50,
                   width: 240,
                   background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  border: '4px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: '8px 8px 0px 0px var(--border)',
                   overflow: 'hidden',
-                  padding: '8px',
+                  padding: '12px',
                 }}
               >
                 {/* User info */}

@@ -21,7 +21,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       <div className="modal-box animate-slide-up" style={{ maxWidth: mode ? 700 : 500, padding: 0 }}>
         
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '4px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {mode === null && 'Create New Task'}
@@ -68,24 +68,35 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 style={{
                   padding: '32px 24px', cursor: 'pointer', textAlign: 'center',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  border: '1px solid var(--border)', background: 'var(--bg-surface)',
-                  transition: 'all 0.2s ease'
+                  border: '4px solid var(--border)', background: 'var(--bg-surface)',
+                  boxShadow: '4px 4px 0px 0px var(--border)',
+                  transition: 'all 0.1s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--text-muted)';
-                  e.currentTarget.style.background = 'var(--bg-elevated)';
+                  e.currentTarget.style.background = 'var(--bg-hover)';
+                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)';
                   e.currentTarget.style.background = 'var(--bg-surface)';
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--border)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translate(4px, 4px)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
                 }}
               >
-                <div style={{ background: 'var(--bg-elevated)', padding: 12, borderRadius: '50%', color: 'var(--text-primary)' }}>
-                  <PenLine style={{ width: 24, height: 24 }} />
+                <div style={{ background: 'var(--text-primary)', padding: 12, borderRadius: 0, border: '4px solid var(--border)', color: 'var(--bg-base)' }}>
+                  <PenLine style={{ width: 32, height: 32 }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Standard Form</div>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>Standard Form</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Fill out all fields manually with complete control.
                   </div>
                 </div>
@@ -98,24 +109,35 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 style={{
                   padding: '32px 24px', cursor: 'pointer', textAlign: 'center',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  border: '1px solid var(--border)', background: 'var(--bg-surface)',
-                  transition: 'all 0.2s ease', position: 'relative', overflow: 'hidden'
+                  border: '4px solid var(--accent)', background: 'var(--bg-surface)',
+                  boxShadow: '4px 4px 0px 0px var(--accent)',
+                  transition: 'all 0.1s ease', position: 'relative', overflow: 'hidden'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent)';
                   e.currentTarget.style.background = 'var(--accent-subtle)';
+                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)';
                   e.currentTarget.style.background = 'var(--bg-surface)';
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--accent)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translate(4px, 4px)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
                 }}
               >
-                <div style={{ background: 'var(--accent-subtle)', padding: 12, borderRadius: '50%', color: 'var(--accent)' }}>
-                  <Sparkles style={{ width: 24, height: 24 }} />
+                <div style={{ background: 'var(--accent)', padding: 12, borderRadius: 0, border: '4px solid var(--border)', color: '#fff' }}>
+                  <Sparkles style={{ width: 32, height: 32 }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>AI Assistant</div>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>AI Assistant</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Write in plain English. We'll extract the details for you.
                   </div>
                 </div>
