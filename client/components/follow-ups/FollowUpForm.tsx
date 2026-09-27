@@ -205,23 +205,24 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 }}>
               {/* Existing Attachments */}
               {existingAttachments.map((att: any, i) => {
-                const isImage = att.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
-                const fileUrl = att.url;
+                const url = att?.url || '';
+                const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                const fileUrl = url;
 
                 return (
-                  <div key={att._id} style={{
+                  <div key={att?._id || i} style={{
                     position: 'relative', width: 80, height: 80, 
                     border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', 
                     overflow: 'hidden', background: 'var(--bg-elevated)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    {isImage ? (
-                      <img src={fileUrl} alt={att.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {isImage && fileUrl ? (
+                      <img src={fileUrl} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Paperclip style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
                         <span style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {att.filename}
+                          {att?.filename || 'File'}
                         </span>
                       </div>
                     )}

@@ -106,12 +106,13 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
               <span className="fu-field-label">Attachments</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                 {followUp.attachments.map((att: any, index: number) => {
-                  const isImage = att.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                  const url = att?.url || '';
+                  const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
                   
                   return (
                     <a
-                      key={att.public_id || index.toString()}
-                      href={att.url}
+                      key={att?.public_id || index.toString()}
+                      href={url || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -125,13 +126,13 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
-                      {isImage ? (
-                        <img src={att.url} alt={att.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {isImage && url ? (
+                        <img src={url} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
                           <span style={{ fontSize: 9, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {att.filename}
+                            {att?.filename || 'File'}
                           </span>
                         </div>
                       )}
