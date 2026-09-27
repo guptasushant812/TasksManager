@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
@@ -67,11 +67,14 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const ai = new GoogleGenAI({ apiKey });
+    
+    const interaction = await ai.interactions.create({
+      model: "gemini-3.8-flash",
+      input: `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`,
+    });
 
-    const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`);
-    let raw = result.response.text().trim();
+    let raw = (interaction.output_text || '').trim();
 
     // Strip markdown code block if present
     if (raw.startsWith('```json')) {
