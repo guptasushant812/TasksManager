@@ -7,6 +7,7 @@ import { Pencil, Trash2, Paperclip } from 'lucide-react';
 interface FollowUpEntryProps {
   followUp: FollowUp;
   isLast: boolean;
+  displayNumber?: number;
   onEdit: (followUp: FollowUp) => void;
   onDelete: (followUp: FollowUp) => void;
 }
@@ -16,8 +17,9 @@ function formatTime(dateStr: string): string {
   return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
-export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: FollowUpEntryProps) {
+export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit, onDelete }: FollowUpEntryProps) {
   const isDeleted = followUp.isDeleted;
+  const numToDisplay = displayNumber ?? followUp.followUpNumber;
 
   return (
     <div className={`fu-entry ${isDeleted ? 'fu-entry-deleted' : ''}`}>
@@ -30,7 +32,7 @@ export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: Fo
         {/* Header */}
         <div className="fu-entry-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span className="fu-entry-number">#{followUp.followUpNumber}</span>
+            <span className="fu-entry-number">#{numToDisplay}</span>
             <span className="fu-entry-date">
               {formatDate(followUp.followUpDate)} · {formatTime(followUp.followUpDate)}
             </span>
@@ -103,37 +105,37 @@ export default function FollowUpEntry({ followUp, isLast, onEdit, onDelete }: Fo
             <div className="fu-field">
               <span className="fu-field-label">Attachments</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                {followUp.attachments.map(att => {
-                  // Create a clean, professional URL slug (MNC style)
-                  const parts = att.originalName.split('.');
-                  let ext = parts.length > 1 ? parts.pop()?.toLowerCase() : '';
-                  // Fix double extensions (e.g. .jpg.jpeg -> .jpeg)
-                  if (parts.length > 0 && (parts[parts.length - 1].toLowerCase() === 'jpg' || parts[parts.length - 1].toLowerCase() === 'png')) {
-                    if (ext === 'jpeg' || ext === 'jpg') { parts.pop(); ext = 'jpg'; }
-                  }
-                  const base = parts.join('-').replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-                  const cleanName = ext ? `${base}.${ext}` : base;
-
+                {followUp.attachments.map((att: any, index: number) => {
+                  const isImage = att.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                  
                   return (
                     <a
-                      key={att._id}
-                      href={`/api/f/${att._id}/${cleanName}`}
+                      key={att.public_id || index.toString()}
+                      href={att.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '4px 10px', background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-                      fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none',
-                      transition: 'all 0.15s'
-                    }}
-                    title={att.originalName}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  >
-                    <Paperclip style={{ width: 12, height: 12 }} />
-                    {att.originalName}
-                  </a>
+                        position: 'relative', width: 64, height: 64, 
+                        border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', 
+                        overflow: 'hidden', background: 'var(--bg-elevated)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        textDecoration: 'none', transition: 'all 0.15s'
+                      }}
+                      title={att.filename}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      {isImage ? (
+                        <img src={att.url} alt={att.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+                          <span style={{ fontSize: 9, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {att.filename}
+                          </span>
+                        </div>
+                      )}
+                    </a>
                   );
                 })}
               </div>

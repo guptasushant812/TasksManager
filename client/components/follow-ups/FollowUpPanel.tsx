@@ -39,7 +39,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
     if (editingFollowUp) {
       savedFollowUp = await updateFollowUp(editingFollowUp._id, data);
     } else {
-      savedFollowUp = await createFollowUp(data);
+      savedFollowUp = await createFollowUp(data, files && files.length > 0);
     }
 
     if (files && files.length > 0) {
@@ -146,6 +146,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
 
         <div style={{ padding: '0 20px', flexShrink: 0 }}>
           <EscalationBanner 
+            taskId={task._id}
             activeFollowUpCount={activeCount} 
             taskStatus={task.workStatus} 
           />
