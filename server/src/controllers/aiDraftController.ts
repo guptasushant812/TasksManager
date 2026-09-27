@@ -68,7 +68,7 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`);
     let raw = result.response.text().trim();
