@@ -1451,3 +1451,116 @@ html:not(.dark) .badge {
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TABLE RESPONSIVENESS — Transform tables into mobile cards
+   ───────────────────────────────────────────────────────────────────────────── */
+table.task-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.task-table th {
+  padding: 12px 16px;
+  border-bottom: var(--border-width-layout) solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-surface);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.task-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  /* Convert table structure to CSS Grid Blocks */
+  table.task-table, 
+  .task-table thead, 
+  .task-table tbody, 
+  .task-table tr, 
+  .task-table td, 
+  .task-table th {
+    display: block;
+    width: 100%;
+  }
+  
+  /* Visually hide headers, but keep them in DOM for accessibility */
+  .task-table thead {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  /* Row becomes a floating card */
+  .task-table tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    padding: 16px;
+    border: var(--border-width-layout) solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    margin-bottom: 16px;
+    box-shadow: var(--box-shadow-brutalist-sm);
+  }
+  
+  /* Strip existing padding and borders from mobile cells */
+  .task-table td {
+    padding: 0 !important;
+    border: none !important;
+    white-space: normal !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+  
+  /* 1. Checkbox or ID */
+  .task-table td:nth-child(1) { grid-column: 1 / -1; margin-bottom: -8px; opacity: 0.7; }
+  
+  /* 2. Title */
+  .task-table td:nth-child(2) { grid-column: 1 / -1; font-size: 16px; font-weight: 700; }
+  
+  /* 3. Description */
+  .task-table td:nth-child(3) { grid-column: 1 / -1; margin-bottom: 8px; color: var(--text-secondary); }
+  
+  /* Add mini labels to data points */
+  .task-table td:nth-child(4)::before { content: "Given By"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+  .task-table td:nth-child(5)::before { content: "Priority"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+  .task-table td:nth-child(6)::before { content: "Status"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+  .task-table td:nth-child(7)::before { content: "Date"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+  
+  /* Ensure badges and dates align nicely */
+  .task-table td:nth-child(4),
+  .task-table td:nth-child(5),
+  .task-table td:nth-child(6),
+  .task-table td:nth-child(7) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 8. Reason/Remarks */
+  .task-table td:nth-child(8) { 
+    grid-column: 1 / -1; 
+    margin-top: 8px; 
+    padding-top: 12px !important; 
+    border-top: 1px dashed var(--border-subtle) !important; 
+  }
+  
+  /* 9. Actions */
+  .task-table td:nth-child(9) { 
+    grid-column: 1 / -1; 
+    margin-top: 8px; 
+    display: flex; 
+    justify-content: flex-end; 
+    align-items: center; 
+    padding-top: 12px !important;
+    border-top: 1px solid var(--border-subtle) !important;
+  }
+}
