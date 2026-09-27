@@ -13,7 +13,15 @@ const CATEGORIES = [
 
 const FAQS = [
   {
-    q: 'How do I create a new task?',
+    q: 'How does the "Structure with AI" feature work?',
+    a: 'You can write your tasks in natural language (even mix Hindi/English). Just provide the details in sentences like: "I completed the server update. Assigned by Amit. Follow up with Rahul. High priority. Done today." The AI will automatically extract the Title, Description, Given By, Contact Person, Priority, Status, and Date for you!'
+  },
+  {
+    q: 'Why are some fields like "Given By" or "Contact Person" empty after using AI?',
+    a: 'The AI can only fill fields if you mention them in your sentence! To get them to auto-fill, make sure to say "Assigned by [Name]" and "Follow up with [Name]" in your AI input box.'
+  },
+  {
+    q: 'How do I create a new task manually?',
     a: 'Click the "+ New Task" button in the top navigation bar. Fill in the title, priority, and other details, then save.'
   },
   {
@@ -23,10 +31,6 @@ const FAQS = [
   {
     q: 'Can I export my tasks?',
     a: 'Yes. On the Tasks page, click the "Export" button in the toolbar and choose CSV or Excel format.'
-  },
-  {
-    q: 'How are follow-ups tracked?',
-    a: 'Each follow-up records the timestamp, method, and response. The latest response appears in the task table.'
   }
 ];
 
