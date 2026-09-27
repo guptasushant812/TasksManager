@@ -6,3 +6,5 @@ dist
 build
 coverage
 .vscode
+server/check-db.js
+out.txt
