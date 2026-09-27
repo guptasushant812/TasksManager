@@ -22,6 +22,7 @@ Return ONLY a valid JSON array (no markdown, no code blocks, no explanation):
     "title": "string - short clear task title in English (max 8 words)",
     "description": "string - full details of what was done, including any sub-tasks as bullet points",
     "givenBy": "string - person who assigned it (if mentioned), else empty string",
+    "contactPerson": "string - person to follow up with or contact regarding this task (if mentioned), else empty string",
     "priority": "High | Medium | Low",
     "workStatus": "InProgress | Pending | Completed",
     "reason": "string - why it is pending/delayed, empty if completed",
@@ -55,6 +56,7 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
           title: '',
           description: rawText.trim(),
           givenBy: '',
+          contactPerson: '',
           priority: 'Medium',
           workStatus: 'Pending',
           reason: '',
@@ -68,7 +70,7 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    
+
     const interaction = await ai.interactions.create({
       model: "gemini-3.8-flash",
       input: `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`,
@@ -93,9 +95,9 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
     }
 
     // Sanitise — ensure all expected fields exist on every draft
-    const fields = ['title', 'description', 'givenBy', 'priority', 'workStatus', 'reason', 'remarks', 'date', 'dueDate'];
+    const fields = ['title', 'description', 'givenBy', 'contactPerson', 'priority', 'workStatus', 'reason', 'remarks', 'date', 'dueDate'];
     const today = new Date().toISOString().split('T')[0];
-    
+
     drafts = drafts.map(d => {
       for (const f of fields) {
         if (!(f in d) || d[f] === null || d[f] === undefined) d[f] = '';
