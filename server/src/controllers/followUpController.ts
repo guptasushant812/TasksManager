@@ -85,6 +85,8 @@ export async function createFollowUp(req: Request, res: Response, next: NextFunc
     const taskObjectId = new mongoose.Types.ObjectId(taskId);
     const followUpNumber = await getNextFollowUpNumber(taskObjectId);
 
+
+
     const followUp = new FollowUp({
       taskId: taskObjectId,
       followUpNumber,
@@ -101,13 +103,7 @@ export async function createFollowUp(req: Request, res: Response, next: NextFunc
 
     await followUp.save();
 
-    // Escalation check
-    const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
-    if (settings && settings.enabled && followUpNumber >= settings.threshold) {
-      const { sendEscalationEmail } = await import('../services/emailService');
-      // Fire and forget email
-      sendEscalationEmail(task, followUpNumber, settings.threshold).catch(console.error);
-    }
+
 
     res.status(201).json(followUp);
   } catch (err) {
@@ -213,6 +209,72 @@ export async function deleteFollowUp(req: Request, res: Response, next: NextFunc
     await followUp.save();
 
     res.json({ message: 'Follow-up soft-deleted', id });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ── POST /api/tasks/:taskId/follow-ups/:id/attachments ────────────────────────
+export async function uploadAttachments(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid follow-up ID' });
+      return;
+    }
+
+    const followUp = await FollowUp.findById(id);
+    if (!followUp) {
+      res.status(404).json({ error: 'Follow-up not found' });
+      return;
+    }
+
+    const newAttachments = (req.files as Express.Multer.File[] || []).map((file: any) => ({
+      url: file.path,
+      public_id: file.filename,
+      filename: file.originalname,
+    }));
+
+    followUp.attachments.push(...newAttachments);
+    await followUp.save();
+
+
+
+    res.json(followUp);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ── DELETE /api/tasks/:taskId/follow-ups/:id/attachments/:attachmentId ────────
+export async function deleteAttachment(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id, attachmentId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid follow-up ID' });
+      return;
+    }
+
+    const followUp = await FollowUp.findById(id);
+    if (!followUp) {
+      res.status(404).json({ error: 'Follow-up not found' });
+      return;
+    }
+
+    const attachmentIndex = followUp.attachments.findIndex((a: any) => a._id.toString() === attachmentId);
+    if (attachmentIndex === -1) {
+      res.status(404).json({ error: 'Attachment not found' });
+      return;
+    }
+
+    // Delete from Cloudinary
+    const { cloudinary } = await import('../services/uploadService');
+    await cloudinary.uploader.destroy(followUp.attachments[attachmentIndex].public_id);
+
+    followUp.attachments.splice(attachmentIndex, 1);
+    await followUp.save();
+
+    res.json(followUp);
   } catch (err) {
     next(err);
   }

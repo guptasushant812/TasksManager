@@ -42,5 +42,9 @@ export function useTasks() {
     await apiFetch('/api/tasks/bulk', { method: 'DELETE', body: { ids } });
   }, []);
 
-  return { tasks, pagination, loading, error, fetchTasks, createTask, updateTask, deleteTask, deleteManyTasks };
+  const escalateTask = useCallback(async (id: string): Promise<void> => {
+    await apiFetch(`/api/tasks/${id}/escalate`, { method: 'POST' });
+  }, []);
+
+  return { tasks, pagination, loading, error, fetchTasks, createTask, updateTask, deleteTask, deleteManyTasks, escalateTask };
 }

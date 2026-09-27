@@ -159,3 +159,36 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
     next(err);
   }
 }
+
+// ── POST /api/tasks/:id/escalate ───────────────────────────────────────────────
+export async function escalateTask(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const task = await Task.findById(id);
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
+    }
+
+    const { sendEscalationEmail } = await import('../services/emailService');
+    const mongoose = (await import('mongoose')).default;
+    
+    const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
+    if (!settings || !settings.enabled) {
+      res.status(400).json({ error: 'Escalation is not enabled in settings' });
+      return;
+    }
+
+    // Wait slightly to ensure Cloudinary webhooks or file streaming has perfectly settled in MongoDB
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const allFollowUps = await FollowUp.find({ taskId: id, isDeleted: false }).sort({ followUpNumber: 1 }).lean();
+    const activeCount = allFollowUps.length;
+
+    await sendEscalationEmail(task, activeCount, settings, allFollowUps);
+    
+    res.json({ message: 'Escalation email sent successfully' });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -68,15 +68,29 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
       </div>
 
       <div className="fu-timeline">
-        {visibleFollowUps.map((fu, idx) => (
-          <FollowUpEntry
-            key={fu._id}
-            followUp={fu}
-            isLast={idx === visibleFollowUps.length - 1}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
+        {(() => {
+          let totalActive = visibleFollowUps.filter(fu => !fu.isDeleted).length;
+          // Pre-calculate display numbers so they are strictly sequential for active items.
+          // Since visibleFollowUps is sorted newest-first, the newest gets the highest number.
+          const annotated = visibleFollowUps.map(fu => {
+            let displayNumber = fu.followUpNumber; // default fallback
+            if (!fu.isDeleted) {
+              displayNumber = totalActive--;
+            }
+            return { ...fu, displayNumber };
+          });
+
+          return annotated.map((fu, idx) => (
+            <FollowUpEntry
+              key={fu._id}
+              followUp={fu}
+              isLast={idx === annotated.length - 1}
+              displayNumber={fu.displayNumber}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ));
+        })()}
       </div>
     </div>
   );

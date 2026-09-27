@@ -202,42 +202,46 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           {/* File Attachments */}
           <div>
             <label className="label">Attachments (Max 5)</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 }}>
               {/* Existing Attachments */}
-              {existingAttachments.map((att, i) => {
-                const isImage = att.mimeType.startsWith('image/');
-                const parts = att.originalName.split('.');
-                let ext = parts.length > 1 ? parts.pop()?.toLowerCase() : '';
-                const base = parts.join('-').replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-                const cleanName = ext ? `${base}.${ext}` : base;
-                const fileUrl = `/api/f/${att._id}/${cleanName}`;
+              {existingAttachments.map((att: any, i) => {
+                const isImage = att.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                const fileUrl = att.url;
 
                 return (
                   <div key={att._id} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)', fontSize: 12
+                    position: 'relative', width: 80, height: 80, 
+                    border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', 
+                    overflow: 'hidden', background: 'var(--bg-elevated)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                      {isImage ? (
-                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                          <img src={fileUrl} alt={att.originalName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.originalName}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 11 }}>View</a>
-                      <button
-                        type="button"
-                        onClick={() => removeExistingFile(i)}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
-                      >
-                        <X style={{ width: 14, height: 14 }} />
-                      </button>
-                    </div>
+                    {isImage ? (
+                      <img src={fileUrl} alt={att.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Paperclip style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+                        <span style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {att.filename}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{
+                      position: 'absolute', inset: 0, zIndex: 1
+                    }} title="View file" />
+
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); removeExistingFile(i); }}
+                      style={{ 
+                        position: 'absolute', top: 4, right: 4, zIndex: 2,
+                        background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', 
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 20, height: 20, borderRadius: '50%'
+                      }}
+                    >
+                      <X style={{ width: 12, height: 12 }} />
+                    </button>
                   </div>
                 );
               })}
@@ -249,26 +253,39 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 
                 return (
                   <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px dashed var(--accent)',
-                    borderRadius: 'var(--radius-md)', fontSize: 12
+                    position: 'relative', width: 80, height: 80, 
+                    border: '1px dashed var(--accent)', borderRadius: 'var(--radius-md)', 
+                    overflow: 'hidden', background: 'var(--bg-elevated)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                      {previewUrl ? (
-                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                          <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name} (New)</span>
-                    </div>
+                    {previewUrl ? (
+                      <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Paperclip style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+                        <span style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {file.name}
+                        </span>
+                      </div>
+                    )}
+
+                    {previewUrl && (
+                      <a href={previewUrl} target="_blank" rel="noopener noreferrer" style={{
+                        position: 'absolute', inset: 0, zIndex: 1
+                      }} title="View file" />
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => removeFile(i)}
-                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
+                      onClick={(e) => { e.preventDefault(); removeFile(i); }}
+                      style={{ 
+                        position: 'absolute', top: 4, right: 4, zIndex: 2,
+                        background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', 
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 20, height: 20, borderRadius: '50%'
+                      }}
                     >
-                      <X style={{ width: 14, height: 14 }} />
+                      <X style={{ width: 12, height: 12 }} />
                     </button>
                   </div>
                 );
@@ -277,27 +294,26 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
               {/* Add File Button */}
               {(existingAttachments.length + files.length) < 5 && (
                 <label style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  padding: '12px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  width: 80, height: 80, border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer', fontSize: 11, color: 'var(--text-secondary)',
                   background: 'transparent', transition: 'all 0.15s'
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Paperclip style={{ width: 14, height: 14 }} />
-                  Add File
+                  <Paperclip style={{ width: 16, height: 16 }} />
+                  <span>Upload</span>
                   <input
                     type="file"
                     multiple
-                    onChange={handleFileChange}
                     style={{ display: 'none' }}
-                    accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                    onChange={handleFileChange}
                   />
                 </label>
               )}
-              {errors.files && <span style={{ fontSize: 11, color: 'var(--high)' }}>{errors.files}</span>}
             </div>
+            {errors.files && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.files}</span>}
           </div>
 
           {/* Show more toggle */}

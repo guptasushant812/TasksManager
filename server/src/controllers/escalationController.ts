@@ -18,13 +18,17 @@ export async function getEscalationSettings(req: Request, res: Response, next: N
 // Update escalation settings
 export async function updateEscalationSettings(req: Request, res: Response, next: NextFunction) {
   try {
-    const { threshold, enabled } = req.body;
+    const { threshold, enabled, managerEmail, hodEmail, dyhodEmail, ccEmail } = req.body;
     let settings = await EscalationSettings.findOne();
     if (!settings) {
       settings = new EscalationSettings();
     }
     if (typeof threshold === 'number') settings.threshold = threshold;
     if (typeof enabled === 'boolean') settings.enabled = enabled;
+    if (typeof managerEmail === 'string') settings.managerEmail = managerEmail;
+    if (typeof hodEmail === 'string') settings.hodEmail = hodEmail;
+    if (typeof dyhodEmail === 'string') settings.dyhodEmail = dyhodEmail;
+    if (typeof ccEmail === 'string') settings.ccEmail = ccEmail;
     
     await settings.save();
     res.json(settings);

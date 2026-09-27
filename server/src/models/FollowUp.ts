@@ -21,6 +21,7 @@ export interface IFollowUp extends Document {
   nextFollowUpDate: Date | null;
   isDeleted: boolean;
   deletedReason: string;
+  attachments: { url: string; public_id: string; filename: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +46,13 @@ const FollowUpSchema = new Schema<IFollowUp>(
     nextFollowUpDate: { type: Date, default: null },
     isDeleted: { type: Boolean, default: false },
     deletedReason: { type: String, default: '' },
+    attachments: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+        filename: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,

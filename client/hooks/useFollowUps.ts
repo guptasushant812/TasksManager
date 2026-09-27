@@ -24,9 +24,9 @@ export function useFollowUps(taskId: string) {
     }
   }, [taskId]);
 
-  const createFollowUp = useCallback(async (data: FollowUpFormData): Promise<FollowUp> => {
+  const createFollowUp = useCallback(async (data: FollowUpFormData, hasFiles: boolean = false): Promise<FollowUp> => {
     const followUp = await apiFetch<FollowUp>(
-      `/api/tasks/${taskId}/follow-ups`,
+      `/api/tasks/${taskId}/follow-ups${hasFiles ? '?hasFiles=true' : ''}`,
       { method: 'POST', body: data }
     );
     return followUp;

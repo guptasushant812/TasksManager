@@ -18,12 +18,26 @@ export default function SettingsPage() {
 
   const { settings, updateSettings, loading } = useEscalation();
   const [isSaving, setIsSaving] = useState(false);
-  const [localSettings, setLocalSettings] = useState({ enabled: false, threshold: 3 });
+  const [localSettings, setLocalSettings] = useState({ 
+    enabled: false, 
+    threshold: 3,
+    managerEmail: '',
+    hodEmail: '',
+    dyhodEmail: '',
+    ccEmail: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (settings) {
-      setLocalSettings({ enabled: settings.enabled, threshold: settings.threshold });
+      setLocalSettings({ 
+        enabled: settings.enabled, 
+        threshold: settings.threshold,
+        managerEmail: settings.managerEmail || '',
+        hodEmail: settings.hodEmail || '',
+        dyhodEmail: settings.dyhodEmail || '',
+        ccEmail: settings.ccEmail || ''
+      });
     }
   }, [settings]);
 
@@ -33,7 +47,13 @@ export default function SettingsPage() {
     setTimeout(() => setIsSaving(false), 500);
   };
 
-  const hasChanges = localSettings.enabled !== settings?.enabled || localSettings.threshold !== settings?.threshold;
+  const hasChanges = 
+    localSettings.enabled !== settings?.enabled || 
+    localSettings.threshold !== settings?.threshold ||
+    localSettings.managerEmail !== (settings?.managerEmail || '') ||
+    localSettings.hodEmail !== (settings?.hodEmail || '') ||
+    localSettings.dyhodEmail !== (settings?.dyhodEmail || '') ||
+    localSettings.ccEmail !== (settings?.ccEmail || '');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -158,6 +178,44 @@ export default function SettingsPage() {
                       className="input"
                       style={{ width: 64, textAlign: 'center', fontSize: 14, padding: '6px 10px' }}
                     />
+                  </div>
+
+                  <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+                  {/* Emails */}
+                  <div style={{
+                    display: 'flex', flexDirection: 'column', gap: 16,
+                    opacity: localSettings.enabled ? 1 : 0.35,
+                    transition: 'opacity 0.2s',
+                    pointerEvents: localSettings.enabled ? 'auto' : 'none',
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                        Escalation Recipients
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
+                        Email addresses to notify when a task is escalated.
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>Manager Email</label>
+                        <input type="email" placeholder="manager@example.com" value={localSettings.managerEmail} onChange={e => setLocalSettings(s => ({ ...s, managerEmail: e.target.value }))} className="input" style={{ width: '100%', fontSize: 14, padding: '8px 12px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>HOD Email</label>
+                        <input type="email" placeholder="hod@example.com" value={localSettings.hodEmail} onChange={e => setLocalSettings(s => ({ ...s, hodEmail: e.target.value }))} className="input" style={{ width: '100%', fontSize: 14, padding: '8px 12px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>DyHOD Email</label>
+                        <input type="email" placeholder="dyhod@example.com" value={localSettings.dyhodEmail} onChange={e => setLocalSettings(s => ({ ...s, dyhodEmail: e.target.value }))} className="input" style={{ width: '100%', fontSize: 14, padding: '8px 12px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>CC Email (Your Email)</label>
+                        <input type="email" placeholder="you@example.com" value={localSettings.ccEmail} onChange={e => setLocalSettings(s => ({ ...s, ccEmail: e.target.value }))} className="input" style={{ width: '100%', fontSize: 14, padding: '8px 12px' }} />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Save */}
