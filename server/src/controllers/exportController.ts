@@ -249,7 +249,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     // 1. Prepare Zip Archiver
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.zip"');
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = archiver.create('zip', { zlib: { level: 9 } });
     archive.on('error', (err: Error) => { throw err; });
     archive.pipe(res);
 
