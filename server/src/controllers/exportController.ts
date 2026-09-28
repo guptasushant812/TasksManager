@@ -152,11 +152,29 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
            .text(`Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`, startX, 46);
 
-        doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#475569')
-           .text(`Completed: ${completed}   |   In Progress: ${inProg}   |   Pending: ${pending}`, startX, 46, {
-             width: totalW,
-             align: 'right',
-           });
+        doc.fontSize(8.5).font('Helvetica-Bold');
+        const sCompleted = `Completed: ${completed}`;
+        const sDivider = '   |   ';
+        const sInProg = `In Progress: ${inProg}`;
+        const sPending = `Pending: ${pending}`;
+
+        const wComp = doc.widthOfString(sCompleted);
+        const wDiv = doc.widthOfString(sDivider);
+        const wProg = doc.widthOfString(sInProg);
+        const wPend = doc.widthOfString(sPending);
+
+        const totalStatsW = wComp + wDiv + wProg + wDiv + wPend;
+        let statsX = startX + totalW - totalStatsW;
+
+        doc.fillColor(STATUS_COLORS_HEX.Completed).text(sCompleted, statsX, 46, { lineBreak: false });
+        statsX += wComp;
+        doc.fillColor('#94A3B8').text(sDivider, statsX, 46, { lineBreak: false });
+        statsX += wDiv;
+        doc.fillColor(STATUS_COLORS_HEX.InProgress).text(sInProg, statsX, 46, { lineBreak: false });
+        statsX += wProg;
+        doc.fillColor('#94A3B8').text(sDivider, statsX, 46, { lineBreak: false });
+        statsX += wDiv;
+        doc.fillColor(STATUS_COLORS_HEX.Pending).text(sPending, statsX, 46, { lineBreak: false });
 
         // Thin accent divider
         doc.moveTo(startX, 60).lineTo(startX + totalW, 60).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
