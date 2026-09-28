@@ -33,13 +33,22 @@ const STATUS_COLORS_ARGB: Record<string, string> = {
 };
 
 // ── Date Formatting Helpers ──────────────────────────────────────────────────
+const TIMEZONE = process.env.TIMEZONE || 'Asia/Kolkata';
+
 function formatDateStr(dateVal: Date | string | null | undefined): string {
   if (!dateVal) return '—';
   const d = new Date(dateVal);
   if (isNaN(d.getTime())) return '—';
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: TIMEZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+  const parts = formatter.formatToParts(d);
+  const day = parts.find(p => p.type === 'day')?.value || '';
+  const month = parts.find(p => p.type === 'month')?.value || '';
+  const year = parts.find(p => p.type === 'year')?.value || '';
   return `${day}-${month}-${year}`;
 }
 
@@ -47,14 +56,23 @@ function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
   if (!dateVal) return '—';
   const d = new Date(dateVal);
   if (isNaN(d.getTime())) return '—';
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12 || 12;
-  return `${day}-${month}-${year}, ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: TIMEZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+  const parts = formatter.formatToParts(d);
+  const day = parts.find(p => p.type === 'day')?.value || '';
+  const month = parts.find(p => p.type === 'month')?.value || '';
+  const year = parts.find(p => p.type === 'year')?.value || '';
+  const hour = parts.find(p => p.type === 'hour')?.value || '';
+  const minute = parts.find(p => p.type === 'minute')?.value || '';
+  const dayPeriod = (parts.find(p => p.type === 'dayPeriod')?.value || 'AM').toUpperCase();
+  return `${day}-${month}-${year}, ${hour}:${minute} ${dayPeriod}`;
 }
 
 // ── GET /api/export/pdf ───────────────────────────────────────────────────────
