@@ -7,17 +7,55 @@ import ExcelJS from 'exceljs';
 import FollowUpAttachment from '../models/FollowUpAttachment';
 const archiver = require('archiver');
 
-const PRIORITY_COLOURS: Record<string, string> = {
-  High: 'FF4444',
-  Medium: 'F59E0B',
-  Low: '22C55E',
+// ── Color Palettes for Professional Business Reports ────────────────────────
+const PRIORITY_COLORS_HEX: Record<string, string> = {
+  High: '#DC2626',   // Crimson Red
+  Medium: '#D97706', // Warm Amber
+  Low: '#16A34A',    // Forest Green
 };
 
-const STATUS_COLOURS: Record<string, string> = {
-  InProgress: '3B82F6',
-  Pending: 'F59E0B',
-  Completed: '22C55E',
+const STATUS_COLORS_HEX: Record<string, string> = {
+  InProgress: '#2563EB', // Vibrant Blue
+  Pending: '#D97706',    // Amber
+  Completed: '#16A34A',  // Emerald Green
 };
+
+const PRIORITY_COLORS_ARGB: Record<string, string> = {
+  High: 'FFDC2626',
+  Medium: 'FFD97706',
+  Low: 'FF16A34A',
+};
+
+const STATUS_COLORS_ARGB: Record<string, string> = {
+  InProgress: 'FF2563EB',
+  Pending: 'FFD97706',
+  Completed: 'FF16A34A',
+};
+
+// ── Date Formatting Helpers ──────────────────────────────────────────────────
+function formatDateStr(dateVal: Date | string | null | undefined): string {
+  if (!dateVal) return '—';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
+  if (!dateVal) return '—';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${day}-${month}-${year}, ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+}
 
 // ── GET /api/export/pdf ───────────────────────────────────────────────────────
 export async function exportPdf(req: Request, res: Response, next: NextFunction) {
@@ -32,7 +70,12 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       }
     }
 
-    const tasks = await Task.find(filter).sort(sort).lean();
+    // Always export latest data first (newest dates and latest created tasks at top)
+    const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
+      : { date: -1, createdAt: -1, _id: -1 };
+
+    const tasks = await Task.find(filter).sort(exportSort).lean();
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
@@ -45,143 +88,328 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
-    const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
+    // A4 Landscape geometry: 841.89 pt x 595.28 pt
+    const doc = new PDFDocument({
+      margin: 30,
+      size: 'A4',
+      layout: 'landscape',
+      bufferPages: true,
+      autoFirstPage: true
+    });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.pdf"');
     doc.pipe(res);
 
-    // ── Title ───────────────────────────────────────────────────────────────
-    doc.fontSize(18).font('Helvetica-Bold').text('Task Manager Export', { align: 'center' });
-    doc.fontSize(10).font('Helvetica').text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
-    doc.moveDown(1.5);
+    // ── Table Column Definitions (Total: 776 pt) ─────────────────────────────
+    // Centered horizontally: (841.89 - 776) / 2 = 32.94 pt -> startX = 33
+    const colWidths = [26, 112, 178, 78, 48, 60, 34, 58, 58, 124];
+    const headers = ['Sr.', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Date', 'Due Date', 'Reason / Remarks'];
+    const colAligns: ('left' | 'center')[] = ['center', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center', 'left'];
+    const totalW = colWidths.reduce((a, b) => a + b, 0); // 776 pt
+    const startX = 33;
+    const maxPageY = 545; // Leaves space for footer line at 560 and text at 566
 
-    // ── Table header ────────────────────────────────────────────────────────
-    const colWidths = [25, 60, 100, 100, 70, 50, 60, 40, 100, 135];
-    const headers = ['Sr', 'Task ID', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Reason', 'Follow-Ups History'];
-    const startX = doc.page.margins.left;
-    let x = startX;
-    const headerY = doc.y;
-    const rowH = 20;
+    // Helper: Draw table column header with vertical column borders
+    function drawTableHeader(y: number): number {
+      const headerH = 22;
+      doc.rect(startX, y, totalW, headerH).fill('#1E293B');
 
-    doc.rect(startX, headerY, colWidths.reduce((a, b) => a + b, 0), rowH).fill('#1E293B');
-    doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Bold');
-    headers.forEach((h, i) => {
-      doc.text(h, x + 3, headerY + 5, { width: colWidths[i] - 6, ellipsis: true });
-      x += colWidths[i];
-    });
-
-    // ── Table rows ───────────────────────────────────────────────────────────
-    let rowY = headerY + rowH;
-    tasks.forEach((task: any, idx: number) => {
-      if (rowY > doc.page.height - doc.page.margins.bottom - rowH) {
-        doc.addPage();
-        rowY = doc.page.margins.top;
-      }
-
-      const bg = idx % 2 === 0 ? '#0F172A' : '#1E293B';
-      const totalW = colWidths.reduce((a, b) => a + b, 0);
-      doc.rect(startX, rowY, totalW, rowH).fill(bg);
-
-      const remarkOrReason =
-        task.workStatus === 'Completed' ? task.remarks : task.reason;
-
-      let fuHistory = '';
-      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
-      taskFUs.forEach((fu, i) => {
-        fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
-        
-        // Cloudinary attachments
-        if (fu.attachments && fu.attachments.length > 0) {
-          fu.attachments.forEach((att: any) => {
-            const filename = att.filename || 'File';
-            const url = att.url || '#';
-            fuHistory += `Link: ${url}\n`;
-          });
+      let hX = startX;
+      headers.forEach((h, i) => {
+        const colW = colWidths[i];
+        if (i > 0) {
+          doc.moveTo(hX, y).lineTo(hX, y + headerH).strokeColor('#334155').lineWidth(0.5).stroke();
         }
-        
-        // Legacy attachments
-        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
-        if (fLegacyAtts.length > 0) {
-          fLegacyAtts.forEach((att: any) => {
-            const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(att.originalName || 'file')}`;
-            fuHistory += `Link: ${url}\n`;
-          });
-        }
+        doc.fillColor('#FFFFFF')
+           .fontSize(8.5)
+           .font('Helvetica-Bold')
+           .text(h, hX + 4, y + 6, {
+             width: colW - 8,
+             align: 'center',
+             lineBreak: false,
+           });
+        hX += colW;
       });
 
+      doc.rect(startX, y, totalW, headerH).strokeColor('#0F172A').lineWidth(0.75).stroke();
+      return y + headerH;
+    }
+
+    // Helper: Draw report header (First page vs Subsequent pages)
+    function drawReportHeader(isFirstPage: boolean): number {
+      const todayStr = formatDateStr(new Date());
+
+      if (isFirstPage) {
+        // Executive Header Banner
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#0F172A')
+           .text(`Today Tasks [${todayStr}]`, startX, 28);
+
+        const completed = tasks.filter(t => t.workStatus === 'Completed').length;
+        const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
+        const pending = tasks.filter(t => t.workStatus === 'Pending').length;
+
+        doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
+           .text(`Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`, startX, 46);
+
+        doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#475569')
+           .text(`Completed: ${completed}   |   In Progress: ${inProg}   |   Pending: ${pending}`, startX, 46, {
+             width: totalW,
+             align: 'right',
+           });
+
+        // Thin accent divider
+        doc.moveTo(startX, 60).lineTo(startX + totalW, 60).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
+
+        return drawTableHeader(68);
+      } else {
+        // Minimal Running Header on Subsequent Pages
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#64748B')
+           .text(`Today Tasks [${todayStr}]`, startX, 28);
+
+        doc.fontSize(8.5).font('Helvetica').fillColor('#94A3B8')
+           .text(`Name: Sushant Gupta   |   ${formatDateTimeStr(new Date())}`, startX, 28, {
+             width: totalW,
+             align: 'right',
+           });
+
+        doc.moveTo(startX, 42).lineTo(startX + totalW, 42).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
+
+        return drawTableHeader(48);
+      }
+    }
+
+    // ── Render Data Rows ──────────────────────────────────────────────────────
+    let rowY = drawReportHeader(true);
+
+    tasks.forEach((task: any, idx: number) => {
+      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
       const cells = [
         String(idx + 1),
-        task.taskId,
-        task.title,
-        task.description,
-        task.givenBy,
-        task.priority,
-        task.workStatus,
+        task.title || '—',
+        task.description || '—',
+        task.givenBy || '—',
+        task.priority || '—',
+        task.workStatus || '—',
         String(summaryMap.get(task._id.toString()) || 0),
-        remarkOrReason,
-        fuHistory.trim().replace(/\n/g, '  |  ')
+        formatDateStr(task.date),
+        task.dueDate ? formatDateStr(task.dueDate) : '—',
+        remarkOrReason || '—',
       ];
 
-      x = startX;
-      doc.fillColor('#E2E8F0').font('Helvetica').fontSize(7);
-      cells.forEach((cell, i) => {
-        // Colour priority and status cells
-        if (i === 5) {
-          doc.fillColor(`#${PRIORITY_COLOURS[task.priority] || 'E2E8F0'}`);
-        } else if (i === 6) {
-          doc.fillColor(`#${STATUS_COLOURS[task.workStatus] || 'E2E8F0'}`);
-        } else {
-          doc.fillColor('#E2E8F0');
+      // Calculate dynamic row height needed so NO text is clipped or overflows
+      let maxContentH = 11;
+      cells.forEach((text, i) => {
+        if (!text || text === '—') return;
+        const colW = colWidths[i];
+        const isBold = i === 1 || i === 4 || i === 5;
+        doc.fontSize(8.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica');
+        const h = doc.heightOfString(text, { width: colW - 8, lineGap: 1.8 });
+        if (h > maxContentH) maxContentH = h;
+      });
+
+      const rowH = Math.max(20, Math.ceil(maxContentH + 10)); // Padding top & bottom
+
+      // Check for page break before drawing row
+      if (rowY + rowH > maxPageY) {
+        doc.addPage();
+        rowY = drawReportHeader(false);
+      }
+
+      // Zebra striping background
+      const rowBg = idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC';
+      doc.rect(startX, rowY, totalW, rowH).fill(rowBg);
+
+      // Vertical column divider lines
+      let vX = startX;
+      colWidths.forEach((colW, i) => {
+        if (i > 0) {
+          doc.moveTo(vX, rowY).lineTo(vX, rowY + rowH).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
         }
-        doc.text(cell || '', x + 3, rowY + 5, { width: colWidths[i] - 6, ellipsis: true });
-        x += colWidths[i];
+        vX += colW;
+      });
+
+      // Outer row border
+      doc.rect(startX, rowY, totalW, rowH).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
+
+      // Render cell text with vertical middle alignment
+      let cellX = startX;
+      cells.forEach((text, i) => {
+        const colW = colWidths[i];
+        let cellColor = '#1E293B';
+        let isBold = false;
+
+        if (i === 1) {
+          cellColor = '#0F172A';
+          isBold = true;
+        } else if (i === 4) {
+          cellColor = PRIORITY_COLORS_HEX[task.priority] || '#1E293B';
+          isBold = true;
+        } else if (i === 5) {
+          cellColor = STATUS_COLORS_HEX[task.workStatus] || '#1E293B';
+          isBold = true;
+        } else {
+          cellColor = '#334155';
+        }
+
+        // Calculate vertical middle position
+        const textH = text && text !== '—'
+          ? doc.fontSize(8.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica').heightOfString(text, { width: colW - 8, lineGap: 1.8 })
+          : 10;
+        const cellY = rowY + Math.max(4, Math.floor((rowH - textH) / 2));
+
+        doc.fillColor(cellColor)
+           .fontSize(8.5)
+           .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
+           .text(text, cellX + 4, cellY, {
+             width: colW - 8,
+             align: colAligns[i],
+             lineGap: 1.8,
+           });
+
+        cellX += colW;
       });
 
       rowY += rowH;
     });
 
-    // If exporting a single task, append full details of follow-ups below the table
+    // ── Single-Task Detailed Follow-Up Section (If Exported from Panel) ───────
     if (tasks.length === 1 && allFollowUps.length > 0) {
-      doc.moveDown(2);
-      doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text('Detailed Follow-Up History & Attachments');
-      doc.moveDown(0.5);
-      
-      allFollowUps.forEach((fu, i) => {
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#333333')
-           .text(`#${i + 1} - ${new Date(fu.followUpDate).toLocaleString('en-IN')} - ${fu.method}`);
-        doc.fontSize(9).font('Helvetica').fillColor('#555555')
-           .text(`Communicated: ${fu.communicated}`);
-        if (fu.responseReceived) {
-          doc.text(`Response: ${fu.responseReceived}`);
+      rowY += 16;
+      if (rowY + 60 > maxPageY) {
+        doc.addPage();
+        rowY = 32;
+      }
+
+      doc.fontSize(11).font('Helvetica-Bold').fillColor('#0F172A')
+         .text(`FOLLOW-UP AUDIT TRAIL & ATTACHMENTS (${allFollowUps.length})`, startX, rowY);
+      rowY += 16;
+      doc.moveTo(startX, rowY).lineTo(startX + totalW, rowY).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
+      rowY += 10;
+
+      allFollowUps.forEach((fu: any, i: number) => {
+        const fuDateStr = formatDateTimeStr(fu.followUpDate);
+        const methodStr = fu.method === 'Other' && fu.methodOther ? `Other (${fu.methodOther})` : fu.method;
+        const contactStr = fu.contactPerson ? `   |   Contact: ${fu.contactPerson}` : '';
+
+        const commText = `Communicated: ${fu.communicated || 'None'}`;
+        const respText = fu.responseReceived ? `Response: ${fu.responseReceived}` : '';
+        const nextActionText = fu.nextAction ? `Next Action: ${fu.nextAction}${fu.nextFollowUpDate ? ` (Target: ${formatDateStr(fu.nextFollowUpDate)})` : ''}` : '';
+
+        // Calculate card height dynamically
+        doc.fontSize(8.5).font('Helvetica');
+        let cardH = 24; // Header
+        cardH += doc.heightOfString(commText, { width: totalW - 20, lineGap: 1.8 }) + 4;
+        if (respText) {
+          cardH += doc.heightOfString(respText, { width: totalW - 20, lineGap: 1.8 }) + 4;
         }
-        
-        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
+        if (nextActionText) {
+          cardH += doc.heightOfString(nextActionText, { width: totalW - 20, lineGap: 1.8 }) + 4;
+        }
+
+        const fLegacyAtts = legacyAttachments.filter((la: any) => la.followUpId.toString() === fu._id.toString());
         const hasCloudinary = fu.attachments && fu.attachments.length > 0;
-        
-        if (hasCloudinary || fLegacyAtts.length > 0) {
-          doc.moveDown(0.2);
-          doc.font('Helvetica-Bold').text('Attachments:');
-          doc.font('Helvetica').fillColor('#0066cc');
-          
+        const hasAtts = hasCloudinary || fLegacyAtts.length > 0;
+        if (hasAtts) {
+          cardH += 20;
+        }
+        cardH += 10; // Card bottom padding
+
+        if (rowY + cardH > maxPageY) {
+          doc.addPage();
+          rowY = 32;
+        }
+
+        // Draw card background & border
+        doc.roundedRect(startX, rowY, totalW, cardH, 4).fillAndStroke('#F8FAFC', '#E2E8F0');
+
+        let innerY = rowY + 6;
+        // Follow-up card header
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#1E293B')
+           .text(`#${i + 1}   |   ${fuDateStr}   |   Method: ${methodStr}${contactStr}`, startX + 10, innerY);
+        innerY += 15;
+
+        // Communicated
+        doc.fontSize(8.5).font('Helvetica').fillColor('#334155')
+           .text(commText, startX + 10, innerY, { width: totalW - 20, lineGap: 1.8 });
+        innerY += doc.heightOfString(commText, { width: totalW - 20, lineGap: 1.8 }) + 4;
+
+        // Response
+        if (respText) {
+          doc.fillColor('#047857')
+             .text(respText, startX + 10, innerY, { width: totalW - 20, lineGap: 1.8 });
+          innerY += doc.heightOfString(respText, { width: totalW - 20, lineGap: 1.8 }) + 4;
+        }
+
+        // Next Action
+        if (nextActionText) {
+          doc.fillColor('#6D28D9')
+             .text(nextActionText, startX + 10, innerY, { width: totalW - 20, lineGap: 1.8 });
+          innerY += doc.heightOfString(nextActionText, { width: totalW - 20, lineGap: 1.8 }) + 4;
+        }
+
+        // Attachments
+        if (hasAtts) {
+          doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#1E293B')
+             .text('Attachments: ', startX + 10, innerY, { continued: true });
+          doc.font('Helvetica').fillColor('#2563EB');
+
+          const attLinks: { name: string; url: string }[] = [];
           if (hasCloudinary) {
             fu.attachments.forEach((att: any) => {
-              const filename = att.filename || 'File';
-              const url = att.url || '#';
-              doc.text(`${filename}: ${url}`, { link: url, underline: true });
+              attLinks.push({ name: att.filename || 'Attachment', url: att.url });
             });
           }
-          
           if (fLegacyAtts.length > 0) {
             fLegacyAtts.forEach((att: any) => {
-              const filename = att.originalName || 'File';
+              const filename = att.originalName || 'Attachment';
               const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
-              doc.text(`${filename}: ${url}`, { link: url, underline: true });
+              attLinks.push({ name: filename, url });
             });
           }
+
+          attLinks.forEach((linkObj, linkIdx) => {
+            doc.text(linkObj.name, { link: linkObj.url, underline: true, continued: linkIdx < attLinks.length - 1 });
+            if (linkIdx < attLinks.length - 1) {
+              doc.fillColor('#64748B').text('   •   ', { underline: false, continued: true }).fillColor('#2563EB');
+            }
+          });
         }
-        doc.moveDown(1);
+
+        rowY += cardH + 8;
       });
+    }
+
+    // ── Page Numbering & Footer on All Pages ─────────────────────────────────
+    // Read total pages once, disable bottom margin during footer drawing to prevent ghost pages
+    const totalPages = doc.bufferedPageRange().count;
+    for (let p = 0; p < totalPages; p++) {
+      doc.switchToPage(p);
+      const origBottom = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0;
+
+      // Footer divider
+      doc.moveTo(startX, 560)
+         .lineTo(startX + totalW, 560)
+         .strokeColor('#E2E8F0')
+         .lineWidth(0.5)
+         .stroke();
+
+      doc.fontSize(8).font('Helvetica').fillColor('#64748B')
+         .text(`© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`, startX, 566, {
+           width: 450,
+           align: 'left',
+           lineBreak: false,
+         });
+
+      doc.fontSize(8).font('Helvetica').fillColor('#64748B')
+         .text(`Page ${p + 1} of ${totalPages}`, startX + totalW - 150, 566, {
+           width: 150,
+           align: 'right',
+           lineBreak: false,
+         });
+
+      doc.page.margins.bottom = origBottom;
     }
 
     doc.end();
@@ -202,7 +430,12 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       }
     }
 
-    const tasks = await Task.find(filter).sort(sort).lean();
+    // Always export latest data first (newest dates and latest created tasks at top)
+    const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
+      : { date: -1, createdAt: -1, _id: -1 };
+
+    const tasks = await Task.find(filter).sort(exportSort).lean();
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
@@ -216,106 +449,271 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Task Manager';
+    workbook.creator = 'Task Management System';
     workbook.created = new Date();
 
-    const sheet = workbook.addWorksheet('Tasks', {
-      pageSetup: { paperSize: 9, orientation: 'landscape' },
+    // ─────────────────────────────────────────────────────────────────────────
+    // SHEET 1: Tasks Register
+    // ─────────────────────────────────────────────────────────────────────────
+    const sheet = workbook.addWorksheet('Tasks Register', {
+      pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+      views: [{ state: 'frozen', xSplit: 0, ySplit: 4, topLeftCell: 'A5', activeCell: 'A5' }],
     });
 
+    // Clean, perfectly proportioned columns — Task ID is strictly removed!
     sheet.columns = [
-      { header: 'Sr No', key: 'sr', width: 6 },
-      { header: 'Task ID', key: 'taskId', width: 12 },
-      { header: 'Title', key: 'title', width: 25 },
-      { header: 'Description', key: 'description', width: 40 },
-      { header: 'Given By', key: 'givenBy', width: 15 },
-      { header: 'Priority', key: 'priority', width: 10 },
-      { header: 'Work Status', key: 'workStatus', width: 14 },
-      { header: 'F-Ups', key: 'fUps', width: 8 },
-      { header: 'Date', key: 'date', width: 12 },
-      { header: 'Due Date', key: 'dueDate', width: 12 },
-      { header: 'Reason / Remarks', key: 'reasonRemarks', width: 35 },
-      { header: 'Follow-Ups History', key: 'followUpsHistory', width: 60 },
+      { header: 'Sr No', key: 'sr', width: 8 },
+      { header: 'Title', key: 'title', width: 28 },
+      { header: 'Description', key: 'description', width: 48 },
+      { header: 'Given By', key: 'givenBy', width: 20 },
+      { header: 'Priority', key: 'priority', width: 14 },
+      { header: 'Work Status', key: 'workStatus', width: 16 },
+      { header: 'Follow-ups', key: 'fUps', width: 13 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Due Date', key: 'dueDate', width: 14 },
+      { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
 
-    // ── Style header row ──────────────────────────────────────────────────────
-    const headerRow = sheet.getRow(1);
+    const todayStr = formatDateStr(new Date());
+
+    // Row 1: Title Banner
+    sheet.mergeCells('A1:J1');
+    const titleCell = sheet.getCell('A1');
+    titleCell.value = `Today Tasks [${todayStr}]`;
+    titleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.getRow(1).height = 28;
+
+    // Row 2: Metadata Subtitle
+    sheet.mergeCells('A2:J2');
+    const metaCell = sheet.getCell('A2');
+    metaCell.value = `Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`;
+    metaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
+    metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.getRow(2).height = 20;
+
+    // Row 3: Spacer
+    sheet.getRow(3).height = 8;
+
+    // Row 4: Column Headers
+    const headerRow = sheet.getRow(4);
+    headerRow.values = ['Sr No', 'Title', 'Description', 'Given By', 'Priority', 'Work Status', 'Follow-ups', 'Date', 'Due Date', 'Reason / Remarks'];
+    headerRow.height = 26;
+
     headerRow.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10.5, name: 'Calibri' };
       cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
       cell.border = {
-        bottom: { style: 'medium', color: { argb: 'FF334155' } },
+        top: { style: 'thin', color: { argb: 'FF475569' } },
+        bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+        left: { style: 'thin', color: { argb: 'FF475569' } },
+        right: { style: 'thin', color: { argb: 'FF475569' } },
       };
     });
-    headerRow.height = 24;
 
-    // ── Data rows ─────────────────────────────────────────────────────────────
+    // Rows 5+: Data Rows
     tasks.forEach((task: any, idx: number) => {
-      const rowBg = idx % 2 === 0 ? 'FF0F172A' : 'FF1E293B';
+      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
+      const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
+
       const row = sheet.addRow({
         sr: idx + 1,
-        taskId: task.taskId,
-        title: task.title,
-        description: task.description,
-        givenBy: task.givenBy,
-        priority: task.priority,
-        workStatus: task.workStatus,
+        title: task.title || '',
+        description: task.description || '',
+        givenBy: task.givenBy || '',
+        priority: task.priority || '',
+        workStatus: task.workStatus || '',
         fUps: summaryMap.get(task._id.toString()) || 0,
-        date: task.date ? new Date(task.date).toLocaleDateString('en-IN') : '',
-        dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-IN') : '',
-        reasonRemarks: task.workStatus === 'Completed' ? task.remarks : task.reason,
+        date: formatDateStr(task.date),
+        dueDate: task.dueDate ? formatDateStr(task.dueDate) : '—',
+        reasonRemarks: remarkOrReason || '—',
       });
 
-      let fuHistory = '';
-      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
-      taskFUs.forEach((fu, i) => {
-        fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
-        
-        if (fu.attachments && fu.attachments.length > 0) {
-          fu.attachments.forEach((att: any) => {
-            const filename = att.filename || 'File';
-            const url = att.url || '#';
-            fuHistory += `Link: ${url}\n`;
-          });
-        }
-        
-        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
-        if (fLegacyAtts.length > 0) {
-          fLegacyAtts.forEach((att: any) => {
-            const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(att.originalName || 'file')}`;
-            fuHistory += `Link: ${url}\n`;
-          });
-        }
-        
-        fuHistory += '\n';
-      });
-      row.getCell('followUpsHistory').value = fuHistory.trim();
+      // Calculate dynamic row height so wrapped content is NEVER clipped or overlapping
+      const descLines = Math.max(1, Math.ceil((task.description || '').length / 44));
+      const remarksLines = Math.max(1, Math.ceil((remarkOrReason || '').length / 38));
+      const titleLines = Math.max(1, Math.ceil((task.title || '').length / 26));
+      const maxLines = Math.max(descLines, remarksLines, titleLines);
+      row.height = maxLines === 1 ? 22 : Math.min(160, Math.max(26, maxLines * 16));
 
-      row.height = 20;
       row.eachCell((cell, colNumber) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
-        cell.font = { color: { argb: 'FFE2E8F0' }, size: 10 };
-        cell.alignment = { vertical: 'middle', wrapText: true };
+        cell.font = { color: { argb: 'FF1E293B' }, size: 10, name: 'Calibri' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        };
 
-        // Priority colour
-        if (colNumber === 6) {
-          const colour = PRIORITY_COLOURS[task.priority];
-          if (colour) cell.font = { color: { argb: `FF${colour}` }, bold: true, size: 10 };
+        const isLeft = [2, 3, 4, 10].includes(colNumber);
+        cell.alignment = { vertical: 'middle', horizontal: isLeft ? 'left' : 'center', wrapText: true };
+
+        // Priority Color Formatting
+        if (colNumber === 5) {
+          const colour = PRIORITY_COLORS_ARGB[task.priority];
+          if (colour) cell.font = { color: { argb: colour }, bold: true, size: 10, name: 'Calibri' };
         }
-        // Status colour
-        if (colNumber === 7) {
-          const colour = STATUS_COLOURS[task.workStatus];
-          if (colour) cell.font = { color: { argb: `FF${colour}` }, bold: true, size: 10 };
+        // Status Color Formatting
+        if (colNumber === 6) {
+          const colour = STATUS_COLORS_ARGB[task.workStatus];
+          if (colour) cell.font = { color: { argb: colour }, bold: true, size: 10, name: 'Calibri' };
         }
       });
     });
 
-    // ── Auto-filter ───────────────────────────────────────────────────────────
-    sheet.autoFilter = { from: 'A1', to: `L1` };
+    // Copyright Footer at bottom of table
+    const lastRowIdx = sheet.rowCount + 2;
+    sheet.mergeCells(`A${lastRowIdx}:J${lastRowIdx}`);
+    const sheetFooter = sheet.getCell(`A${lastRowIdx}`);
+    sheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
+    sheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+    sheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.getRow(lastRowIdx).height = 20;
 
-    // ── Freeze header ─────────────────────────────────────────────────────────
-    sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
+    // AutoFilter across table columns
+    sheet.autoFilter = { from: 'A4', to: 'J4' };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SHEET 2: Follow-Ups Audit Trail & Attachments (If Follow-Ups Exist)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (allFollowUps.length > 0) {
+      const fuSheet = workbook.addWorksheet('Follow-Ups Log', {
+        pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+        views: [{ state: 'frozen', xSplit: 0, ySplit: 4, topLeftCell: 'A5', activeCell: 'A5' }],
+      });
+
+      fuSheet.columns = [
+        { header: 'Sr No', key: 'sr', width: 8 },
+        { header: 'Task Title', key: 'taskTitle', width: 28 },
+        { header: 'Follow-Up #', key: 'fuNumber', width: 14 },
+        { header: 'Date & Time', key: 'fuDate', width: 18 },
+        { header: 'Method', key: 'method', width: 14 },
+        { header: 'Contact Person', key: 'contactPerson', width: 18 },
+        { header: 'Communication Details', key: 'communicated', width: 45 },
+        { header: 'Response Received', key: 'response', width: 40 },
+        { header: 'Next Action', key: 'nextAction', width: 28 },
+        { header: 'Attachments / Links', key: 'attachments', width: 40 },
+      ];
+
+      // Row 1: Title Banner
+      fuSheet.mergeCells('A1:J1');
+      const fuTitleCell = fuSheet.getCell('A1');
+      fuTitleCell.value = `Today Tasks [${todayStr}] — Follow-Up Audit Trail`;
+      fuTitleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
+      fuTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+      fuTitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      fuSheet.getRow(1).height = 28;
+
+      // Row 2: Metadata Subtitle
+      fuSheet.mergeCells('A2:J2');
+      const fuMetaCell = fuSheet.getCell('A2');
+      fuMetaCell.value = `Generated on: ${formatDateTimeStr(new Date())}   |   Total Follow-Up Records: ${allFollowUps.length}   |   Name: Sushant Gupta`;
+      fuMetaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
+      fuMetaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+      fuMetaCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      fuSheet.getRow(2).height = 20;
+
+      // Row 3: Spacer
+      fuSheet.getRow(3).height = 8;
+
+      // Row 4: Column Headers
+      const fuHeaderRow = fuSheet.getRow(4);
+      fuHeaderRow.values = ['Sr No', 'Task Title', 'Follow-Up #', 'Date & Time', 'Method', 'Contact Person', 'Communication Details', 'Response Received', 'Next Action', 'Attachments / Links'];
+      fuHeaderRow.height = 26;
+
+      fuHeaderRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10.5, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF334155' } },
+          bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+          left: { style: 'thin', color: { argb: 'FF334155' } },
+          right: { style: 'thin', color: { argb: 'FF334155' } },
+        };
+      });
+
+      // Data Rows
+      allFollowUps.forEach((fu: any, idx: number) => {
+        const parentTask = tasks.find(t => t._id.toString() === fu.taskId.toString());
+        const taskTitle = parentTask ? parentTask.title : '—';
+        const methodStr = fu.method === 'Other' && fu.methodOther ? `Other (${fu.methodOther})` : fu.method;
+
+        // Collect attachment links
+        const fLegacyAtts = legacyAttachments.filter((la: any) => la.followUpId.toString() === fu._id.toString());
+        const attLinks: { name: string; url: string }[] = [];
+        if (fu.attachments && fu.attachments.length > 0) {
+          fu.attachments.forEach((att: any) => {
+            attLinks.push({ name: att.filename || 'File', url: att.url || '#' });
+          });
+        }
+        if (fLegacyAtts.length > 0) {
+          fLegacyAtts.forEach((att: any) => {
+            const filename = att.originalName || 'File';
+            const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+            attLinks.push({ name: filename, url });
+          });
+        }
+
+        const attachmentsText = attLinks.length > 0
+          ? attLinks.map(a => `${a.name}: ${a.url}`).join('\n')
+          : 'None';
+
+        const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
+        const row = fuSheet.addRow({
+          sr: idx + 1,
+          taskTitle,
+          fuNumber: `#${fu.followUpNumber}`,
+          fuDate: formatDateTimeStr(fu.followUpDate),
+          method: methodStr,
+          contactPerson: fu.contactPerson || '—',
+          communicated: fu.communicated || '',
+          response: fu.responseReceived || '—',
+          nextAction: fu.nextAction ? `${fu.nextAction}${fu.nextFollowUpDate ? ` (${formatDateStr(fu.nextFollowUpDate)})` : ''}` : '—',
+          attachments: attachmentsText,
+        });
+
+        const commLines = Math.max(1, Math.ceil((fu.communicated || '').length / 42));
+        const respLines = Math.max(1, Math.ceil((fu.responseReceived || '').length / 38));
+        const attLinesCount = Math.max(1, attLinks.length);
+        const maxLines = Math.max(commLines, respLines, attLinesCount);
+        row.height = maxLines === 1 ? 22 : Math.min(160, Math.max(26, maxLines * 16));
+
+        row.eachCell((cell, colNumber) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+          cell.font = { color: { argb: 'FF1E293B' }, size: 10, name: 'Calibri' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+
+          const isLeft = [2, 7, 8, 9, 10].includes(colNumber);
+          cell.alignment = { vertical: 'middle', horizontal: isLeft ? 'left' : 'center', wrapText: true };
+
+          // If single attachment, render as active clickable hyperlink in Excel
+          if (colNumber === 10 && attLinks.length === 1) {
+            cell.value = { text: attLinks[0].name, hyperlink: attLinks[0].url };
+            cell.font = { color: { argb: 'FF2563EB' }, underline: true, size: 10, name: 'Calibri' };
+          }
+        });
+      });
+
+      const fuLastRowIdx = fuSheet.rowCount + 2;
+      fuSheet.mergeCells(`A${fuLastRowIdx}:J${fuLastRowIdx}`);
+      const fuSheetFooter = fuSheet.getCell(`A${fuLastRowIdx}`);
+      fuSheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
+      fuSheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+      fuSheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
+      fuSheet.getRow(fuLastRowIdx).height = 20;
+
+      fuSheet.autoFilter = { from: 'A4', to: 'J4' };
+    }
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.xlsx"');
@@ -339,7 +737,12 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       }
     }
 
-    const tasks = await Task.find(filter).sort(sort).lean();
+    // Always export latest data first (newest dates and latest created tasks at top)
+    const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
+      : { date: -1, createdAt: -1, _id: -1 };
+
+    const tasks = await Task.find(filter).sort(exportSort).lean();
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
@@ -355,45 +758,135 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     archive.on('error', (err: Error) => { throw err; });
     archive.pipe(res);
 
-    // 2. Generate Excel in memory and append to Zip
+    // 2. Generate Clean Excel in memory (without Task ID) and append to Zip
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Tasks');
+    workbook.creator = 'Task Management System';
+    workbook.created = new Date();
+
+    const sheet = workbook.addWorksheet('Tasks Register', {
+      views: [{ state: 'frozen', xSplit: 0, ySplit: 4, topLeftCell: 'A5', activeCell: 'A5' }],
+    });
+
     sheet.columns = [
-      { header: 'Task ID', key: 'taskId', width: 12 },
-      { header: 'Title', key: 'title', width: 25 },
-      { header: 'Work Status', key: 'workStatus', width: 14 },
-      { header: 'Priority', key: 'priority', width: 10 },
-      { header: 'Given By', key: 'givenBy', width: 15 },
-      { header: 'F-Ups', key: 'fUps', width: 8 },
-      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Sr No', key: 'sr', width: 8 },
+      { header: 'Title', key: 'title', width: 28 },
+      { header: 'Description', key: 'description', width: 48 },
+      { header: 'Given By', key: 'givenBy', width: 20 },
+      { header: 'Priority', key: 'priority', width: 14 },
+      { header: 'Work Status', key: 'workStatus', width: 16 },
+      { header: 'Follow-ups', key: 'fUps', width: 13 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Due Date', key: 'dueDate', width: 14 },
+      { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
-    tasks.forEach((task: any) => {
-      sheet.addRow({
-        taskId: task.taskId,
-        title: task.title,
-        workStatus: task.workStatus,
-        priority: task.priority,
-        givenBy: task.givenBy,
+
+    const todayStr = formatDateStr(new Date());
+
+    sheet.mergeCells('A1:J1');
+    const titleCell = sheet.getCell('A1');
+    titleCell.value = `Today Tasks [${todayStr}]`;
+    titleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.getRow(1).height = 28;
+
+    sheet.mergeCells('A2:J2');
+    const metaCell = sheet.getCell('A2');
+    metaCell.value = `Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`;
+    metaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
+    metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.getRow(2).height = 20;
+
+    sheet.getRow(3).height = 8;
+
+    const headerRow = sheet.getRow(4);
+    headerRow.values = ['Sr No', 'Title', 'Description', 'Given By', 'Priority', 'Work Status', 'Follow-ups', 'Date', 'Due Date', 'Reason / Remarks'];
+    headerRow.height = 26;
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10.5, name: 'Calibri' };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF334155' } },
+        bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+        left: { style: 'thin', color: { argb: 'FF334155' } },
+        right: { style: 'thin', color: { argb: 'FF334155' } },
+      };
+    });
+
+    tasks.forEach((task: any, idx: number) => {
+      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
+      const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
+
+      const row = sheet.addRow({
+        sr: idx + 1,
+        title: task.title || '',
+        description: task.description || '',
+        givenBy: task.givenBy || '',
+        priority: task.priority || '',
+        workStatus: task.workStatus || '',
         fUps: summaryMap.get(task._id.toString()) || 0,
-        date: task.date ? new Date(task.date).toLocaleDateString('en-IN') : '',
+        date: formatDateStr(task.date),
+        dueDate: task.dueDate ? formatDateStr(task.dueDate) : '—',
+        reasonRemarks: remarkOrReason || '—',
+      });
+
+      const descLines = Math.max(1, Math.ceil((task.description || '').length / 44));
+      const remarksLines = Math.max(1, Math.ceil((remarkOrReason || '').length / 38));
+      const titleLines = Math.max(1, Math.ceil((task.title || '').length / 26));
+      const maxLines = Math.max(descLines, remarksLines, titleLines);
+      row.height = maxLines === 1 ? 22 : Math.min(160, Math.max(26, maxLines * 16));
+
+      row.eachCell((cell, colNumber) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+        cell.font = { color: { argb: 'FF1E293B' }, size: 10, name: 'Calibri' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        };
+        const isLeft = [2, 3, 4, 10].includes(colNumber);
+        cell.alignment = { vertical: 'middle', horizontal: isLeft ? 'left' : 'center', wrapText: true };
+
+        if (colNumber === 5 && PRIORITY_COLORS_ARGB[task.priority]) {
+          cell.font = { color: { argb: PRIORITY_COLORS_ARGB[task.priority] }, bold: true, size: 10, name: 'Calibri' };
+        }
+        if (colNumber === 6 && STATUS_COLORS_ARGB[task.workStatus]) {
+          cell.font = { color: { argb: STATUS_COLORS_ARGB[task.workStatus] }, bold: true, size: 10, name: 'Calibri' };
+        }
       });
     });
-    
+
+    const zipLastRowIdx = sheet.rowCount + 2;
+    sheet.mergeCells(`A${zipLastRowIdx}:J${zipLastRowIdx}`);
+    const zipSheetFooter = sheet.getCell(`A${zipLastRowIdx}`);
+    zipSheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
+    zipSheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+    zipSheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.getRow(zipLastRowIdx).height = 20;
+
+    sheet.autoFilter = { from: 'A4', to: 'J4' };
+
     const excelBuffer = await workbook.xlsx.writeBuffer();
     archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: 'Tasks_Report.xlsx' });
 
-    // 3. Process attachments
-    // Fetch all follow-ups for these tasks
+    // 3. Process and organize task attachments in ZIP
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).lean();
 
-    for (const task of tasks) {
+    for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
+      const task = tasks[tIdx];
       const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
       if (taskFUs.length === 0) continue;
 
-      for (const fu of taskFUs) {
-        const folderName = `Attachments/${task.taskId}/FollowUp_${fu.followUpNumber}`;
+      const safeTitle = (task.title || 'Task').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
+      const folderPrefix = `Attachments/Task_${tIdx + 1}_${safeTitle}`;
 
-        // A. Legacy Attachments (stored in FollowUpAttachment MongoDB collection)
+      for (const fu of taskFUs) {
+        const folderName = `${folderPrefix}/FollowUp_${fu.followUpNumber}`;
+
+        // A. Legacy Attachments (stored in MongoDB)
         const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
         for (const lAtt of legacyAtts) {
           if (lAtt.data) {
