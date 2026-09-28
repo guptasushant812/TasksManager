@@ -12,7 +12,7 @@ cloudinary.config({
 // Configure Multer Storage for Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => {
+  params: async (req: any, file: any) => {
     return {
       folder: 'tasks-manager',
       resource_type: 'auto', // Automatically detects image, raw (pdf), video, etc.
