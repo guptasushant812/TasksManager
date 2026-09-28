@@ -8,49 +8,61 @@ export async function getSummary(req: Request, res: Response, next: NextFunction
   try {
     const { filter } = buildQuery(req.query);
 
-    // Run all three counts in parallel
-    const [inProgress, pending, completed, total] = await Promise.all([
-      Task.countDocuments({ ...filter, workStatus: 'InProgress' }),
-      Task.countDocuments({ ...filter, workStatus: 'Pending' }),
-      Task.countDocuments({ ...filter, workStatus: 'Completed' }),
-      Task.countDocuments(filter),
+    // 1. Get task status counts in one aggregation
+    const statusCounts = await Task.aggregate([
+      { $match: filter },
+      { $group: { _id: '$workStatus', count: { $sum: 1 } } }
     ]);
+    
+    let inProgress = 0, pending = 0, completed = 0, total = 0;
+    statusCounts.forEach(s => {
+      if (s._id === 'InProgress') inProgress = s.count;
+      if (s._id === 'Pending') pending = s.count;
+      if (s._id === 'Completed') completed = s.count;
+      total += s.count;
+    });
 
-    // Follow-up metrics
-    const activeTasks = await Task.find({ ...filter, workStatus: { $ne: 'Completed' } }).select('_id').lean();
-    const activeTaskIds = activeTasks.map((t) => t._id);
-
+    // 2. Follow-up metrics (only for non-completed tasks)
     let overdueFollowUps = 0;
     let escalatedTasks = 0;
 
-    if (activeTaskIds.length > 0) {
-      const summaries = await mongoose.model('FollowUp').aggregate([
-        { $match: { taskId: { $in: activeTaskIds }, isDeleted: false } },
-        { $sort: { followUpNumber: -1 } },
-        {
-          $group: {
-            _id: '$taskId',
-            count: { $sum: 1 },
-            nextFollowUpDate: { $first: '$nextFollowUpDate' },
-          },
-        },
-      ]);
-
-      const now = new Date();
-      // Fetch settings to know the threshold
-      const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
-      const threshold = settings?.threshold || 3;
-      const escalationsEnabled = settings?.enabled || false;
-
-      for (const s of summaries) {
-        if (s.nextFollowUpDate && new Date(s.nextFollowUpDate) < now) {
-          overdueFollowUps++;
+    const activePipeline: any[] = [
+      { $match: { ...filter, workStatus: { $ne: 'Completed' } } },
+      {
+        $lookup: {
+          from: 'followups', // exact collection name in MongoDB
+          localField: '_id',
+          foreignField: 'taskId',
+          pipeline: [
+            { $match: { isDeleted: false } },
+            { $sort: { followUpNumber: -1 } },
+          ],
+          as: 'followUps'
         }
-        if (escalationsEnabled && s.count >= threshold) {
-          escalatedTasks++;
+      },
+      {
+        $project: {
+          fuCount: { $size: '$followUps' },
+          lastFu: { $arrayElemAt: ['$followUps', 0] }
         }
       }
-    }
+    ];
+
+    const activeTasksData = await Task.aggregate(activePipeline);
+
+    const now = new Date();
+    const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
+    const threshold = settings?.threshold || 3;
+    const escalationsEnabled = settings?.enabled || false;
+
+    activeTasksData.forEach(t => {
+      if (t.lastFu?.nextFollowUpDate && new Date(t.lastFu.nextFollowUpDate) < now) {
+        overdueFollowUps++;
+      }
+      if (escalationsEnabled && t.fuCount >= threshold) {
+        escalatedTasks++;
+      }
+    });
 
     res.json({ inProgress, pending, completed, total, overdueFollowUps, escalatedTasks });
   } catch (err) {

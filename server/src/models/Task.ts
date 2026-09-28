@@ -70,7 +70,7 @@ const TaskSchema = new Schema<ITask>(
 );
 
 // ── Indexes ──────────────────────────────────────────────────────────────────
-TaskSchema.index({ date: -1 });
+TaskSchema.index({ date: -1, workStatus: 1 });
 TaskSchema.index({ workStatus: 1 });
 TaskSchema.index({ priority: 1 });
 TaskSchema.index({ userId: 1 });
