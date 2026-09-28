@@ -184,6 +184,7 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
   return (
     <button
       title={title}
+      aria-label={title}
       onClick={onClick}
       style={{
         background: 'var(--bg-surface)',

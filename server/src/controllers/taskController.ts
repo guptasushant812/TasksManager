@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import Task, { getNextTaskId } from '../models/Task';
 import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
+
+const ALLOWED_TASK_PRIORITIES = ['High', 'Medium', 'Low'];
+const ALLOWED_TASK_STATUSES = ['InProgress', 'Pending', 'Completed'];
 
 // ── GET /api/tasks ────────────────────────────────────────────────────────────
 export async function listTasks(req: Request, res: Response, next: NextFunction) {
@@ -12,8 +16,7 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
     if (req.query.hasFollowUps === 'true') {
       const distinctTaskIds = await FollowUp.distinct('taskId', { isDeleted: false });
       if (filter._id) {
-        // If there's already an _id filter (unlikely, but safe), intersect them
-        filter._id = { ...filter._id, $in: distinctTaskIds };
+        filter._id = { ...(filter._id as object), $in: distinctTaskIds };
       } else {
         filter._id = { $in: distinctTaskIds };
       }
@@ -100,8 +103,67 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
 // ── POST /api/tasks ───────────────────────────────────────────────────────────
 export async function createTask(req: Request, res: Response, next: NextFunction) {
   try {
+    const {
+      title,
+      description,
+      givenBy,
+      contactPerson,
+      priority,
+      workStatus,
+      reason,
+      remarks,
+      date,
+      dueDate,
+      userId,
+    } = req.body;
+
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+    if (title.trim().length > 300) {
+      res.status(400).json({ error: 'Title cannot exceed 300 characters' });
+      return;
+    }
+
+    if (!date) {
+      res.status(400).json({ error: 'Task date is required' });
+      return;
+    }
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      res.status(400).json({ error: 'Invalid task date format' });
+      return;
+    }
+
+    let parsedDueDate: Date | null = null;
+    if (dueDate) {
+      parsedDueDate = new Date(dueDate);
+      if (isNaN(parsedDueDate.getTime())) {
+        res.status(400).json({ error: 'Invalid due date format' });
+        return;
+      }
+    }
+
+    const validatedPriority = ALLOWED_TASK_PRIORITIES.includes(priority) ? priority : 'Medium';
+    const validatedStatus = ALLOWED_TASK_STATUSES.includes(workStatus) ? workStatus : 'Pending';
+
     const taskId = await getNextTaskId();
-    const task = new Task({ ...req.body, taskId });
+    const task = new Task({
+      taskId,
+      title: title.trim(),
+      description: typeof description === 'string' ? description.trim() : '',
+      givenBy: typeof givenBy === 'string' ? givenBy.trim() : '',
+      contactPerson: typeof contactPerson === 'string' ? contactPerson.trim() : '',
+      priority: validatedPriority,
+      workStatus: validatedStatus,
+      reason: typeof reason === 'string' ? reason.trim() : '',
+      remarks: typeof remarks === 'string' ? remarks.trim() : '',
+      date: parsedDate,
+      dueDate: parsedDueDate,
+      userId: typeof userId === 'string' ? userId.trim() : null,
+    });
+
     await task.save();
     res.status(201).json(task);
   } catch (err) {
@@ -112,9 +174,73 @@ export async function createTask(req: Request, res: Response, next: NextFunction
 // ── PUT /api/tasks/:id ────────────────────────────────────────────────────────
 export async function updateTask(req: Request, res: Response, next: NextFunction) {
   try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+
+    const updates: Record<string, unknown> = {};
+
+    if (req.body.title !== undefined) {
+      if (typeof req.body.title !== 'string' || !req.body.title.trim()) {
+        res.status(400).json({ error: 'Title cannot be empty' });
+        return;
+      }
+      if (req.body.title.trim().length > 300) {
+        res.status(400).json({ error: 'Title cannot exceed 300 characters' });
+        return;
+      }
+      updates.title = req.body.title.trim();
+    }
+
+    if (req.body.date !== undefined) {
+      const parsedDate = new Date(req.body.date);
+      if (isNaN(parsedDate.getTime())) {
+        res.status(400).json({ error: 'Invalid task date format' });
+        return;
+      }
+      updates.date = parsedDate;
+    }
+
+    if (req.body.dueDate !== undefined) {
+      if (!req.body.dueDate) {
+        updates.dueDate = null;
+      } else {
+        const parsedDue = new Date(req.body.dueDate);
+        if (isNaN(parsedDue.getTime())) {
+          res.status(400).json({ error: 'Invalid due date format' });
+          return;
+        }
+        updates.dueDate = parsedDue;
+      }
+    }
+
+    if (req.body.priority !== undefined) {
+      if (!ALLOWED_TASK_PRIORITIES.includes(req.body.priority)) {
+        res.status(400).json({ error: 'Invalid priority value' });
+        return;
+      }
+      updates.priority = req.body.priority;
+    }
+
+    if (req.body.workStatus !== undefined) {
+      if (!ALLOWED_TASK_STATUSES.includes(req.body.workStatus)) {
+        res.status(400).json({ error: 'Invalid work status value' });
+        return;
+      }
+      updates.workStatus = req.body.workStatus;
+    }
+
+    for (const strField of ['description', 'givenBy', 'contactPerson', 'reason', 'remarks']) {
+      if (req.body[strField] !== undefined) {
+        updates[strField] = typeof req.body[strField] === 'string' ? req.body[strField].trim() : '';
+      }
+    }
+
     const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedAt: new Date() },
+      id,
+      { ...updates, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
     if (!task) {
@@ -139,7 +265,6 @@ async function resequenceTaskIds() {
   }
   
   // Update the counter to match the new total length
-  const mongoose = require('mongoose');
   const Counter = mongoose.models.Counter;
   if (Counter) {
     await Counter.updateOne(
@@ -153,17 +278,23 @@ async function resequenceTaskIds() {
 // ── DELETE /api/tasks/:id ─────────────────────────────────────────────────────
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+
+    const task = await Task.findByIdAndDelete(id);
     if (!task) {
       res.status(404).json({ error: 'Task not found' });
       return;
     }
-    await FollowUp.deleteMany({ taskId: req.params.id });
+    await FollowUp.deleteMany({ taskId: id });
     
     // Resequence tasks after deletion
     await resequenceTaskIds();
     
-    res.json({ message: 'Task deleted', id: req.params.id });
+    res.json({ message: 'Task deleted', id });
   } catch (err) {
     next(err);
   }
@@ -174,15 +305,26 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
   try {
     const { ids } = req.body as { ids: string[] };
     if (!Array.isArray(ids) || ids.length === 0) {
-      res.status(400).json({ error: 'ids array required' });
+      res.status(400).json({ error: 'A non-empty array of task IDs is required' });
       return;
     }
+    if (ids.length > 500) {
+      res.status(400).json({ error: 'Cannot delete more than 500 tasks in a single operation' });
+      return;
+    }
+
+    const validIds = ids.filter((id) => typeof id === 'string' && mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      res.status(400).json({ error: 'No valid task IDs provided' });
+      return;
+    }
+
     const [result] = await Promise.all([
-      Task.deleteMany({ _id: { $in: ids } }),
-      FollowUp.deleteMany({ taskId: { $in: ids } }),
+      Task.deleteMany({ _id: { $in: validIds } }),
+      FollowUp.deleteMany({ taskId: { $in: validIds } }),
     ]);
     
-    // Resequence tasks after bulk deletion
+    // Resequence tasks once after bulk deletion
     await resequenceTaskIds();
     
     res.json({ message: 'Tasks deleted', count: result.deletedCount });
@@ -195,6 +337,11 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
 export async function escalateTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+
     const task = await Task.findById(id);
     if (!task) {
       res.status(404).json({ error: 'Task not found' });
@@ -202,7 +349,6 @@ export async function escalateTask(req: Request, res: Response, next: NextFuncti
     }
 
     const { sendEscalationEmail } = await import('../services/emailService');
-    const mongoose = (await import('mongoose')).default;
     
     const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
     if (!settings || !settings.enabled) {
@@ -210,7 +356,7 @@ export async function escalateTask(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Wait slightly to ensure Cloudinary webhooks or file streaming has perfectly settled in MongoDB
+    // Wait slightly to ensure Cloudinary webhooks or file streaming has settled in MongoDB
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const allFollowUps = await FollowUp.find({ taskId: id, isDeleted: false }).sort({ followUpNumber: 1 }).lean();
