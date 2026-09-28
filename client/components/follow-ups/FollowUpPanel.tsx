@@ -7,6 +7,7 @@ import { formatDate } from '@/lib/dates';
 import FollowUpTimeline from './FollowUpTimeline';
 import FollowUpForm from './FollowUpForm';
 import EscalationBanner from './EscalationBanner';
+import ExportMenu from '../tasks/ExportMenu';
 import { ArrowLeft, Plus, Trash2, X } from 'lucide-react';
 
 interface FollowUpPanelProps {
@@ -96,12 +97,14 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
       <div className="fu-panel-backdrop" onClick={onClose} />
 
       <div className="fu-panel">
-        <div className="fu-panel-header">
-          <button onClick={onClose} className="btn btn-ghost" style={{ padding: '6px 12px' }}>
+        <div className="fu-panel-header" style={{ display: 'flex', gap: 12 }}>
+          <button onClick={onClose} className="btn btn-ghost" style={{ padding: '6px 12px', marginRight: 'auto' }}>
             <ArrowLeft style={{ width: 14, height: 14 }} />
             Back
           </button>
           
+          <ExportMenu filters={{}} selectedIds={[task._id]} isPanel={true} />
+
           <button
             className="btn btn-primary"
             onClick={() => { setEditingFollowUp(null); setShowForm(true); }}

@@ -8,9 +8,10 @@ import { Download, FileText, FileSpreadsheet, ChevronDown } from 'lucide-react';
 interface ExportMenuProps {
   filters: TaskFilters;
   selectedIds: string[];
+  isPanel?: boolean;
 }
 
-export default function ExportMenu({ filters, selectedIds }: ExportMenuProps) {
+export default function ExportMenu({ filters, selectedIds, isPanel = false }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
 
   function buildExportUrl(format: 'pdf' | 'excel' | 'zip') {
@@ -102,23 +103,25 @@ export default function ExportMenu({ filters, selectedIds }: ExportMenuProps) {
               <FileSpreadsheet style={{ width: 14, height: 14, color: 'var(--low)' }} />
               Export as Excel
             </a>
-            <a
-              id="export-zip-btn"
-              href={buildExportUrl('zip')}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px', color: 'var(--text-primary)',
-                textDecoration: 'none', fontSize: 13, transition: 'background 0.1s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-            >
-              <Download style={{ width: 14, height: 14, color: 'var(--text-primary)' }} />
-              Export ZIP with Attachments
-            </a>
+            {isPanel && (
+              <a
+                id="export-zip-btn"
+                href={buildExportUrl('zip')}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', color: 'var(--text-primary)',
+                  textDecoration: 'none', fontSize: 13, transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <Download style={{ width: 14, height: 14, color: 'var(--text-primary)' }} />
+                Export ZIP with Attachments
+              </a>
+            )}
           </div>
         </>
       )}

@@ -41,6 +41,8 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     ]);
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+
     const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -53,8 +55,8 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     doc.moveDown(1.5);
 
     // ── Table header ────────────────────────────────────────────────────────
-    const colWidths = [35, 65, 120, 130, 80, 60, 70, 50, 130];
-    const headers = ['Sr', 'Task ID', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Reason/Remarks'];
+    const colWidths = [25, 60, 100, 100, 70, 50, 60, 40, 100, 135];
+    const headers = ['Sr', 'Task ID', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Reason', 'Follow-Ups History'];
     const startX = doc.page.margins.left;
     let x = startX;
     const headerY = doc.y;
@@ -82,6 +84,19 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       const remarkOrReason =
         task.workStatus === 'Completed' ? task.remarks : task.reason;
 
+      let fuHistory = '';
+      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+      taskFUs.forEach((fu, i) => {
+        fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
+        if (fu.attachments && fu.attachments.length > 0) {
+          fu.attachments.forEach(att => {
+            const filename = att.filename || att.originalName || 'File';
+            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+            fuHistory += `Link: ${url}\n`;
+          });
+        }
+      });
+
       const cells = [
         String(idx + 1),
         task.taskId,
@@ -92,6 +107,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         task.workStatus,
         String(summaryMap.get(task._id.toString()) || 0),
         remarkOrReason,
+        fuHistory.trim().replace(/\n/g, '  |  ')
       ];
 
       x = startX;
@@ -111,6 +127,34 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
 
       rowY += rowH;
     });
+
+    // If exporting a single task, append full details of follow-ups below the table
+    if (tasks.length === 1 && allFollowUps.length > 0) {
+      doc.moveDown(2);
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text('Detailed Follow-Up History & Attachments');
+      doc.moveDown(0.5);
+      
+      allFollowUps.forEach((fu, i) => {
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#333333')
+           .text(`#${i + 1} - ${new Date(fu.followUpDate).toLocaleString('en-IN')} - ${fu.method}`);
+        doc.fontSize(9).font('Helvetica').fillColor('#555555')
+           .text(`Communicated: ${fu.communicated}`);
+        if (fu.responseReceived) {
+          doc.text(`Response: ${fu.responseReceived}`);
+        }
+        if (fu.attachments && fu.attachments.length > 0) {
+          doc.moveDown(0.2);
+          doc.font('Helvetica-Bold').text('Attachments:');
+          doc.font('Helvetica').fillColor('#0066cc');
+          fu.attachments.forEach(att => {
+            const filename = att.filename || att.originalName || 'File';
+            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+            doc.text(`${filename}: ${url}`, { link: url, underline: true });
+          });
+        }
+        doc.moveDown(1);
+      });
+    }
 
     doc.end();
   } catch (err) {
@@ -139,6 +183,8 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     ]);
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Task Manager';
     workbook.created = new Date();
@@ -159,6 +205,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       { header: 'Date', key: 'date', width: 12 },
       { header: 'Due Date', key: 'dueDate', width: 12 },
       { header: 'Reason / Remarks', key: 'reasonRemarks', width: 35 },
+      { header: 'Follow-Ups History', key: 'followUpsHistory', width: 60 },
     ];
 
     // ── Style header row ──────────────────────────────────────────────────────
@@ -190,6 +237,21 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
         reasonRemarks: task.workStatus === 'Completed' ? task.remarks : task.reason,
       });
 
+      let fuHistory = '';
+      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+      taskFUs.forEach((fu, i) => {
+        fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
+        if (fu.attachments && fu.attachments.length > 0) {
+          fu.attachments.forEach(att => {
+            const filename = att.filename || att.originalName || 'File';
+            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+            fuHistory += `Link: ${url}\n`;
+          });
+        }
+        fuHistory += '\n';
+      });
+      row.getCell('followUpsHistory').value = fuHistory.trim();
+
       row.height = 20;
       row.eachCell((cell, colNumber) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
@@ -210,7 +272,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     });
 
     // ── Auto-filter ───────────────────────────────────────────────────────────
-    sheet.autoFilter = { from: 'A1', to: `K1` };
+    sheet.autoFilter = { from: 'A1', to: `L1` };
 
     // ── Freeze header ─────────────────────────────────────────────────────────
     sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
