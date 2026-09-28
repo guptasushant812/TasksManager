@@ -205,19 +205,27 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                 {/* Existing Attachments */}
                 {existingAttachments.map((att: any, i) => {
-                  const url = att?.url || '';
+                  const filename = att?.filename || att?.originalName || 'File';
+                  const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
+                  const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
                   
                   return (
-                    <div key={att?._id || i} style={{
+                    <div key={att?.public_id || att?._id || i} style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '6px 12px', background: 'var(--bg-elevated)',
+                      padding: '4px 10px', background: 'var(--bg-elevated)',
                       border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                      fontSize: 13, color: 'var(--text-secondary)'
+                      fontSize: 12, color: 'var(--text-secondary)'
                     }}>
                       <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'inherit', textDecoration: 'none' }}>
-                        <Paperclip style={{ width: 14, height: 14 }} />
+                        {isImage && url !== '#' ? (
+                          <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
+                            <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        ) : (
+                          <Paperclip style={{ width: 14, height: 14 }} />
+                        )}
                         <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {att?.filename || 'File'}
+                          {filename}
                         </span>
                       </a>
                       <button
@@ -234,14 +242,26 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
 
                 {/* New Files */}
                 {files.map((file, i) => {
+                  const isImage = file.type.startsWith('image/');
+                  if (isImage && !(file as any).previewUrl) {
+                    (file as any).previewUrl = URL.createObjectURL(file);
+                  }
+                  const previewUrl = (file as any).previewUrl;
+
                   return (
                     <div key={i} style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '6px 12px', background: 'var(--bg-elevated)',
+                      padding: '4px 10px', background: 'var(--bg-elevated)',
                       border: '1px dashed var(--accent)', borderRadius: 'var(--radius-md)',
-                      fontSize: 13, color: 'var(--text-secondary)'
+                      fontSize: 12, color: 'var(--text-secondary)'
                     }}>
-                      <Paperclip style={{ width: 14, height: 14 }} />
+                      {previewUrl ? (
+                        <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
+                          <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <Paperclip style={{ width: 14, height: 14 }} />
+                      )}
                       <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {file.name}
                       </span>
