@@ -10,6 +10,10 @@ const uploadDir = path.join(__dirname, '../../uploads');
 export async function uploadAttachments(req: Request, res: Response, next: NextFunction) {
   try {
     const { taskId, followUpId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(followUpId)) {
+      res.status(400).json({ error: 'Invalid follow-up ID' });
+      return;
+    }
     
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
       res.status(400).json({ error: 'No files uploaded' });
@@ -27,7 +31,7 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
       const attachment = new FollowUpAttachment({
         followUpId,
         taskId,
-        originalName: file.originalname,
+        originalName: path.basename(file.originalname),
         mimeType: file.mimetype,
         sizeBytes: file.size,
         data: file.buffer,
@@ -47,6 +51,10 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
 export async function listAttachments(req: Request, res: Response, next: NextFunction) {
   try {
     const { followUpId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(followUpId)) {
+      res.status(400).json({ error: 'Invalid follow-up ID' });
+      return;
+    }
     const attachments = await FollowUpAttachment.find({ followUpId }).select('-data').sort({ createdAt: 1 }).lean();
     res.json({ data: attachments });
   } catch (err) {
@@ -57,6 +65,11 @@ export async function listAttachments(req: Request, res: Response, next: NextFun
 export async function downloadAttachment(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid attachment ID' });
+      return;
+    }
+
     const attachment = await FollowUpAttachment.findById(id);
     if (!attachment) {
       res.status(404).json({ error: 'Attachment not found' });
@@ -65,16 +78,19 @@ export async function downloadAttachment(req: Request, res: Response, next: Next
 
     if (attachment.data) {
       res.setHeader('Content-Type', attachment.mimeType);
-      res.setHeader('Content-Disposition', `inline; filename="${attachment.originalName}"`);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(attachment.originalName)}"`);
       res.send(attachment.data);
     } else {
-      const filePath = path.join(uploadDir, attachment.storedName || '');
-      if (!fs.existsSync(filePath)) {
+      const safeName = path.basename(attachment.storedName || '');
+      const filePath = path.resolve(uploadDir, safeName);
+      const resolvedBase = path.resolve(uploadDir);
+
+      if (!filePath.startsWith(resolvedBase) || !fs.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found on disk or database' });
         return;
       }
       res.setHeader('Content-Type', attachment.mimeType);
-      res.setHeader('Content-Disposition', `inline; filename="${attachment.originalName}"`);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(attachment.originalName)}"`);
       res.sendFile(filePath);
     }
   } catch (err) {
@@ -85,6 +101,11 @@ export async function downloadAttachment(req: Request, res: Response, next: Next
 export async function deleteAttachment(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid attachment ID' });
+      return;
+    }
+
     const attachment = await FollowUpAttachment.findByIdAndDelete(id);
     if (!attachment) {
       res.status(404).json({ error: 'Attachment not found' });
@@ -92,8 +113,10 @@ export async function deleteAttachment(req: Request, res: Response, next: NextFu
     }
 
     if (attachment.storedName) {
-      const filePath = path.join(uploadDir, attachment.storedName);
-      if (fs.existsSync(filePath)) {
+      const safeName = path.basename(attachment.storedName);
+      const filePath = path.resolve(uploadDir, safeName);
+      const resolvedBase = path.resolve(uploadDir);
+      if (filePath.startsWith(resolvedBase) && fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
     }

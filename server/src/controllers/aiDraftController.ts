@@ -44,8 +44,12 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
   try {
     const { rawText } = req.body as { rawText: string };
 
-    if (!rawText || rawText.trim().length === 0) {
-      res.status(400).json({ error: 'rawText is required' });
+    if (!rawText || typeof rawText !== 'string' || rawText.trim().length === 0) {
+      res.status(400).json({ error: 'rawText string is required' });
+      return;
+    }
+    if (rawText.length > 50000) {
+      res.status(400).json({ error: 'Input text exceeds maximum allowable limit of 50,000 characters' });
       return;
     }
 
@@ -90,7 +94,8 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
       const parsed = JSON.parse(raw);
       drafts = Array.isArray(parsed) ? parsed : [parsed];
     } catch {
-      res.status(500).json({ error: 'AI returned invalid JSON', raw });
+      console.error('[AI Draft] Failed to parse model output:', raw.slice(0, 200));
+      res.status(500).json({ error: 'AI returned unparseable content. Please refine your input.' });
       return;
     }
 

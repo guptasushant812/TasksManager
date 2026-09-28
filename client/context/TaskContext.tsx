@@ -48,6 +48,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchSummary(summaryFilters);
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       fetchSummary(summaryFilters, true);
     }, 5000);
     return () => clearInterval(interval);

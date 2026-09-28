@@ -33,7 +33,7 @@ const SORT_COLUMNS: { key: string; label: string }[] = [
 ];
 
 export default function TaskTable({ filters, onFiltersChange, refreshKey, mode = 'tasks' }: TaskTableProps) {
-  const { tasks, pagination, loading, error, fetchTasks, deleteTask } = useTasks();
+  const { tasks, pagination, loading, error, fetchTasks, deleteTask, deleteManyTasks } = useTasks();
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState(false);
@@ -49,6 +49,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   useEffect(() => {
     fetchTasks({ ...filters, limit: filters.limit || 20 });
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       fetchTasks({ ...filters, limit: filters.limit || 20 }, true);
     }, 5000);
     return () => clearInterval(interval);
@@ -85,9 +86,13 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   const handleDeleteSelected = async () => {
     if (!confirm(`Delete ${selectedIds.length} selected task(s)?`)) return;
-    await Promise.all(selectedIds.map((id) => deleteTask(id)));
-    setSelectedIds([]);
-    fetchTasks({ ...filters, limit: filters.limit || 20 });
+    try {
+      await deleteManyTasks(selectedIds);
+      setSelectedIds([]);
+      fetchTasks({ ...filters, limit: filters.limit || 20 });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete selected tasks');
+    }
   };
 
   const handleSort = (field: string) => {

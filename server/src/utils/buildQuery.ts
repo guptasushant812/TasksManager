@@ -14,6 +14,13 @@ function toDate(val: unknown): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const ALLOWED_STATUSES = ['InProgress', 'Pending', 'Completed'];
+const ALLOWED_PRIORITIES = ['High', 'Medium', 'Low'];
+
 export function buildQuery(query: ParsedQs): TaskQuery {
   const filter: Record<string, unknown> = {};
 
@@ -23,18 +30,18 @@ export function buildQuery(query: ParsedQs): TaskQuery {
   }
 
   // ── Work status filter ────────────────────────────────────────────────────
-  if (query.status && typeof query.status === 'string') {
+  if (query.status && typeof query.status === 'string' && ALLOWED_STATUSES.includes(query.status)) {
     filter.workStatus = query.status;
   }
 
   // ── Priority filter ───────────────────────────────────────────────────────
-  if (query.priority && typeof query.priority === 'string') {
+  if (query.priority && typeof query.priority === 'string' && ALLOWED_PRIORITIES.includes(query.priority)) {
     filter.priority = query.priority;
   }
 
-  // ── Given By filter ───────────────────────────────────────────────────────
-  if (query.givenBy && typeof query.givenBy === 'string') {
-    filter.givenBy = { $regex: query.givenBy, $options: 'i' };
+  // ── Given By filter (properly regex-escaped to prevent ReDoS / injection) ──
+  if (query.givenBy && typeof query.givenBy === 'string' && query.givenBy.trim()) {
+    filter.givenBy = { $regex: escapeRegex(query.givenBy.trim()), $options: 'i' };
   }
 
   // ── Date range ────────────────────────────────────────────────────────────
