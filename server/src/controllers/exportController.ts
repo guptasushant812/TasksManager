@@ -42,6 +42,8 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+    const followUpIds = allFollowUps.map(fu => fu._id);
+    const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
     const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
 
@@ -88,10 +90,21 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
       taskFUs.forEach((fu, i) => {
         fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
+        
+        // Cloudinary attachments
         if (fu.attachments && fu.attachments.length > 0) {
-          fu.attachments.forEach(att => {
-            const filename = att.filename || att.originalName || 'File';
-            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+          fu.attachments.forEach((att: any) => {
+            const filename = att.filename || 'File';
+            const url = att.url || '#';
+            fuHistory += `Link: ${url}\n`;
+          });
+        }
+        
+        // Legacy attachments
+        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
+        if (fLegacyAtts.length > 0) {
+          fLegacyAtts.forEach((att: any) => {
+            const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(att.originalName || 'file')}`;
             fuHistory += `Link: ${url}\n`;
           });
         }
@@ -142,15 +155,30 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         if (fu.responseReceived) {
           doc.text(`Response: ${fu.responseReceived}`);
         }
-        if (fu.attachments && fu.attachments.length > 0) {
+        
+        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
+        const hasCloudinary = fu.attachments && fu.attachments.length > 0;
+        
+        if (hasCloudinary || fLegacyAtts.length > 0) {
           doc.moveDown(0.2);
           doc.font('Helvetica-Bold').text('Attachments:');
           doc.font('Helvetica').fillColor('#0066cc');
-          fu.attachments.forEach(att => {
-            const filename = att.filename || att.originalName || 'File';
-            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
-            doc.text(`${filename}: ${url}`, { link: url, underline: true });
-          });
+          
+          if (hasCloudinary) {
+            fu.attachments.forEach((att: any) => {
+              const filename = att.filename || 'File';
+              const url = att.url || '#';
+              doc.text(`${filename}: ${url}`, { link: url, underline: true });
+            });
+          }
+          
+          if (fLegacyAtts.length > 0) {
+            fLegacyAtts.forEach((att: any) => {
+              const filename = att.originalName || 'File';
+              const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+              doc.text(`${filename}: ${url}`, { link: url, underline: true });
+            });
+          }
         }
         doc.moveDown(1);
       });
@@ -184,6 +212,8 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+    const followUpIds = allFollowUps.map(fu => fu._id);
+    const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Task Manager';
@@ -241,13 +271,23 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
       taskFUs.forEach((fu, i) => {
         fuHistory += `#${i + 1} (${new Date(fu.followUpDate).toLocaleDateString('en-IN')}): ${fu.communicated} -> ${fu.responseReceived}\n`;
+        
         if (fu.attachments && fu.attachments.length > 0) {
-          fu.attachments.forEach(att => {
-            const filename = att.filename || att.originalName || 'File';
-            const url = att.url || `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(filename)}`;
+          fu.attachments.forEach((att: any) => {
+            const filename = att.filename || 'File';
+            const url = att.url || '#';
             fuHistory += `Link: ${url}\n`;
           });
         }
+        
+        const fLegacyAtts = legacyAttachments.filter(la => la.followUpId.toString() === fu._id.toString());
+        if (fLegacyAtts.length > 0) {
+          fLegacyAtts.forEach((att: any) => {
+            const url = `${req.protocol}://${req.get('host')}/api/f/${att._id}/${encodeURIComponent(att.originalName || 'file')}`;
+            fuHistory += `Link: ${url}\n`;
+          });
+        }
+        
         fuHistory += '\n';
       });
       row.getCell('followUpsHistory').value = fuHistory.trim();
