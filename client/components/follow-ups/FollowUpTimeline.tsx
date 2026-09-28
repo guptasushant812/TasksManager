@@ -27,14 +27,6 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
     onRefresh(next);
   }
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', flexDirection: 'column', gap: 16 }}>
-        <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%' }} />
-        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading timeline…</span>
-      </div>
-    );
-  }
 
   if (visibleFollowUps.length === 0) {
     return (
