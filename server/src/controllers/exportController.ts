@@ -159,16 +159,23 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       const todayStr = formatDateStr(new Date());
 
       if (isFirstPage) {
-        // Executive Header Banner
-        doc.fontSize(14).font('Helvetica-Bold').fillColor('#0F172A')
-           .text(`Today Tasks [${todayStr}]`, startX, 28);
+        // Executive Header Banner - Centered, Clean & Professional
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#0F172A')
+           .text(`Today Tasks [${todayStr}]`, startX, 22, {
+             width: totalW,
+             align: 'center',
+             lineBreak: false,
+           });
 
         const completed = tasks.filter(t => t.workStatus === 'Completed').length;
         const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
         const pending = tasks.filter(t => t.workStatus === 'Pending').length;
 
+        // Subtitle line (Y = 44)
         doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
-           .text(`Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`, startX, 46);
+           .text(`Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`, startX, 44, {
+             lineBreak: false,
+           });
 
         doc.fontSize(8.5).font('Helvetica-Bold');
         const sCompleted = `Completed: ${completed}`;
@@ -184,29 +191,34 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         const totalStatsW = wComp + wDiv + wProg + wDiv + wPend;
         let statsX = startX + totalW - totalStatsW;
 
-        doc.fillColor(STATUS_COLORS_HEX.Completed).text(sCompleted, statsX, 46, { lineBreak: false });
+        doc.font('Helvetica-Bold').fillColor('#16A34A').text(sCompleted, statsX, 44, { lineBreak: false });
         statsX += wComp;
-        doc.fillColor('#94A3B8').text(sDivider, statsX, 46, { lineBreak: false });
+        doc.font('Helvetica').fillColor('#94A3B8').text(sDivider, statsX, 44, { lineBreak: false });
         statsX += wDiv;
-        doc.fillColor(STATUS_COLORS_HEX.InProgress).text(sInProg, statsX, 46, { lineBreak: false });
+        doc.font('Helvetica-Bold').fillColor('#2563EB').text(sInProg, statsX, 44, { lineBreak: false });
         statsX += wProg;
-        doc.fillColor('#94A3B8').text(sDivider, statsX, 46, { lineBreak: false });
+        doc.font('Helvetica').fillColor('#94A3B8').text(sDivider, statsX, 44, { lineBreak: false });
         statsX += wDiv;
-        doc.fillColor(STATUS_COLORS_HEX.Pending).text(sPending, statsX, 46, { lineBreak: false });
+        doc.font('Helvetica-Bold').fillColor('#D97706').text(sPending, statsX, 44, { lineBreak: false });
 
         // Thin accent divider
-        doc.moveTo(startX, 60).lineTo(startX + totalW, 60).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
+        doc.moveTo(startX, 58).lineTo(startX + totalW, 58).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
 
-        return drawTableHeader(68);
+        return drawTableHeader(66);
       } else {
-        // Minimal Running Header on Subsequent Pages
-        doc.fontSize(9).font('Helvetica-Bold').fillColor('#64748B')
-           .text(`Today Tasks [${todayStr}]`, startX, 28);
-
-        doc.fontSize(8.5).font('Helvetica').fillColor('#94A3B8')
-           .text(`Name: Sushant Gupta   |   ${formatDateTimeStr(new Date())}`, startX, 28, {
+        // Minimal Running Header on Subsequent Pages - Centered & Clean
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#0F172A')
+           .text(`Today Tasks [${todayStr}]`, startX, 26, {
              width: totalW,
+             align: 'center',
+             lineBreak: false,
+           });
+
+        doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
+           .text(`Name: Sushant Gupta   |   ${formatDateTimeStr(new Date())}`, startX + totalW - 250, 26, {
+             width: 250,
              align: 'right',
+             lineBreak: false,
            });
 
         doc.moveTo(startX, 42).lineTo(startX + totalW, 42).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
@@ -425,20 +437,25 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       doc.page.margins.bottom = 0;
 
       // Footer divider
-      doc.moveTo(startX, 560)
-         .lineTo(startX + totalW, 560)
-         .strokeColor('#E2E8F0')
-         .lineWidth(0.5)
+      doc.moveTo(startX, 558)
+         .lineTo(startX + totalW, 558)
+         .strokeColor('#CBD5E1')
+         .lineWidth(0.75)
          .stroke();
 
-      doc.fontSize(8).font('Helvetica').fillColor('#64748B')
-         .text(`© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`, startX, 566, {
-           width: 450,
-           align: 'left',
-           lineBreak: false,
-         });
+      // Styled colorful footer branding
+      doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
+         .text(`© ${new Date().getFullYear()} `, startX, 566, { continued: true });
+      doc.font('Helvetica-Bold').fillColor('#2563EB')
+         .text('TasksManager', { continued: true });
+      doc.font('Helvetica').fillColor('#64748B')
+         .text(' by ', { continued: true });
+      doc.font('Helvetica-Bold').fillColor('#0F172A')
+         .text('Sushant Gupta', { continued: true });
+      doc.font('Helvetica').fillColor('#94A3B8')
+         .text('  •  All Rights Reserved.', { continued: false });
 
-      doc.fontSize(8).font('Helvetica').fillColor('#64748B')
+      doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#475569')
          .text(`Page ${p + 1} of ${totalPages}`, startX + totalW - 150, 566, {
            width: 150,
            align: 'right',
@@ -606,9 +623,10 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     sheet.mergeCells(`A${lastRowIdx}:J${lastRowIdx}`);
     const sheetFooter = sheet.getCell(`A${lastRowIdx}`);
     sheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
-    sheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+    sheetFooter.font = { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' };
+    sheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
     sheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
-    sheet.getRow(lastRowIdx).height = 20;
+    sheet.getRow(lastRowIdx).height = 22;
 
     // AutoFilter across table columns
     sheet.autoFilter = { from: 'A4', to: 'J4' };
@@ -744,9 +762,10 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       fuSheet.mergeCells(`A${fuLastRowIdx}:J${fuLastRowIdx}`);
       const fuSheetFooter = fuSheet.getCell(`A${fuLastRowIdx}`);
       fuSheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
-      fuSheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+      fuSheetFooter.font = { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' };
+      fuSheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
       fuSheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
-      fuSheet.getRow(fuLastRowIdx).height = 20;
+      fuSheet.getRow(fuLastRowIdx).height = 22;
 
       fuSheet.autoFilter = { from: 'A4', to: 'J4' };
     }
@@ -899,9 +918,10 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     sheet.mergeCells(`A${zipLastRowIdx}:J${zipLastRowIdx}`);
     const zipSheetFooter = sheet.getCell(`A${zipLastRowIdx}`);
     zipSheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
-    zipSheetFooter.font = { italic: true, color: { argb: 'FF94A3B8' }, size: 9, name: 'Calibri' };
+    zipSheetFooter.font = { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' };
+    zipSheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
     zipSheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
-    sheet.getRow(zipLastRowIdx).height = 20;
+    sheet.getRow(zipLastRowIdx).height = 22;
 
     sheet.autoFilter = { from: 'A4', to: 'J4' };
 
