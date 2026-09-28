@@ -127,6 +127,29 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
   }
 }
 
+// ── Helper to resequence Task IDs ──────────────────────────────────────────────
+async function resequenceTaskIds() {
+  const tasks = await Task.find({}).sort({ createdAt: 1 });
+  for (let i = 0; i < tasks.length; i++) {
+    const num = String(i + 1).padStart(4, '0');
+    const newTaskId = `TK-${num}`;
+    if (tasks[i].taskId !== newTaskId) {
+      await Task.updateOne({ _id: tasks[i]._id }, { $set: { taskId: newTaskId } });
+    }
+  }
+  
+  // Update the counter to match the new total length
+  const mongoose = require('mongoose');
+  const Counter = mongoose.models.Counter;
+  if (Counter) {
+    await Counter.updateOne(
+      { _id: 'taskId' },
+      { $set: { seq: tasks.length } },
+      { upsert: true }
+    );
+  }
+}
+
 // ── DELETE /api/tasks/:id ─────────────────────────────────────────────────────
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
@@ -136,6 +159,10 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
       return;
     }
     await FollowUp.deleteMany({ taskId: req.params.id });
+    
+    // Resequence tasks after deletion
+    await resequenceTaskIds();
+    
     res.json({ message: 'Task deleted', id: req.params.id });
   } catch (err) {
     next(err);
@@ -154,6 +181,10 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
       Task.deleteMany({ _id: { $in: ids } }),
       FollowUp.deleteMany({ taskId: { $in: ids } }),
     ]);
+    
+    // Resequence tasks after bulk deletion
+    await resequenceTaskIds();
+    
     res.json({ message: 'Tasks deleted', count: result.deletedCount });
   } catch (err) {
     next(err);
