@@ -60,15 +60,19 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 }} />
               </div>
 
-              <span style={{
-                fontSize: 48,
-                fontWeight: 900,
-                color: isActive ? '#fff' : color,
-                lineHeight: 1,
-                fontVariantNumeric: 'tabular-nums',
-              }}>
-                {count}
-              </span>
+              {loading && count === 0 ? (
+                <div className="skeleton" style={{ height: 48, width: 64, marginTop: 4, borderRadius: 'var(--radius-sm)' }} />
+              ) : (
+                <span style={{
+                  fontSize: 48,
+                  fontWeight: 900,
+                  color: isActive ? '#fff' : color,
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {count}
+                </span>
+              )}
 
               <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? '#fff' : 'var(--text-muted)' }}>
                 {isActive ? 'FILTERED — CLICK TO CLEAR' : 'CLICK TO FILTER'}

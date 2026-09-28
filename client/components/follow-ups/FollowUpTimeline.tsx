@@ -29,6 +29,15 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
 
 
   if (visibleFollowUps.length === 0) {
+    if (loading) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 120, width: '100%', borderRadius: 'var(--radius-lg)', opacity: 1 - i * 0.2 }} />
+          ))}
+        </div>
+      );
+    }
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)' }}>
         <p style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 500, marginBottom: 4 }}>No follow-ups recorded yet</p>
@@ -38,7 +47,12 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
   }
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      {loading && (
+        <div className="loading-bar" style={{ borderRadius: 4, top: -8 }}>
+          <div className="loading-bar-inner" />
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
           History ({activeCount})

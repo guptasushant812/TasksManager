@@ -104,10 +104,9 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
           {followUp.attachments && followUp.attachments.length > 0 && (
             <div className="fu-field">
               <span className="fu-field-label">Attachments</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                 {followUp.attachments.map((att: any, index: number) => {
                   const url = att?.url || '';
-                  const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
                   
                   return (
                     <a
@@ -117,23 +116,17 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                       rel="noopener noreferrer"
                       className="fu-attachment-link"
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '6px 10px', background: 'var(--bg-elevated)',
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '6px 12px', background: 'var(--bg-elevated)',
                         border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                        textDecoration: 'none', color: 'var(--text-primary)',
-                        transition: 'all 0.15s'
+                        textDecoration: 'none', color: 'var(--text-secondary)',
+                        transition: 'all 0.15s', fontSize: 13
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                     >
-                      {isImage && url ? (
-                        <div style={{ width: 24, height: 24, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                          <img src={url} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                      )}
-                      <span style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <Paperclip style={{ width: 14, height: 14 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {att?.filename || 'File'}
                       </span>
                     </a>

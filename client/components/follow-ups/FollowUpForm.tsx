@@ -202,101 +202,83 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           {/* File Attachments */}
           <div>
             <label className="label">Attachments (Max 5)</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-              {/* Existing Attachments */}
-              {existingAttachments.map((att: any, i) => {
-                const url = att?.url || '';
-                const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
-                const fileUrl = url;
-
-                return (
-                  <div key={att?._id || i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)', fontSize: 12
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                      {isImage && fileUrl ? (
-                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                          <img src={fileUrl} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att?.filename || 'File'}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {fileUrl && (
-                        <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 11 }}>View</a>
-                      )}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                {/* Existing Attachments */}
+                {existingAttachments.map((att: any, i) => {
+                  const url = att?.url || '';
+                  
+                  return (
+                    <div key={att?._id || i} style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '6px 12px', background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
+                      fontSize: 13, color: 'var(--text-secondary)'
+                    }}>
+                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'inherit', textDecoration: 'none' }}>
+                        <Paperclip style={{ width: 14, height: 14 }} />
+                        <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {att?.filename || 'File'}
+                        </span>
+                      </a>
                       <button
                         type="button"
                         onClick={(e) => { e.preventDefault(); removeExistingFile(i); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', marginLeft: 4 }}
+                        title="Remove"
                       >
                         <X style={{ width: 14, height: 14 }} />
                       </button>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-              {/* New Files */}
-              {files.map((file, i) => {
-                const isImage = file.type.startsWith('image/');
-                if (isImage && !(file as any).previewUrl) {
-                  (file as any).previewUrl = URL.createObjectURL(file);
-                }
-                const previewUrl = (file as any).previewUrl;
-                
-                return (
-                  <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px dashed var(--accent)',
-                    borderRadius: 'var(--radius-md)', fontSize: 12
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                      {previewUrl ? (
-                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                          <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name} (New)</span>
+                {/* New Files */}
+                {files.map((file, i) => {
+                  return (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '6px 12px', background: 'var(--bg-elevated)',
+                      border: '1px dashed var(--accent)', borderRadius: 'var(--radius-md)',
+                      fontSize: 13, color: 'var(--text-secondary)'
+                    }}>
+                      <Paperclip style={{ width: 14, height: 14 }} />
+                      <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); removeFile(i); }}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', marginLeft: 4 }}
+                        title="Remove"
+                      >
+                        <X style={{ width: 14, height: 14 }} />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); removeFile(i); }}
-                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
-                    >
-                      <X style={{ width: 14, height: 14 }} />
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-              {/* Add File Button */}
-              {(existingAttachments.length + files.length) < 5 && (
-                <label style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  padding: '12px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)',
-                  background: 'transparent', transition: 'all 0.15s'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <Paperclip style={{ width: 14, height: 14 }} />
-                  <span>Add File</span>
-                  <input
-                    type="file"
-                    multiple
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                  />
-                </label>
-              )}
+                {/* Add File Button */}
+                {(existingAttachments.length + files.length) < 5 && (
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 12px', background: 'transparent',
+                    border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
+                    fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  >
+                    <Paperclip style={{ width: 14, height: 14 }} />
+                    <span>Add File</span>
+                    <input
+                      type="file"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                )}
             </div>
             {errors.files && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.files}</span>}
           </div>

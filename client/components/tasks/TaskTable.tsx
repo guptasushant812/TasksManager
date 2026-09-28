@@ -157,7 +157,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
       </div>
 
       {/* ── Table ──────────────────────────────────────────────────── */}
-      <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+      <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
+        {loading && (
+          <div className="loading-bar">
+            <div className="loading-bar-inner" />
+          </div>
+        )}
         {error ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p style={{ color: 'var(--high)', marginBottom: 6, fontSize: 13 }}>⚠ {error}</p>
@@ -199,7 +204,15 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                 </tr>
               </thead>
               <tbody>
-                {tasks.length === 0 ? (
+                {loading && tasks.length === 0 ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={`skeleton-${i}`}>
+                      <td colSpan={10} style={{ padding: '16px 24px' }}>
+                        <div className="skeleton" style={{ height: 20, width: '100%', opacity: 1 - i * 0.15 }} />
+                      </td>
+                    </tr>
+                  ))
+                ) : tasks.length === 0 ? (
                   <tr>
                     <td colSpan={10} style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
                       <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>No tasks found</p>
