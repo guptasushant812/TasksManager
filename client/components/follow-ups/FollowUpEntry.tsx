@@ -104,7 +104,7 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
           {followUp.attachments && followUp.attachments.length > 0 && (
             <div className="fu-field">
               <span className="fu-field-label">Attachments</span>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
                 {followUp.attachments.map((att: any, index: number) => {
                   const url = att?.url || '';
                   const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
@@ -115,27 +115,27 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                       href={url || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="fu-attachment-link"
                       style={{
-                        position: 'relative', width: 64, height: 64, 
-                        border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', 
-                        overflow: 'hidden', background: 'var(--bg-elevated)',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                        textDecoration: 'none', transition: 'all 0.15s'
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '6px 10px', background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
+                        textDecoration: 'none', color: 'var(--text-primary)',
+                        transition: 'all 0.15s'
                       }}
-                      title={att.filename}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                     >
                       {isImage && url ? (
-                        <img src={url} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ padding: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                          <span style={{ fontSize: 9, color: 'var(--text-secondary)', marginTop: 4, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {att?.filename || 'File'}
-                          </span>
+                        <div style={{ width: 24, height: 24, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                          <img src={url} alt={att?.filename || 'Attachment'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
+                      ) : (
+                        <Paperclip style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
                       )}
+                      <span style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {att?.filename || 'File'}
+                      </span>
                     </a>
                   );
                 })}
