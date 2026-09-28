@@ -30,6 +30,8 @@ export default function ExportMenu({ filters, selectedIds, isPanel = false }: Ex
     if (filters.dateTo) params.dateTo = filters.dateTo;
     if (filters.sort) params.sort = filters.sort;
     if (filters.order) params.order = filters.order;
+    if (filters.hasFollowUps) params.hasFollowUps = filters.hasFollowUps;
+    if (isPanel) params.isPanel = 'true';
 
     // If rows are selected, pass their IDs
     if (selectedIds.length > 0) params.ids = selectedIds.join(',');
