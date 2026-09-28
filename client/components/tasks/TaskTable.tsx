@@ -8,6 +8,7 @@ import FilterSortPanel from './FilterSortPanel';
 import ExportMenu from './ExportMenu';
 import { formatDate, getDayName, getWeeksInMonth } from '@/lib/dates';
 import EditTaskModal from '../modals/EditTaskModal';
+import NewTaskModal from '../modals/NewTaskModal';
 import FollowUpPanel from '../follow-ups/FollowUpPanel';
 import FollowUpQuickAdd from '../follow-ups/FollowUpQuickAdd';
 import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -38,6 +39,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const [showFilter, setShowFilter] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.search || '');
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [quickFollowUpTask, setQuickFollowUpTask] = useState<Task | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -153,7 +155,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           </button>
         )}
 
-        <ExportMenu filters={filters} selectedIds={selectedIds} />
+        <ExportMenu
+          filters={filters}
+          selectedIds={selectedIds}
+          totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
+          onAddNewTask={() => setShowNewTaskModal(true)}
+        />
       </div>
 
       {/* ── Table ──────────────────────────────────────────────────── */}
@@ -367,6 +374,18 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           task={editTask}
           onClose={() => setEditTask(null)}
           onSaved={() => { setEditTask(null); fetchTasks({ ...filters, limit: filters.limit || 10 }); }}
+        />
+      )}
+
+      {/* New task modal (triggered from Zero-Defect export validation or toolbar) */}
+      {showNewTaskModal && (
+        <NewTaskModal
+          defaultFilters={filters}
+          onClose={() => setShowNewTaskModal(false)}
+          onSaved={() => {
+            setShowNewTaskModal(false);
+            fetchTasks({ ...filters, limit: filters.limit || 20 });
+          }}
         />
       )}
 
