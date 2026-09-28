@@ -75,6 +75,73 @@ function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
   return `${day}-${month}-${year}, ${hour}:${minute} ${dayPeriod}`;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function getReportTitle(query: any, tasks: any[]): string {
+  // 1. Explicit Day filter
+  if (query.day && typeof query.day === 'string') {
+    const dayStr = formatDateStr(query.day);
+    if (dayStr && dayStr !== '—') {
+      return `Daily Task Report — ${dayStr}`;
+    }
+  }
+
+  // 2. Explicit Date range
+  if (query.dateFrom || query.dateTo) {
+    const fromStr = query.dateFrom ? formatDateStr(query.dateFrom) : '';
+    const toStr = query.dateTo ? formatDateStr(query.dateTo) : '';
+    if (fromStr && toStr) {
+      return `Task Management Report — ${fromStr} to ${toStr}`;
+    }
+    if (fromStr) return `Task Management Report — From ${fromStr}`;
+    if (toStr) return `Task Management Report — Up to ${toStr}`;
+  }
+
+  // 3. Explicit Week filter
+  if (query.weekStart && typeof query.weekStart === 'string') {
+    const wStart = new Date(query.weekStart);
+    if (!isNaN(wStart.getTime())) {
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wEnd.getDate() + 5);
+      return `Weekly Task Report — ${formatDateStr(wStart)} to ${formatDateStr(wEnd)}`;
+    }
+  }
+
+  // 4. Explicit Month & Year filter
+  if (query.month && query.year) {
+    const m = parseInt(query.month, 10);
+    const y = parseInt(query.year, 10);
+    if (!isNaN(m) && m >= 1 && m <= 12 && !isNaN(y)) {
+      return `Monthly Task Register — ${MONTH_NAMES[m - 1]} ${y}`;
+    }
+  }
+
+  // 5. Explicit Year filter
+  if (query.year) {
+    const y = parseInt(query.year, 10);
+    if (!isNaN(y)) {
+      return `Annual Task Register — ${y}`;
+    }
+  }
+
+  // 6. Infer from tasks if all tasks share the exact same task date
+  if (tasks.length > 0) {
+    const firstDateStr = formatDateStr(tasks[0].date);
+    if (firstDateStr && firstDateStr !== '—') {
+      const allSameDate = tasks.every((t: any) => formatDateStr(t.date) === firstDateStr);
+      if (allSameDate) {
+        return `Daily Task Report — ${firstDateStr}`;
+      }
+    }
+  }
+
+  // 7. Clean universal fallback
+  return `Task Management Register`;
+}
+
 // ── GET /api/export/pdf ───────────────────────────────────────────────────────
 export async function exportPdf(req: Request, res: Response, next: NextFunction) {
   try {
@@ -154,14 +221,14 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       return y + headerH;
     }
 
+    const reportTitle = getReportTitle(req.query, tasks);
+
     // Helper: Draw report header (First page vs Subsequent pages)
     function drawReportHeader(isFirstPage: boolean): number {
-      const todayStr = formatDateStr(new Date());
-
       if (isFirstPage) {
         // Executive Header Banner - Centered, Clean & Professional
-        doc.fontSize(16).font('Helvetica-Bold').fillColor('#0F172A')
-           .text(`Today Tasks [${todayStr}]`, startX, 22, {
+        doc.fontSize(15).font('Helvetica-Bold').fillColor('#0F172A')
+           .text(reportTitle, startX, 22, {
              width: totalW,
              align: 'center',
              lineBreak: false,
@@ -208,7 +275,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       } else {
         // Minimal Running Header on Subsequent Pages - Centered & Clean
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#0F172A')
-           .text(`Today Tasks [${todayStr}]`, startX, 26, {
+           .text(reportTitle, startX, 26, {
              width: totalW,
              align: 'center',
              lineBreak: false,
@@ -527,12 +594,12 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
 
-    const todayStr = formatDateStr(new Date());
+    const reportTitle = getReportTitle(req.query, tasks);
 
     // Row 1: Title Banner
     sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
-    titleCell.value = `Today Tasks [${todayStr}]`;
+    titleCell.value = reportTitle;
     titleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -656,7 +723,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       // Row 1: Title Banner
       fuSheet.mergeCells('A1:J1');
       const fuTitleCell = fuSheet.getCell('A1');
-      fuTitleCell.value = `Today Tasks [${todayStr}] — Follow-Up Audit Trail`;
+      fuTitleCell.value = `${reportTitle} — Follow-Up Audit Trail`;
       fuTitleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
       fuTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
       fuTitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -835,11 +902,11 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
 
-    const todayStr = formatDateStr(new Date());
+    const reportTitle = getReportTitle(req.query, tasks);
 
     sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
-    titleCell.value = `Today Tasks [${todayStr}]`;
+    titleCell.value = reportTitle;
     titleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
