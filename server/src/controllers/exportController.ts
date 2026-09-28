@@ -4,6 +4,8 @@ import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
+import archiver from 'archiver';
+import FollowUpAttachment from '../models/FollowUpAttachment';
 
 const PRIORITY_COLOURS: Record<string, string> = {
   High: 'FF4444',
@@ -218,6 +220,105 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
 
     await workbook.xlsx.write(res);
     res.end();
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ── GET /api/export/zip ───────────────────────────────────────────────────────
+export async function exportZip(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { filter, sort } = buildQuery(req.query);
+
+    if (req.query.ids && typeof req.query.ids === 'string') {
+      const ids = req.query.ids.split(',').filter(Boolean);
+      if (ids.length > 0) {
+        filter._id = { $in: ids };
+      }
+    }
+
+    const tasks = await Task.find(filter).sort(sort).lean();
+    const taskIds = tasks.map(t => t._id);
+
+    const summaries = await FollowUp.aggregate([
+      { $match: { taskId: { $in: taskIds }, isDeleted: false } },
+      { $group: { _id: '$taskId', count: { $sum: 1 } } }
+    ]);
+    const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
+
+    // 1. Prepare Zip Archiver
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.zip"');
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err) => { throw err; });
+    archive.pipe(res);
+
+    // 2. Generate Excel in memory and append to Zip
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Tasks');
+    sheet.columns = [
+      { header: 'Task ID', key: 'taskId', width: 12 },
+      { header: 'Title', key: 'title', width: 25 },
+      { header: 'Work Status', key: 'workStatus', width: 14 },
+      { header: 'Priority', key: 'priority', width: 10 },
+      { header: 'Given By', key: 'givenBy', width: 15 },
+      { header: 'F-Ups', key: 'fUps', width: 8 },
+      { header: 'Date', key: 'date', width: 12 },
+    ];
+    tasks.forEach((task: any) => {
+      sheet.addRow({
+        taskId: task.taskId,
+        title: task.title,
+        workStatus: task.workStatus,
+        priority: task.priority,
+        givenBy: task.givenBy,
+        fUps: summaryMap.get(task._id.toString()) || 0,
+        date: task.date ? new Date(task.date).toLocaleDateString('en-IN') : '',
+      });
+    });
+    
+    const excelBuffer = await workbook.xlsx.writeBuffer();
+    archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: 'Tasks_Report.xlsx' });
+
+    // 3. Process attachments
+    // Fetch all follow-ups for these tasks
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).lean();
+
+    for (const task of tasks) {
+      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+      if (taskFUs.length === 0) continue;
+
+      for (const fu of taskFUs) {
+        const folderName = `Attachments/${task.taskId}/FollowUp_${fu.followUpNumber}`;
+
+        // A. Legacy Attachments (stored in FollowUpAttachment MongoDB collection)
+        const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
+        for (const lAtt of legacyAtts) {
+          if (lAtt.data) {
+            archive.append(lAtt.data, { name: `${folderName}/${lAtt.originalName}` });
+          }
+        }
+
+        // B. Cloudinary Attachments
+        if (fu.attachments && fu.attachments.length > 0) {
+          for (const cAtt of fu.attachments) {
+            if (cAtt.url) {
+              try {
+                const response = await fetch(cAtt.url);
+                if (response.ok) {
+                  const arrayBuffer = await response.arrayBuffer();
+                  archive.append(Buffer.from(arrayBuffer), { name: `${folderName}/${cAtt.filename}` });
+                }
+              } catch (e) {
+                console.error(`Failed to fetch Cloudinary attachment: ${cAtt.url}`, e);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    await archive.finalize();
   } catch (err) {
     next(err);
   }

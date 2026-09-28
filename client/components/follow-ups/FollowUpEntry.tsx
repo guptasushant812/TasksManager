@@ -106,28 +106,36 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
               <span className="fu-field-label">Attachments</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                 {followUp.attachments.map((att: any, index: number) => {
-                  const url = att?.url || '';
+                  const filename = att?.filename || att?.originalName || 'File';
+                  const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
+                  const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
                   
                   return (
                     <a
-                      key={att?.public_id || index.toString()}
-                      href={url || '#'}
+                      key={att?.public_id || att?._id || index.toString()}
+                      href={url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="fu-attachment-link"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '6px 12px', background: 'var(--bg-elevated)',
+                        padding: '4px 10px', background: 'var(--bg-elevated)',
                         border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
                         textDecoration: 'none', color: 'var(--text-secondary)',
-                        transition: 'all 0.15s', fontSize: 13
+                        transition: 'all 0.15s', fontSize: 12
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                     >
-                      <Paperclip style={{ width: 14, height: 14 }} />
+                      {isImage && url !== '#' ? (
+                        <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
+                          <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <Paperclip style={{ width: 14, height: 14 }} />
+                      )}
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {att?.filename || 'File'}
+                        {filename}
                       </span>
                     </a>
                   );
