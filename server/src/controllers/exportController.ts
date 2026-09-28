@@ -81,71 +81,106 @@ const MONTH_NAMES = [
 ];
 
 function getReportTitle(query: any, tasks: any[]): string {
-  // 1. Explicit Day filter
+  const isFollowUps = query.hasFollowUps === 'true' || query.isPanel === 'true';
+
+  // 1. Single task audit export (from panel or selection)
+  if (tasks.length === 1) {
+    const rawTitle = (tasks[0].title || 'Task').trim();
+    return isFollowUps
+      ? `Task Follow-Up Audit — ${rawTitle}`
+      : `Task Report — ${rawTitle}`;
+  }
+
+  const prefix = isFollowUps ? 'Follow-Ups' : 'Task';
+  const reportPrefix = isFollowUps ? 'Follow-Ups Report' : 'Task Management Report';
+  const registerPrefix = isFollowUps ? 'Follow-Ups Register' : 'Task Management Register';
+
+  // 2. Explicit Day filter
   if (query.day && typeof query.day === 'string') {
     const dayStr = formatDateStr(query.day);
     if (dayStr && dayStr !== '—') {
-      return `Daily Task Report — ${dayStr}`;
+      return `Daily ${prefix} Report — ${dayStr}`;
     }
   }
 
-  // 2. Explicit Date range
+  // 3. Explicit Date range
   if (query.dateFrom || query.dateTo) {
     const fromStr = query.dateFrom ? formatDateStr(query.dateFrom) : '';
     const toStr = query.dateTo ? formatDateStr(query.dateTo) : '';
     if (fromStr && toStr) {
-      return `Task Management Report — ${fromStr} to ${toStr}`;
+      return `${reportPrefix} — ${fromStr} to ${toStr}`;
     }
-    if (fromStr) return `Task Management Report — From ${fromStr}`;
-    if (toStr) return `Task Management Report — Up to ${toStr}`;
+    if (fromStr) return `${reportPrefix} — From ${fromStr}`;
+    if (toStr) return `${reportPrefix} — Up to ${toStr}`;
   }
 
-  // 3. Explicit Week filter
+  // 4. Explicit Week filter
   if (query.weekStart && typeof query.weekStart === 'string') {
     const wStart = new Date(query.weekStart);
     if (!isNaN(wStart.getTime())) {
       const wEnd = new Date(wStart);
       wEnd.setDate(wEnd.getDate() + 5);
-      return `Weekly Task Report — ${formatDateStr(wStart)} to ${formatDateStr(wEnd)}`;
+      return `Weekly ${prefix} Report — ${formatDateStr(wStart)} to ${formatDateStr(wEnd)}`;
     }
   }
 
-  // 4. Explicit Month & Year filter
+  // 5. Explicit Month & Year filter
   if (query.month && query.year) {
     const m = parseInt(query.month, 10);
     const y = parseInt(query.year, 10);
     if (!isNaN(m) && m >= 1 && m <= 12 && !isNaN(y)) {
-      return `Monthly Task Register — ${MONTH_NAMES[m - 1]} ${y}`;
+      return `Monthly ${prefix} Register — ${MONTH_NAMES[m - 1]} ${y}`;
     }
   }
 
-  // 5. Explicit Year filter
+  // 6. Explicit Year filter
   if (query.year) {
     const y = parseInt(query.year, 10);
     if (!isNaN(y)) {
-      return `Annual Task Register — ${y}`;
+      return `Annual ${prefix} Register — ${y}`;
     }
   }
 
-  // 6. Infer from tasks if all tasks share the exact same task date
+  // 7. Infer from tasks if all tasks share the exact same task date
   if (tasks.length > 0) {
     const firstDateStr = formatDateStr(tasks[0].date);
     if (firstDateStr && firstDateStr !== '—') {
       const allSameDate = tasks.every((t: any) => formatDateStr(t.date) === firstDateStr);
       if (allSameDate) {
-        return `Daily Task Report — ${firstDateStr}`;
+        return `Daily ${prefix} Report — ${firstDateStr}`;
       }
     }
   }
 
-  // 7. Clean universal fallback
-  return `Task Management Register`;
+  // 8. Clean universal fallback
+  return isFollowUps ? `Follow-Ups Activity Register` : `Task Management Register`;
+}
+
+function getReportFileName(title: string, extension: 'pdf' | 'xlsx' | 'zip'): string {
+  const cleanTitle = title
+    .replace(/[—–]/g, '_')
+    .replace(/[^a-zA-Z0-9_\-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 80);
+
+  return `${cleanTitle || 'Tasks_Export'}.${extension}`;
 }
 
 // ── GET /api/export/pdf ───────────────────────────────────────────────────────
 export async function exportPdf(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort } = buildQuery(req.query);
+
+    // Support hasFollowUps from Follow-Ups module
+    if (req.query.hasFollowUps === 'true') {
+      const distinctTaskIds = await FollowUp.distinct('taskId', { isDeleted: false });
+      if (filter._id) {
+        filter._id = { ...(filter._id as object), $in: distinctTaskIds };
+      } else {
+        filter._id = { $in: distinctTaskIds };
+      }
+    }
 
     // If specific IDs are requested (selection export)
     if (req.query.ids && typeof req.query.ids === 'string') {
@@ -173,6 +208,9 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
+    const reportTitle = getReportTitle(req.query, tasks);
+    const reportFileName = getReportFileName(reportTitle, 'pdf');
+
     // A4 Landscape geometry: 841.89 pt x 595.28 pt
     const doc = new PDFDocument({
       margin: 30,
@@ -183,7 +221,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.pdf"');
+    res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
     doc.pipe(res);
 
     // ── Table Column Definitions (Total: 776 pt) ─────────────────────────────
@@ -220,8 +258,6 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       doc.rect(startX, y, totalW, headerH).strokeColor('#0F172A').lineWidth(0.75).stroke();
       return y + headerH;
     }
-
-    const reportTitle = getReportTitle(req.query, tasks);
 
     // Helper: Draw report header (First page vs Subsequent pages)
     function drawReportHeader(isFirstPage: boolean): number {
@@ -543,6 +579,16 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
   try {
     const { filter, sort } = buildQuery(req.query);
 
+    // Support hasFollowUps from Follow-Ups module
+    if (req.query.hasFollowUps === 'true') {
+      const distinctTaskIds = await FollowUp.distinct('taskId', { isDeleted: false });
+      if (filter._id) {
+        filter._id = { ...(filter._id as object), $in: distinctTaskIds };
+      } else {
+        filter._id = { $in: distinctTaskIds };
+      }
+    }
+
     if (req.query.ids && typeof req.query.ids === 'string') {
       const ids = req.query.ids.split(',').filter(Boolean);
       if (ids.length > 0) {
@@ -567,6 +613,9 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
+
+    const reportTitle = getReportTitle(req.query, tasks);
+    const reportFileName = getReportFileName(reportTitle, 'xlsx');
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Task Management System';
@@ -593,8 +642,6 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       { header: 'Due Date', key: 'dueDate', width: 14 },
       { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
-
-    const reportTitle = getReportTitle(req.query, tasks);
 
     // Row 1: Title Banner
     sheet.mergeCells('A1:J1');
@@ -838,7 +885,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     }
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.xlsx"');
+    res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
 
     await workbook.xlsx.write(res);
     res.end();
@@ -851,6 +898,16 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
 export async function exportZip(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort } = buildQuery(req.query);
+
+    // Support hasFollowUps from Follow-Ups module
+    if (req.query.hasFollowUps === 'true') {
+      const distinctTaskIds = await FollowUp.distinct('taskId', { isDeleted: false });
+      if (filter._id) {
+        filter._id = { ...(filter._id as object), $in: distinctTaskIds };
+      } else {
+        filter._id = { $in: distinctTaskIds };
+      }
+    }
 
     if (req.query.ids && typeof req.query.ids === 'string') {
       const ids = req.query.ids.split(',').filter(Boolean);
@@ -873,9 +930,12 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     ]);
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
+    const reportTitle = getReportTitle(req.query, tasks);
+    const reportFileName = getReportFileName(reportTitle, 'zip');
+
     // 1. Prepare Zip Archiver
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.zip"');
+    res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
     const archive = archiver('zip', { zlib: { level: 9 } });
     archive.on('error', (err: Error) => { throw err; });
     archive.pipe(res);
@@ -901,8 +961,6 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       { header: 'Due Date', key: 'dueDate', width: 14 },
       { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
     ];
-
-    const reportTitle = getReportTitle(req.query, tasks);
 
     sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
@@ -993,7 +1051,8 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     sheet.autoFilter = { from: 'A4', to: 'J4' };
 
     const excelBuffer = await workbook.xlsx.writeBuffer();
-    archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: 'Tasks_Report.xlsx' });
+    const excelInsideZip = getReportFileName(reportTitle, 'xlsx');
+    archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: excelInsideZip });
 
     // 3. Process and organize task attachments in ZIP
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).lean();
