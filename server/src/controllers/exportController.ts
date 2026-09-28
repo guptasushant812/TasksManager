@@ -652,14 +652,32 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.getRow(1).height = 28;
 
-    // Row 2: Metadata Subtitle
-    sheet.mergeCells('A2:J2');
+    const completed = tasks.filter(t => t.workStatus === 'Completed').length;
+    const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
+    const pending = tasks.filter(t => t.workStatus === 'Pending').length;
+
+    // Row 2: Metadata Subtitle (Left: Generation info & Name, Right: Status counts)
+    sheet.mergeCells('A2:F2');
     const metaCell = sheet.getCell('A2');
     metaCell.value = `Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`;
     metaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
     metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-    metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getRow(2).height = 20;
+    metaCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+    sheet.mergeCells('G2:J2');
+    const statsCell = sheet.getCell('G2');
+    statsCell.value = {
+      richText: [
+        { text: `Completed: ${completed}`, font: { bold: true, color: { argb: 'FF16A34A' }, size: 9.5, name: 'Calibri' } },
+        { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
+        { text: `In Progress: ${inProg}`, font: { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' } },
+        { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
+        { text: `Pending: ${pending}`, font: { bold: true, color: { argb: 'FFD97706' }, size: 9.5, name: 'Calibri' } },
+      ],
+    };
+    statsCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    statsCell.alignment = { vertical: 'middle', horizontal: 'right' };
+    sheet.getRow(2).height = 22;
 
     // Row 3: Spacer
     sheet.getRow(3).height = 8;
@@ -970,13 +988,31 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.getRow(1).height = 28;
 
-    sheet.mergeCells('A2:J2');
+    const completed = tasks.filter(t => t.workStatus === 'Completed').length;
+    const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
+    const pending = tasks.filter(t => t.workStatus === 'Pending').length;
+
+    sheet.mergeCells('A2:F2');
     const metaCell = sheet.getCell('A2');
     metaCell.value = `Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`;
     metaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
     metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-    metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getRow(2).height = 20;
+    metaCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+    sheet.mergeCells('G2:J2');
+    const statsCell = sheet.getCell('G2');
+    statsCell.value = {
+      richText: [
+        { text: `Completed: ${completed}`, font: { bold: true, color: { argb: 'FF16A34A' }, size: 9.5, name: 'Calibri' } },
+        { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
+        { text: `In Progress: ${inProg}`, font: { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' } },
+        { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
+        { text: `Pending: ${pending}`, font: { bold: true, color: { argb: 'FFD97706' }, size: 9.5, name: 'Calibri' } },
+      ],
+    };
+    statsCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    statsCell.alignment = { vertical: 'middle', horizontal: 'right' };
+    sheet.getRow(2).height = 22;
 
     sheet.getRow(3).height = 8;
 
