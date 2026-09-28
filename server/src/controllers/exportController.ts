@@ -4,8 +4,8 @@ import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
-import archiver from 'archiver';
 import FollowUpAttachment from '../models/FollowUpAttachment';
+import archiver = require('archiver');
 
 const PRIORITY_COLOURS: Record<string, string> = {
   High: 'FF4444',
@@ -250,7 +250,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="tasks-export.zip"');
     const archive = archiver('zip', { zlib: { level: 9 } });
-    archive.on('error', (err) => { throw err; });
+    archive.on('error', (err: Error) => { throw err; });
     archive.pipe(res);
 
     // 2. Generate Excel in memory and append to Zip
