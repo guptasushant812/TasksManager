@@ -60,26 +60,15 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 }} />
               </div>
 
-              {loading ? (
-                <div style={{ height: 48, display: 'flex', alignItems: 'center' }}>
-                  <div className="animate-spin" style={{
-                    width: 24, height: 24,
-                    border: `4px solid ${isActive ? '#fff' : color}`,
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                  }} />
-                </div>
-              ) : (
-                <span style={{
-                  fontSize: 48,
-                  fontWeight: 900,
-                  color: isActive ? '#fff' : color,
-                  lineHeight: 1,
-                  fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {count}
-                </span>
-              )}
+              <span style={{
+                fontSize: 48,
+                fontWeight: 900,
+                color: isActive ? '#fff' : color,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {count}
+              </span>
 
               <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? '#fff' : 'var(--text-muted)' }}>
                 {isActive ? 'FILTERED — CLICK TO CLEAR' : 'CLICK TO FILTER'}

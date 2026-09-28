@@ -158,12 +158,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
       {/* ── Table ──────────────────────────────────────────────────── */}
       <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, flexDirection: 'column', gap: 12 }}>
-            <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%' }} />
-            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Loading tasks…</span>
-          </div>
-        ) : error ? (
+        {error ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p style={{ color: 'var(--high)', marginBottom: 6, fontSize: 13 }}>⚠ {error}</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Make sure the server is running on port 4000</p>
