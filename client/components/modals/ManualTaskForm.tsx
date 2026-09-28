@@ -25,7 +25,13 @@ const EMPTY: {
 };
 
 export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: ManualTaskFormProps) {
-  const [data, setData] = useState({ ...EMPTY });
+  const [data, setData] = useState({
+    ...EMPTY,
+    date: defaultFilters?.day ? toIsoDate(defaultFilters.day) : toIsoDate(new Date()),
+    priority: (defaultFilters?.priority as Priority) || 'Medium',
+    workStatus: (defaultFilters?.status as WorkStatus) || 'Pending',
+    givenBy: defaultFilters?.givenBy || '',
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const { createTask } = useTasks();

@@ -196,6 +196,13 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
       : { date: -1, createdAt: -1, _id: -1 };
 
     const tasks = await Task.find(filter).sort(exportSort).lean();
+    if (tasks.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tasks found for the selected export criteria. Please add a task before exporting.',
+        code: 'NO_TASKS_FOUND',
+      });
+    }
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
@@ -602,6 +609,13 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
       : { date: -1, createdAt: -1, _id: -1 };
 
     const tasks = await Task.find(filter).sort(exportSort).lean();
+    if (tasks.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tasks found for the selected export criteria. Please add a task before exporting.',
+        code: 'NO_TASKS_FOUND',
+      });
+    }
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
@@ -940,6 +954,13 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       : { date: -1, createdAt: -1, _id: -1 };
 
     const tasks = await Task.find(filter).sort(exportSort).lean();
+    if (tasks.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tasks found for the selected export criteria. Please add a task before exporting.',
+        code: 'NO_TASKS_FOUND',
+      });
+    }
     const taskIds = tasks.map(t => t._id);
 
     const summaries = await FollowUp.aggregate([
