@@ -1378,6 +1378,26 @@ html:not(.dark) .badge {
   border-radius: var(--radius-sm);
 }
 
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+.loading-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: var(--bg-hover);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.loading-bar-inner {
+  height: 100%;
+  width: 30%;
+  background: var(--accent);
+  animation: progress 1.2s infinite ease-in-out;
+}
+
 /* ─── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-in {
   from {
