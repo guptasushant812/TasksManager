@@ -61,14 +61,16 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
     if (drafts.length === 0 || !validateDrafts()) return;
     setSaving(true);
     try {
-      await Promise.all(drafts.map(d => createTask({
-        ...d,
-        priority: (d.priority || 'Medium') as Priority,
-        workStatus: (d.workStatus || 'Pending') as WorkStatus,
-        date: d.date ? new Date(d.date).toISOString() : new Date().toISOString(),
-        dueDate: d.dueDate ? new Date(d.dueDate).toISOString() : undefined,
-        userId: null,
-      })));
+      for (const d of drafts) {
+        await createTask({
+          ...d,
+          priority: (d.priority || 'Medium') as Priority,
+          workStatus: (d.workStatus || 'Pending') as WorkStatus,
+          date: d.date ? new Date(d.date).toISOString() : new Date().toISOString(),
+          dueDate: d.dueDate ? new Date(d.dueDate).toISOString() : undefined,
+          userId: null,
+        });
+      }
       onSaved();
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to save tasks' });
@@ -106,7 +108,11 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           <textarea
             id="ai-raw-input"
             className="input"
-            placeholder={`Example:\n\nAttach 2 notices to the Department Communication ISO File — Working on Saturday 22.08.2026, reporting time on attendance.pdf. NBA Committee Visit scheduled 28th to 30th — given by Sachin Oak sir, date 10-07-2026. Currently pending, waiting for approval.`}
+            placeholder={`Enter one or more tasks. Examples:
+
+1. Submitted NBA criteria 4 report to college portal today, assigned by Sachin Sir.
+2. Follow up with IT on floor router repair. Pending, waiting for technician.
+3. Prepared monthly attendance register and filed daily sheets.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={8}
