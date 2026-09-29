@@ -132,7 +132,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
               </div>
             ) : task.workStatus === 'InProgress' && (task.inProgressReason || task.reason) ? (
               <div>
-                <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>InProgress Note</span>
+                <span style={{ fontSize: 10, color: 'var(--inprogress)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>InProgress Note</span>
                 <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
                   {task.inProgressReason || task.reason}
                 </p>
@@ -157,7 +157,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
             )}
             {task.workStatus !== 'InProgress' && task.inProgressReason && task.inProgressReason !== task.reason && (
               <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-subtle)' }}>
-                <span style={{ fontSize: 9, color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>InProgress Note</span>
+                <span style={{ fontSize: 9, color: 'var(--inprogress)', fontWeight: 600, textTransform: 'uppercase' }}>InProgress Note</span>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0', lineHeight: 1.3 }}>{task.inProgressReason}</p>
               </div>
             )}

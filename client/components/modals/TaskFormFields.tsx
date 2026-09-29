@@ -205,6 +205,8 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               const isActiveTab = activeReasonTab === status;
               const isTaskStatus = data.workStatus === status;
               const hasData = status === 'Pending' ? !!currentPending : status === 'InProgress' ? !!currentInProgress : !!currentCompleted;
+              const statusColor = status === 'Pending' ? 'var(--pending)' : status === 'InProgress' ? 'var(--inprogress)' : 'var(--completed)';
+              const statusBg = status === 'Pending' ? 'var(--pending-bg)' : status === 'InProgress' ? 'var(--inprogress-bg)' : 'var(--completed-bg)';
 
               return (
                 <button
@@ -220,20 +222,20 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
-                    border: isActiveTab ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    background: isActiveTab ? 'var(--accent-subtle)' : 'var(--bg-elevated)',
-                    color: isActiveTab ? 'var(--text-primary)' : 'var(--text-muted)',
+                    border: isActiveTab ? `1px solid ${statusColor}` : '1px solid var(--border)',
+                    background: isActiveTab ? statusBg : 'var(--bg-elevated)',
+                    color: isActiveTab ? statusColor : 'var(--text-muted)',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   {status === 'Completed' ? 'Remarks (Done)' : `Reason (${status})`}
                   {isTaskStatus && (
-                    <span style={{ fontSize: 9, background: 'var(--accent)', color: '#fff', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, background: statusColor, color: '#000', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
                       Current
                     </span>
                   )}
                   {hasData && !isTaskStatus && (
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--completed)' }} title="Saved note exists" />
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor }} title="Saved note exists" />
                   )}
                 </button>
               );
@@ -272,7 +274,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               value={currentInProgress}
               onChange={(e) => handleReasonChange('InProgress', e.target.value)}
               rows={2}
-              style={{ resize: 'vertical', borderColor: 'var(--pending)' }}
+              style={{ resize: 'vertical', borderColor: 'var(--inprogress)' }}
             />
           </div>
         )}
@@ -317,7 +319,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             )}
             {currentInProgress && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
-                <span style={{ color: 'var(--accent)', fontWeight: 600, minWidth: 85 }}>[InProgress]:</span>
+                <span style={{ color: 'var(--inprogress)', fontWeight: 600, minWidth: 85 }}>[InProgress]:</span>
                 <span style={{ color: 'var(--text-secondary)' }}>{currentInProgress}</span>
               </div>
             )}
