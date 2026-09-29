@@ -53,7 +53,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         <textarea
           id="field-description"
           className="input"
-          placeholder="Action details, sub-tasks, or key context (do not repeat the title)..."
+          placeholder="Full task description — what needs to be done, references, etc."
           value={data.description}
           onChange={(e) => onChange('description', e.target.value)}
           rows={3}
@@ -147,12 +147,12 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       {showReason && (
         <div className="animate-fade-in">
           <label className="label" htmlFor="field-reason">
-            Reason for {data.workStatus} (Blocker / Delay)
+            Reason for {data.workStatus}
           </label>
           <textarea
             id="field-reason"
             className="input"
-            placeholder="Optional: State any blocker, dependency, or reason for delay..."
+            placeholder="Why is this task pending or in progress?"
             value={data.reason}
             onChange={(e) => onChange('reason', e.target.value)}
             rows={2}
@@ -164,11 +164,11 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       {/* Remarks (conditional) */}
       {showRemarks && (
         <div className="animate-fade-in">
-          <label className="label" htmlFor="field-remarks">Remarks (Outcome / Deliverable)</label>
+          <label className="label" htmlFor="field-remarks">Remarks (What was done)</label>
           <textarea
             id="field-remarks"
             className="input"
-            placeholder="Optional: Specific deliverable, link, or reference ID (leave blank if covered in description)..."
+            placeholder="Describe what was completed or accomplished…"
             value={data.remarks}
             onChange={(e) => onChange('remarks', e.target.value)}
             rows={2}

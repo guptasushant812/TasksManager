@@ -301,11 +301,9 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           <textarea
             id="ai-raw-input"
             className="input"
-            placeholder={`Enter one or more tasks. Examples:
+            placeholder={`Example:
 
-1. Submitted NBA criteria 4 report to college portal today, assigned by Sachin Sir.
-2. Follow up with IT on floor router repair. Pending, waiting for technician.
-3. Prepared monthly attendance register and filed daily sheets.`}
+Attach 2 notices to the Department Communication ISO File — Working on Saturday 22.08.2026, reporting time on attendance.pdf. NBA Committee Visit scheduled 28th to 30th — given by Sachin Oak sir, date 10-07-2026. Currently pending, waiting for approval.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={8}
