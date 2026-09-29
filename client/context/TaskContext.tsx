@@ -46,6 +46,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Initial silent warm-up ping to wake up backend if asleep on Render free tier
+    fetch('/api/health').catch(() => {});
+  }, []);
+
+  useEffect(() => {
     fetchSummary(summaryFilters);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;

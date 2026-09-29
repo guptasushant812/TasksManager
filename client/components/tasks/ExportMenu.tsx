@@ -35,6 +35,7 @@ export default function ExportMenu({
 }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<'pdf' | 'excel' | 'zip' | null>(null);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showInternalNewTaskModal, setShowInternalNewTaskModal] = useState(false);
   const [targetFormat, setTargetFormat] = useState<'pdf' | 'excel' | 'zip'>('excel');
@@ -89,22 +90,60 @@ export default function ExportMenu({
   async function handleExportClick(format: 'pdf' | 'excel' | 'zip') {
     setOpen(false);
     setTargetFormat(format);
+    setExportingFormat(format);
 
-    const count = await resolveTaskCount();
+    try {
+      const count = await resolveTaskCount();
 
-    if (count === 0) {
-      setShowAlertModal(true);
-      return;
+      if (count === 0) {
+        setShowAlertModal(true);
+        return;
+      }
+
+      // Secure in-memory AJAX Blob fetch: Never exposes backend URL or redirects the browser
+      const downloadUrl = buildExportUrl(format);
+      const res = await fetch(downloadUrl);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Export failed' }));
+        if (res.status === 404) {
+          setShowAlertModal(true);
+        } else {
+          alert(err.message || err.error || 'Failed to generate export file.');
+        }
+        return;
+      }
+
+      // Extract filename from Content-Disposition header if available
+      const disposition = res.headers.get('content-disposition');
+      let filename = '';
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) {
+          filename = match[1].replace(/['"]/g, '').trim();
+        }
+      }
+      if (!filename) {
+        const ext = format === 'excel' ? 'xlsx' : format;
+        filename = `Tasks_Export.${ext}`;
+      }
+
+      // Create isolated in-memory Blob URL and trigger native browser file save
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Export download error:', err);
+      alert('An error occurred while generating the export file. Please try again.');
+    } finally {
+      setExportingFormat(null);
     }
-
-    // Direct download trigger without opening orphaned blank tabs
-    const downloadUrl = buildExportUrl(format);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = '';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 
   function handleFirstAddTaskClick() {
@@ -145,29 +184,48 @@ export default function ExportMenu({
         id="btn-export"
         className="btn btn-ghost"
         onClick={() => setOpen(!open)}
-        disabled={checking}
+        disabled={checking || exportingFormat !== null}
+        style={{ minWidth: 100 }}
       >
-        <Download style={{ width: 14, height: 14 }} />
-        {checking ? 'Checking…' : 'Export'}
-        {selectedIds.length > 0 && (
-          <span
-            style={{
-              background: 'var(--accent)',
-              color: '#fff',
-              borderRadius: '50%',
-              width: 16,
-              height: 16,
-              fontSize: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-            }}
-          >
-            {selectedIds.length}
-          </span>
+        {exportingFormat ? (
+          <>
+            <div
+              className="animate-spin"
+              style={{
+                width: 13,
+                height: 13,
+                border: '2px solid rgba(139, 92, 246, 0.3)',
+                borderTopColor: 'var(--accent)',
+                borderRadius: '50%',
+              }}
+            />
+            <span>Generating…</span>
+          </>
+        ) : (
+          <>
+            <Download style={{ width: 14, height: 14 }} />
+            <span>{checking ? 'Checking…' : 'Export'}</span>
+            {selectedIds.length > 0 && (
+              <span
+                style={{
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: 16,
+                  height: 16,
+                  fontSize: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                }}
+              >
+                {selectedIds.length}
+              </span>
+            )}
+            <ChevronDown style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+          </>
         )}
-        <ChevronDown style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
       </button>
 
       {open && (
