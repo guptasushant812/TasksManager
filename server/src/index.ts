@@ -45,6 +45,7 @@ app.use(
       return callback(new Error('Blocked by CORS policy'));
     },
     credentials: true,
+    exposedHeaders: ['Content-Disposition'],
   })
 );
 
@@ -52,6 +53,7 @@ app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   next();
 });
 
