@@ -1,9 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
 import ManualTaskForm from './ManualTaskForm';
 import AiInputForm from './AiInputForm';
 import { PenLine, Sparkles, X, ArrowLeft } from 'lucide-react';
+
+const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
 
 interface NewTaskModalProps {
   defaultFilters: TaskFilters;
@@ -15,6 +17,35 @@ type Mode = null | 'manual' | 'ai';
 
 export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTaskModalProps) {
   const [mode, setMode] = useState<Mode>(null);
+  const [hasAiDraft, setHasAiDraft] = useState(false);
+  const [draftCount, setDraftCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed) {
+          if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
+            setHasAiDraft(true);
+            setDraftCount(parsed.drafts.length);
+          } else if (typeof parsed.rawText === 'string' && parsed.rawText.trim().length > 0) {
+            setHasAiDraft(true);
+            setDraftCount(null);
+          } else {
+            setHasAiDraft(false);
+            setDraftCount(null);
+          }
+        }
+      } else {
+        setHasAiDraft(false);
+        setDraftCount(null);
+      }
+    } catch {
+      setHasAiDraft(false);
+      setDraftCount(null);
+    }
+  }, [mode]);
 
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -26,7 +57,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {mode === null && 'Create New Task'}
               {mode === 'manual' && <><PenLine style={{ width: 16, height: 16 }} /> Manual Entry</>}
-              {mode === 'ai' && <><Sparkles style={{ width: 16, height: 16, color: 'var(--accent)' }} /> AI Assisant</>}
+              {mode === 'ai' && <><Sparkles style={{ width: 16, height: 16, color: 'var(--accent)' }} /> AI Assistant</>}
             </h2>
             {mode === null && (
               <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -132,6 +163,19 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
                 }}
               >
+                {hasAiDraft && (
+                  <div style={{
+                    position: 'absolute', top: 12, right: 12,
+                    background: 'var(--accent)', color: '#fff',
+                    fontSize: 10, fontWeight: 800, padding: '3px 8px',
+                    borderRadius: 9999, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}>
+                    <Sparkles style={{ width: 10, height: 10 }} />
+                    {draftCount ? `${draftCount} Draft${draftCount !== 1 ? 's' : ''}` : 'Draft Saved'}
+                  </div>
+                )}
                 <div style={{ background: 'var(--accent)', padding: 12, borderRadius: 0, border: 'var(--border-width-layout) solid var(--border)', color: '#fff' }}>
                   <Sparkles style={{ width: 32, height: 32 }} />
                 </div>

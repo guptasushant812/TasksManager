@@ -8,8 +8,14 @@ interface AiDraftResponse {
   warning?: string;
 }
 
+interface AiRegenResponse {
+  task: TaskDraft;
+  warning?: string;
+}
+
 export function useAiDraft() {
   const [loading, setLoading] = useState(false);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
 
@@ -32,5 +38,30 @@ export function useAiDraft() {
     }
   }, []);
 
-  return { loading, error, warning, generateDrafts };
+  const regenerateSingleDraft = useCallback(async (
+    task: TaskDraft,
+    index: number,
+    instruction?: string,
+    context?: string
+  ): Promise<TaskDraft | null> => {
+    setRegeneratingIndex(index);
+    setError(null);
+    setWarning(null);
+    try {
+      const res = await apiFetch<AiRegenResponse>('/api/ai-draft/regenerate', {
+        method: 'POST',
+        body: { task, instruction, context },
+      });
+      if (res.warning) setWarning(res.warning);
+      return res.task;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Single task regeneration failed');
+      return null;
+    } finally {
+      setRegeneratingIndex(null);
+    }
+  }, []);
+
+  return { loading, regeneratingIndex, error, warning, generateDrafts, regenerateSingleDraft, setError };
 }
+
