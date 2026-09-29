@@ -75,6 +75,45 @@ function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
   return `${day}-${month}-${year}, ${hour}:${minute} ${dayPeriod}`;
 }
 
+// ── Multi-Status Reason / Remarks Formatter for Comparison ───────────────────
+function formatTaskReasonAndRemarks(task: any): string {
+  const pending = (task.pendingReason || (task.workStatus === 'Pending' ? task.reason : '') || '').trim();
+  const inProgress = (task.inProgressReason || (task.workStatus === 'InProgress' ? task.reason : '') || '').trim();
+  const completed = (task.completedRemarks || (task.workStatus === 'Completed' ? task.remarks : '') || '').trim();
+
+  const count = (pending ? 1 : 0) + (inProgress ? 1 : 0) + (completed ? 1 : 0);
+  if (count === 0) {
+    return '—';
+  }
+
+  // If only one stage was ever filled, return cleanly without prefix tags
+  if (count === 1) {
+    if (task.workStatus === 'Completed' && completed) return completed;
+    if (task.workStatus === 'InProgress' && inProgress) return inProgress;
+    if (task.workStatus === 'Pending' && pending) return pending;
+    return completed || inProgress || pending;
+  }
+
+  // Multiple stages have notes — format with clear stage tags so readers can compare
+  const lines: string[] = [];
+  if (task.workStatus === 'Completed') {
+    if (completed) lines.push(`[Completed]: ${completed}`);
+    if (pending) lines.push(`[Pending Reason]: ${pending}`);
+    if (inProgress) lines.push(`[InProgress Note]: ${inProgress}`);
+  } else if (task.workStatus === 'Pending') {
+    if (pending) lines.push(`[Pending Reason]: ${pending}`);
+    if (inProgress) lines.push(`[InProgress Note]: ${inProgress}`);
+    if (completed) lines.push(`[Completed Note]: ${completed}`);
+  } else {
+    // InProgress
+    if (inProgress) lines.push(`[InProgress Note]: ${inProgress}`);
+    if (pending) lines.push(`[Pending Reason]: ${pending}`);
+    if (completed) lines.push(`[Completed Note]: ${completed}`);
+  }
+
+  return lines.join('\n');
+}
+
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -341,7 +380,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     let rowY = drawReportHeader(true);
 
     tasks.forEach((task: any, idx: number) => {
-      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
+      const remarkOrReason = formatTaskReasonAndRemarks(task);
       const cells = [
         String(idx + 1),
         task.title || '—',
@@ -715,7 +754,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
 
     // Rows 5+: Data Rows
     tasks.forEach((task: any, idx: number) => {
-      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
+      const remarkOrReason = formatTaskReasonAndRemarks(task);
       const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
 
       const row = sheet.addRow({
@@ -1053,7 +1092,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     });
 
     tasks.forEach((task: any, idx: number) => {
-      const remarkOrReason = task.workStatus === 'Completed' ? task.remarks : task.reason;
+      const remarkOrReason = formatTaskReasonAndRemarks(task);
       const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
 
       const row = sheet.addRow({

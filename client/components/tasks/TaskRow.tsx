@@ -120,18 +120,48 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
               </p>
             )}
           </div>
-        ) : showReason && task.reason ? (
-          <div>
-            <span style={{ fontSize: 10, color: 'var(--pending)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Reason</span>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>{task.reason}</p>
-          </div>
-        ) : showRemarks && task.remarks ? (
-          <div>
-            <span style={{ fontSize: 10, color: 'var(--completed)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Remarks</span>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>{task.remarks}</p>
-          </div>
         ) : (
-          <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+          <div>
+            {/* Primary Status Note */}
+            {task.workStatus === 'Completed' && (task.completedRemarks || task.remarks) ? (
+              <div>
+                <span style={{ fontSize: 10, color: 'var(--completed)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Remarks</span>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                  {task.completedRemarks || task.remarks}
+                </p>
+              </div>
+            ) : task.workStatus === 'InProgress' && (task.inProgressReason || task.reason) ? (
+              <div>
+                <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>InProgress Note</span>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                  {task.inProgressReason || task.reason}
+                </p>
+              </div>
+            ) : task.workStatus === 'Pending' && (task.pendingReason || task.reason) ? (
+              <div>
+                <span style={{ fontSize: 10, color: 'var(--pending)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Pending Reason</span>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                  {task.pendingReason || task.reason}
+                </p>
+              </div>
+            ) : (
+              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+            )}
+
+            {/* Previous Stage Delays for comparison if they exist */}
+            {task.workStatus !== 'Pending' && task.pendingReason && task.pendingReason !== task.reason && (
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--pending)', fontWeight: 600, textTransform: 'uppercase' }}>Pending Reason</span>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0', lineHeight: 1.3 }}>{task.pendingReason}</p>
+              </div>
+            )}
+            {task.workStatus !== 'InProgress' && task.inProgressReason && task.inProgressReason !== task.reason && (
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>InProgress Note</span>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0', lineHeight: 1.3 }}>{task.inProgressReason}</p>
+              </div>
+            )}
+          </div>
         )}
       </td>
 
