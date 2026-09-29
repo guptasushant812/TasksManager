@@ -44,8 +44,8 @@
   --medium-bg: #fef9c3;
   --low: #22c55e; /* Green 500 */
   --low-bg: #dcfce7;
-  --inprogress: #a855f7; /* Purple 500 */
-  --inprogress-bg: #f3e8ff;
+  --inprogress: #2563eb; /* Blue 600 */
+  --inprogress-bg: #eff6ff;
   --pending: #eab308;
   --pending-bg: #fef9c3;
   --completed: #22c55e;
