@@ -15,11 +15,14 @@ interface ManualTaskFormProps {
 const EMPTY: {
   title: string; description: string; givenBy: string; contactPerson: string;
   priority: Priority | ''; workStatus: WorkStatus | '';
-  reason: string; remarks: string; date: string; dueDate: string;
+  reason: string; remarks: string;
+  inProgressReason: string; pendingReason: string; completedRemarks: string;
+  date: string; dueDate: string;
 } = {
   title: '', description: '', givenBy: '', contactPerson: '',
   priority: 'Medium', workStatus: 'Pending',
   reason: '', remarks: '',
+  inProgressReason: '', pendingReason: '', completedRemarks: '',
   date: toIsoDate(new Date()),
   dueDate: '',
 };

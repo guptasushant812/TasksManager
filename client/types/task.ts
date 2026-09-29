@@ -15,6 +15,9 @@ export interface Task {
   workStatus: WorkStatus;
   reason: string;
   remarks: string;
+  inProgressReason?: string;
+  pendingReason?: string;
+  completedRemarks?: string;
   date: string; // ISO string from API
   dueDate: string | null;
   createdAt: string;
@@ -31,6 +34,9 @@ export interface TaskDraft {
   workStatus: WorkStatus | '';
   reason: string;
   remarks: string;
+  inProgressReason?: string;
+  pendingReason?: string;
+  completedRemarks?: string;
   date: string;
   dueDate: string;
 }

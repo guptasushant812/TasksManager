@@ -20,8 +20,11 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     contactPerson: task.contactPerson || '',
     priority: task.priority as Priority | '',
     workStatus: task.workStatus as WorkStatus | '',
-    reason: task.reason,
-    remarks: task.remarks,
+    reason: task.reason || '',
+    remarks: task.remarks || '',
+    inProgressReason: task.inProgressReason || (task.workStatus === 'InProgress' ? task.reason : ''),
+    pendingReason: task.pendingReason || (task.workStatus === 'Pending' ? task.reason : ''),
+    completedRemarks: task.completedRemarks || (task.workStatus === 'Completed' ? task.remarks : ''),
     date: toIsoDate(task.date),
     dueDate: task.dueDate ? toIsoDate(task.dueDate) : '',
   });

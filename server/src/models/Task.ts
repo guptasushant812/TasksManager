@@ -15,6 +15,9 @@ export interface ITask extends Document {
   workStatus: WorkStatus;
   reason: string;
   remarks: string;
+  inProgressReason: string;
+  pendingReason: string;
+  completedRemarks: string;
   date: Date;
   dueDate: Date | null;
   createdAt: Date;
@@ -59,6 +62,9 @@ const TaskSchema = new Schema<ITask>(
     },
     reason: { type: String, default: '' },
     remarks: { type: String, default: '' },
+    inProgressReason: { type: String, default: '' },
+    pendingReason: { type: String, default: '' },
+    completedRemarks: { type: String, default: '' },
     date: { type: Date, required: true },
     dueDate: { type: Date, default: null },
   },

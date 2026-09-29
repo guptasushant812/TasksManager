@@ -148,6 +148,20 @@ export async function createTask(req: Request, res: Response, next: NextFunction
     const validatedPriority = ALLOWED_TASK_PRIORITIES.includes(priority) ? priority : 'Medium';
     const validatedStatus = ALLOWED_TASK_STATUSES.includes(workStatus) ? workStatus : 'Pending';
 
+    const rawReason = typeof reason === 'string' ? reason.trim() : '';
+    const rawRemarks = typeof remarks === 'string' ? remarks.trim() : '';
+    let ipReason = typeof req.body.inProgressReason === 'string' ? req.body.inProgressReason.trim() : '';
+    let pReason = typeof req.body.pendingReason === 'string' ? req.body.pendingReason.trim() : '';
+    let cRemarks = typeof req.body.completedRemarks === 'string' ? req.body.completedRemarks.trim() : '';
+
+    if (validatedStatus === 'InProgress' && !ipReason && rawReason) {
+      ipReason = rawReason;
+    } else if (validatedStatus === 'Pending' && !pReason && rawReason) {
+      pReason = rawReason;
+    } else if (validatedStatus === 'Completed' && !cRemarks && rawRemarks) {
+      cRemarks = rawRemarks;
+    }
+
     const taskId = await getNextTaskId();
     const task = new Task({
       taskId,
@@ -157,8 +171,11 @@ export async function createTask(req: Request, res: Response, next: NextFunction
       contactPerson: typeof contactPerson === 'string' ? contactPerson.trim() : '',
       priority: validatedPriority,
       workStatus: validatedStatus,
-      reason: typeof reason === 'string' ? reason.trim() : '',
-      remarks: typeof remarks === 'string' ? remarks.trim() : '',
+      reason: rawReason,
+      remarks: rawRemarks,
+      inProgressReason: ipReason,
+      pendingReason: pReason,
+      completedRemarks: cRemarks,
       date: parsedDate,
       dueDate: parsedDueDate,
       userId: typeof userId === 'string' ? userId.trim() : null,
@@ -177,6 +194,12 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+
+    const existingTask = await Task.findById(id);
+    if (!existingTask) {
+      res.status(404).json({ error: 'Task not found' });
       return;
     }
 
@@ -232,9 +255,37 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
       updates.workStatus = req.body.workStatus;
     }
 
-    for (const strField of ['description', 'givenBy', 'contactPerson', 'reason', 'remarks']) {
+    for (const strField of ['description', 'givenBy', 'contactPerson', 'reason', 'remarks', 'inProgressReason', 'pendingReason', 'completedRemarks']) {
       if (req.body[strField] !== undefined) {
         updates[strField] = typeof req.body[strField] === 'string' ? req.body[strField].trim() : '';
+      }
+    }
+
+    // Synchronize current status reason
+    const effectiveStatus = (updates.workStatus as string) || existingTask.workStatus;
+    if (effectiveStatus === 'InProgress') {
+      if (updates.inProgressReason !== undefined) {
+        updates.reason = updates.inProgressReason;
+      } else if (updates.reason !== undefined) {
+        updates.inProgressReason = updates.reason;
+      } else if (!updates.inProgressReason && existingTask.inProgressReason) {
+        updates.reason = existingTask.inProgressReason;
+      }
+    } else if (effectiveStatus === 'Pending') {
+      if (updates.pendingReason !== undefined) {
+        updates.reason = updates.pendingReason;
+      } else if (updates.reason !== undefined) {
+        updates.pendingReason = updates.reason;
+      } else if (!updates.pendingReason && existingTask.pendingReason) {
+        updates.reason = existingTask.pendingReason;
+      }
+    } else if (effectiveStatus === 'Completed') {
+      if (updates.completedRemarks !== undefined) {
+        updates.remarks = updates.completedRemarks;
+      } else if (updates.remarks !== undefined) {
+        updates.completedRemarks = updates.remarks;
+      } else if (!updates.completedRemarks && existingTask.completedRemarks) {
+        updates.remarks = existingTask.completedRemarks;
       }
     }
 
@@ -243,10 +294,6 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
       { ...updates, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
-    if (!task) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
     res.json(task);
   } catch (err) {
     next(err);
