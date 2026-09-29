@@ -310,3 +310,87 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
   }
 }
 
+// ── POST /api/ai-draft/regenerate ──────────────────────────────────────────────
+export async function regenerateSingleAiDraft(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { task, instruction, context } = req.body as {
+      task: Record<string, string>;
+      instruction?: string;
+      context?: string;
+    };
+
+    if (!task || typeof task !== 'object') {
+      res.status(400).json({ error: 'task object is required' });
+      return;
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+      res.json({ task, warning: 'Gemini API key not configured.' });
+      return;
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
+    const REGEN_PROMPT = `You are an expert task refinement assistant for a professional timesheet system.
+Your job is to regenerate and improve a SINGLE work task based on the user's instructions or by making it cleaner, crisper, and higher quality.
+
+Apply strict DRY rules:
+- title: 3 to 6 words (max 8 words), action verb phrase
+- description: 8 to 25 words max action details (never repeat title)
+- reason: blocker/delay if Pending/InProgress; MUST be "" if Completed
+- remarks: distinct outcome deliverable/ticket/link; NEVER rephrase description; if none, MUST be ""
+- priority: High | Medium | Low
+- workStatus: Completed | InProgress | Pending
+
+CURRENT TASK:
+${JSON.stringify(task, null, 2)}
+${instruction && instruction.trim() ? `USER REFINEMENT INSTRUCTION: "${instruction.trim()}"` : ''}
+${context && context.trim() ? `ORIGINAL RAW CONTEXT: "${context.trim()}"` : ''}
+
+Return ONLY a single valid JSON object representing the improved task (no array, no markdown, no explanation):
+{
+  "title": "string",
+  "description": "string",
+  "givenBy": "string",
+  "contactPerson": "string",
+  "priority": "High | Medium | Low",
+  "workStatus": "InProgress | Pending | Completed",
+  "reason": "string",
+  "remarks": "string",
+  "date": "string",
+  "dueDate": "string"
+}`;
+
+    const interaction = await ai.interactions.create({
+      model: "gemini-3.8-flash",
+      input: REGEN_PROMPT,
+    });
+
+    let raw = (interaction.output_text || '').trim();
+    if (raw.startsWith('```json')) {
+      raw = raw.replace(/^```json/, '').replace(/```$/, '').trim();
+    } else if (raw.startsWith('```')) {
+      raw = raw.replace(/^```/, '').replace(/```$/, '').trim();
+    }
+
+    let parsedTask: Record<string, string>;
+    try {
+      const parsed = JSON.parse(raw);
+      parsedTask = Array.isArray(parsed) ? parsed[0] : parsed;
+    } catch {
+      console.error('[AI Draft Regen] Failed to parse model output:', raw.slice(0, 200));
+      res.status(500).json({ error: 'AI returned unparseable content for task regeneration.' });
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const cleaned = cleanAndDeduplicateDraft({ ...task, ...parsedTask }, today);
+
+    res.json({ task: cleaned });
+  } catch (err) {
+    next(err);
+  }
+}
+
+
