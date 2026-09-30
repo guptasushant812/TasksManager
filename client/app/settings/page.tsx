@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
-import { Settings as SettingsIcon, AlertTriangle, Bell, Shield, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Settings as SettingsIcon, AlertTriangle, Bell, Shield, Eye, EyeOff, CheckCircle2, X } from 'lucide-react';
 
 const TABS = [
   { id: 'general', label: 'General', icon: SettingsIcon },
@@ -12,12 +12,94 @@ const TABS = [
   { id: 'security', label: 'Security', icon: Shield },
 ];
 
+interface ThemeOption {
+  id: string;
+  name: string;
+  description: string;
+  primaryColor: string;
+  bgColor: string;
+}
+
+const THEME_OPTIONS: ThemeOption[] = [
+  {
+    id: 'dark',
+    name: 'Cyberpunk (Dark & Neon)',
+    description: 'Deep void background with high-contrast electric green and neon accents.',
+    primaryColor: '#00ff88',
+    bgColor: '#0a0a0f',
+  },
+  {
+    id: 'light',
+    name: 'Neo-Brutalist (Clean White)',
+    description: 'Minimalist white surface with crisp borders and purple accents.',
+    primaryColor: '#8b5cf6',
+    bgColor: '#ffffff',
+  },
+  {
+    id: 'slate',
+    name: 'Midnight Slate (Deep Blue)',
+    description: 'Deep oceanic navy slate with sky blue highlights and subtle borders.',
+    primaryColor: '#38bdf8',
+    bgColor: '#0b1120',
+  },
+  {
+    id: 'warm',
+    name: 'Charcoal Amber (Warm Dark)',
+    description: 'Obsidian dark palette with warm golden amber accents.',
+    primaryColor: '#f59e0b',
+    bgColor: '#121214',
+  },
+  {
+    id: 'emerald',
+    name: 'Matrix Emerald (Forest Green)',
+    description: 'Deep forest green tones with mint emerald accents.',
+    primaryColor: '#10b981',
+    bgColor: '#05130b',
+  },
+];
+
 export default function SettingsPage() {
   const { filters, handleTaskCreated } = useTaskContext();
   const [activeTab, setActiveTab] = useState('general');
 
   const { settings, updateSettings, loading } = useEscalation();
   const [isSaving, setIsSaving] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('dark');
+  const [pendingTheme, setPendingTheme] = useState<string | null>(null);
+  const [themeSuccess, setThemeSuccess] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.theme || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      setCurrentTheme(saved);
+    } catch {}
+  }, []);
+
+  const handleSelectTheme = (newThemeId: string) => {
+    if (newThemeId === currentTheme) return;
+    setPendingTheme(newThemeId);
+  };
+
+  const handleConfirmTheme = () => {
+    if (!pendingTheme) return;
+    const themeId = pendingTheme;
+    document.documentElement.setAttribute('data-theme', themeId);
+    if (themeId === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+    localStorage.theme = themeId;
+    window.dispatchEvent(new Event('storage'));
+    setCurrentTheme(themeId);
+    setPendingTheme(null);
+    setThemeSuccess(true);
+    setTimeout(() => setThemeSuccess(false), 3000);
+  };
+
+  const handleCancelTheme = () => {
+    setPendingTheme(null);
+  };
   const [localSettings, setLocalSettings] = useState({ 
     enabled: false, 
     threshold: 3,
@@ -278,56 +360,59 @@ export default function SettingsPage() {
               </div>
 
               <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {/* Theme Toggle */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                {/* Theme Option List */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
                       Application Theme
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      Choose between Light (Neo-Brutalist) and Dark (Cyberpunk) modes.
+                      Select a visual theme. Changing themes will ask for your confirmation.
                     </div>
                   </div>
-                  <div style={{ display: 'flex', background: 'var(--bg-elevated)', border: '4px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
-                    <button
-                      onClick={() => {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.theme = 'light';
-                      }}
-                      style={{
-                        padding: '6px 16px',
-                        border: 'none',
-                        background: 'transparent',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        color: 'var(--text-primary)',
-                        borderRight: '4px solid var(--border)',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      LIGHT
-                    </button>
-                    <button
-                      onClick={() => {
-                        document.documentElement.classList.add('dark');
-                        localStorage.theme = 'dark';
-                      }}
-                      style={{
-                        padding: '6px 16px',
-                        border: 'none',
-                        background: 'transparent',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        color: 'var(--text-primary)'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      DARK
-                    </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {themeSuccess && (
+                      <span style={{ fontSize: 12, color: 'var(--low)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <CheckCircle2 size={14} /> Theme applied
+                      </span>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', border: '2px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '6px 12px' }}>
+                      <span
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          backgroundColor: THEME_OPTIONS.find(t => t.id === currentTheme)?.primaryColor || 'var(--accent)',
+                          display: 'inline-block',
+                          boxShadow: '0 0 6px rgba(0,0,0,0.3)',
+                          flexShrink: 0
+                        }}
+                      />
+                      <select
+                        value={currentTheme}
+                        onChange={(e) => handleSelectTheme(e.target.value)}
+                        className="bg-transparent"
+                        style={{
+                          border: 'none',
+                          color: 'var(--text-primary)',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          outline: 'none',
+                          padding: '2px 4px',
+                        }}
+                      >
+                        {THEME_OPTIONS.map((theme) => (
+                          <option
+                            key={theme.id}
+                            value={theme.id}
+                            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
+                          >
+                            {theme.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -483,6 +568,168 @@ export default function SettingsPage() {
           )}
         </section>
       </main>
+
+      {/* Theme Confirmation Modal */}
+      {pendingTheme && (() => {
+        const targetTheme = THEME_OPTIONS.find(t => t.id === pendingTheme);
+
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+            }}
+            onClick={handleCancelTheme}
+          >
+            <div
+              className="card animate-fade-in"
+              style={{
+                maxWidth: 440,
+                width: '100%',
+                padding: '24px',
+                background: 'var(--bg-surface)',
+                border: '2px solid var(--border)',
+                borderRadius: 'var(--radius-lg, 8px)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                  Apply New Theme?
+                </h3>
+                <button
+                  onClick={handleCancelTheme}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                Are you sure you want to change the theme? This will update the color scheme and appearance across the entire website.
+              </p>
+
+              {/* Theme Preview Card */}
+              {targetTheme && (
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    borderRadius: 'var(--radius-md, 6px)',
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--bg-elevated)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          backgroundColor: targetTheme.primaryColor,
+                          border: '2px solid rgba(255,255,255,0.2)',
+                          display: 'inline-block',
+                          boxShadow: `0 0 8px ${targetTheme.primaryColor}80`,
+                        }}
+                      />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {targetTheme.name}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                      <span
+                        title="Background base color"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 3,
+                          backgroundColor: targetTheme.bgColor,
+                          border: '1px solid var(--border)',
+                          display: 'inline-block',
+                        }}
+                      />
+                      <span
+                        title="Accent color"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 3,
+                          backgroundColor: targetTheme.primaryColor,
+                          display: 'inline-block',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                    {targetTheme.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleCancelTheme}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)',
+                    padding: '8px 16px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    borderRadius: 'var(--radius-md, 6px)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleConfirmTheme}
+                  style={{
+                    padding: '8px 18px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    borderRadius: 'var(--radius-md, 6px)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Apply Theme
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
