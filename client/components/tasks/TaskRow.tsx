@@ -54,7 +54,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
 
       {/* Task */}
       <td style={{ minWidth: 140, maxWidth: 200, whiteSpace: 'normal', wordWrap: 'break-word' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
           <span style={{
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 10,
@@ -69,6 +69,25 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
           {task.dueDate && (
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
               Due: {formatDate(task.dueDate)}
+            </span>
+          )}
+          {fuCount > 0 && (
+            <span
+              style={{
+                fontSize: 10,
+                padding: '1px 5px',
+                borderRadius: 4,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 3,
+                background: fuOverdue ? 'rgba(239,68,68,0.12)' : 'var(--bg-secondary)',
+                color: fuOverdue ? 'var(--high)' : 'var(--text-muted)',
+                border: `1px solid ${fuOverdue ? 'rgba(239,68,68,0.25)' : 'var(--border-subtle)'}`,
+              }}
+              title={fuOverdue ? 'Overdue follow-up response pending' : `${fuCount} follow-up logs recorded`}
+            >
+              💬 {fuCount} {fuOverdue ? '• Overdue' : ''}
             </span>
           )}
         </div>
@@ -172,7 +191,28 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
           <ActionBtn title="Delete" icon={<Trash2 style={{ width: 14, height: 14 }} />} onClick={() => onDelete(task._id)} hoverColor="var(--high)" />
           
           {mode === 'tasks' && (
-            <ActionBtn title="Quick follow-up" icon={<Zap style={{ width: 14, height: 14 }} />} onClick={() => onQuickFollowUp(task)} hoverColor="var(--accent)" />
+            <div style={{ position: 'relative' }}>
+              <ActionBtn
+                title={fuCount > 0 ? `Quick follow-up (${fuCount} logged)` : "Quick follow-up"}
+                icon={<Zap style={{ width: 14, height: 14 }} />}
+                onClick={() => onQuickFollowUp(task)}
+                hoverColor="var(--accent)"
+                defaultColor={fuOverdue ? 'var(--high)' : undefined}
+              />
+              {fuCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -3, right: -3,
+                  background: fuOverdue ? 'var(--high)' : 'var(--accent)',
+                  color: '#fff', fontSize: 9, fontWeight: 700,
+                  borderRadius: 999, minWidth: 14, height: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px', lineHeight: 1,
+                  pointerEvents: 'none',
+                }}>
+                  {fuCount}
+                </span>
+              )}
+            </div>
           )}
           
           {mode === 'follow-ups' && (

@@ -3,8 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
 import NewTaskModal from '../modals/NewTaskModal';
 import ShareModal from '../modals/ShareModal';
-import { ChevronRight, Bell, Plus, X } from 'lucide-react';
+import { ChevronRight, Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -16,8 +17,16 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const [showModal, setShowModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  const taskContext = useTaskContext();
+  const summary = taskContext?.summary;
+  const overdueCount = summary?.overdueFollowUps || 0;
+  const escalatedCount = summary?.escalatedTasks || 0;
+  const totalAlerts = overdueCount + escalatedCount;
 
   const getPageName = () => {
     if (pathname === '/') return 'Dashboard';
@@ -28,16 +37,19 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     return '';
   };
 
-  // Close profile dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
       }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
     }
-    if (profileOpen) document.addEventListener('mousedown', handleClick);
+    if (profileOpen || notifOpen) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [profileOpen]);
+  }, [profileOpen, notifOpen]);
 
   return (
     <>
@@ -79,29 +91,175 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             New Task
           </button>
 
-          {/* Notification bell */}
-          <button
-            type="button"
-            aria-label="Notifications"
-            style={{
-              background: 'var(--bg-surface)',
-              border: 'var(--border-width-layout) solid var(--border)',
-              cursor: 'pointer',
-              padding: 8,
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'var(--box-shadow-brutalist)',
-              transition: 'all 0.1s',
-            }}
-            onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
-          >
-            <Bell style={{ width: 18, height: 18, strokeWidth: 3 }} />
-          </button>
+          {/* Notification bell & popover */}
+          <div ref={notifRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setNotifOpen(!notifOpen)}
+              aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
+              title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
+              style={{
+                background: notifOpen ? 'var(--bg-hover)' : 'var(--bg-surface)',
+                border: 'var(--border-width-layout) solid var(--border)',
+                cursor: 'pointer',
+                padding: 8,
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist)',
+                transform: notifOpen ? 'translate(2px, 2px)' : 'none',
+                position: 'relative',
+                transition: 'all 0.1s',
+              }}
+            >
+              <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
+              {totalAlerts > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: overdueCount > 0 ? 'var(--high)' : 'var(--accent)',
+                    color: '#ffffff',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    width: 17,
+                    height: 17,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid var(--bg-surface)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  {totalAlerts > 9 ? '9+' : totalAlerts}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div
+                className="animate-slide-down card"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 'calc(100% + 10px)',
+                  zIndex: 60,
+                  width: 320,
+                  padding: 16,
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Bell style={{ width: 15, height: 15, color: 'var(--text-primary)' }} />
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Notification Center
+                    </span>
+                  </div>
+                  {totalAlerts > 0 ? (
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'var(--high-bg, #fee2e2)', color: 'var(--high)' }}>
+                      {totalAlerts} Alert{totalAlerts > 1 ? 's' : ''}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: 'var(--low-bg, #dcfce7)', color: 'var(--low)' }}>
+                      All clear
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
+                  {overdueCount > 0 && (
+                    <Link
+                      href="/follow-ups"
+                      onClick={() => setNotifOpen(false)}
+                      style={{
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 10,
+                        padding: 10,
+                        background: 'var(--high-bg, #fee2e2)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderRadius: 6,
+                        color: 'var(--text-primary)',
+                        transition: 'transform 0.1s ease',
+                      }}
+                    >
+                      <Clock style={{ width: 16, height: 16, color: 'var(--high)', flexShrink: 0, marginTop: 2 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--high)' }}>
+                          {overdueCount} Overdue Follow-Up{overdueCount > 1 ? 's' : ''}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          Scheduled dates passed without logged resolution.
+                        </div>
+                      </div>
+                      <ArrowRight style={{ width: 14, height: 14, color: 'var(--high)', alignSelf: 'center' }} />
+                    </Link>
+                  )}
+
+                  {escalatedCount > 0 && (
+                    <Link
+                      href="/tasks"
+                      onClick={() => setNotifOpen(false)}
+                      style={{
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 10,
+                        padding: 10,
+                        background: 'var(--medium-bg, #fef9c3)',
+                        border: '1px solid rgba(234, 179, 8, 0.25)',
+                        borderRadius: 6,
+                        color: 'var(--text-primary)',
+                        transition: 'transform 0.1s ease',
+                      }}
+                    >
+                      <AlertTriangle style={{ width: 16, height: 16, color: 'var(--medium)', flexShrink: 0, marginTop: 2 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--medium)' }}>
+                          {escalatedCount} Escalated Task{escalatedCount > 1 ? 's' : ''}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          Tasks reached or exceeded escalation limits.
+                        </div>
+                      </div>
+                      <ArrowRight style={{ width: 14, height: 14, color: 'var(--medium)', alignSelf: 'center' }} />
+                    </Link>
+                  )}
+
+                  {totalAlerts === 0 && (
+                    <div style={{ padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 style={{ width: 24, height: 24, color: 'var(--completed)' }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        All tasks & follow-ups on track
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        No overdue milestones or threshold alerts.
+                      </span>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
+                    <span>Active tasks:</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      {(summary?.inProgress || 0) + (summary?.pending || 0)} tasks
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Profile avatar */}
           <div ref={profileRef} style={{ position: 'relative' }}>
