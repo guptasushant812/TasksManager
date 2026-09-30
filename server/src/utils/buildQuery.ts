@@ -24,6 +24,11 @@ const ALLOWED_PRIORITIES = ['High', 'Medium', 'Low'];
 export function buildQuery(query: ParsedQs): TaskQuery {
   const filter: Record<string, unknown> = {};
 
+  // ── Soft-delete filter (only show active unless explicitly requesting deleted) ──
+  if (query.showDeleted !== 'true') {
+    filter.isDeleted = { $ne: true };
+  }
+
   // ── Full-text search ──────────────────────────────────────────────────────
   if (query.search && typeof query.search === 'string' && query.search.trim()) {
     filter.$text = { $search: query.search.trim() };

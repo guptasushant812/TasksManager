@@ -302,7 +302,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
 
 // ── Helper to resequence Task IDs ──────────────────────────────────────────────
 async function resequenceTaskIds() {
-  const tasks = await Task.find({}).sort({ createdAt: 1 });
+  const tasks = await Task.find({ isDeleted: { $ne: true } }).sort({ createdAt: 1 });
   for (let i = 0; i < tasks.length; i++) {
     const num = String(i + 1).padStart(4, '0');
     const newTaskId = `TK-${num}`;
@@ -322,7 +322,7 @@ async function resequenceTaskIds() {
   }
 }
 
-// ── DELETE /api/tasks/:id ─────────────────────────────────────────────────────
+// ── DELETE /api/tasks/:id (Soft-Delete) ────────────────────────────────────────
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -331,12 +331,16 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
       return;
     }
 
-    const task = await Task.findByIdAndDelete(id);
+    const task = await Task.findByIdAndUpdate(
+      id,
+      { isDeleted: true, deletedAt: new Date(), deletedReason: 'User deleted task' },
+      { new: true }
+    );
     if (!task) {
       res.status(404).json({ error: 'Task not found' });
       return;
     }
-    await FollowUp.deleteMany({ taskId: id });
+    await FollowUp.updateMany({ taskId: id }, { isDeleted: true, deletedReason: 'Parent task deleted' });
     
     // Resequence tasks after deletion
     await resequenceTaskIds();
@@ -347,7 +351,7 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
   }
 }
 
-// ── DELETE /api/tasks (bulk) ──────────────────────────────────────────────────
+// ── DELETE /api/tasks (bulk Soft-Delete) ───────────────────────────────────────
 export async function deleteManyTasks(req: Request, res: Response, next: NextFunction) {
   try {
     const { ids } = req.body as { ids: string[] };
@@ -367,14 +371,41 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
     }
 
     const [result] = await Promise.all([
-      Task.deleteMany({ _id: { $in: validIds } }),
-      FollowUp.deleteMany({ taskId: { $in: validIds } }),
+      Task.updateMany({ _id: { $in: validIds } }, { isDeleted: true, deletedAt: new Date(), deletedReason: 'Bulk deleted by user' }),
+      FollowUp.updateMany({ taskId: { $in: validIds } }, { isDeleted: true, deletedReason: 'Parent task deleted' }),
     ]);
     
     // Resequence tasks once after bulk deletion
     await resequenceTaskIds();
     
-    res.json({ message: 'Tasks deleted', count: result.deletedCount });
+    res.json({ message: 'Tasks deleted', count: result.modifiedCount });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ── POST /api/tasks/:id/restore ───────────────────────────────────────────────
+export async function restoreTask(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+
+    const task = await Task.findByIdAndUpdate(
+      id,
+      { isDeleted: false, deletedAt: null, deletedReason: '' },
+      { new: true }
+    );
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
+    }
+    await FollowUp.updateMany({ taskId: id, deletedReason: 'Parent task deleted' }, { isDeleted: false, deletedReason: '' });
+    
+    await resequenceTaskIds();
+    res.json({ message: 'Task restored', task });
   } catch (err) {
     next(err);
   }
