@@ -1,157 +1,46 @@
 import { Request, Response, NextFunction } from 'express';
 import { GoogleGenAI } from '@google/genai';
 
-const SYSTEM_PROMPT = `You are an expert task extraction assistant for a professional task management and timesheet system.
-Your job is to convert raw, messy, or conversational text (English, Hindi, or Hinglish) into structured, high-density task records.
+const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
-CORE PRINCIPLE: DRY (Don't Repeat Yourself) & High Information Density.
-- NEVER repeat the same information across multiple fields.
-- Write in simple, professional English using layman terms and short, crisp sentences.
-- Avoid AI filler ("Ensure that...", "In order to...", "Successfully completed").
-- Optimize for information value per word.
+The user will give you free-form text describing one or more work tasks. The input may be:
+- Written in a mix of Hindi and English (Hinglish/Roman Hindi)
+- Informal, conversational, or fragmented
+- Numbered (1, 2, 3) or lettered (a, b, c sub-tasks)
+- A single sentence or multiple paragraphs
 
-FIELD RESPONSIBILITIES & CONSTRAINTS:
+YOUR JOB:
+1. Identify EACH separate main task (usually numbered 1, 2, 3).
+2. If a main task has sub-tasks (like a, b, c or indented bullets), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field as bullet points.
+3. Extract and structure everything into clean, professional English using simple, concise, layman terms (no jargon).
+4. Translate any Hindi/Hinglish content to clean professional English.
+5. Return a JSON array of task objects — one object per main task.
 
-1. "title": string (3 to 6 words, max 8 words)
-   - What is the task? A punchy action verb phrase (e.g., "Submit NBA Accreditation Report", "Repair Department Floor Router").
-   - Do NOT include unnecessary background, long filler, or dates in the title.
-
-2. "description": string (8 to 25 words max)
-   - What needs to be done / what was done. Key action details, document names, or specific sub-tasks.
-   - Do NOT repeat the title.
-   - If sub-tasks (a, b, c) exist, format them concisely as bullet points (- item).
-   - Do NOT write paragraphs or essay-style explanations.
-
-3. "workStatus": "Completed" | "InProgress" | "Pending"
-   - "Completed": Done, finished, submitted, or past-tense action ("ho gaya", "kiya", "done").
-   - "InProgress": Currently being worked on, ongoing ("kar raha hu", "working on it").
-   - "Pending": Not started, blocked, or awaiting approval ("baaki hai", "pending").
-
-4. "reason": string
-   - Applicable ONLY when workStatus is "Pending" or "InProgress".
-   - State the blocker, dependency, or reason for delay (e.g., "Awaiting Dean signature", "Waiting for spare parts").
-   - If workStatus is "Completed", this MUST be an empty string: "".
-   - If there is no specific blocker, leave as empty string: "".
-
-5. "remarks": string
-   - An outcome deliverable, artifact reference, or specific follow-up note (e.g., "PR #142 merged", "Sent via dispatch #8821", "Next review on Monday").
-   - CRITICAL DRY RULE: NEVER summarize, rephrase, or rewrite the description here!
-   - If the task is completed and there is NO separate deliverable ID or outcome note, leave as empty string: "".
-   - NEVER use filler such as "Task completed", "Done successfully", or "No remarks".
-
-6. "priority": "High" | "Medium" | "Low"
-   - "High": Urgent deadlines (today/tomorrow), executive escalations, exam/audit/critical failure.
-   - "Medium": Standard scheduled work, normal operational tasks.
-   - "Low": General backlog, housekeeping, low-urgency reference tasks.
-   - Default to "Medium" unless urgency is explicitly stated or strongly implied.
-
-7. "givenBy": string
-   - Person or authority who assigned the task (e.g., "Sachin Oak Sir", "HOD", "Client"). Empty string "" if not mentioned.
-
-8. "contactPerson": string
-   - Person to contact or follow up with. Empty string "" if not mentioned.
-
-9. "date": string (ISO date YYYY-MM-DD)
-   - Date of the task. If user says "today", "aaj", or specifies a date, use that ISO date. Otherwise empty string "".
-
-10. "dueDate": string (ISO date YYYY-MM-DD)
-    - Explicit deadline if mentioned. Empty string "" if none.
-
-FEW-SHOT EXAMPLES:
-
---- Example 1 (Completed task with deliverable) ---
-INPUT:
-"Sachin sir told me to submit the NBA criteria 4 document today. I completed the verification and uploaded it to the college portal."
-OUTPUT:
+Return ONLY a valid JSON array (no markdown, no code blocks, no explanation):
 [
   {
-    "title": "Submit NBA Criteria 4 Document",
-    "description": "Verified criteria 4 details and uploaded document to college portal.",
-    "givenBy": "Sachin Sir",
-    "contactPerson": "",
-    "priority": "High",
-    "workStatus": "Completed",
-    "reason": "",
-    "remarks": "Uploaded to college portal",
-    "date": "",
-    "dueDate": ""
+    "title": "string - short clear task title in English (max 8 words)",
+    "description": "string - full details of what was done, including any sub-tasks as bullet points",
+    "givenBy": "string - person who assigned it (if mentioned), else empty string",
+    "contactPerson": "string - person to follow up with or contact regarding this task (if mentioned), else empty string",
+    "priority": "High | Medium | Low",
+    "workStatus": "InProgress | Pending | Completed",
+    "reason": "string - why it is pending/delayed, empty if completed",
+    "remarks": "string - what was accomplished (for Completed tasks), empty if not completed",
+    "date": "string - ISO date YYYY-MM-DD (e.g. today's date if 'aaj' or 'today' is mentioned), empty if not",
+    "dueDate": "string - ISO date YYYY-MM-DD if a deadline is mentioned, empty if not"
   }
 ]
 
---- Example 2 (Pending task with blocker — notice Remarks is EMPTY, Reason has blocker) ---
-INPUT:
-"Follow up with IT regarding floor router repair. Pending because technician is unavailable until tomorrow."
-OUTPUT:
-[
-  {
-    "title": "Repair Floor Wi-Fi Router",
-    "description": "Follow up with IT team for hardware troubleshooting.",
-    "givenBy": "",
-    "contactPerson": "IT Team",
-    "priority": "Medium",
-    "workStatus": "Pending",
-    "reason": "Technician unavailable until tomorrow",
-    "remarks": "",
-    "date": "",
-    "dueDate": ""
-  }
-]
+STRICT RULES:
+- AUTO-FILL LOGIC: If the user says "pending" or "in progress" -> set workStatus appropriately. If they say "kiya", "done", or speak in past tense -> set "Completed".
+- PRIORITY: If they mention "high", "low", "mid/medium", use that. Otherwise, infer based on urgency (exam/inspection = High).
+- REASON: If they mention *why* a task is pending or delayed, extract that exactly into the "reason" field.
+- SUB-TASKS: Remember, sub-tasks (a, b, c) MUST be inside the parent task's description. Do NOT create separate objects for sub-tasks.
+- The response must be a valid parseable JSON array ONLY — nothing else.`;
 
---- Example 3 (Completed task without extra deliverable — Remarks MUST BE EMPTY) ---
-INPUT:
-"Cleaned up department attendance register and filed daily records."
-OUTPUT:
-[
-  {
-    "title": "Update Department Attendance Register",
-    "description": "Checked attendance entries and filed daily records.",
-    "givenBy": "",
-    "contactPerson": "",
-    "priority": "Low",
-    "workStatus": "Completed",
-    "reason": "",
-    "remarks": "",
-    "date": "",
-    "dueDate": ""
-  }
-]
-
---- Example 4 (Multi-task numbered with subtasks) ---
-INPUT:
-"1. Prepare exam timetable given by HOD sir. Subtasks: a) collect batch counts b) room allocation.
-2. Call vendor for library books quote, waiting for their reply."
-OUTPUT:
-[
-  {
-    "title": "Prepare Exam Timetable",
-    "description": "Draft exam schedule:\n- Collect batch counts\n- Room allocation",
-    "givenBy": "HOD Sir",
-    "contactPerson": "",
-    "priority": "High",
-    "workStatus": "InProgress",
-    "reason": "",
-    "remarks": "",
-    "date": "",
-    "dueDate": ""
-  },
-  {
-    "title": "Request Library Books Quotation",
-    "description": "Contact vendor for quotation on required library books.",
-    "givenBy": "",
-    "contactPerson": "Book Vendor",
-    "priority": "Medium",
-    "workStatus": "Pending",
-    "reason": "Waiting for vendor reply",
-    "remarks": "",
-    "date": "",
-    "dueDate": ""
-  }
-]
-
-Return ONLY a valid parseable JSON array. No markdown code blocks, no backticks, no explanatory text.`;
-
-// ── Deduplication and Sanitization Helper (Poka-Yoke) ──────────────────────────
-function cleanAndDeduplicateDraft(d: Record<string, any>, today: string): Record<string, string> {
+// ── Sanitization and Validation Helper ─────────────────────────────────────────
+function sanitizeDraft(d: Record<string, any>, today: string): Record<string, string> {
   const fields = ['title', 'description', 'givenBy', 'contactPerson', 'priority', 'workStatus', 'reason', 'remarks', 'date', 'dueDate'];
   for (const f of fields) {
     if (typeof d[f] !== 'string') {
@@ -179,61 +68,8 @@ function cleanAndDeduplicateDraft(d: Record<string, any>, today: string): Record
   }
 
   // Default date to today if missing
-  if (!d.date) {
+  if (!d.date || d.date.trim() === '') {
     d.date = today;
-  }
-
-  // DRY Rule 1: Completed tasks do not have blockers/reasons
-  if (d.workStatus === 'Completed') {
-    d.reason = '';
-  }
-
-  const normalize = (text: string) => text.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
-  const descNorm = normalize(d.description);
-  const titleNorm = normalize(d.title);
-  const remarksNorm = normalize(d.remarks);
-  const reasonNorm = normalize(d.reason);
-
-  // Generic filler remarks to eliminate
-  const genericRemarks = [
-    'task completed', 'task has been completed', 'completed successfully', 'successfully completed',
-    'done', 'work done', 'completed', 'finished', 'resolved', 'no remarks', 'n a', 'na', 'none',
-    'task done', 'all done', 'handled', 'as per instructions', 'completed as planned'
-  ];
-
-  if (genericRemarks.includes(remarksNorm)) {
-    d.remarks = '';
-  }
-
-  // DRY Rule 2: Remarks must NEVER duplicate Description or Title
-  if (remarksNorm && descNorm) {
-    if (remarksNorm === descNorm || descNorm.includes(remarksNorm) || remarksNorm.includes(descNorm)) {
-      d.remarks = '';
-    } else {
-      // Overlap check: if >= 65% of words in remarks are already in description, clear remarks
-      const descTokens = new Set(descNorm.split(' '));
-      const remarkTokens = remarksNorm.split(' ').filter(t => t.length > 2);
-      if (remarkTokens.length > 0) {
-        const matches = remarkTokens.filter(t => descTokens.has(t)).length;
-        if (matches / remarkTokens.length >= 0.65) {
-          d.remarks = '';
-        }
-      }
-    }
-  }
-
-  if (d.remarks && normalize(d.remarks) === titleNorm) {
-    d.remarks = '';
-  }
-
-  // DRY Rule 3: Reason must not duplicate Description or Title
-  if (reasonNorm && (reasonNorm === descNorm || reasonNorm === titleNorm)) {
-    d.reason = '';
-  }
-
-  // DRY Rule 4: If Reason and Remarks contain the same information, clear Remarks
-  if (d.reason && d.remarks && normalize(d.reason) === normalize(d.remarks)) {
-    d.remarks = '';
   }
 
   return d as Record<string, string>;
@@ -301,8 +137,8 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Clean, validate, and deduplicate each draft according to DRY standards
-    drafts = drafts.map(d => cleanAndDeduplicateDraft(d, today));
+    // Validate and sanitize each draft
+    drafts = drafts.map(d => sanitizeDraft(d, today));
 
     res.json({ drafts });
   } catch (err) {
@@ -332,16 +168,18 @@ export async function regenerateSingleAiDraft(req: Request, res: Response, next:
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const REGEN_PROMPT = `You are an expert task refinement assistant for a professional timesheet system.
-Your job is to regenerate and improve a SINGLE work task based on the user's instructions or by making it cleaner, crisper, and higher quality.
+    const REGEN_PROMPT = `You are an expert task extraction and refinement assistant for a professional daily timesheet task manager system.
+Your job is to regenerate and improve a SINGLE work task based on the user's instructions or by making it clean, professional, and high quality.
 
-Apply strict DRY rules:
-- title: 3 to 6 words (max 8 words), action verb phrase
-- description: 8 to 25 words max action details (never repeat title)
-- reason: blocker/delay if Pending/InProgress; MUST be "" if Completed
-- remarks: distinct outcome deliverable/ticket/link; NEVER rephrase description; if none, MUST be ""
+Extract and structure everything into clean, professional English using simple, concise terms:
+- title: short clear task title in English (max 8 words)
+- description: full details of what was done, including any sub-tasks as bullet points
 - priority: High | Medium | Low
-- workStatus: Completed | InProgress | Pending
+- workStatus: InProgress | Pending | Completed
+- reason: why it is pending or delayed, empty if completed
+- remarks: what was accomplished (for Completed tasks), empty if not completed
+- date: ISO date YYYY-MM-DD
+- dueDate: ISO date YYYY-MM-DD if mentioned
 
 CURRENT TASK:
 ${JSON.stringify(task, null, 2)}
@@ -385,7 +223,7 @@ Return ONLY a single valid JSON object representing the improved task (no array,
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const cleaned = cleanAndDeduplicateDraft({ ...task, ...parsedTask }, today);
+    const cleaned = sanitizeDraft({ ...task, ...parsedTask }, today);
 
     res.json({ task: cleaned });
   } catch (err) {

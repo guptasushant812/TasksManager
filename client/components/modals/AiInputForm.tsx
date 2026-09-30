@@ -281,8 +281,8 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
               </span>
             )}
           </div>
-          Write your task in plain language — exactly as you'd describe it verbally or in a message.
-          The AI will extract and structure it into a clean, non-repetitive timesheet format.
+          Write your task in plain language (English or Hinglish) — exactly as you'd describe it verbally or in a message.
+          The AI will extract and structure all fields automatically.
         </div>
 
         <div style={{ marginBottom: 4 }}>
