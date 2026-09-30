@@ -25,7 +25,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const today = new Date();
   const [filters, setFilters] = useState<TaskFilters>({
     year: today.getFullYear().toString(),
-    month: '',
+    month: (today.getMonth() + 1).toString(),
     sort: 'date',
     order: 'desc',
     page: 1,
