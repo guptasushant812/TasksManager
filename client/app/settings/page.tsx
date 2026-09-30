@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
-import { Settings as SettingsIcon, AlertTriangle, Bell, Shield, Eye, EyeOff } from 'lucide-react';
+import { Settings as SettingsIcon, AlertTriangle, Bell, Shield, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 const TABS = [
   { id: 'general', label: 'General', icon: SettingsIcon },
@@ -27,6 +27,35 @@ export default function SettingsPage() {
     ccEmail: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+
+  const handleUpdatePassword = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newPassword.trim();
+    if (!trimmed) {
+      setPasswordError('Enter a password first');
+      return;
+    }
+    if (trimmed.length < 4) {
+      setPasswordError('Password must be at least 4 characters');
+      return;
+    }
+
+    try {
+      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
+      current.password = trimmed;
+      localStorage.setItem('securityConfig', JSON.stringify(current));
+      window.dispatchEvent(new Event('storage'));
+      setPasswordSaved(true);
+      setPasswordError('');
+      setNewPassword('');
+      setTimeout(() => setPasswordSaved(false), 3000);
+    } catch {
+      setPasswordError('Could not save password');
+    }
+  };
 
   useEffect(() => {
     if (settings) {
@@ -316,39 +345,63 @@ export default function SettingsPage() {
 
               <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Auth Password */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
-                      Master Password
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+                    <div style={{ maxWidth: 360 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+                        Master Password
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                        Set the password required to access the application.
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      Set the password required to access the application.
-                    </div>
-                  </div>
-                  <div style={{ position: 'relative', width: 200 }}>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="New password..."
-                      className="input"
-                      style={{ width: '100%', fontSize: 14, padding: '8px 36px 8px 12px' }}
-                      onChange={(e) => {
-                        const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":900000}');
-                        current.password = e.target.value || 'Sushant2026@';
-                        localStorage.setItem('securityConfig', JSON.stringify(current));
-                        window.dispatchEvent(new Event('storage'));
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                        background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'
-                      }}
+                    <form 
+                      onSubmit={handleUpdatePassword} 
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                      <div style={{ position: 'relative', width: 220 }}>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="New password..."
+                          className="input"
+                          value={newPassword}
+                          style={{ width: '100%', fontSize: 14, padding: '8px 36px 8px 12px' }}
+                          onChange={(e) => {
+                            setNewPassword(e.target.value);
+                            if (passwordError) setPasswordError('');
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                            background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'
+                          }}
+                          title={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ fontSize: 13, padding: '8px 16px', whiteSpace: 'nowrap' }}
+                      >
+                        Save Password
+                      </button>
+                    </form>
                   </div>
+                  {passwordError && (
+                    <div style={{ fontSize: 12, color: 'var(--high)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <AlertTriangle size={14} /> {passwordError}
+                    </div>
+                  )}
+                  {passwordSaved && (
+                    <div style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 size={14} /> Password updated.
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ height: 1, background: 'var(--border-subtle)' }} />
