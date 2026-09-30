@@ -42,13 +42,6 @@ const THEME_OPTIONS: ThemeOption[] = [
     primaryColor: '#38bdf8',
     bgColor: '#0b1120',
   },
-  {
-    id: 'botanical',
-    name: 'Botanical (Organic Serif)',
-    description: 'Earthy warm alabaster rice paper with deep forest green, sage accents, terracotta pops, and Playfair serif typography.',
-    primaryColor: '#8C9A84',
-    bgColor: '#F9F8F4',
-  },
 ];
 
 export default function SettingsPage() {
@@ -63,7 +56,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      if (saved === 'botanical' || saved === 'warm' || saved === 'emerald') {
+        saved = 'dark';
+        localStorage.theme = 'dark';
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('dark');
+      }
       setCurrentTheme(saved);
     } catch {}
   }, []);
@@ -77,7 +76,7 @@ export default function SettingsPage() {
     if (!pendingTheme) return;
     const themeId = pendingTheme;
     document.documentElement.setAttribute('data-theme', themeId);
-    if (themeId === 'light' || themeId === 'botanical') {
+    if (themeId === 'light') {
       document.documentElement.classList.remove('dark');
     } else {
       document.documentElement.classList.add('dark');

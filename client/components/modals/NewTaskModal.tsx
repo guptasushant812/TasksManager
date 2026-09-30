@@ -66,12 +66,39 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             )}
             {mode !== null && (
               <button
+                type="button"
                 onClick={() => setMode(null)}
-                style={{ fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4, transition: 'color 0.1s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)' }}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  cursor: 'pointer',
+                  padding: '5px 12px',
+                  marginTop: 8,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                  boxShadow: 'var(--box-shadow-brutalist-sm, 0 1px 2px rgba(0,0,0,0.05))',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-hover)';
+                  e.currentTarget.style.borderColor = 'var(--border-focus, var(--accent))';
+                  e.currentTarget.style.color = 'var(--accent)';
+                  e.currentTarget.style.transform = 'translateX(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-elevated)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
               >
-                <ArrowLeft style={{ width: 12, height: 12 }} /> Back to selection
+                <ArrowLeft style={{ width: 13, height: 13 }} />
+                <span>Back to selection</span>
               </button>
             )}
           </div>
