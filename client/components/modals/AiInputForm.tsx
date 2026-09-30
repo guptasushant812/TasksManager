@@ -91,7 +91,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
   // ── Handlers ─────────────────────────────────────────────────────────────
   async function handleGenerate() {
     if (!rawText.trim()) {
-      setErrors({ rawText: 'Please describe your task first' });
+      setErrors({ rawText: 'Describe your task first.' });
       return;
     }
     setErrors({});
@@ -281,8 +281,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
               </span>
             )}
           </div>
-          Write your task in plain language (English, Marathi, Marathi [English format], or Hinglish) — exactly as you'd describe it verbally or in a WhatsApp message.
-          The AI will automatically extract and structure all fields into clean English.
+          Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
         </div>
 
         <div style={{ marginBottom: 4 }}>
@@ -307,11 +306,11 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           <textarea
             id="ai-raw-input"
             className="input"
-            placeholder={`Examples (English, Marathi [English format], or Hinglish):
+            placeholder={`Examples (English, Marathi, or Hinglish):
 
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
 2. Follow up with IT floor router repair sathi. Pending aahe karan technician udya yenar.
-3. Attach 2 notices to the Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026. Currently pending.`}
+3. Attach 2 notices to Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={8}
@@ -360,9 +359,9 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
       }}>
         <CheckCircle2 style={{ width: 24, height: 24, color: 'var(--completed)', flexShrink: 0 }} />
         <div>
-          <span style={{ fontWeight: 600, color: 'var(--completed)' }}>AI Draft Preserved & Ready</span>
+          <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
           <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>
-            Review, edit, or regenerate individual tasks below. Saved automatically.
+            Review or edit details before saving.
           </div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -474,7 +473,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
                     title="Regenerate only this specific task with AI"
                   >
                     <RefreshCw style={{ width: 12, height: 12, animation: isThisRegenerating ? 'spin 1s linear infinite' : 'none' }} />
-                    {isThisRegenerating ? 'Regenerating…' : 'Regenerate Task'}
+                    {isThisRegenerating ? 'Regenerating…' : 'Regenerate'}
                   </button>
 
                   {/* Remove Task Button */}
@@ -582,7 +581,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             e.currentTarget.style.color = 'var(--text-secondary)';
           }}
         >
-          <Plus style={{ width: 16, height: 16 }} /> Add Another Task to Draft
+          <Plus style={{ width: 16, height: 16 }} /> Add Another Task
         </button>
       </div>
 
@@ -608,7 +607,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             disabled={saving || regeneratingIndex !== null}
             title="Close modal without losing your draft"
           >
-            Close (Keep Draft)
+            Close
           </button>
         </div>
 
@@ -620,7 +619,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             disabled={saving || regeneratingIndex !== null}
             style={{ color: 'var(--high)' }}
           >
-            Discard Draft
+            Discard
           </button>
           <button 
             type="button" 

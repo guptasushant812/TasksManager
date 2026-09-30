@@ -127,7 +127,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       <div className="card animate-slide-up" style={{ width: '100%', maxWidth: 400, padding: 32 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <h2 style={{ fontSize: 24, fontWeight: 900, textTransform: 'uppercase', marginBottom: 8, color: 'var(--text-primary)' }}>Secure Access</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Please enter the password to access TasksManager.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Enter your password to continue.</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

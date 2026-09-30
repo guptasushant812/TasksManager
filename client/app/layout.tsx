@@ -5,8 +5,8 @@ import Sidebar from '@/components/layout/Sidebar';
 import PasswordGate from '@/components/auth/PasswordGate';
 
 export const metadata: Metadata = {
-  title: 'TasksManager Enterprise',
-  description: 'Enterprise task management system',
+  title: 'TasksManager',
+  description: 'Clean and simple task manager',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

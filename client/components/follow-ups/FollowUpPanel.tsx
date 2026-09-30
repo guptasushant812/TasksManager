@@ -195,11 +195,11 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated }: FollowUp
             </div>
             
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
-              This follow-up will be marked as deleted but preserved for audit purposes. Please provide a reason.
+              This will remove the follow-up from the active list. Enter a reason below.
             </p>
             
             <div style={{ marginBottom: 20 }}>
-              <label className="label" htmlFor="delete-reason">Reason for deletion <span style={{ color: 'var(--high)' }}>*</span></label>
+              <label className="label" htmlFor="delete-reason">Reason <span style={{ color: 'var(--high)' }}>*</span></label>
               <textarea
                 id="delete-reason"
                 className="input"

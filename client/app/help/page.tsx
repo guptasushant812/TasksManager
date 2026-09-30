@@ -32,25 +32,25 @@ const FAQS: FaqItem[] = [
     id: 'create-task-manual',
     category: 'getting-started',
     q: 'How do I create a task manually?',
-    whatItDoes: 'Opens the Standard Form where you can directly fill in the title, description, priority, dates, assignees, and initial status notes with complete control.',
-    whenToUse: 'When you are creating a single task with known specific parameters and prefer direct form input.',
-    example: 'You need to log "Submit ISO Audit documentation" assigned by Sachin Sir with High priority and a due date of 15th October. Click "+ New Task" → "Standard Form", fill in the fields, and click "Save Task".'
+    whatItDoes: 'Opens the manual task form where you can enter the title, description, priority, date, and status notes directly.',
+    whenToUse: 'When you are creating a single task with known details.',
+    example: 'Click "+ New Task" → "Manual Form", fill in the fields, and click "Save Task".'
   },
   {
     id: 'add-multiple-tasks',
     category: 'getting-started',
-    q: 'Can I create multiple tasks at the same time without reopening the form?',
-    whatItDoes: 'Yes. You can either type multiple numbered tasks into the AI Assistant or use the "+ Add Another Task to Draft" button inside the draft editor to add more task cards.',
-    whenToUse: 'At the end of your workday or after a staff meeting when you have 3 to 10 tasks to record at once.',
-    example: 'You have 3 tasks from your morning meeting. Open AI Assistant and enter:\n1. Check departmental attendance records.\n2. Call IT support for floor Wi-Fi router repair. Pending.\n3. Send semester report to HOD.\nAll 3 tasks are generated and saved together in one click.'
+    q: 'Can I create multiple tasks at the same time?',
+    whatItDoes: 'Yes. Type multiple numbered tasks into the AI Assistant or click "+ Add Another Task" inside the draft editor.',
+    whenToUse: 'When you have several tasks to record at once after a meeting or at the end of the day.',
+    example: 'In the AI Assistant, enter:\n1. Check attendance records\n2. Call IT support for router repair. Pending\n3. Send semester report to HOD\nAll 3 tasks are generated and saved together.'
   },
   {
     id: 'add-manual-to-ai-draft',
     category: 'getting-started',
-    q: 'Can I add a manual task into an AI-generated draft list?',
-    whatItDoes: 'The "+ Add Another Task to Draft" button adds a blank, editable task card directly into your current list of generated drafts.',
-    whenToUse: 'When the AI has extracted your main tasks, but you remember an additional task and want to type it in directly without re-running the AI.',
-    example: 'AI generated 4 tasks from your email. You remember you also promised to sign a gate pass. Instead of re-running AI, click "+ Add Another Task to Draft", type "Sign gate pass", and save all 5 tasks together.'
+    q: 'Can I add a manual task into an AI draft list?',
+    whatItDoes: 'Clicking "+ Add Another Task" inserts a blank card directly into your generated list.',
+    whenToUse: 'When AI created your main tasks, but you want to add an extra task without re-running the AI.',
+    example: 'AI generated 4 tasks. You remember one more item. Click "+ Add Another Task", type "Sign gate pass", and save all 5 tasks together.'
   },
 
   // ── 2. AI Task Assistant & Drafts ──────────────────────────────────────────
@@ -58,27 +58,27 @@ const FAQS: FaqItem[] = [
     id: 'ai-multilingual-support',
     category: 'ai-drafts',
     badge: 'Multilingual',
-    q: 'How does AI Task Structuring work, and what languages are supported?',
-    whatItDoes: 'Converts unstructured text, WhatsApp messages, or rough bullet points into complete task records. It natively understands English, Marathi (मराठी), Marathi in English format (Roman Marathi like "kam kela", "baki aahe"), and Hinglish, automatically translating everything into clean, professional English.',
-    whenToUse: 'When you want to type or paste rough spoken-style notes quickly without manually selecting dates, priorities, and dropdowns.',
-    example: 'You enter: "HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela."\nThe AI creates a task titled "Prepare Exam Timetable", assigns Given By as "HOD Sir", lists sub-tasks as bullet points, sets Status to "Completed", and marks date as today.'
+    q: 'How does AI task structuring work, and what languages are supported?',
+    whatItDoes: 'Converts unstructured notes into organized task records. It understands English, Marathi, and Hinglish, and organizes everything into clean English fields.',
+    whenToUse: 'When you want to type notes quickly without filling individual dropdowns and fields.',
+    example: 'You enter: "HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela."\nThe AI creates a task titled "Prepare Exam Timetable", notes "HOD Sir", lists subtasks, sets status to "Completed", and dates it today.'
   },
   {
     id: 'single-task-regen',
     category: 'ai-drafts',
-    badge: 'Token Optimized',
-    q: 'How does Single-Task Regeneration work, and why should I use it?',
-    whatItDoes: 'Clicking "Regenerate Task" on a specific card sends only that single task to the AI for refinement, leaving all other drafts completely untouched. You can also provide an optional instruction (e.g. "Make title shorter" or "Set reason as waiting for Dean signature").',
-    whenToUse: 'When 4 out of 5 generated tasks are already perfect, and you only want to improve or rephrase Task 2 without wasting AI tokens or losing your manual edits on other tasks.',
-    example: 'Task 1, 3, and 4 look great, but Task 2 has a title that is too lengthy. Click "Regenerate Task" on Task 2, enter "Shorten title to 4 words", and click "Improve This Task". Only Task 2 refreshes.'
+    badge: 'Fast',
+    q: 'How does single-task regeneration work?',
+    whatItDoes: 'Clicking "Regenerate" on a card refines only that task, leaving your other drafts untouched. You can also give an optional instruction (e.g. "Make title shorter").',
+    whenToUse: 'When most drafts look good, and you only want to tweak one specific task.',
+    example: 'Tasks 1, 3, and 4 look good, but Task 2 is too wordy. Click "Regenerate" on Task 2, enter "Make title shorter", and refresh.'
   },
   {
     id: 'ai-token-cost',
     category: 'ai-drafts',
-    q: 'Will editing fields or saving tasks consume AI tokens again?',
-    whatItDoes: 'No. Editing text fields, changing dropdowns, adding manual tasks, or clicking "Save Tasks" runs entirely on your local browser and database with zero AI calls.',
-    whenToUse: 'Whenever you want to adjust a priority, tweak a date, or fix a typo directly in the draft card.',
-    example: 'The AI inferred "Medium" priority for a task, but you know it is urgent. Simply select "High" from the priority dropdown. The change happens instantly without any network call or token consumption.'
+    q: 'Does editing fields or saving tasks use AI again?',
+    whatItDoes: 'No. Editing text fields, changing dropdowns, or clicking "Save Tasks" works locally in your browser and database with no extra AI calls.',
+    whenToUse: 'Whenever you want to adjust priority, tweak a date, or fix a typo directly.',
+    example: 'Change priority from "Medium" to "High" in the dropdown. The change happens instantly without any network call.'
   },
 
   // ── 3. Draft Safety & Recovery ─────────────────────────────────────────────
@@ -86,26 +86,26 @@ const FAQS: FaqItem[] = [
     id: 'draft-auto-recovery',
     category: 'draft-safety',
     badge: 'Auto-Save',
-    q: 'What happens if I accidentally close the popup or refresh the page?',
-    whatItDoes: 'Your raw input text and generated drafts are automatically saved to your browser’s local storage in real-time. If you close the window, navigate away, or refresh, nothing is lost.',
-    whenToUse: 'When you get interrupted by a phone call, click outside the modal by mistake, or experience a browser crash while reviewing drafts.',
-    example: 'You generate 5 tasks and are reviewing Task 3 when you accidentally close the browser tab. Reopen the app, click "+ New Task", and you will see a badge saying "5 Drafts Saved". Click "AI Assistant" and all your tasks are instantly restored.'
+    q: 'What happens if I accidentally close the popup or refresh?',
+    whatItDoes: 'Your input text and generated drafts save automatically to your browser storage. If you close the window or refresh, nothing is lost.',
+    whenToUse: 'When you get interrupted or accidentally close the window while reviewing tasks.',
+    example: 'You generate 5 tasks and accidentally close the tab. Reopen the app, click "+ New Task", and your drafts are restored.'
   },
   {
     id: 'close-keep-draft',
     category: 'draft-safety',
-    q: 'How do I safely close the AI window to check other tasks without losing my draft?',
-    whatItDoes: 'Click the "Close (Keep Draft)" button or the "X" icon. The modal closes, but your entire draft is preserved in local storage.',
-    whenToUse: 'When you are reviewing generated tasks and need to check a past entry in your main task table before clicking Save.',
-    example: 'While reviewing a draft for "Send lab inventory report", you want to verify if you already logged it yesterday. Click "Close (Keep Draft)", search your main task list, confirm it was not logged, and reopen "+ New Task" to save the draft.'
+    q: 'Can I close the AI window to check other tasks without losing my draft?',
+    whatItDoes: 'Yes. Click "Close" or the "X" button. Your draft remains saved until you save or discard it.',
+    whenToUse: 'When you want to look at the main task table to verify something before saving.',
+    example: 'You want to check if a task was already added yesterday. Close the modal, check the list, and reopen "+ New Task" to continue.'
   },
   {
     id: 'discard-draft-safety',
     category: 'draft-safety',
-    q: 'What does "Discard Draft" do, and can I do it accidentally?',
-    whatItDoes: 'Permanently removes the saved draft and resets the form to blank. A confirmation dialog prevents accidental clicks by requiring you to confirm before discarding.',
-    whenToUse: 'Only when you have decided not to proceed with the current batch of tasks and want a completely fresh, blank form.',
-    example: 'You pasted draft notes for a cancelled project. Click "Discard Draft", click confirm in the warning prompt, and your local draft storage is cleared.'
+    q: 'What does "Discard" do?',
+    whatItDoes: 'Clears the saved draft and resets the form. A confirmation step prevents accidental loss.',
+    whenToUse: 'When you want to scrap the draft batch and start fresh.',
+    example: 'You no longer need the drafts you generated. Click "Discard", confirm the prompt, and the draft clears.'
   },
 
   // ── 4. Task Lifecycle: Description, Reasons & Remarks ──────────────────────
@@ -113,45 +113,44 @@ const FAQS: FaqItem[] = [
     id: 'desc-vs-reason-vs-remarks',
     category: 'lifecycle-notes',
     q: 'What is the difference between Description, Status Reason, and Remarks?',
-    whatItDoes: 'Keeps task records clean and non-repetitive by giving each field a distinct purpose:\n• Description: What the task is about and what specific actions need to be performed.\n• Reason (Pending / InProgress): Explains why the task is delayed, waiting, or ongoing (e.g. blockers, waiting for parts).\n• Remarks (Completed): Documents the final outcome or deliverable (e.g. "Uploaded to college portal", "Dispatch #402").',
-    whenToUse: 'Always keep task requirements in Description, delay obstacles in Reason, and accomplishments in Remarks.',
-    example: '• Description: "Repair departmental floor Wi-Fi router."\n• Reason (Pending): "Waiting for replacement cable delivery from vendor."\n• Remarks (Completed): "Cable replaced, internet verified on all 28 departmental workstations."'
+    whatItDoes: 'Keeps task records clean and organized:\n• Description: What the task is about and what needs to be done.\n• Reason (Pending / In Progress): Why the task is delayed or what is currently being worked on.\n• Remarks (Completed): Final outcome or delivery details.',
+    whenToUse: 'Keep task requirements in Description, delay obstacles in Reason, and accomplishments in Remarks.',
+    example: '• Description: "Repair floor Wi-Fi router."\n• Reason (Pending): "Waiting for replacement cable from vendor."\n• Remarks (Completed): "Cable replaced and tested on all workstations."'
   },
   {
     id: 'status-delay-comparison',
     category: 'lifecycle-notes',
-    badge: 'Comparison Strip',
-    q: 'What is the "Status Delay Comparison & Notes" strip?',
-    whatItDoes: 'Preserves your notes across every stage of a task’s lifecycle ([Pending] in Magenta, [InProgress] in Electric Cyan/Blue, and [Completed] in Green) instead of overwriting them when status changes.',
-    whenToUse: 'When a task moved from Pending to In Progress to Completed over several days and you need a clear timeline of why delays happened at each stage.',
-    example: 'A task was Pending on Monday ("Technician unavailable"), In Progress on Tuesday ("Wiring in progress"), and Completed on Wednesday ("Tested and signed off"). All three entries appear in the comparison strip and in Excel/PDF exports.'
+    badge: 'History',
+    q: 'What is the "Status History & Notes" section?',
+    whatItDoes: 'Preserves your notes across each stage of a task ([Pending], [InProgress], and [Completed]) instead of overwriting them when status changes.',
+    whenToUse: 'When a task moved through multiple stages and you want a clear record of what happened at each step.',
+    example: 'A task was Pending on Monday ("Technician unavailable"), In Progress on Tuesday ("Wiring in progress"), and Completed on Wednesday ("Tested and signed off"). All three notes remain saved.'
   },
 
   // ── 5. Follow-ups, Escalations & Exports ───────────────────────────────────
   {
     id: 'quick-followup-zap',
     category: 'exports-followups',
-    q: 'How does the Quick Follow-Up feature work?',
-    whatItDoes: 'Clicking the Zap (⚡) icon on any task opens a rapid logging panel to record communication logs, contact person notes, follow-up dates, and file attachments.',
-    whenToUse: 'Whenever you speak to a vendor, colleague, or supervisor about an active task and need to log the update in seconds.',
-    example: 'You call IT support regarding the pending router. Click ⚡ on the router task row, enter "Spoke with technician Rajesh, promised to visit by 2:30 PM", set next follow-up date for tomorrow, and save.'
+    q: 'How does quick follow-up work?',
+    whatItDoes: 'Clicking the Zap (⚡) icon on any task opens a panel to log communication, contact person, follow-up dates, and file attachments.',
+    whenToUse: 'When you speak with a colleague or vendor about an active task and want to log the update quickly.',
+    example: 'You call IT support about a router. Click ⚡ on that task, enter "Spoke with technician Rajesh, visiting at 2:30 PM", set next follow-up date, and save.'
   },
   {
     id: 'export-zero-defect',
     category: 'exports-followups',
-    badge: 'Poka-Yoke Validation',
-    q: 'How does task exporting work, and what is the zero-task alert?',
-    whatItDoes: 'Generates professional Excel and PDF reports with colored status summary counts (Completed, In Progress, Pending), dynamic filenames, and full lifecycle notes. If you select a date with 0 tasks, a validation modal alerts you and prevents generating blank files.',
-    whenToUse: 'When submitting your daily work report to your supervisor, HOD, or management at the end of the day.',
-    example: 'At 5:00 PM, click "Export" on the Tasks page, choose "Excel", and download your report. The sheet includes your name, date, summary count badges, and task details ready for submission.'
+    q: 'How does exporting work, and what is the zero-task notice?',
+    whatItDoes: 'Generates Excel and PDF reports with status summaries and lifecycle notes. If you export a date with 0 tasks, the app lets you know so you don\'t create empty files.',
+    whenToUse: 'When sharing daily work summaries or progress reports with your team or supervisor.',
+    example: 'Click "Export", choose "Excel", and download. The file includes status totals and full task details.'
   },
   {
     id: 'escalations-overview',
     category: 'exports-followups',
-    q: 'What triggers an Escalation warning?',
-    whatItDoes: 'Automatically highlights overdue or high-priority tasks that have remained incomplete beyond the workspace threshold days configured in Settings.',
-    whenToUse: 'During morning reviews to spot critical bottlenecks before they impact departmental deadlines.',
-    example: 'An urgent university compliance document marked "High" priority has remained Pending for 3 days past the threshold. It automatically displays a high-priority warning banner and appears in the Escalations view.'
+    q: 'What triggers an escalation warning?',
+    whatItDoes: 'Highlights overdue or high-priority tasks that have remained incomplete beyond your configured threshold.',
+    whenToUse: 'To spot bottlenecks before deadlines pass.',
+    example: 'A high-priority task stays pending for 3 days past the threshold. It flags an alert and lets you send an escalation email to management.'
   }
 ];
 
@@ -196,14 +195,14 @@ export default function HelpCenterPage() {
             background: 'var(--accent-subtle)', color: 'var(--accent)',
             fontSize: 12, fontWeight: 700, marginBottom: 12, letterSpacing: '0.04em', textTransform: 'uppercase'
           }}>
-            <Sparkles style={{ width: 14, height: 14 }} /> Product Guide & Knowledge Base
+            <Sparkles style={{ width: 14, height: 14 }} /> Help & Guides
           </div>
 
           <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: 8 }}>
             How can we help you?
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-muted)', marginBottom: 28, maxWidth: 540, lineHeight: 1.5 }}>
-            Learn how to create tasks, use multilingual AI structuring, preserve drafts, track status delays, and export reports.
+            Learn how to create tasks, use AI structuring, save drafts, track status notes, and export reports.
           </p>
 
           {/* Search Box */}
