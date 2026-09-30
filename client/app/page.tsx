@@ -20,10 +20,10 @@ export default function DashboardPage() {
   } = useTaskContext();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main style={{ padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 32px)' }}>
+      <main style={{ flex: 1, padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(16px, 3vw, 24px)' }}>
         
         {/* Page header — clear hierarchy, purposeful */}
         <div>
