@@ -369,14 +369,32 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             type="button"
             onClick={() => setStep('input')}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm, 6px)',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              fontSize: 12,
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '4px 10px',
+              transition: 'all 0.15s ease',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-hover)';
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.color = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-elevated)';
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
             title="Edit the original raw prompt"
           >
-            <ArrowLeft style={{ width: 12, height: 12 }} /> Edit Prompt
+            <ArrowLeft style={{ width: 13, height: 13 }} /> Edit Prompt
           </button>
           <button
             type="button"

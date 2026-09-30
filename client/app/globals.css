@@ -185,105 +185,7 @@
   --radius-xl: 12px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   THEME: Botanical / Organic Serif
-   Style: Digital ode to nature, warm alabaster, deep forest green, sage & terracotta
-   ───────────────────────────────────────────────────────────────────────────── */
-[data-theme="botanical"] {
-  /* Surface colors — Earthy, warm alabaster & soft clay */
-  --bg-base: #F9F8F4;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F2F0EB;
-  --bg-card: #FFFFFF;
-  --bg-hover: #EDE8E1;
-  --bg-active: #E3DCD3;
 
-  /* Border system — Stone, low contrast, delicate */
-  --border: #E6E2DA;
-  --border-subtle: #F0ECE4;
-  --border-focus: #8C9A84;
-
-  /* Typography — Humanist & high-contrast deep forest green */
-  --text-primary: #2D3A31;
-  --text-secondary: #526357;
-  --text-muted: #7E8E83;
-
-  /* Accent colors — Deep Forest Green, Sage Green & Terracotta */
-  --accent: #2D3A31;
-  --accent-hover: #C27B66;
-  --accent-subtle: rgba(140, 154, 132, 0.16);
-  --accent-glow: rgba(140, 154, 132, 0.35);
-  --accent-secondary: #8C9A84;
-  --accent-tertiary: #C27B66;
-
-  /* Semantic colors — Grounded Earth Tones */
-  --high: #C27B66; /* Terracotta */
-  --high-bg: #FDF3F0;
-  --medium: #D9822B; /* Clay Ochre */
-  --medium-bg: #FCF6EE;
-  --low: #5B7B61; /* Earthy Olive Green */
-  --low-bg: #EEF5EF;
-  --inprogress: #527A8A; /* Slate River Blue */
-  --inprogress-bg: #EFF5F8;
-  --pending: #D9822B;
-  --pending-bg: #FCF6EE;
-  --completed: #5B7B61;
-  --completed-bg: #EEF5EF;
-
-  /* Layout structural variables — Soft diffused elevation */
-  --border-width-layout: 1px;
-  --box-shadow-brutalist: 0 10px 25px -5px rgba(45, 58, 49, 0.06), 0 4px 6px -2px rgba(45, 58, 49, 0.03);
-  --box-shadow-brutalist-sm: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
-
-  /* Organic Softness Radii */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
-}
-
-/* Botanical: Paper Grain Texture Overlay */
-[data-theme="botanical"]::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.022;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-}
-
-/* Botanical: Editorial Serif Headlines & Humanist Body */
-[data-theme="botanical"] h1,
-[data-theme="botanical"] h2,
-[data-theme="botanical"] h3 {
-  font-family: 'Playfair Display', Georgia, serif;
-  letter-spacing: -0.01em;
-}
-
-[data-theme="botanical"] body,
-[data-theme="botanical"] button,
-[data-theme="botanical"] input,
-[data-theme="botanical"] select,
-[data-theme="botanical"] textarea {
-  font-family: 'Source Sans 3', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-[data-theme="botanical"] .btn-primary {
-  background: #2D3A31 !important;
-  color: #FFFFFF !important;
-  border-radius: 9999px !important;
-  border: 1px solid #2D3A31 !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-theme="botanical"] .btn-primary:hover {
-  background: #C27B66 !important;
-  border-color: #C27B66 !important;
-  box-shadow: 0 4px 12px rgba(194, 123, 102, 0.35) !important;
-}
 
 /* ─── Global Reset & Theming ───────────────────────────────────────────────── */
 * {
@@ -1442,7 +1344,7 @@ html:not(.dark) .badge {
 .public-layout {
   display: flex;
   min-height: 100vh;
-  background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.03), transparent 60%), var(--bg-base);
+  background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-inter);
 }
@@ -1455,18 +1357,25 @@ html:not(.dark) .badge {
   top: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(20, 20, 22, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
   z-index: 50;
   transition: transform 0.3s var(--ease-out);
+  box-shadow: 1px 0 10px rgba(0, 0, 0, 0.03);
+}
+
+.dark .public-sidebar {
+  background: rgba(18, 18, 26, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .public-main {
   flex: 1;
   margin-left: 280px;
-  padding: 48px 64px;
+  padding: 40px 48px;
   max-width: 1200px;
   margin-right: auto;
 }
@@ -1481,12 +1390,12 @@ html:not(.dark) .badge {
     height: auto;
     position: relative;
     border-right: none;
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border);
   }
 
   .public-main {
     margin-left: 0;
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 
   .public-sidebar-nav {
@@ -1504,7 +1413,7 @@ html:not(.dark) .badge {
 
 @media (max-width: 480px) {
   .public-main {
-    padding: 24px 16px;
+    padding: 20px 14px;
   }
 }
 
