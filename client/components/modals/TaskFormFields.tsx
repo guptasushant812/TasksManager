@@ -228,7 +228,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  {status === 'Completed' ? 'Remarks (Done)' : `Reason (${status})`}
+                  {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
                   {isTaskStatus && (
                     <span style={{ fontSize: 9, background: statusColor, color: '#000', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
                       Current
@@ -252,7 +252,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             <textarea
               id="field-reason-pending"
               className="input"
-              placeholder="Why is this task pending or in progress?"
+              placeholder="Why is this task pending or delayed?"
               value={currentPending}
               onChange={(e) => handleReasonChange('Pending', e.target.value)}
               rows={2}
@@ -270,7 +270,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             <textarea
               id="field-reason-inprogress"
               className="input"
-              placeholder="Why is this task pending or in progress?"
+              placeholder="Notes on current progress or blockers"
               value={currentInProgress}
               onChange={(e) => handleReasonChange('InProgress', e.target.value)}
               rows={2}
@@ -279,16 +279,16 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
 
-        {/* Remarks (What was done) */}
+        {/* Remarks */}
         {activeReasonTab === 'Completed' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-remarks-completed">
-              Remarks (What was done) {data.workStatus !== 'Completed' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Completed)</span>}
+              Remarks {data.workStatus !== 'Completed' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Completed)</span>}
             </label>
             <textarea
               id="field-remarks-completed"
               className="input"
-              placeholder="Describe what was completed or accomplished…"
+              placeholder="What was completed or delivered"
               value={currentCompleted}
               onChange={(e) => handleReasonChange('Completed', e.target.value)}
               rows={2}
@@ -297,7 +297,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
 
-        {/* Lifecycle Delay & Progress Comparison Strip */}
+        {/* Status History & Notes Strip */}
         {hasMultipleNotes && (
           <div style={{
             marginTop: 12,
@@ -309,7 +309,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             lineHeight: 1.5
           }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-              Status Delay Comparison & Notes
+              Status History & Notes
             </div>
             {currentPending && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 2 }}>

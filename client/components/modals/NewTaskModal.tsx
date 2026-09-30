@@ -126,9 +126,9 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   <PenLine style={{ width: 32, height: 32 }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>Standard Form</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>Manual Form</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Fill out all fields manually with complete control.
+                    Fill in task details yourself.
                   </div>
                 </div>
               </button>
@@ -182,7 +182,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>AI Assistant</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Write in plain English. We'll extract the details for you.
+                    Type notes in plain language. AI organizes the fields.
                   </div>
                 </div>
               </button>

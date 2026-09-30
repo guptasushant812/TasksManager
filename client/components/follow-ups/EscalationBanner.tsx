@@ -55,10 +55,10 @@ export default function EscalationBanner({ taskId, activeFollowUpCount, taskStat
     setEscalating(true);
     try {
       await escalateTask(taskId);
-      setSuccessMessage('Escalation email delivered successfully.');
+      setSuccessMessage('Escalation email sent.');
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
-      alert(`Failed to send email: ${err.message}`);
+      alert(`Couldn't send email: ${err.message}`);
     } finally {
       setEscalating(false);
     }
@@ -191,18 +191,18 @@ export default function EscalationBanner({ taskId, activeFollowUpCount, taskStat
             </div>
             <div style={{ padding: '24px' }}>
               <p style={{ margin: '0 0 16px 0', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
-                You are about to send an official escalation email to the management team.
+                Send an escalation email to management?
               </p>
               <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.6 }}>
-                <li>This will include the complete task history and timeline.</li>
-                <li>All uploaded proof and attachments will be securely linked.</li>
-                <li>Management (Manager, HOD, DyHOD) will be notified immediately.</li>
+                <li>Includes task history and timeline</li>
+                <li>Attaches uploaded files and notes</li>
+                <li>Notifies Manager, HOD, and DyHOD</li>
               </ul>
             </div>
             <div style={{ padding: '16px 24px', background: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <button className="btn btn-ghost" onClick={() => setShowConfirmModal(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleConfirmEscalate} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>
-                Confirm & Send
+                Send Escalation
               </button>
             </div>
           </div>

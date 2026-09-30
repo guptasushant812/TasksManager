@@ -140,7 +140,7 @@ export default function ExportMenu({
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error('Export download error:', err);
-      alert('An error occurred while generating the export file. Please try again.');
+      alert('Could not export file. Try again.');
     } finally {
       setExportingFormat(null);
     }
@@ -423,7 +423,7 @@ export default function ExportMenu({
                     }}
                   >
                     <ShieldAlert style={{ width: 12, height: 12 }} />
-                    Zero-Defect Validation Gate
+                    Notice
                   </div>
                   <h3
                     style={{
@@ -434,7 +434,7 @@ export default function ExportMenu({
                       letterSpacing: '-0.01em',
                     }}
                   >
-                    No Tasks Found for Export
+                    No Tasks Found
                   </h3>
                 </div>
               </div>
@@ -466,12 +466,10 @@ export default function ExportMenu({
                   color: 'var(--text-primary)',
                 }}
               >
-                Cannot generate <strong>{formatLabels[targetFormat]}</strong>. There are currently{' '}
-                <strong style={{ color: 'var(--high)' }}>0 tasks</strong> recorded for{' '}
-                <strong>{scopeLabel}</strong>.
+                No tasks found for <strong>{scopeLabel}</strong>. Add at least one task to export.
               </p>
 
-              {/* MNC Context Data Grid */}
+              {/* Details */}
               <div
                 style={{
                   background: 'var(--bg-surface)',
@@ -496,14 +494,14 @@ export default function ExportMenu({
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock style={{ width: 13, height: 13 }} /> Current System Date:
+                    <Clock style={{ width: 13, height: 13 }} /> Today's Date:
                   </span>
                   <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{currentDateStr}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Layers style={{ width: 13, height: 13 }} /> Records Found:
+                    <Layers style={{ width: 13, height: 13 }} /> Tasks Found:
                   </span>
                   <span
                     style={{
@@ -537,7 +535,7 @@ export default function ExportMenu({
                 >
                   <span style={{ fontSize: 14 }}>ℹ️</span>
                   <span>
-                    Note: <strong>{selectedDayStr}</strong> is scheduled in the future. Please add planned or upcoming tasks first before downloading this register.
+                    This date is in the future. Add tasks for this date before exporting.
                   </span>
                 </div>
               )}
@@ -550,7 +548,7 @@ export default function ExportMenu({
                   color: 'var(--text-secondary)',
                 }}
               >
-                Action Required: First add a task to enable verified enterprise reporting.
+                Add a task to download your report.
               </p>
             </div>
 
@@ -572,7 +570,7 @@ export default function ExportMenu({
                 onClick={() => setShowAlertModal(false)}
                 style={{ fontSize: 13 }}
               >
-                Dismiss
+                Cancel
               </button>
 
               <button
@@ -588,7 +586,7 @@ export default function ExportMenu({
                 }}
               >
                 <Plus style={{ width: 14, height: 14, strokeWidth: 3 }} />
-                First Add a Task
+                Add a Task
               </button>
             </div>
           </div>

@@ -81,7 +81,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
 
   async function handleSubmit() {
     const errs: Record<string, string> = {};
-    if (!data.communicated.trim()) errs.communicated = 'What you communicated is required';
+    if (!data.communicated.trim()) errs.communicated = 'Communication notes are required';
     if (!data.followUpDate) errs.followUpDate = 'Date & time is required';
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
