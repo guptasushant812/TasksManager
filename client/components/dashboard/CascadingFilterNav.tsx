@@ -45,15 +45,22 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Months ────────────────────────────────────────────────────── */}
+      {/* ── Year + Months Unified Navigation ─────────────────────────── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '16px 20px',
+        padding: '12px 16px',
         borderBottom: 'var(--border-width-layout) solid var(--border)',
+        gap: 12,
+        flexWrap: 'wrap',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Year Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <label htmlFor="filter-year-select" style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+            Year
+          </label>
           <select
+            id="filter-year-select"
             value={filters.year || ''}
             onChange={handleYearChange}
             aria-label="Select year"
@@ -62,12 +69,12 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               border: 'var(--border-width-layout) solid var(--border)',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--text-primary)',
-              fontSize: 16,
+              fontSize: 14,
               padding: '6px 12px',
               outline: 'none',
               cursor: 'pointer',
               fontWeight: 900,
-              boxShadow: 'var(--box-shadow-brutalist)',
+              boxShadow: 'var(--box-shadow-brutalist-sm)',
             }}
           >
             {[...availableYears].sort((a, b) => b - a).map((y) => (
@@ -75,114 +82,147 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             ))}
           </select>
         </div>
+
+        {/* Subtle divider */}
+        <div style={{ width: 1, height: 28, background: 'var(--border)', margin: '0 4px', display: 'none' }} className="sm:block" />
+
+        {/* Month Pills */}
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', flex: 1, alignItems: 'center' }}>
+          <button
+            onClick={() => handleMonthSelect('')}
+            aria-pressed={!filters.month}
+            style={{
+              background: !filters.month ? 'var(--text-primary)' : 'var(--bg-surface)',
+              border: 'var(--border-width-layout) solid var(--border)',
+              fontSize: 13,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              color: !filters.month ? 'var(--bg-base)' : 'var(--text-primary)',
+              cursor: 'pointer',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              transition: 'all 0.1s',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              boxShadow: !filters.month ? 'none' : 'var(--box-shadow-brutalist-sm)',
+              transform: !filters.month ? 'translate(2px, 2px)' : 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (filters.month) {
+                e.currentTarget.style.background = 'var(--bg-hover)';
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (filters.month) {
+                e.currentTarget.style.background = 'var(--bg-surface)';
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
+              }
+            }}
+          >
+            All
+          </button>
+          {SHORT_MONTHS.map((month, idx) => {
+            const monthNum = String(idx + 1);
+            const isSelected = filters.month === monthNum;
+
+            return (
+              <button
+                key={month}
+                onClick={() => handleMonthSelect(monthNum)}
+                aria-pressed={isSelected}
+                style={{
+                  background: isSelected ? 'var(--text-primary)' : 'var(--bg-surface)',
+                  border: 'var(--border-width-layout) solid var(--border)',
+                  fontSize: 13,
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  color: isSelected ? 'var(--bg-base)' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  transition: 'all 0.1s',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
+                  transform: isSelected ? 'translate(2px, 2px)' : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'var(--bg-hover)';
+                    e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                    e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'var(--bg-surface)';
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
+                  }
+                }}
+              >
+                {month}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div style={{ padding: '16px 20px', display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none' }}>
-        <button
-          onClick={() => handleMonthSelect('')}
-          aria-pressed={!filters.month}
-          style={{
-            background: !filters.month ? 'var(--text-primary)' : 'var(--bg-surface)',
-            border: 'var(--border-width-layout) solid var(--border)',
-            fontSize: 14,
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            color: !filters.month ? 'var(--bg-base)' : 'var(--text-primary)',
-            cursor: 'pointer',
-            padding: '8px 16px',
-            borderRadius: 'var(--radius-full)',
-            transition: 'all 0.1s',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            boxShadow: !filters.month ? 'none' : 'var(--box-shadow-brutalist-sm)',
-            transform: !filters.month ? 'translate(2px, 2px)' : 'none',
-          }}
-          onMouseEnter={(e) => {
-            if (filters.month) {
-              e.currentTarget.style.background = 'var(--bg-hover)';
-              e.currentTarget.style.transform = 'translate(-2px, -2px)';
-              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (filters.month) {
-              e.currentTarget.style.background = 'var(--bg-surface)';
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-            }
-          }}
-          onMouseDown={(e) => {
-            if (filters.month) {
-              e.currentTarget.style.transform = 'translate(2px, 2px)';
-              e.currentTarget.style.boxShadow = 'none';
-            }
-          }}
-          onMouseUp={(e) => {
-            if (filters.month) {
-              e.currentTarget.style.transform = 'translate(-2px, -2px)';
-              e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-            }
-          }}
-        >
-          All
-        </button>
-        {SHORT_MONTHS.map((month, idx) => {
-          const monthNum = String(idx + 1);
-          const isSelected = filters.month === monthNum;
+      {/* ── Active Scope Information Banner ──────────────────────────── */}
+      {filters.month && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 16px',
+          background: 'var(--bg-hover)',
+          borderBottom: '1px solid var(--border-subtle)',
+          fontSize: 12,
+          color: 'var(--text-secondary)',
+          flexWrap: 'wrap',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Active Range:</span>
+            <span style={{ padding: '2px 8px', borderRadius: 4, background: 'var(--bg-surface)', border: '1px solid var(--border)', fontWeight: 600, color: 'var(--text-primary)' }}>
+              {SHORT_MONTHS[parseInt(filters.month, 10) - 1]} {filters.year}
+            </span>
+            {selectedWeek && (
+              <span style={{ padding: '2px 8px', borderRadius: 4, background: 'var(--bg-surface)', border: '1px solid var(--border)', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Week {selectedWeek.index} ({formatDate(selectedWeek.start)} – {formatDate(selectedWeek.end)})
+              </span>
+            )}
+            {filters.day && (
+              <span style={{ padding: '2px 8px', borderRadius: 4, background: 'var(--accent-subtle)', border: '1px solid var(--accent)', fontWeight: 700, color: 'var(--accent)' }}>
+                Day: {filters.day}
+              </span>
+            )}
+          </div>
 
-          return (
-            <button
-              key={month}
-              onClick={() => handleMonthSelect(monthNum)}
-              aria-pressed={isSelected}
-              style={{
-                background: isSelected ? 'var(--text-primary)' : 'var(--bg-surface)',
-                border: 'var(--border-width-layout) solid var(--border)',
-                fontSize: 14,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                color: isSelected ? 'var(--bg-base)' : 'var(--text-primary)',
-                cursor: 'pointer',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-full)',
-                transition: 'all 0.1s',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
-                transform: isSelected ? 'translate(2px, 2px)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = 'var(--bg-hover)';
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = 'var(--bg-surface)';
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-                }
-              }}
-              onMouseDown={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.transform = 'translate(2px, 2px)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              onMouseUp={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                }
-              }}
-            >
-              {month}
-            </button>
-          );
-        })}
-      </div>
+          <button
+            type="button"
+            onClick={() => onFiltersChange({ month: '', weekIndex: undefined, day: '', dateFrom: '', dateTo: '', page: 1 })}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-muted)',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              padding: '2px 6px',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+          >
+            Clear Time Filters ✕
+          </button>
+        </div>
+      )}
 
       {/* ── Weeks (Progressive disclosure) ─────────────────────────── */}
       {filters.month && (

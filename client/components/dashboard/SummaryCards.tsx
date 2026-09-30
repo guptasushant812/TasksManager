@@ -1,6 +1,9 @@
 'use client';
 import { Summary, WorkStatus } from '@/types/task';
 
+import Link from 'next/link';
+import { ArrowRight, AlertTriangle, PhoneCall } from 'lucide-react';
+
 interface SummaryCardsProps {
   summary: Summary;
   loading: boolean;
@@ -82,27 +85,120 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
         })}
       </div>
 
-      {/* Secondary metrics row */}
+      {/* Secondary metrics row — Information-rich and directly actionable */}
       {(summary.overdueFollowUps !== undefined || summary.escalatedTasks !== undefined) && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Overdue Follow-Ups</span>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Awaiting response</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          <Link
+            href="/follow-ups"
+            style={{ textDecoration: 'none' }}
+            title="View all overdue follow-ups"
+          >
+            <div
+              className="summary-card"
+              style={{
+                padding: '20px',
+                cursor: 'pointer',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderLeft: summary.overdueFollowUps ? '4px solid var(--high)' : 'var(--border-width-layout) solid var(--border)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 'var(--radius-sm)',
+                  background: summary.overdueFollowUps ? 'var(--high-bg, #fee2e2)' : 'var(--bg-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)'
+                }}>
+                  <PhoneCall style={{ width: 18, height: 18 }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                    Overdue Follow-Ups
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', marginTop: 2 }}>
+                    {summary.overdueFollowUps ? `${summary.overdueFollowUps} awaiting response • Click to view` : 'No overdue items'}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 28, fontWeight: 900, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  {summary.overdueFollowUps || 0}
+                </span>
+                <ArrowRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+              </div>
             </div>
-            <span style={{ fontSize: 32, fontWeight: 900, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
-              {summary.overdueFollowUps || 0}
-            </span>
-          </div>
-          <div className="summary-card" style={{ padding: '24px 20px', cursor: 'default', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Escalated</span>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase' }}>Exceeding threshold</div>
+          </Link>
+
+          <Link
+            href="/tasks"
+            style={{ textDecoration: 'none' }}
+            title="Inspect escalated tasks"
+          >
+            <div
+              className="summary-card"
+              style={{
+                padding: '20px',
+                cursor: 'pointer',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderLeft: summary.escalatedTasks ? '4px solid var(--medium)' : 'var(--border-width-layout) solid var(--border)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 'var(--radius-sm)',
+                  background: summary.escalatedTasks ? 'var(--medium-bg, #fef9c3)' : 'var(--bg-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: summary.escalatedTasks ? 'var(--medium)' : 'var(--text-muted)'
+                }}>
+                  <AlertTriangle style={{ width: 18, height: 18 }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                    Escalated Tasks
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: summary.escalatedTasks ? 'var(--medium)' : 'var(--text-muted)', marginTop: 2 }}>
+                    {summary.escalatedTasks ? `${summary.escalatedTasks} threshold alerts • Click to review` : 'All within threshold'}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 28, fontWeight: 900, color: summary.escalatedTasks ? 'var(--medium)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  {summary.escalatedTasks || 0}
+                </span>
+                <ArrowRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+              </div>
             </div>
-            <span style={{ fontSize: 32, fontWeight: 900, color: summary.escalatedTasks ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
-              {summary.escalatedTasks || 0}
-            </span>
-          </div>
+          </Link>
         </div>
       )}
     </div>
