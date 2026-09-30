@@ -281,8 +281,8 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
               </span>
             )}
           </div>
-          Write your task in plain language (English or Hinglish) — exactly as you'd describe it verbally or in a message.
-          The AI will extract and structure all fields automatically.
+          Write your task in plain language (English, Marathi, Marathi [English format], or Hinglish) — exactly as you'd describe it verbally or in a WhatsApp message.
+          The AI will automatically extract and structure all fields into clean English.
         </div>
 
         <div style={{ marginBottom: 4 }}>
@@ -307,9 +307,11 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           <textarea
             id="ai-raw-input"
             className="input"
-            placeholder={`Example:
+            placeholder={`Examples (English, Marathi [English format], or Hinglish):
 
-Attach 2 notices to the Department Communication ISO File — Working on Saturday 22.08.2026, reporting time on attendance.pdf. NBA Committee Visit scheduled 28th to 30th — given by Sachin Oak sir, date 10-07-2026. Currently pending, waiting for approval.`}
+1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
+2. Follow up with IT floor router repair sathi. Pending aahe karan technician udya yenar.
+3. Attach 2 notices to the Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026. Currently pending.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={8}

@@ -4,8 +4,8 @@ import { GoogleGenAI } from '@google/genai';
 const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
 The user will give you free-form text describing one or more work tasks. The input may be:
-- Written in a mix of Hindi and English (Hinglish/Roman Hindi)
-- Informal, conversational, or fragmented
+- Written in Marathi (मराठी), Marathi in English script/format (Roman Marathi like "kam kela", "HOD sir ni sangitla", "baki aahe", etc.), Hindi, Hinglish (Roman Hindi), or English.
+- Informal, conversational, or fragmented (e.g. WhatsApp/message style)
 - Numbered (1, 2, 3) or lettered (a, b, c sub-tasks)
 - A single sentence or multiple paragraphs
 
@@ -13,29 +13,33 @@ YOUR JOB:
 1. Identify EACH separate main task (usually numbered 1, 2, 3).
 2. If a main task has sub-tasks (like a, b, c or indented bullets), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field as bullet points.
 3. Extract and structure everything into clean, professional English using simple, concise, layman terms (no jargon).
-4. Translate any Hindi/Hinglish content to clean professional English.
+4. Translate any Marathi, Roman Marathi (Marathi in English format), Hindi, or Hinglish content into clean, fluent, professional English.
 5. Return a JSON array of task objects — one object per main task.
 
 Return ONLY a valid JSON array (no markdown, no code blocks, no explanation):
 [
   {
     "title": "string - short clear task title in English (max 8 words)",
-    "description": "string - full details of what was done, including any sub-tasks as bullet points",
-    "givenBy": "string - person who assigned it (if mentioned), else empty string",
+    "description": "string - full details of what was done, including any sub-tasks as bullet points in English",
+    "givenBy": "string - person who assigned it (if mentioned, e.g., 'Sachin sir', 'HOD sir'), else empty string",
     "contactPerson": "string - person to follow up with or contact regarding this task (if mentioned), else empty string",
     "priority": "High | Medium | Low",
     "workStatus": "InProgress | Pending | Completed",
-    "reason": "string - why it is pending/delayed, empty if completed",
-    "remarks": "string - what was accomplished (for Completed tasks), empty if not completed",
-    "date": "string - ISO date YYYY-MM-DD (e.g. today's date if 'aaj' or 'today' is mentioned), empty if not",
+    "reason": "string - why it is pending/delayed translated to English, empty if completed",
+    "remarks": "string - what was accomplished (for Completed tasks) translated to English, empty if not completed",
+    "date": "string - ISO date YYYY-MM-DD (e.g. today's date if 'aaj', 'today', etc. is mentioned), empty if not",
     "dueDate": "string - ISO date YYYY-MM-DD if a deadline is mentioned, empty if not"
   }
 ]
 
 STRICT RULES:
-- AUTO-FILL LOGIC: If the user says "pending" or "in progress" -> set workStatus appropriately. If they say "kiya", "done", or speak in past tense -> set "Completed".
-- PRIORITY: If they mention "high", "low", "mid/medium", use that. Otherwise, infer based on urgency (exam/inspection = High).
-- REASON: If they mention *why* a task is pending or delayed, extract that exactly into the "reason" field.
+- LANGUAGE SUPPORT: The user can provide instructions in Marathi (मराठी), Marathi in English format (Roman Marathi, e.g. "aaj he kam kela", "HOD sir ni sangitla", "file submit keli", "pending aahe"), Hinglish, Hindi, or English. Always translate all extracted task titles, descriptions, reasons, and remarks into natural professional English.
+- AUTO-FILL LOGIC:
+  * If the user indicates pending (e.g. "pending", "baaki aahe", "baaki hai", "rahilay", "thambavlay", "waiting") -> set workStatus to "Pending".
+  * If the user indicates ongoing work (e.g. "in progress", "chalu aahe", "karat aahe", "kar raha hu", "ongoing") -> set workStatus to "InProgress".
+  * If the user speaks in past tense or indicates done (e.g. "kela", "jhala", "kiya", "done", "completed", "submit kela", "pathavla") -> set workStatus to "Completed".
+- PRIORITY: If they mention "high", "low", "mid/medium", "urgent", "mahatvacha", use that. Otherwise, infer based on urgency (exam/inspection/audit = High).
+- REASON: If they mention *why* a task is pending or delayed, extract and translate that into the "reason" field in clean English.
 - SUB-TASKS: Remember, sub-tasks (a, b, c) MUST be inside the parent task's description. Do NOT create separate objects for sub-tasks.
 - The response must be a valid parseable JSON array ONLY — nothing else.`;
 
@@ -53,8 +57,8 @@ function sanitizeDraft(d: Record<string, any>, today: string): Record<string, st
   const validStatus = ['Completed', 'InProgress', 'Pending'];
   if (!validStatus.includes(d.workStatus)) {
     const s = d.workStatus.toLowerCase();
-    if (s.includes('comp') || s.includes('done')) d.workStatus = 'Completed';
-    else if (s.includes('prog') || s.includes('work')) d.workStatus = 'InProgress';
+    if (s.includes('comp') || s.includes('done') || s.includes('kela') || s.includes('jhala') || s.includes('kiya')) d.workStatus = 'Completed';
+    else if (s.includes('prog') || s.includes('chalu') || s.includes('karat') || s.includes('work')) d.workStatus = 'InProgress';
     else d.workStatus = 'Pending';
   }
 
@@ -171,13 +175,14 @@ export async function regenerateSingleAiDraft(req: Request, res: Response, next:
     const REGEN_PROMPT = `You are an expert task extraction and refinement assistant for a professional daily timesheet task manager system.
 Your job is to regenerate and improve a SINGLE work task based on the user's instructions or by making it clean, professional, and high quality.
 
-Extract and structure everything into clean, professional English using simple, concise terms:
+The user instruction or context may be in Marathi (मराठी), Marathi in English format (Roman Marathi), Hindi, Hinglish, or English.
+Always extract, refine, and translate everything into clean, professional English using simple, concise terms:
 - title: short clear task title in English (max 8 words)
-- description: full details of what was done, including any sub-tasks as bullet points
+- description: full details of what was done, including any sub-tasks as bullet points in English
 - priority: High | Medium | Low
 - workStatus: InProgress | Pending | Completed
-- reason: why it is pending or delayed, empty if completed
-- remarks: what was accomplished (for Completed tasks), empty if not completed
+- reason: why it is pending or delayed in English, empty if completed
+- remarks: what was accomplished (for Completed tasks) in English, empty if not completed
 - date: ISO date YYYY-MM-DD
 - dueDate: ISO date YYYY-MM-DD if mentioned
 
