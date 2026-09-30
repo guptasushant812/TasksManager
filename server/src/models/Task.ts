@@ -20,6 +20,9 @@ export interface ITask extends Document {
   completedRemarks: string;
   date: Date;
   dueDate: Date | null;
+  isDeleted: boolean;
+  deletedAt: Date | null;
+  deletedReason: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +70,9 @@ const TaskSchema = new Schema<ITask>(
     completedRemarks: { type: String, default: '' },
     date: { type: Date, required: true },
     dueDate: { type: Date, default: null },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null },
+    deletedReason: { type: String, default: '' },
   },
   {
     timestamps: true, // auto-manages createdAt & updatedAt

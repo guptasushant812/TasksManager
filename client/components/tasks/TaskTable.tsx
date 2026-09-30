@@ -6,7 +6,7 @@ import TaskRow from './TaskRow';
 import SearchBar from './SearchBar';
 import FilterSortPanel from './FilterSortPanel';
 import ExportMenu from './ExportMenu';
-import { formatDate, getDayName, getWeeksInMonth } from '@/lib/dates';
+import { formatDate, getDayName, getWeeksInMonth, SHORT_MONTHS } from '@/lib/dates';
 import EditTaskModal from '../modals/EditTaskModal';
 import NewTaskModal from '../modals/NewTaskModal';
 import FollowUpPanel from '../follow-ups/FollowUpPanel';
@@ -226,11 +226,47 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                   ))
                 ) : tasks.length === 0 ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
-                      <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>No tasks found</p>
-                      <p style={{ fontSize: 12 }}>
-                        {activeFiltersCount > 0 ? 'Try clearing some filters' : 'Create your first task using the "+ New Task" button'}
-                      </p>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+                      <div style={{ maxWidth: 440, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+                          {filters.month 
+                            ? `No tasks found for ${SHORT_MONTHS[parseInt(filters.month || '1', 10) - 1] || 'this month'} ${filters.year || ''}`
+                            : 'No tasks found'
+                          }
+                        </div>
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                          {filters.month
+                            ? 'You are viewing a specific month with no tasks yet. Your previous tasks are safe in other months.'
+                            : activeFiltersCount > 0 
+                              ? 'No tasks match your current filters.' 
+                              : 'Create your first task using the "+ New Task" button.'
+                          }
+                        </p>
+                        {filters.month && (
+                          <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={() => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 })}
+                              style={{ fontSize: 13, padding: '7px 16px' }}
+                            >
+                              View All Months ({filters.year || '2026'})
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              onClick={() => {
+                                const currentMo = parseInt(filters.month || '1', 10);
+                                const prevMonth = currentMo === 1 ? '12' : String(currentMo - 1);
+                                onFiltersChange({ month: prevMonth, weekIndex: undefined, day: '', page: 1 });
+                              }}
+                              style={{ fontSize: 13, padding: '7px 16px' }}
+                            >
+                              View Previous Month
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ) : (
