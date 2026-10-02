@@ -148,15 +148,31 @@ function getReportTitle(query: any, tasks: any[]): string {
   const reportPrefix = isFollowUps ? 'Follow-Ups Report' : 'Task Management Report';
   const registerPrefix = isFollowUps ? 'Follow-Ups Register' : 'Task Management Register';
 
-  // 2. Explicit Day filter
+  // 2. Explicit Day / Single Date filter
   if (query.day && typeof query.day === 'string') {
     const dayStr = formatDateStr(query.day);
     if (dayStr && dayStr !== '—') {
-      return `Daily ${prefix} Report — ${dayStr}`;
+      return `Daily ${prefix} Report — Date ${dayStr}`;
     }
   }
 
-  // 3. Explicit Date range
+  // 3. Explicit Week filter (either by weekIndex or weekStart)
+  if (query.weekIndex && query.dateFrom && query.dateTo) {
+    const fromStr = formatDateStr(query.dateFrom);
+    const toStr = formatDateStr(query.dateTo);
+    return `Weekly ${prefix} Report — Week ${query.weekIndex} [${fromStr} to ${toStr}]`;
+  }
+
+  if (query.weekStart && typeof query.weekStart === 'string') {
+    const wStart = new Date(query.weekStart);
+    if (!isNaN(wStart.getTime())) {
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wEnd.getDate() + 5);
+      return `Weekly ${prefix} Report — ${formatDateStr(wStart)} to ${formatDateStr(wEnd)}`;
+    }
+  }
+
+  // 4. Explicit Date range
   if (query.dateFrom || query.dateTo) {
     const fromStr = query.dateFrom ? formatDateStr(query.dateFrom) : '';
     const toStr = query.dateTo ? formatDateStr(query.dateTo) : '';
@@ -167,17 +183,7 @@ function getReportTitle(query: any, tasks: any[]): string {
     if (toStr) return `${reportPrefix} — Up to ${toStr}`;
   }
 
-  // 4. Explicit Week filter
-  if (query.weekStart && typeof query.weekStart === 'string') {
-    const wStart = new Date(query.weekStart);
-    if (!isNaN(wStart.getTime())) {
-      const wEnd = new Date(wStart);
-      wEnd.setDate(wEnd.getDate() + 5);
-      return `Weekly ${prefix} Report — ${formatDateStr(wStart)} to ${formatDateStr(wEnd)}`;
-    }
-  }
-
-  // 5. Explicit Month & Year filter
+  // 5. Explicit Month & Year filter (e.g. October 2026)
   if (query.month && query.year) {
     const m = parseInt(query.month, 10);
     const y = parseInt(query.year, 10);
@@ -186,11 +192,11 @@ function getReportTitle(query: any, tasks: any[]): string {
     }
   }
 
-  // 6. Explicit Year filter
+  // 6. Explicit Year filter without specific month -> "All Months <Year>"
   if (query.year) {
     const y = parseInt(query.year, 10);
     if (!isNaN(y)) {
-      return `Annual ${prefix} Register — ${y}`;
+      return `All Months ${y} — ${prefix} Register`;
     }
   }
 
@@ -200,7 +206,7 @@ function getReportTitle(query: any, tasks: any[]): string {
     if (firstDateStr && firstDateStr !== '—') {
       const allSameDate = tasks.every((t: any) => formatDateStr(t.date) === firstDateStr);
       if (allSameDate) {
-        return `Daily ${prefix} Report — ${firstDateStr}`;
+        return `Daily ${prefix} Report — Date ${firstDateStr}`;
       }
     }
   }
@@ -212,6 +218,7 @@ function getReportTitle(query: any, tasks: any[]): string {
 function getReportFileName(title: string, extension: 'pdf' | 'xlsx' | 'zip'): string {
   const cleanTitle = title
     .replace(/[—–]/g, '_')
+    .replace(/[\[\]]/g, '')
     .replace(/[^a-zA-Z0-9_\-]/g, '_')
     .replace(/_+/g, '_')
     .replace(/^_|_$/g, '')
