@@ -50,7 +50,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box animate-slide-up" style={{ maxWidth: mode ? 700 : 500, padding: 0 }}>
-        
+
         {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <div>
@@ -115,7 +115,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
         {/* Content Area */}
         <div style={{ padding: '24px', maxHeight: 'calc(85vh - 70px)', overflowY: 'auto' }}>
-          
+
           {/* Mode selection */}
           {mode === null && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="animate-fade-in">

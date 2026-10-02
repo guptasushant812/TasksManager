@@ -81,10 +81,10 @@ app.get('/api/health', (_req, res) => {
 // ── Error Handler ───────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start ───────────────────────────────────────────────────────────────────
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀  Server running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀  Server running on http://localhost:${PORT}`);
+  connectDB().catch((err) => {
+    console.error('❌  Failed to connect to MongoDB:', err);
   });
 });
 

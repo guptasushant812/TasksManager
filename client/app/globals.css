@@ -298,22 +298,112 @@ h6 {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   PRIMITIVE COMPONENTS
+   REUSABLE INTERACTION PATTERNS
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ─── Card ─────────────────────────────────────────────────────────────────── */
-.card {
-  background: var(--bg-surface);
-  border: 4px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 8px 8px 0px 0px var(--border);
-  transition: all var(--duration-normal) var(--ease-smooth);
+/* ─── Brutalist Hover — replaces 15+ inline mouse handler patterns ────────── */
+.brutalist-hover {
+  transition: all var(--duration-fast) var(--ease-smooth);
+  box-shadow: var(--box-shadow-brutalist-sm);
+}
+.brutalist-hover:hover {
+  background: var(--bg-hover);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--box-shadow-brutalist);
+}
+.brutalist-hover:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.brutalist-hover[aria-pressed="true"],
+.brutalist-hover.active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 12px 12px 0px 0px var(--border);
+html:not(.dark) .brutalist-hover {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
+html:not(.dark) .brutalist-hover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+html:not(.dark) .brutalist-hover:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* ─── Nav Item — lightweight sidebar/settings navigation ─────────────────── */
+.nav-item {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  background: transparent;
+  text-decoration: none;
+}
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* ─── Page Layout Utilities ──────────────────────────────────────────────── */
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.page-content {
+  flex: 1;
+  padding: clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 3vw, 24px);
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.page-header h1 {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.page-header p {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 13px;
+}
+.settings-layout {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 40px);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRIMITIVE COMPONENTS
+   ───────────────────────────────────────────────────────────────────────────── */
 
 /* ─── Glass panel ──────────────────────────────────────────────────────────── */
 .glass {
@@ -944,6 +1034,13 @@ html:not(.dark) .badge {
   background: var(--completed);
 }
 
+.summary-card .summary-count {
+  font-size: clamp(32px, 5vw, 40px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    FOLLOW-UP PANEL (slide-over)
    ───────────────────────────────────────────────────────────────────────────── */
@@ -1321,6 +1418,36 @@ html:not(.dark) .badge {
   /* Summary cards — 2 columns */
   .summary-cards-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── Settings page — stack sidebar on mobile ─────────────────────────────── */
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column !important;
+  }
+  .settings-nav {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .settings-nav h1 {
+    display: none;
+  }
+  .settings-nav nav {
+    flex-direction: row !important;
+    gap: 4px !important;
+  }
+  .settings-nav .nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }
 

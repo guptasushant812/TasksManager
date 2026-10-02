@@ -159,13 +159,13 @@ export default function SettingsPage() {
     localSettings.ccEmail !== (settings?.ccEmail || '');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="page-layout">
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main style={{ flex: 1, padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', gap: 'clamp(20px, 4vw, 40px)', flexWrap: 'wrap' }}>
+      <main className="page-content settings-layout" style={{ maxWidth: 1100 }}>
 
         {/* Settings navigation */}
-        <aside style={{ width: 200, flexShrink: 0, minWidth: 'min(200px, 100%)' }}>
+        <aside className="settings-nav" style={{ width: 200, flexShrink: 0, minWidth: 'min(200px, 100%)', display: 'flex', flexDirection: 'column' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 20px 0', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             Settings
           </h1>
@@ -177,24 +177,8 @@ export default function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    textAlign: 'left',
-                    padding: '8px 12px',
-                    background: isActive ? 'var(--accent-subtle)' : 'transparent',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
-                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                    fontWeight: isActive ? 600 : 400,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}
-                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
-                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  style={{ textAlign: 'left' }}
                 >
                   <Icon style={{ width: 15, height: 15 }} />
                   {tab.label}

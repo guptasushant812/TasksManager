@@ -2,7 +2,7 @@
 import { useTaskContext } from '@/context/TaskContext';
 import Header from '@/components/layout/Header';
 import SummaryCards from '@/components/dashboard/SummaryCards';
-import CascadingFilterNav from '@/components/dashboard/CascadingFilterNav';
+import DashboardScopeBar from '@/components/dashboard/DashboardScopeBar';
 import TaskTable from '@/components/tasks/TaskTable';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -20,27 +20,27 @@ export default function DashboardPage() {
   } = useTaskContext();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="page-layout">
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main style={{ flex: 1, padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px', maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(16px, 3vw, 24px)' }}>
-        
+      <main className="page-content">
+
         {/* Page header — clear hierarchy, purposeful */}
-        <div>
-          <h1 style={{ fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 700, margin: '0 0 4px 0', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-            Dashboard
-          </h1>
-          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13 }}>
-            Task overview and quick filters.
-          </p>
+        <div className="page-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Task overview and quick filters.</p>
+          </div>
         </div>
 
-        {/* Time Filters */}
+        {/* Time Scope Bar */}
         <section>
-          <CascadingFilterNav
+          <DashboardScopeBar
             filters={filters}
             onFiltersChange={handleFiltersChange}
             availableYears={availableYears}
+            onRefresh={handleTaskCreated}
+            isRefreshing={summaryLoading}
           />
         </section>
 
@@ -61,7 +61,7 @@ export default function DashboardPage() {
               Tasks Overview {filters.status ? `(${filters.status})` : ''}
             </h2>
           </div>
-          
+
           {/* We reuse the TaskTable component which automatically syncs with the context filters */}
           <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
         </section>        {/* Action — clear next step */}

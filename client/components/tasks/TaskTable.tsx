@@ -455,6 +455,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 function PaginationBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {
   return (
     <button
+      className={`brutalist-hover ${active ? 'active' : ''}`}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -466,37 +467,8 @@ function PaginationBtn({ children, active, disabled, onClick }: { children: Reac
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: 14, fontWeight: 900,
-        transition: 'all 0.1s',
         opacity: disabled ? 0.3 : 1,
         padding: '0 4px',
-        boxShadow: active || disabled ? 'none' : 'var(--box-shadow-brutalist-sm)',
-        transform: active || disabled ? 'translate(2px, 2px)' : 'none',
-      }}
-      onMouseEnter={(e) => {
-        if (!active && !disabled) {
-          e.currentTarget.style.background = 'var(--bg-hover)';
-          e.currentTarget.style.transform = 'translate(-2px, -2px)';
-          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active && !disabled) {
-          e.currentTarget.style.background = 'var(--bg-surface)';
-          e.currentTarget.style.transform = 'none';
-          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-        }
-      }}
-      onMouseDown={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.transform = 'translate(2px, 2px)';
-          e.currentTarget.style.boxShadow = 'none';
-        }
-      }}
-      onMouseUp={(e) => {
-        if (!active && !disabled) {
-          e.currentTarget.style.transform = 'translate(-2px, -2px)';
-          e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-        }
       }}
     >
       {children}

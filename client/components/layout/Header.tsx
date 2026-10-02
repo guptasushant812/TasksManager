@@ -108,8 +108,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist)',
-                transform: notifOpen ? 'translate(2px, 2px)' : 'none',
                 position: 'relative',
                 transition: 'all 0.1s',
               }}
@@ -267,6 +265,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               type="button"
               onClick={() => setProfileOpen(!profileOpen)}
               aria-label="User menu"
+              className="brutalist-hover"
               style={{
                 width: 40,
                 height: 40,
@@ -280,12 +279,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 fontWeight: 900,
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
-                boxShadow: 'var(--box-shadow-brutalist)',
-                transition: 'all 0.1s',
               }}
-              onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
             >
               SG
             </button>
