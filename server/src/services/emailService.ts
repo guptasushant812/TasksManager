@@ -34,14 +34,19 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
 
   const subject = `Action Required: Task Escalation - ${task.title}`;
   
-  // Format the follow-ups timeline
-  const sortedFollowUps = [...followUps].reverse(); // Reverse to newest-first (3, 2, 1)
+  // Format the follow-ups timeline: strictly newest-first (latest follow-up at top)
+  const sortedFollowUps = [...followUps].sort((a, b) => {
+    const timeA = new Date(a.followUpDate || a.createdAt || 0).getTime();
+    const timeB = new Date(b.followUpDate || b.createdAt || 0).getTime();
+    if (timeB !== timeA) return timeB - timeA;
+    return (b.followUpNumber || 0) - (a.followUpNumber || 0);
+  });
   
   const timelineHtml = sortedFollowUps.map((fu, idx) => `
     <div style="border-left: 2px solid #cbd5e1; padding-left: 16px; margin-bottom: 24px; position: relative;">
       <div style="position: absolute; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; left: -5px; top: 6px;"></div>
       <div style="font-size: 13px; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
-        Follow-Up #${followUps.length - idx} &nbsp;&bull;&nbsp; ${new Date(fu.followUpDate).toLocaleString()} &nbsp;&bull;&nbsp; via ${fu.method}
+        Follow-Up #${fu.followUpNumber || (sortedFollowUps.length - idx)} &nbsp;&bull;&nbsp; ${new Date(fu.followUpDate).toLocaleString()} &nbsp;&bull;&nbsp; via ${fu.method}
       </div>
       <div style="font-size: 14px; color: #334155; line-height: 1.5;">
         <strong>Communication:</strong> ${fu.communicated}

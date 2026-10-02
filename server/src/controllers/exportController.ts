@@ -5,7 +5,20 @@ import { buildQuery } from '../utils/buildQuery';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import FollowUpAttachment from '../models/FollowUpAttachment';
-const archiver = require('archiver');
+
+function createZipArchive(options: any = { zlib: { level: 9 } }) {
+  const archiverModule = require('archiver');
+  if (archiverModule && archiverModule.ZipArchive) {
+    return new archiverModule.ZipArchive(options);
+  }
+  if (typeof archiverModule === 'function') {
+    return archiverModule('zip', options);
+  }
+  if (archiverModule && typeof archiverModule.default === 'function') {
+    return archiverModule.default('zip', options);
+  }
+  throw new Error('Unsupported archiver format');
+}
 
 // ── Color Palettes for Professional Business Reports ────────────────────────
 const PRIORITY_COLORS_HEX: Record<string, string> = {
@@ -250,7 +263,9 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     ]);
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
-    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
+      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .lean();
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
@@ -523,7 +538,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         let innerY = rowY + 6;
         // Follow-up card header
         doc.fontSize(9).font('Helvetica-Bold').fillColor('#1E293B')
-           .text(`#${i + 1}   |   ${fuDateStr}   |   Method: ${methodStr}${contactStr}`, startX + 10, innerY);
+           .text(`#${fu.followUpNumber || (allFollowUps.length - i)}   |   ${fuDateStr}   |   Method: ${methodStr}${contactStr}`, startX + 10, innerY);
         innerY += 15;
 
         // Communicated
@@ -663,7 +678,9 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     ]);
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
-    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).sort({ followUpDate: 1 }).lean();
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
+      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .lean();
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
 
@@ -1014,7 +1031,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     // 1. Prepare Zip Archiver
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = createZipArchive({ zlib: { level: 9 } });
     archive.on('error', (err: Error) => { throw err; });
     archive.pipe(res);
 
@@ -1151,7 +1168,9 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: excelInsideZip });
 
     // 3. Process and organize task attachments in ZIP
-    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false }).lean();
+    const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
+      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .lean();
 
     for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
       const task = tasks[tIdx];

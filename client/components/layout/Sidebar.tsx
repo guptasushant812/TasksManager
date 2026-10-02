@@ -68,7 +68,6 @@ export default function Sidebar() {
           display: 'flex',
           alignItems: 'center',
           borderBottom: '1px solid var(--border)',
-          boxSizing: 'border-box',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{

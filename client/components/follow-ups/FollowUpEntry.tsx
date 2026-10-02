@@ -2,7 +2,7 @@
 import { FollowUp } from '@/types/followUp';
 import { formatDate } from '@/lib/dates';
 import MethodBadge from './MethodBadge';
-import { Pencil, Trash2, Paperclip } from 'lucide-react';
+import { Pencil, Trash2, Paperclip, Volume2 } from 'lucide-react';
 
 interface FollowUpEntryProps {
   followUp: FollowUp;
@@ -109,6 +109,7 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                   const filename = att?.filename || att?.originalName || 'File';
                   const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
                   const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(url);
                   
                   return (
                     <a
@@ -131,6 +132,8 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                         <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
                           <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
+                      ) : isAudio ? (
+                        <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                       ) : (
                         <Paperclip style={{ width: 14, height: 14 }} />
                       )}
