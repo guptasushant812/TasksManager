@@ -993,6 +993,164 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
   }
 }
 
+const MONTH_NAMES_SHORT = [
+  'Jan', 'Feb', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+interface ExportWeekData {
+  index: number;
+  start: Date;
+  end: Date;
+}
+
+function getExportWeeksInMonth(year: number, month: number): ExportWeekData[] {
+  const weeks: ExportWeekData[] = [];
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+
+  let current = new Date(firstDay);
+  let weekIndex = 1;
+
+  while (current <= lastDay) {
+    const weekStart = new Date(current);
+    const weekDays: Date[] = [];
+    while (current <= lastDay) {
+      weekDays.push(new Date(current));
+      if (current.getDay() === 0) {
+        current.setDate(current.getDate() + 1);
+        break;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    weeks.push({
+      index: weekIndex++,
+      start: weekDays[0],
+      end: weekDays[weekDays.length - 1],
+    });
+  }
+  return weeks;
+}
+
+function generateSingleFollowUpPdf(task: any, fu: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 36, size: 'A4' });
+      const chunks: Buffer[] = [];
+      doc.on('data', (c: Buffer) => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err: any) => reject(err));
+
+      // Header Banner
+      doc.rect(36, 36, 523, 50).fill('#0F172A');
+      doc.fillColor('#FFFFFF').fontSize(15).font('Helvetica-Bold')
+         .text('TASK FOLLOW-UP AUDIT REPORT', 50, 48);
+      doc.fontSize(9.5).font('Helvetica')
+         .fillColor('#94A3B8')
+         .text(`Task ID: ${task.taskId || '—'}   |   Follow-Up #${fu.followUpNumber}   |   Exported: ${formatDateTimeStr(new Date())}`, 50, 68);
+
+      let y = 96;
+
+      // Task Summary Box
+      doc.rect(36, y, 523, 85).fill('#F8FAFC').stroke('#E2E8F0');
+      doc.fillColor('#0F172A').fontSize(11).font('Helvetica-Bold').text('Task Summary', 48, y + 10);
+      doc.fontSize(9).font('Helvetica').fillColor('#334155');
+      doc.text(`Title: ${task.title || '—'}`, 48, y + 26, { width: 500 });
+      doc.text(`Priority: ${task.priority || '—'}    |    Status: ${task.workStatus || '—'}    |    Given By: ${task.givenBy || '—'}`, 48, y + 42);
+      doc.text(`Contact Person: ${task.contactPerson || fu.contactPerson || '—'}    |    Task Date: ${formatDateStr(task.date)}`, 48, y + 56);
+      if (task.description) {
+        doc.fillColor('#64748B').text(`Description: ${(task.description || '').slice(0, 180)}`, 48, y + 70, { width: 500 });
+      }
+
+      y += 98;
+
+      // Follow-Up # Details Box
+      doc.rect(36, y, 523, 230).fill('#FFFFFF').stroke('#CBD5E1');
+      doc.fillColor('#0F172A').fontSize(12).font('Helvetica-Bold')
+         .text(`Follow-Up #${fu.followUpNumber} Details`, 48, y + 12);
+
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#64748B').text('COMMUNICATION DATE & METHOD:', 48, y + 34);
+      doc.font('Helvetica').fillColor('#0F172A')
+         .text(`${formatDateTimeStr(fu.followUpDate || fu.createdAt)} via ${fu.method}${fu.methodOther ? ` (${fu.methodOther})` : ''}`, 240, y + 34);
+
+      doc.font('Helvetica-Bold').fillColor('#64748B').text('PERSON CONTACTED:', 48, y + 54);
+      doc.font('Helvetica').fillColor('#0F172A').text(`${fu.contactPerson || task.contactPerson || '—'}`, 240, y + 54);
+
+      doc.font('Helvetica-Bold').fillColor('#64748B').text('WHAT WAS COMMUNICATED:', 48, y + 74);
+      doc.font('Helvetica').fillColor('#0F172A').text(`${fu.communicated || '—'}`, 48, y + 88, { width: 500 });
+
+      const respY = y + 124;
+      doc.font('Helvetica-Bold').fillColor('#64748B').text('RESPONSE RECEIVED:', 48, respY);
+      doc.font('Helvetica').fillColor(fu.responseReceived ? '#16A34A' : '#64748B')
+         .text(`${fu.responseReceived || 'No response recorded yet'}`, 48, respY + 14, { width: 500 });
+
+      const nextY = respY + 44;
+      doc.font('Helvetica-Bold').fillColor('#64748B').text('NEXT ACTION & TARGET DATE:', 48, nextY);
+      doc.font('Helvetica').fillColor('#0F172A')
+         .text(`${fu.nextAction || 'None specified'}  ${fu.nextFollowUpDate ? `(Scheduled: ${formatDateStr(fu.nextFollowUpDate)})` : ''}`, 48, nextY + 14, { width: 500 });
+
+      // Footer
+      doc.fontSize(8.5).fillColor('#94A3B8')
+         .text(`TasksManager Automated Follow-Up Record · Task ID ${task.taskId} · Logged #${fu.followUpNumber}`, 36, 780, { align: 'center', width: 523 });
+
+      doc.end();
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+async function generateSingleFollowUpExcel(task: any, fu: any): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'TasksManager';
+  wb.created = new Date();
+
+  const sheet = wb.addWorksheet(`Follow-Up #${fu.followUpNumber}`);
+  sheet.columns = [
+    { header: 'Property', key: 'property', width: 28 },
+    { header: 'Value', key: 'value', width: 65 },
+  ];
+
+  sheet.mergeCells('A1:B1');
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = `Follow-Up #${fu.followUpNumber} — Task ${task.taskId}`;
+  titleCell.font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.getRow(1).height = 28;
+
+  const rows = [
+    { property: 'Task ID', value: task.taskId || '—' },
+    { property: 'Task Title', value: task.title || '—' },
+    { property: 'Task Priority', value: task.priority || '—' },
+    { property: 'Task Work Status', value: task.workStatus || '—' },
+    { property: 'Given By', value: task.givenBy || '—' },
+    { property: 'Task Date', value: formatDateStr(task.date) },
+    { property: 'Task Description', value: task.description || '—' },
+    { property: 'Follow-Up Number', value: `#${fu.followUpNumber}` },
+    { property: 'Follow-Up Date & Time', value: formatDateTimeStr(fu.followUpDate || fu.createdAt) },
+    { property: 'Communication Method', value: fu.method || '—' },
+    { property: 'Person Contacted', value: fu.contactPerson || task.contactPerson || '—' },
+    { property: 'What Was Communicated', value: fu.communicated || '—' },
+    { property: 'Response Received', value: fu.responseReceived || '—' },
+    { property: 'Additional Notes', value: fu.notes || '—' },
+    { property: 'Next Action', value: fu.nextAction || '—' },
+    { property: 'Next Follow-Up Date', value: formatDateStr(fu.nextFollowUpDate) },
+  ];
+
+  rows.forEach((r, idx) => {
+    const row = sheet.addRow(r);
+    row.height = 22;
+    const bg = idx % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
+    row.getCell(1).font = { bold: true, color: { argb: 'FF334155' } };
+    row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+    row.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  return Buffer.from(buffer as ArrayBuffer);
+}
+
 // ── GET /api/export/zip ───────────────────────────────────────────────────────
 export async function exportZip(req: Request, res: Response, next: NextFunction) {
   try {
@@ -1185,7 +1343,8 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     const excelInsideZip = getReportFileName(reportTitle, 'xlsx');
     archive.append(Buffer.from(excelBuffer as ArrayBuffer), { name: excelInsideZip });
 
-    // 3. Process and organize task attachments in ZIP
+    // 3. Process and organize task follow-ups in the requested hierarchy:
+    // Month [Folder] -> Week [Folder] -> Date [Folder] -> Follow-up N [Folder] -> Attachment [Folder], pdf, excelsheet
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
       .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
@@ -1194,15 +1353,55 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       const task = tasks[tIdx];
       const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
       if (taskFUs.length === 0) continue;
+
+      // Ensure follow-ups are ordered newest-first (#5, #4, #3...)
       taskFUs.sort((a, b) => (b.followUpNumber || 0) - (a.followUpNumber || 0));
 
-      const safeTitle = (task.title || 'Task').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
-      const folderPrefix = `Attachments/Task_${tIdx + 1}_${safeTitle}`;
+      const d = task.date ? new Date(task.date) : (task.createdAt ? new Date(task.createdAt) : new Date());
+      const year = isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+      const month = isNaN(d.getTime()) ? (new Date().getMonth() + 1) : (d.getMonth() + 1);
+      const monthFolderName = MONTH_NAMES_SHORT[month - 1] || 'Month';
+
+      const weeks = getExportWeeksInMonth(year, month);
+      const taskTime = new Date(year, month - 1, isNaN(d.getDate()) ? 1 : d.getDate()).getTime();
+      const weekObj = weeks.find(w => {
+        const s = new Date(w.start.getFullYear(), w.start.getMonth(), w.start.getDate()).getTime();
+        const e = new Date(w.end.getFullYear(), w.end.getMonth(), w.end.getDate()).getTime();
+        return taskTime >= s && taskTime <= e;
+      }) || weeks[0] || { index: 1, start: new Date(year, month - 1, 1), end: new Date(year, month - 1, 7) };
+
+      const weekFolderName = `Week ${weekObj.index} [${formatDateStr(weekObj.start)} to ${formatDateStr(weekObj.end)}]`;
+      const dateFolderName = `Date ${formatDateStr(d)}`;
+
+      // Check if multiple tasks share this exact date
+      const tasksOnSameDate = tasks.filter(t => formatDateStr(t.date) === formatDateStr(d));
+      const taskPrefix = tasksOnSameDate.length > 1
+        ? `${monthFolderName}/${weekFolderName}/${dateFolderName}/Task_${task.taskId}`
+        : `${monthFolderName}/${weekFolderName}/${dateFolderName}`;
 
       for (const fu of taskFUs) {
-        const folderName = `${folderPrefix}/FollowUp_${fu.followUpNumber}`;
+        const fuFolderName = `${taskPrefix}/Follow-up ${fu.followUpNumber}`;
 
-        // A. Legacy Attachments (stored in MongoDB)
+        // A. PDF File for this follow-up
+        try {
+          const fuPdfBuffer = await generateSingleFollowUpPdf(task, fu);
+          archive.append(fuPdfBuffer, { name: `${fuFolderName}/Follow-up_${fu.followUpNumber}.pdf` });
+        } catch (err) {
+          console.error(`Failed to generate follow-up PDF for fu #${fu.followUpNumber}:`, err);
+        }
+
+        // B. Excel File for this follow-up
+        try {
+          const fuExcelBuffer = await generateSingleFollowUpExcel(task, fu);
+          archive.append(fuExcelBuffer, { name: `${fuFolderName}/Follow-up_${fu.followUpNumber}.xlsx` });
+        } catch (err) {
+          console.error(`Failed to generate follow-up Excel for fu #${fu.followUpNumber}:`, err);
+        }
+
+        // C. Attachment Folder
+        const attFolderName = `${fuFolderName}/Attachment`;
+
+        // 1. Legacy Attachments (stored in MongoDB)
         const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
         for (const lAtt of legacyAtts) {
           if (lAtt.data) {
@@ -1212,14 +1411,14 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
                 : (lAtt.data as any).buffer
                 ? Buffer.from((lAtt.data as any).buffer)
                 : Buffer.from(lAtt.data as any);
-              archive.append(buf, { name: `${folderName}/${lAtt.originalName}` });
+              archive.append(buf, { name: `${attFolderName}/${lAtt.originalName}` });
             } catch (err) {
               console.error(`Failed to append attachment ${lAtt.originalName} to zip:`, err);
             }
           }
         }
 
-        // B. Cloudinary Attachments
+        // 2. Cloudinary Attachments
         if (fu.attachments && fu.attachments.length > 0) {
           for (const cAtt of fu.attachments) {
             if (cAtt.url) {
@@ -1227,7 +1426,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
                 const response = await fetch(cAtt.url);
                 if (response.ok) {
                   const arrayBuffer = await response.arrayBuffer();
-                  archive.append(Buffer.from(arrayBuffer), { name: `${folderName}/${cAtt.filename}` });
+                  archive.append(Buffer.from(arrayBuffer), { name: `${attFolderName}/${cAtt.filename}` });
                 }
               } catch (e) {
                 console.error(`Failed to fetch Cloudinary attachment: ${cAtt.url}`, e);
