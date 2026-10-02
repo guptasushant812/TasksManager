@@ -1032,6 +1032,13 @@ function getExportWeeksInMonth(year: number, month: number): ExportWeekData[] {
   return weeks;
 }
 
+function sanitizeZipEntryName(name: string): string {
+  return (name || 'file')
+    .replace(/[/\\?%*:|"<>]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function generateSingleFollowUpPdf(task: any, fu: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
@@ -1197,19 +1204,14 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     const reportTitle = getReportTitle(req.query, tasks);
     const reportFileName = getReportFileName(reportTitle, 'zip');
 
-    // 1. Prepare Zip Archiver
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
-    const archive = createZipArchive({ zlib: { level: 9 } });
-    archive.on('error', (err: Error) => {
-      console.error('Archive error:', err);
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Archive generation failed' });
-      } else {
-        res.end();
-      }
+    // 1. Prepare Zip Archiver in memory with safety buffer
+    const archive = createZipArchive({ zlib: { level: 9 }, forceZip64: false });
+    const chunks: Buffer[] = [];
+    const archivePromise = new Promise<Buffer>((resolve, reject) => {
+      archive.on('data', (chunk: Buffer) => chunks.push(chunk));
+      archive.on('error', (err: any) => reject(err));
+      archive.on('end', () => resolve(Buffer.concat(chunks)));
     });
-    archive.pipe(res);
 
     // 2. Generate Clean Excel in memory (without Task ID) and append to Zip
     const workbook = new ExcelJS.Workbook();
@@ -1398,8 +1400,9 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
           console.error(`Failed to generate follow-up Excel for fu #${fu.followUpNumber}:`, err);
         }
 
-        // C. Attachment Folder
+        // C. Attachment Folder - explicitly create folder entry
         const attFolderName = `${fuFolderName}/Attachment`;
+        archive.append(Buffer.alloc(0), { name: `${attFolderName}/` });
 
         // 1. Legacy Attachments (stored in MongoDB)
         const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
@@ -1411,7 +1414,8 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
                 : (lAtt.data as any).buffer
                 ? Buffer.from((lAtt.data as any).buffer)
                 : Buffer.from(lAtt.data as any);
-              archive.append(buf, { name: `${attFolderName}/${lAtt.originalName}` });
+              const safeName = sanitizeZipEntryName(lAtt.originalName || 'attachment');
+              archive.append(buf, { name: `${attFolderName}/${safeName}` });
             } catch (err) {
               console.error(`Failed to append attachment ${lAtt.originalName} to zip:`, err);
             }
@@ -1426,7 +1430,8 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
                 const response = await fetch(cAtt.url);
                 if (response.ok) {
                   const arrayBuffer = await response.arrayBuffer();
-                  archive.append(Buffer.from(arrayBuffer), { name: `${attFolderName}/${cAtt.filename}` });
+                  const safeName = sanitizeZipEntryName(cAtt.filename || 'attachment');
+                  archive.append(Buffer.from(arrayBuffer), { name: `${attFolderName}/${safeName}` });
                 }
               } catch (e) {
                 console.error(`Failed to fetch Cloudinary attachment: ${cAtt.url}`, e);
@@ -1438,6 +1443,13 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     }
 
     await archive.finalize();
+    const zipBuffer = await archivePromise;
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
+    res.setHeader('Content-Length', zipBuffer.length.toString());
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.status(200).send(zipBuffer);
   } catch (err) {
     next(err);
   }
