@@ -55,8 +55,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     <>
       <header style={{
         height: 64,
-        borderBottom: '1px solid var(--border)',
-        boxSizing: 'border-box',
+        borderBottom: 'var(--border-width-layout) solid var(--border)',
         background: 'var(--bg-surface)',
         position: 'sticky',
         top: 0,
@@ -64,101 +63,58 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 clamp(16px, 3vw, 24px)',
-        gap: 12,
+        padding: '0 clamp(12px, 3vw, 24px)',
+        gap: 8,
       }}>
-        {/* Current Page Title */}
-        <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }} aria-label="Current page">
-          <span
-            style={{
-              color: 'var(--text-primary)',
-              fontWeight: 900,
-              fontSize: 15,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
-            {getPageName()}
-          </span>
-        </div>
+        {/* Breadcrumb */}
+        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 16, minWidth: 0, overflow: 'hidden' }} aria-label="Breadcrumb">
+          <span className="breadcrumb-prefix" style={{ color: 'var(--text-primary)', fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>TasksManager</span>
+          <ChevronRight className="breadcrumb-prefix" style={{ width: 18, height: 18, margin: '0 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }} />
+          <span style={{ color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{getPageName()}</span>
+        </nav>
 
         {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            className="btn btn-ghost brutalist-hover"
+            className="btn btn-ghost"
             onClick={() => setShowShareModal(true)}
-            style={{
-              height: 36,
-              padding: '0 14px',
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-            }}
           >
             Share
           </button>
 
           <button
             id="btn-new-task"
-            className="btn btn-primary brutalist-hover"
+            className="btn btn-primary"
             onClick={() => setShowModal(true)}
-            style={{
-              height: 36,
-              padding: '0 14px',
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              boxSizing: 'border-box',
-            }}
           >
-            <Plus style={{ width: 14, height: 14, strokeWidth: 3 }} />
-            <span>New Task</span>
+            <Plus style={{ width: 16, height: 16, strokeWidth: 3 }} />
+            New Task
           </button>
 
           {/* Notification bell & popover */}
-          <div ref={notifRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div ref={notifRef} style={{ position: 'relative' }}>
             <button
               type="button"
               onClick={() => setNotifOpen(!notifOpen)}
               aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
               title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
-              className="brutalist-hover"
               style={{
-                width: 36,
-                height: 36,
                 background: notifOpen ? 'var(--bg-hover)' : 'var(--bg-surface)',
-                border: '1px solid var(--border)',
+                border: 'var(--border-width-layout) solid var(--border)',
                 cursor: 'pointer',
-                padding: 0,
+                padding: 8,
                 borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist-sm)',
+                boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist)',
+                transform: notifOpen ? 'translate(2px, 2px)' : 'none',
                 position: 'relative',
-                transition: 'all 0.15s ease',
-                boxSizing: 'border-box',
-                flexShrink: 0,
+                transition: 'all 0.1s',
               }}
             >
-              <Bell style={{ width: 16, height: 16, strokeWidth: 2.2 }} />
+              <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
               {totalAlerts > 0 && (
                 <span
                   style={{
@@ -311,25 +267,25 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               type="button"
               onClick={() => setProfileOpen(!profileOpen)}
               aria-label="User menu"
-              className="brutalist-hover"
               style={{
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 borderRadius: 'var(--radius-sm)',
                 background: 'var(--medium)',
-                border: '1px solid var(--border)',
+                border: 'var(--border-width-layout) solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: 900,
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
-                boxShadow: profileOpen ? 'none' : 'var(--box-shadow-brutalist-sm)',
-                boxSizing: 'border-box',
-                flexShrink: 0,
-                transition: 'all 0.15s ease',
+                boxShadow: 'var(--box-shadow-brutalist)',
+                transition: 'all 0.1s',
               }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
             >
               SG
             </button>
@@ -344,7 +300,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   zIndex: 50,
                   width: 240,
                   background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
+                  border: 'var(--border-width-layout) solid var(--border)',
                   borderRadius: 'var(--radius-md)',
                   boxShadow: 'var(--box-shadow-brutalist)',
                   overflow: 'hidden',

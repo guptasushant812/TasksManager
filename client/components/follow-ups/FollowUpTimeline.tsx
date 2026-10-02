@@ -75,10 +75,18 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
 
       <div className="fu-timeline">
         {(() => {
-          let totalActive = visibleFollowUps.filter(fu => !fu.isDeleted).length;
+          // Strictly sort newest-first (latest followUpDate, then createdAt, then followUpNumber)
+          const sorted = [...visibleFollowUps].sort((a, b) => {
+            const timeA = new Date(a.followUpDate || a.createdAt || 0).getTime();
+            const timeB = new Date(b.followUpDate || b.createdAt || 0).getTime();
+            if (timeB !== timeA) return timeB - timeA;
+            return (b.followUpNumber || 0) - (a.followUpNumber || 0);
+          });
+
+          let totalActive = sorted.filter(fu => !fu.isDeleted).length;
           // Pre-calculate display numbers so they are strictly sequential for active items.
-          // Since visibleFollowUps is sorted newest-first, the newest gets the highest number.
-          const annotated = visibleFollowUps.map(fu => {
+          // Since sorted is newest-first, the newest gets the highest number.
+          const annotated = sorted.map(fu => {
             let displayNumber = fu.followUpNumber; // default fallback
             if (!fu.isDeleted) {
               displayNumber = totalActive--;
