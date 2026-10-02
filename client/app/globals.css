@@ -1069,7 +1069,7 @@ html:not(.dark) .badge {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 520px;
+  width: 620px;
   max-width: 100vw;
   background: var(--bg-base);
   border-left: 4px solid var(--border);
@@ -1078,6 +1078,18 @@ html:not(.dark) .badge {
   display: flex;
   flex-direction: column;
   animation: slideInRight 0.25s var(--ease-out);
+}
+
+.fu-row:hover {
+  background: var(--bg-hover) !important;
+}
+
+.fu-card {
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.fu-card:hover {
+  transform: translateY(-1px);
 }
 
 .fu-panel-header {
@@ -1419,6 +1431,15 @@ html:not(.dark) .badge {
   .summary-cards-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
+  /* Follow-Up Workspace Responsive Mode: Switch from table to adaptive cards */
+  .fu-desktop-table {
+    display: none !important;
+  }
+
+  .fu-mobile-cards {
+    display: flex !important;
+  }
 }
 
 /* ── Settings page — stack sidebar on mobile ─────────────────────────────── */
@@ -1454,7 +1475,7 @@ html:not(.dark) .badge {
 /* ── Tablets portrait: ≤ 1024px ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .fu-panel {
-    width: min(520px, 100vw);
+    width: min(580px, 100vw);
   }
 }
 

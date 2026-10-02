@@ -42,6 +42,8 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
             lastMethod: { $first: '$method' },
             lastCommunicated: { $first: '$communicated' },
             lastResponse: { $first: '$responseReceived' },
+            lastNextAction: { $first: '$nextAction' },
+            lastContactPerson: { $first: '$contactPerson' },
             nextFollowUpDate: { $first: '$nextFollowUpDate' },
           },
         },
@@ -54,6 +56,8 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
         lastMethod: string | null;
         lastCommunicated: string | null;
         lastResponse: string | null;
+        lastNextAction: string | null;
+        lastContactPerson: string | null;
         nextFollowUpDate: string | null;
         isOverdue: boolean;
       }>();
@@ -66,6 +70,8 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
           lastMethod: s.lastMethod || null,
           lastCommunicated: s.lastCommunicated || null,
           lastResponse: s.lastResponse || null,
+          lastNextAction: s.lastNextAction || null,
+          lastContactPerson: s.lastContactPerson || null,
           nextFollowUpDate: s.nextFollowUpDate ? new Date(s.nextFollowUpDate).toISOString() : null,
           isOverdue: nextDate ? nextDate < now : false,
         });
@@ -78,6 +84,8 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
           lastMethod: null,
           lastCommunicated: null,
           lastResponse: null,
+          lastNextAction: null,
+          lastContactPerson: null,
           nextFollowUpDate: null,
           isOverdue: false,
         };
