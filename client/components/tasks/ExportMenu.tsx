@@ -50,6 +50,7 @@ export default function ExportMenu({
     if (filters.year) params.year = filters.year;
     if (filters.month) params.month = filters.month;
     if (filters.weekStart) params.weekStart = filters.weekStart;
+    if (filters.weekIndex !== undefined) params.weekIndex = filters.weekIndex.toString();
     if (filters.day) params.day = filters.day;
     if (filters.dateFrom) params.dateFrom = filters.dateFrom;
     if (filters.dateTo) params.dateTo = filters.dateTo;
@@ -126,7 +127,19 @@ export default function ExportMenu({
       }
       if (!filename) {
         const ext = format === 'excel' ? 'xlsx' : format;
-        filename = `Tasks_Export.${ext}`;
+        const prefix = (filters.hasFollowUps || isPanel) ? 'Follow-Ups' : 'Tasks';
+        if (filters.day) {
+          filename = `Daily_${prefix}_Report_Date_${formatDate(filters.day)}.${ext}`;
+        } else if (filters.weekIndex !== undefined && filters.dateFrom && filters.dateTo) {
+          filename = `Weekly_${prefix}_Report_Week_${filters.weekIndex}_${formatDate(filters.dateFrom)}_to_${formatDate(filters.dateTo)}.${ext}`;
+        } else if (filters.month && filters.year) {
+          const mIdx = parseInt(filters.month, 10) - 1;
+          filename = `Monthly_${prefix}_Register_${SHORT_MONTHS[mIdx] || filters.month}_${filters.year}.${ext}`;
+        } else if (filters.year) {
+          filename = `All_Months_${filters.year}_${prefix}_Register.${ext}`;
+        } else {
+          filename = `${prefix}_Export.${ext}`;
+        }
       }
 
       // Create isolated in-memory Blob URL and trigger native browser file save
@@ -168,13 +181,15 @@ export default function ExportMenu({
   let scopeLabel = 'Current Filter Selection';
   if (selectedDayStr) {
     scopeLabel = `Date: ${selectedDayStr}`;
+  } else if (filters.weekIndex !== undefined && filters.dateFrom && filters.dateTo) {
+    scopeLabel = `Week ${filters.weekIndex} (${formatDate(filters.dateFrom)} to ${formatDate(filters.dateTo)})`;
   } else if (filters.dateFrom && filters.dateTo) {
     scopeLabel = `${formatDate(filters.dateFrom)} to ${formatDate(filters.dateTo)}`;
   } else if (filters.month && filters.year) {
     const monthNum = parseInt(filters.month, 10);
     scopeLabel = `${SHORT_MONTHS[monthNum - 1] || filters.month} ${filters.year}`;
   } else if (filters.year) {
-    scopeLabel = `Year ${filters.year}`;
+    scopeLabel = `All Months ${filters.year}`;
   }
 
   const formatLabels: Record<string, string> = {
