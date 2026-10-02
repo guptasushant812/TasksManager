@@ -17,7 +17,7 @@ export async function listFollowUps(req: Request, res: Response, next: NextFunct
     if (!includeDeleted) filter.isDeleted = false;
 
     const followUps = await FollowUp.find(filter)
-      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
 
     const followUpIds = followUps.map((fu) => fu._id);
