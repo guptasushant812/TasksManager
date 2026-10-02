@@ -2,7 +2,7 @@
 import { FollowUp } from '@/types/followUp';
 import { formatDate } from '@/lib/dates';
 import MethodBadge from './MethodBadge';
-import { Pencil, Trash2, Paperclip, Volume2 } from 'lucide-react';
+import { Pencil, Trash2, Paperclip, Volume2, Video } from 'lucide-react';
 
 interface FollowUpEntryProps {
   followUp: FollowUp;
@@ -108,8 +108,9 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                 {followUp.attachments.map((att: any, index: number) => {
                   const filename = att?.filename || att?.originalName || 'File';
                   const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
-                  const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
-                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(url);
+                  const isImage = /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url);
+                  const isVideo = /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(filename) || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(url);
+                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(url);
                   
                   return (
                     <a
@@ -132,6 +133,8 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
                         <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
                           <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
+                      ) : isVideo ? (
+                        <Video style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                       ) : isAudio ? (
                         <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                       ) : (
