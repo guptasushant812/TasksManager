@@ -256,6 +256,7 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
       title={title}
       aria-label={title}
       onClick={onClick}
+      className="brutalist-hover"
       style={{
         background: 'var(--bg-surface)',
         border: 'var(--border-width-layout) solid var(--border)',
@@ -263,27 +264,21 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
         padding: 4,
         cursor: 'pointer',
         color: defaultColor || 'var(--text-primary)',
-        transition: 'all 0.1s',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: 'var(--box-shadow-brutalist-sm)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = hoverColor || 'var(--bg-hover)';
-        if (hoverColor) e.currentTarget.style.color = '#fff';
+        if (hoverColor) {
+          e.currentTarget.style.background = hoverColor;
+          e.currentTarget.style.color = '#fff';
+        }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'var(--bg-surface)';
-        if (hoverColor) e.currentTarget.style.color = defaultColor || 'var(--text-primary)';
-      }}
-      onMouseDown={(e) => {
-        e.currentTarget.style.transform = 'translate(2px, 2px)';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
-      onMouseUp={(e) => {
-        e.currentTarget.style.transform = 'translate(0, 0)';
-        e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
+        if (hoverColor) {
+          e.currentTarget.style.background = 'var(--bg-surface)';
+          e.currentTarget.style.color = defaultColor || 'var(--text-primary)';
+        }
       }}
     >
       {icon}

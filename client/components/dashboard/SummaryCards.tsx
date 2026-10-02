@@ -66,12 +66,8 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
               {loading && count === 0 ? (
                 <div className="skeleton" style={{ height: 48, width: 64, marginTop: 4, borderRadius: 'var(--radius-sm)' }} />
               ) : (
-                <span style={{
-                  fontSize: 48,
-                  fontWeight: 900,
+                <span className="summary-count" style={{
                   color: isActive ? '#fff' : color,
-                  lineHeight: 1,
-                  fontVariantNumeric: 'tabular-nums',
                 }}>
                   {count}
                 </span>
@@ -94,7 +90,7 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
             title="View all overdue follow-ups"
           >
             <div
-              className="summary-card"
+              className="summary-card brutalist-hover"
               style={{
                 padding: '20px',
                 cursor: 'pointer',
@@ -102,15 +98,6 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderLeft: summary.overdueFollowUps ? '4px solid var(--high)' : 'var(--border-width-layout) solid var(--border)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = 'none';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -150,7 +137,7 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
             title="Inspect escalated tasks"
           >
             <div
-              className="summary-card"
+              className="summary-card brutalist-hover"
               style={{
                 padding: '20px',
                 cursor: 'pointer',
@@ -158,15 +145,6 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderLeft: summary.escalatedTasks ? '4px solid var(--medium)' : 'var(--border-width-layout) solid var(--border)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = 'none';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

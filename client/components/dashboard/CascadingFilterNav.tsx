@@ -89,6 +89,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         {/* Month Pills */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', flex: 1, alignItems: 'center' }}>
           <button
+            className={`brutalist-hover ${!filters.month ? 'active' : ''}`}
             onClick={() => handleMonthSelect('')}
             aria-pressed={!filters.month}
             style={{
@@ -101,25 +102,8 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               cursor: 'pointer',
               padding: '6px 14px',
               borderRadius: 'var(--radius-full)',
-              transition: 'all 0.1s',
               whiteSpace: 'nowrap',
               flexShrink: 0,
-              boxShadow: !filters.month ? 'none' : 'var(--box-shadow-brutalist-sm)',
-              transform: !filters.month ? 'translate(2px, 2px)' : 'none',
-            }}
-            onMouseEnter={(e) => {
-              if (filters.month) {
-                e.currentTarget.style.background = 'var(--bg-hover)';
-                e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (filters.month) {
-                e.currentTarget.style.background = 'var(--bg-surface)';
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-              }
             }}
           >
             All
@@ -131,6 +115,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             return (
               <button
                 key={month}
+                className={`brutalist-hover ${isSelected ? 'active' : ''}`}
                 onClick={() => handleMonthSelect(monthNum)}
                 aria-pressed={isSelected}
                 style={{
@@ -143,25 +128,8 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                   cursor: 'pointer',
                   padding: '6px 14px',
                   borderRadius: 'var(--radius-full)',
-                  transition: 'all 0.1s',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
-                  boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
-                  transform: isSelected ? 'translate(2px, 2px)' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'var(--bg-hover)';
-                    e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                    e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'var(--bg-surface)';
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-                  }
                 }}
               >
                 {month}
@@ -215,6 +183,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               padding: '2px 6px',
+              transition: 'color 0.1s',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
@@ -241,6 +210,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               return (
                 <button
                   key={week.index}
+                  className={`brutalist-hover ${isSelected ? 'active' : ''}`}
                   onClick={() => handleWeekSelect(week.index, week.start, week.end)}
                   aria-pressed={isSelected}
                   style={{
@@ -255,34 +225,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                     minWidth: 160,
                     cursor: 'pointer',
                     color: isSelected ? '#fff' : 'var(--text-primary)',
-                    transition: 'all 0.1s',
                     flexShrink: 0,
-                    boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist)',
-                    transform: isSelected ? 'translate(4px, 4px)' : 'none',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'none';
-                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'translate(4px, 4px)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
-                    }
                   }}
                 >
                   <span style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>Week {week.index}</span>
@@ -307,6 +250,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
               return (
                 <button
                   key={iso}
+                  className={`brutalist-hover ${isSelected ? 'active' : ''}`}
                   onClick={() => handleDaySelect(iso)}
                   aria-pressed={isSelected}
                   style={{
@@ -320,37 +264,8 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
                     gap: 4,
                     cursor: 'pointer',
                     color: isSelected ? 'var(--bg-base)' : 'var(--text-primary)',
-                    transition: 'all 0.1s',
                     minWidth: 56,
                     flexShrink: 0,
-                    boxShadow: isSelected ? 'none' : 'var(--box-shadow-brutalist-sm)',
-                    transform: isSelected ? 'translate(2px, 2px)' : 'none',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'var(--bg-hover)';
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'var(--bg-surface)';
-                      e.currentTarget.style.transform = 'none';
-                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist-sm)';
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'translate(2px, 2px)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                      e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                    }
                   }}
                 >
                   <span style={{ fontSize: 10, fontWeight: 900, opacity: 0.7, textTransform: 'uppercase' }}>{dayName}</span>

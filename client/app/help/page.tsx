@@ -178,7 +178,7 @@ export default function HelpCenterPage() {
   }, [searchQuery, selectedCategory]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="page-layout">
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
       <main style={{ flex: 1, overflowY: 'auto' }}>
