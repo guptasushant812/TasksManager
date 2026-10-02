@@ -2,7 +2,7 @@
 import { Task, Priority, WorkStatus } from '@/types/task';
 import { formatDate } from '@/lib/dates';
 import { FollowUpSummary } from '@/types/followUp';
-import { Pencil, Trash2, Zap, ListTodo } from 'lucide-react';
+import { Pencil, Trash2, ListTodo } from 'lucide-react';
 
 interface TaskRowProps {
   task: Task;
@@ -14,7 +14,7 @@ interface TaskRowProps {
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onFollowUp: (task: Task) => void;
-  onQuickFollowUp: (task: Task) => void;
+  onQuickFollowUp?: (task: Task) => void;
   mode?: 'tasks' | 'follow-ups';
 }
 
@@ -190,53 +190,27 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
           <ActionBtn title="Edit" icon={<Pencil style={{ width: 14, height: 14 }} />} onClick={() => onEdit(task)} />
           <ActionBtn title="Delete" icon={<Trash2 style={{ width: 14, height: 14 }} />} onClick={() => onDelete(task._id)} hoverColor="var(--high)" />
           
-          {mode === 'tasks' && (
-            <div style={{ position: 'relative' }}>
-              <ActionBtn
-                title={fuCount > 0 ? `Quick follow-up (${fuCount} logged)` : "Quick follow-up"}
-                icon={<Zap style={{ width: 14, height: 14 }} />}
-                onClick={() => onQuickFollowUp(task)}
-                hoverColor="var(--accent)"
-                defaultColor={fuOverdue ? 'var(--high)' : undefined}
-              />
-              {fuCount > 0 && (
-                <span style={{
-                  position: 'absolute', top: -3, right: -3,
-                  background: fuOverdue ? 'var(--high)' : 'var(--accent)',
-                  color: '#fff', fontSize: 9, fontWeight: 700,
-                  borderRadius: 999, minWidth: 14, height: 14,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 3px', lineHeight: 1,
-                  pointerEvents: 'none',
-                }}>
-                  {fuCount}
-                </span>
-              )}
-            </div>
-          )}
-          
-          {mode === 'follow-ups' && (
-            <div style={{ position: 'relative' }}>
-              <ActionBtn
-                title="Follow-ups"
-                icon={<ListTodo style={{ width: 14, height: 14 }} />}
-                onClick={() => onFollowUp(task)}
-                defaultColor={fuOverdue ? 'var(--high)' : undefined}
-              />
-              {fuCount > 0 && (
-                <span style={{
-                  position: 'absolute', top: -3, right: -3,
-                  background: fuOverdue ? 'var(--high)' : 'var(--accent)',
-                  color: '#fff', fontSize: 9, fontWeight: 700,
-                  borderRadius: 999, minWidth: 14, height: 14,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 3px', lineHeight: 1,
-                }}>
-                  {fuCount}
-                </span>
-              )}
-            </div>
-          )}
+          <div style={{ position: 'relative' }}>
+            <ActionBtn
+              title={fuCount > 0 ? `Follow-ups (${fuCount})` : "Add follow-up"}
+              icon={<ListTodo style={{ width: 14, height: 14 }} />}
+              onClick={() => onFollowUp(task)}
+              defaultColor={fuOverdue ? 'var(--high)' : undefined}
+            />
+            {fuCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -3, right: -3,
+                background: fuOverdue ? 'var(--high)' : 'var(--accent)',
+                color: '#fff', fontSize: 9, fontWeight: 700,
+                borderRadius: 999, minWidth: 14, height: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 3px', lineHeight: 1,
+                pointerEvents: 'none',
+              }}>
+                {fuCount}
+              </span>
+            )}
+          </div>
         </div>
       </td>
     </tr>
