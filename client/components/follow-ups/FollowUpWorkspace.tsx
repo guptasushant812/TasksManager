@@ -193,7 +193,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         {/* Right Actions: Export Menu */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <ExportMenu
-            filters={filters}
+            filters={{ ...filters, hasFollowUps: 'true' }}
             selectedIds={selectedIds}
             totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
           />

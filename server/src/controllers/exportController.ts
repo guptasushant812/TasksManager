@@ -134,9 +134,10 @@ const MONTH_NAMES = [
 
 function getReportTitle(query: any, tasks: any[]): string {
   const isFollowUps = query.hasFollowUps === 'true' || query.isPanel === 'true';
+  const isSpecificSingleTask = query.isPanel === 'true' || (query.ids && typeof query.ids === 'string' && query.ids.split(',').filter(Boolean).length === 1);
 
-  // 1. Single task audit export (from panel or selection)
-  if (tasks.length === 1) {
+  // 1. Single task audit export (explicitly from panel or explicit single selection)
+  if (tasks.length === 1 && isSpecificSingleTask) {
     const rawTitle = (tasks[0].title || 'Task').trim();
     return isFollowUps
       ? `Task Follow-Up Audit — ${rawTitle}`
@@ -1093,24 +1094,82 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
       archive.on('end', () => resolve(Buffer.concat(chunks)));
     });
 
-    // 2. Generate Clean Excel in memory (standard Multi-Sheet styling) and append to Zip Root
+    const isPanelExport = req.query.isPanel === 'true';
+
+    // 2. Generate Clean Excel & PDF in memory and append to Zip Root
     const rootExcelBuffer = await generateExcelBuffer(tasks, allFollowUps, reportTitle, allLegacyAttachments, baseUrl, summaryMap);
     const excelInsideZip = getReportFileName(reportTitle, 'xlsx');
     archive.append(rootExcelBuffer, { name: excelInsideZip });
 
-    // 3. Process and organize task follow-ups in the requested hierarchy:
-    // Month [Folder] -> Week [Folder] -> Date [Folder]
-    //   |- Date Folder contains:
-    //      - Consolidated PDF (all follow-ups)
-    //      - Consolidated Excel (all follow-ups)
-    //      - Follow-up N [Folder]
-    //          |- Attachment [Folder]
-    //          |- pdf file (exact same standard styling)
-    //          |- excelsheet file (exact same standard styling)
-    for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
-      const task = tasks[tIdx];
-      const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
-      if (taskFUs.length === 0) continue;
+    const rootPdfBuffer = await generatePdfBuffer(tasks, allFollowUps, reportTitle, allLegacyAttachments, baseUrl, summaryMap);
+    const pdfInsideZip = getReportFileName(reportTitle, 'pdf');
+    archive.append(rootPdfBuffer, { name: pdfInsideZip });
+
+    if (isPanelExport) {
+      // ── RESTORED OLD HISTORY EXPORT LOGIC: Direct Attachments Folder for Task History ──
+      for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
+        const task = tasks[tIdx];
+        const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+        if (taskFUs.length === 0) continue;
+        taskFUs.sort((a, b) => (b.followUpNumber || 0) - (a.followUpNumber || 0));
+
+        const safeTitle = (task.title || 'Task').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
+        const folderPrefix = `Attachments/Task_${tIdx + 1}_${safeTitle}`;
+
+        for (const fu of taskFUs) {
+          const folderName = `${folderPrefix}/FollowUp_${fu.followUpNumber}`;
+
+          // Legacy Attachments (MongoDB)
+          const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
+          for (const lAtt of legacyAtts) {
+            if (lAtt.data) {
+              try {
+                const buf = Buffer.isBuffer(lAtt.data)
+                  ? lAtt.data
+                  : (lAtt.data as any).buffer
+                  ? Buffer.from((lAtt.data as any).buffer)
+                  : Buffer.from(lAtt.data as any);
+                const safeName = sanitizeZipEntryName(lAtt.originalName || 'attachment');
+                archive.append(buf, { name: `${folderName}/${safeName}` });
+              } catch (err) {
+                console.error(`Failed to append attachment ${lAtt.originalName} to zip:`, err);
+              }
+            }
+          }
+
+          // Cloudinary Attachments
+          if (fu.attachments && fu.attachments.length > 0) {
+            for (const cAtt of fu.attachments) {
+              if (cAtt.url) {
+                try {
+                  const response = await fetch(cAtt.url);
+                  if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const safeName = sanitizeZipEntryName(cAtt.filename || 'attachment');
+                    archive.append(Buffer.from(arrayBuffer), { name: `${folderName}/${safeName}` });
+                  }
+                } catch (e) {
+                  console.error(`Failed to fetch Cloudinary attachment: ${cAtt.url}`, e);
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // ── MAIN WORKSPACE EXPORT: ORGANIZED CALENDAR HIERARCHY (Month -> Week -> Date -> Follow-ups) ──
+      // Month [Folder] -> Week [Folder] -> Date [Folder]
+      //   |- Date Folder contains:
+      //      - Consolidated PDF (all follow-ups)
+      //      - Consolidated Excel (all follow-ups)
+      //      - Follow-up N [Folder]
+      //          |- Attachment [Folder]
+      //          |- pdf file (exact same standard styling)
+      //          |- excelsheet file (exact same standard styling)
+      for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
+        const task = tasks[tIdx];
+        const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+        if (taskFUs.length === 0) continue;
 
       // Ensure follow-ups are ordered newest-first (#5, #4, #3...)
       taskFUs.sort((a, b) => (b.followUpNumber || 0) - (a.followUpNumber || 0));
@@ -1224,6 +1283,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
         }
       }
     }
+  }
 
     await archive.finalize();
     const zipBuffer = await archivePromise;
