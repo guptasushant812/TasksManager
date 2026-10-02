@@ -38,12 +38,19 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterC
     'audio/aac',
     'audio/flac',
     'audio/x-ms-wma',
-    // Archives & Video
+    // Archives & Video formats (screen recordings, demo walkthroughs, video notes)
     'application/zip',
     'application/x-zip-compressed',
     'video/mp4',
     'video/webm',
     'video/quicktime',
+    'video/x-msvideo',
+    'video/x-matroska',
+    'video/3gpp',
+    'video/3gpp2',
+    'video/ogg',
+    'video/mpeg',
+    'video/x-ms-wmv',
   ];
 
   const mime = (file.mimetype || '').toLowerCase();
@@ -63,7 +70,7 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterC
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 25 * 1024 * 1024, // 25 MB max size
+    fileSize: 100 * 1024 * 1024, // 100 MB max size (supports videos and recordings)
   },
   fileFilter,
 });

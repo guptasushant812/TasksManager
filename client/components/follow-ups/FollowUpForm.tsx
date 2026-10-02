@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FollowUp, FollowUpFormData, FollowUpMethod, FOLLOW_UP_METHODS } from '@/types/followUp';
 import { toIsoDate } from '@/lib/dates';
-import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3, Volume2 } from 'lucide-react';
+import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3, Volume2, Video } from 'lucide-react';
 
 interface FollowUpFormProps {
   defaultContactPerson: string;
@@ -207,8 +207,9 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 {existingAttachments.map((att: any, i) => {
                   const filename = att?.filename || att?.originalName || 'File';
                   const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
-                  const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
-                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(url);
+                  const isImage = /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url);
+                  const isVideo = /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(filename) || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(url);
+                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(url);
                   
                   return (
                     <div key={att?.public_id || att?._id || i} style={{
@@ -222,6 +223,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                           <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
                             <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
+                        ) : isVideo ? (
+                          <Video style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                         ) : isAudio ? (
                           <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                         ) : (
@@ -246,7 +249,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 {/* New Files */}
                 {files.map((file, i) => {
                   const isImage = file.type.startsWith('image/');
-                  const isAudio = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|webm|flac|wma)$/i.test(file.name);
+                  const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(file.name);
+                  const isAudio = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(file.name);
                   if (isImage && !(file as any).previewUrl) {
                     (file as any).previewUrl = URL.createObjectURL(file);
                   }
@@ -263,6 +267,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                         <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
                           <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
+                      ) : isVideo ? (
+                        <Video style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                       ) : isAudio ? (
                         <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                       ) : (
@@ -300,7 +306,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                     <input
                       type="file"
                       multiple
-                      accept="image/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                      accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
                       style={{ display: 'none' }}
                       onChange={handleFileChange}
                     />
