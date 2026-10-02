@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback } from 'react';
 import Header from '@/components/layout/Header';
-import TaskTable from '@/components/tasks/TaskTable';
+import FollowUpWorkspace from '@/components/follow-ups/FollowUpWorkspace';
 import CascadingFilterNav from '@/components/dashboard/CascadingFilterNav';
 import { useTaskContext } from '@/context/TaskContext';
 import { TaskFilters } from '@/types/task';
@@ -15,7 +15,7 @@ export default function FollowUpsPage() {
     month: (today.getMonth() + 1).toString(),
     hasFollowUps: 'true',
     page: 1,
-    limit: 10,
+    limit: 15,
     sort: 'date',
     order: 'desc',
   });
@@ -29,14 +29,18 @@ export default function FollowUpsPage() {
       <Header filters={localFilters} onTaskCreated={handleTaskCreated} />
 
       <main className="page-content">
-        <div className="page-header">
+        <div className="page-header" style={{ marginBottom: 16 }}>
           <div>
-            <h1>Follow-Ups</h1>
-            <p>Tasks with active follow-up communications.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em', margin: 0 }}>
+              Follow-Up Workspace
+            </h1>
+            <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 13 }}>
+              Manage communication timelines, contact responses, and pending next actions.
+            </p>
           </div>
         </div>
 
-        <section>
+        <section style={{ marginBottom: 16 }}>
           <CascadingFilterNav
             filters={localFilters}
             onFiltersChange={handleFiltersChange}
@@ -45,7 +49,11 @@ export default function FollowUpsPage() {
         </section>
 
         <section style={{ flex: 1, minHeight: 0 }}>
-          <TaskTable filters={localFilters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} mode="follow-ups" />
+          <FollowUpWorkspace
+            filters={localFilters}
+            onFiltersChange={handleFiltersChange}
+            refreshKey={refreshKey}
+          />
         </section>
       </main>
     </div>

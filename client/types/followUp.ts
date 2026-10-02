@@ -50,6 +50,8 @@ export interface FollowUpSummary {
   lastMethod: string | null;
   lastCommunicated: string | null;
   lastResponse: string | null;
+  lastNextAction?: string | null;
+  lastContactPerson?: string | null;
   nextFollowUpDate: string | null;
   isOverdue: boolean;
 }

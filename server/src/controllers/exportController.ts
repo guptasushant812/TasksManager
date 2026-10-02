@@ -1043,7 +1043,14 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${reportFileName}"`);
     const archive = createZipArchive({ zlib: { level: 9 } });
-    archive.on('error', (err: Error) => { throw err; });
+    archive.on('error', (err: Error) => {
+      console.error('Archive error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Archive generation failed' });
+      } else {
+        res.end();
+      }
+    });
     archive.pipe(res);
 
     // 2. Generate Clean Excel in memory (without Task ID) and append to Zip
@@ -1199,7 +1206,16 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
         const legacyAtts = await FollowUpAttachment.find({ followUpId: fu._id }).lean();
         for (const lAtt of legacyAtts) {
           if (lAtt.data) {
-            archive.append(lAtt.data, { name: `${folderName}/${lAtt.originalName}` });
+            try {
+              const buf = Buffer.isBuffer(lAtt.data)
+                ? lAtt.data
+                : (lAtt.data as any).buffer
+                ? Buffer.from((lAtt.data as any).buffer)
+                : Buffer.from(lAtt.data as any);
+              archive.append(buf, { name: `${folderName}/${lAtt.originalName}` });
+            } catch (err) {
+              console.error(`Failed to append attachment ${lAtt.originalName} to zip:`, err);
+            }
           }
         }
 
