@@ -75,31 +75,22 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
 
       <div className="fu-timeline">
         {(() => {
-          // Strictly sort newest-first (latest followUpDate, then createdAt, then followUpNumber)
+          // Strictly sort newest-first: highest followUpNumber first (#2, then #1)
           const sorted = [...visibleFollowUps].sort((a, b) => {
+            if ((b.followUpNumber || 0) !== (a.followUpNumber || 0)) {
+              return (b.followUpNumber || 0) - (a.followUpNumber || 0);
+            }
             const timeA = new Date(a.followUpDate || a.createdAt || 0).getTime();
             const timeB = new Date(b.followUpDate || b.createdAt || 0).getTime();
-            if (timeB !== timeA) return timeB - timeA;
-            return (b.followUpNumber || 0) - (a.followUpNumber || 0);
+            return timeB - timeA;
           });
 
-          let totalActive = sorted.filter(fu => !fu.isDeleted).length;
-          // Pre-calculate display numbers so they are strictly sequential for active items.
-          // Since sorted is newest-first, the newest gets the highest number.
-          const annotated = sorted.map(fu => {
-            let displayNumber = fu.followUpNumber; // default fallback
-            if (!fu.isDeleted) {
-              displayNumber = totalActive--;
-            }
-            return { ...fu, displayNumber };
-          });
-
-          return annotated.map((fu, idx) => (
+          return sorted.map((fu, idx) => (
             <FollowUpEntry
               key={fu._id}
               followUp={fu}
-              isLast={idx === annotated.length - 1}
-              displayNumber={fu.displayNumber}
+              isLast={idx === sorted.length - 1}
+              displayNumber={fu.followUpNumber}
               onEdit={onEdit}
               onDelete={onDelete}
             />

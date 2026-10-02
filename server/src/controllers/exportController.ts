@@ -264,7 +264,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
-      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
@@ -538,7 +538,7 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
         let innerY = rowY + 6;
         // Follow-up card header
         doc.fontSize(9).font('Helvetica-Bold').fillColor('#1E293B')
-           .text(`#${fu.followUpNumber || (allFollowUps.length - i)}   |   ${fuDateStr}   |   Method: ${methodStr}${contactStr}`, startX + 10, innerY);
+           .text(`#${fu.followUpNumber}   |   ${fuDateStr}   |   Method: ${methodStr}${contactStr}`, startX + 10, innerY);
         innerY += 15;
 
         // Communicated
@@ -679,7 +679,7 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     const summaryMap = new Map(summaries.map(s => [s._id.toString(), s.count]));
 
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
-      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
     const followUpIds = allFollowUps.map(fu => fu._id);
     const legacyAttachments = await FollowUpAttachment.find({ followUpId: { $in: followUpIds } }, { data: 0 }).lean();
@@ -893,8 +893,19 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
         };
       });
 
+      // Group and sort follow-ups by task matching the Tasks Register order, and within each task newest-first (#2, #1)
+      const sortedFollowUps: any[] = [];
+      for (const task of tasks) {
+        const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
+        taskFUs.sort((a, b) => (b.followUpNumber || 0) - (a.followUpNumber || 0));
+        sortedFollowUps.push(...taskFUs);
+      }
+
+      // If no tasks match (e.g. standalone follow-up list), fall back to allFollowUps sorted newest-first
+      const followUpsToRender = sortedFollowUps.length > 0 ? sortedFollowUps : allFollowUps;
+
       // Data Rows
-      allFollowUps.forEach((fu: any, idx: number) => {
+      followUpsToRender.forEach((fu: any, idx: number) => {
         const parentTask = tasks.find(t => t._id.toString() === fu.taskId.toString());
         const taskTitle = parentTask ? parentTask.title : '—';
         const methodStr = fu.method === 'Other' && fu.methodOther ? `Other (${fu.methodOther})` : fu.method;
@@ -1169,13 +1180,14 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
 
     // 3. Process and organize task attachments in ZIP
     const allFollowUps = await FollowUp.find({ taskId: { $in: taskIds }, isDeleted: false })
-      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
 
     for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
       const task = tasks[tIdx];
       const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
       if (taskFUs.length === 0) continue;
+      taskFUs.sort((a, b) => (b.followUpNumber || 0) - (a.followUpNumber || 0));
 
       const safeTitle = (task.title || 'Task').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
       const folderPrefix = `Attachments/Task_${tIdx + 1}_${safeTitle}`;

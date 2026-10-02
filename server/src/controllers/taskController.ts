@@ -33,7 +33,7 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
     if (taskIds.length > 0) {
       const summaries = await FollowUp.aggregate([
         { $match: { taskId: { $in: taskIds }, isDeleted: false } },
-        { $sort: { followUpDate: -1, createdAt: -1, followUpNumber: -1 } },
+        { $sort: { followUpNumber: -1, createdAt: -1, followUpDate: -1 } },
         {
           $group: {
             _id: '$taskId',
@@ -438,7 +438,7 @@ export async function escalateTask(req: Request, res: Response, next: NextFuncti
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const allFollowUps = await FollowUp.find({ taskId: id, isDeleted: false })
-      .sort({ followUpDate: -1, createdAt: -1, followUpNumber: -1 })
+      .sort({ followUpNumber: -1, createdAt: -1, followUpDate: -1 })
       .lean();
     const activeCount = allFollowUps.length;
 
