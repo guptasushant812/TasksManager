@@ -131,6 +131,10 @@ export default function ExportMenu({
 
       // Create isolated in-memory Blob URL and trigger native browser file save
       const blob = await res.blob();
+      if (!blob || blob.size === 0) {
+        alert('Export file generation failed. Please try again.');
+        return;
+      }
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
