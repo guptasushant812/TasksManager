@@ -10,8 +10,7 @@ import FilterSortPanel from '../tasks/FilterSortPanel';
 import ExportMenu from '../tasks/ExportMenu';
 import FollowUpPanel from './FollowUpPanel';
 import FollowUpQuickAdd from './FollowUpQuickAdd';
-import EscalationConfigModal from './EscalationConfigModal';
-import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, ShieldAlert, Sparkles, Plus } from 'lucide-react';
+import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, Sparkles, Plus } from 'lucide-react';
 import { SHORT_MONTHS } from '@/lib/dates';
 
 interface FollowUpWorkspaceProps {
@@ -31,7 +30,7 @@ const SORTABLE_COLUMNS: { key: string; label: string; width?: string }[] = [
 
 export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey }: FollowUpWorkspaceProps) {
   const { tasks, pagination, loading, error, fetchTasks, deleteManyTasks } = useTasks();
-  const { settings, fetchSettings } = useEscalation();
+  const { settings } = useEscalation();
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -39,7 +38,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
   const [searchInput, setSearchInput] = useState(filters.search || '');
   const [activeHistoryTask, setActiveHistoryTask] = useState<Task | null>(null);
   const [quickAddTask, setQuickAddTask] = useState<Task | null>(null);
-  const [showEscalationModal, setShowEscalationModal] = useState(false);
 
   const filterRef = useRef<HTMLDivElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -192,41 +190,8 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           )}
         </div>
 
-        {/* Right Actions: Escalation Rules & Export Menu */}
+        {/* Right Actions: Export Menu */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => setShowEscalationModal(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 13,
-              fontWeight: 600,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-surface)',
-            }}
-            title="Configure module-wide escalation thresholds and recipients"
-          >
-            <ShieldAlert style={{ width: 14, height: 14, color: 'var(--high)' }} />
-            Escalation Rules
-            {settings?.enabled && (
-              <span
-                style={{
-                  fontSize: 10,
-                  padding: '1px 5px',
-                  borderRadius: 4,
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  color: 'var(--high)',
-                  fontWeight: 700,
-                }}
-              >
-                {settings.threshold}x
-              </span>
-            )}
-          </button>
-
           <ExportMenu
             filters={filters}
             selectedIds={selectedIds}
@@ -472,17 +437,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           task={quickAddTask}
           onClose={() => setQuickAddTask(null)}
           onAdded={() => {
-            fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 }, true);
-          }}
-        />
-      )}
-
-      {/* ── Centralized Escalation Rules Configuration Modal ─────────────────── */}
-      {showEscalationModal && (
-        <EscalationConfigModal
-          onClose={() => setShowEscalationModal(false)}
-          onSaved={() => {
-            fetchSettings();
             fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 }, true);
           }}
         />

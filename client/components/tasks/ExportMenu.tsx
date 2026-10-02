@@ -8,6 +8,7 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  Archive,
   ChevronDown,
   AlertTriangle,
   Plus,
@@ -310,33 +311,31 @@ export default function ExportMenu({
               <FileSpreadsheet style={{ width: 14, height: 14, color: 'var(--low)' }} />
               Export as Excel
             </button>
-            {isPanel && (
-              <button
-                id="export-zip-btn"
-                type="button"
-                onClick={() => handleExportClick('zip')}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '10px 14px',
-                  color: 'var(--text-primary)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textAlign: 'left',
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <Download style={{ width: 14, height: 14, color: 'var(--text-primary)' }} />
-                Export ZIP with Attachments
-              </button>
-            )}
+            <button
+              id="export-zip-btn"
+              type="button"
+              onClick={() => handleExportClick('zip')}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                color: 'var(--text-primary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                textAlign: 'left',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            >
+              <Archive style={{ width: 14, height: 14, color: 'var(--accent)' }} />
+              Export ZIP (Organized Folder)
+            </button>
           </div>
         </>
       )}
