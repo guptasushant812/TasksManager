@@ -3,6 +3,7 @@
 // Shared form field component used by ManualTaskForm, EditTaskModal, and AiPreviewForm
 import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
+import { Plus } from 'lucide-react';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
@@ -54,6 +55,23 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     ? data.completedRemarks 
     : (data.workStatus === 'Completed' ? data.remarks : '');
 
+  // Determine if any notes exist
+  const hasExistingNotes = Boolean(
+    (currentPending && currentPending.trim().length > 0) ||
+    (currentInProgress && currentInProgress.trim().length > 0) ||
+    (currentCompleted && currentCompleted.trim().length > 0) ||
+    (data.reason && data.reason.trim().length > 0) ||
+    (data.remarks && data.remarks.trim().length > 0)
+  );
+
+  const [isReasonsOpen, setIsReasonsOpen] = useState(hasExistingNotes);
+
+  useEffect(() => {
+    if (hasExistingNotes || data.workStatus === 'InProgress') {
+      setIsReasonsOpen(true);
+    }
+  }, [hasExistingNotes, data.workStatus]);
+
   // Handle updates to specific status reasons without erasing other statuses
   function handleReasonChange(status: WorkStatus, val: string) {
     if (status === 'Pending') {
@@ -78,10 +96,10 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Title */}
       <div>
-        <label className="label" htmlFor="field-title">Task Title *</label>
+        <label className="label" htmlFor="field-title" style={{ marginBottom: 4 }}>Task Title *</label>
         <input
           id="field-title"
           className="input"
@@ -96,22 +114,22 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
 
       {/* Description */}
       <div>
-        <label className="label" htmlFor="field-description">Description</label>
+        <label className="label" htmlFor="field-description" style={{ marginBottom: 4 }}>Description</label>
         <textarea
           id="field-description"
           className="input"
           placeholder="Full task description — what needs to be done, references, etc."
           value={data.description}
           onChange={(e) => onChange('description', e.target.value)}
-          rows={3}
-          style={{ resize: 'vertical', lineHeight: 1.5 }}
+          rows={2}
+          style={{ resize: 'vertical', lineHeight: 1.4 }}
         />
       </div>
 
       {/* Given By & Contact Person */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
         <div>
-          <label className="label" htmlFor="field-givenBy">Given By</label>
+          <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By</label>
           <input
             id="field-givenBy"
             className="input"
@@ -122,7 +140,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           />
         </div>
         <div>
-          <label className="label" htmlFor="field-contactPerson">Contact Person</label>
+          <label className="label" htmlFor="field-contactPerson" style={{ marginBottom: 4 }}>Contact Person</label>
           <input
             id="field-contactPerson"
             className="input"
@@ -134,24 +152,46 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
       </div>
 
-      {/* Priority & Status row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+      {/* Date, Due Date, Priority & Status row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
         <div>
-          <label className="label">Priority</label>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <label className="label" htmlFor="field-date" style={{ marginBottom: 4 }}>Task Date *</label>
+          <input
+            id="field-date"
+            className="input"
+            type="date"
+            value={data.date}
+            onChange={(e) => onChange('date', e.target.value)}
+            style={{ borderColor: errors.date ? 'var(--high)' : undefined }}
+          />
+          {errors.date && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.date}</span>}
+        </div>
+        <div>
+          <label className="label" htmlFor="field-dueDate" style={{ marginBottom: 4 }}>Due Date</label>
+          <input
+            id="field-dueDate"
+            className="input"
+            type="date"
+            value={data.dueDate}
+            onChange={(e) => onChange('dueDate', e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label" style={{ marginBottom: 4 }}>Priority</label>
+          <div style={{ display: 'flex', gap: 4 }}>
             {PRIORITIES.map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => onChange('priority', data.priority === p ? '' : p)}
                 className={`pill ${data.priority === p ? 'active' : ''}`}
-                style={{ flex: 1, fontSize: 12, textAlign: 'center' }}
+                style={{ flex: 1, fontSize: 11, padding: '4px 6px', textAlign: 'center' }}
               >{p}</button>
             ))}
           </div>
         </div>
         <div>
-          <label className="label">Work Status</label>
+          <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work Status</label>
           <select
             id="field-workStatus"
             className="input"
@@ -164,84 +204,106 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
       </div>
 
-      {/* Date row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-        <div>
-          <label className="label" htmlFor="field-date">Task Date *</label>
-          <input
-            id="field-date"
-            className="input"
-            type="date"
-            value={data.date}
-            onChange={(e) => onChange('date', e.target.value)}
-            style={{ borderColor: errors.date ? 'var(--high)' : undefined }}
-          />
-          {errors.date && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.date}</span>}
-        </div>
-        <div>
-          <label className="label" htmlFor="field-dueDate">Due Date</label>
-          <input
-            id="field-dueDate"
-            className="input"
-            type="date"
-            value={data.dueDate}
-            onChange={(e) => onChange('dueDate', e.target.value)}
-          />
-        </div>
-      </div>
-
       {/* ── Status Reasons / Remarks (Preserved across status changes) ────────── */}
-      <div className="animate-fade-in" style={{
-        marginTop: 4,
-        padding: '14px',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-md)',
-        background: 'var(--bg-surface)'
-      }}>
-        {/* Status Tab Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {STATUSES.map((status) => {
-              const isActiveTab = activeReasonTab === status;
-              const isTaskStatus = data.workStatus === status;
-              const hasData = status === 'Pending' ? !!currentPending : status === 'InProgress' ? !!currentInProgress : !!currentCompleted;
-              const statusColor = status === 'Pending' ? 'var(--pending)' : status === 'InProgress' ? 'var(--inprogress)' : 'var(--completed)';
-              const statusBg = status === 'Pending' ? 'var(--pending-bg)' : status === 'InProgress' ? 'var(--inprogress-bg)' : 'var(--completed-bg)';
-
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => setActiveReasonTab(status)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: 12,
-                    fontWeight: isActiveTab ? 700 : 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    border: isActiveTab ? `1px solid ${statusColor}` : '1px solid var(--border)',
-                    background: isActiveTab ? statusBg : 'var(--bg-elevated)',
-                    color: isActiveTab ? statusColor : 'var(--text-muted)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
-                  {isTaskStatus && (
-                    <span style={{ fontSize: 9, background: statusColor, color: '#000', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
-                      Current
-                    </span>
-                  )}
-                  {hasData && !isTaskStatus && (
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor }} title="Saved note exists" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      {!isReasonsOpen ? (
+        <div style={{ marginTop: 2 }}>
+          <button
+            type="button"
+            onClick={() => setIsReasonsOpen(true)}
+            style={{
+              background: 'transparent',
+              border: '1px dashed var(--border)',
+              borderRadius: 'var(--radius-sm, 6px)',
+              padding: '6px 12px',
+              color: 'var(--text-muted)',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.color = 'var(--text-muted)';
+            }}
+          >
+            <Plus style={{ width: 12, height: 12 }} />
+            <span>Add Reason / Remarks (Optional)</span>
+          </button>
         </div>
+      ) : (
+        <div className="animate-fade-in" style={{
+          marginTop: 4,
+          padding: '12px 14px',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--bg-surface)'
+        }}>
+          {/* Status Tab Navigation */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {STATUSES.map((status) => {
+                const isActiveTab = activeReasonTab === status;
+                const isTaskStatus = data.workStatus === status;
+                const hasData = status === 'Pending' ? !!currentPending : status === 'InProgress' ? !!currentInProgress : !!currentCompleted;
+                const statusColor = status === 'Pending' ? 'var(--pending)' : status === 'InProgress' ? 'var(--inprogress)' : 'var(--completed)';
+                const statusBg = status === 'Pending' ? 'var(--pending-bg)' : status === 'InProgress' ? 'var(--inprogress-bg)' : 'var(--completed-bg)';
+
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setActiveReasonTab(status)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: 12,
+                      fontWeight: isActiveTab ? 700 : 500,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      border: isActiveTab ? `1px solid ${statusColor}` : '1px solid var(--border)',
+                      background: isActiveTab ? statusBg : 'var(--bg-elevated)',
+                      color: isActiveTab ? statusColor : 'var(--text-muted)',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
+                    {isTaskStatus && (
+                      <span style={{ fontSize: 9, background: statusColor, color: '#000', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
+                        Current
+                      </span>
+                    )}
+                    {hasData && !isTaskStatus && (
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor }} title="Saved note exists" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {!hasExistingNotes && (
+              <button
+                type="button"
+                onClick={() => setIsReasonsOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                }}
+              >
+                Hide
+              </button>
+            )}
+          </div>
 
         {/* Reason for Pending */}
         {activeReasonTab === 'Pending' && (
@@ -332,6 +394,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
