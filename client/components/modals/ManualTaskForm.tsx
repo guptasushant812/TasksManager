@@ -209,7 +209,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {/* ── Discard Confirmation Modal Overlay ─────────────────────────────────── */}
       {showDiscardConfirm && (
         <div
@@ -266,29 +266,29 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
         </div>
       )}
 
-      {/* Global AI Error Banner */}
-      {aiError && (
-        <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            background: 'var(--high-bg)',
-            border: '1px solid rgba(239,68,68,0.25)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 13,
-            color: 'var(--high)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
-          <span>{aiError}</span>
-        </div>
-      )}
+      {/* ── Scrollable Form Body (The ONLY scrollable element) ───────────────── */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Global AI Error Banner */}
+        {aiError && (
+          <div
+            style={{
+              padding: '10px 14px',
+              background: 'var(--high-bg)',
+              border: '1px solid rgba(239,68,68,0.25)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 13,
+              color: 'var(--high)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+            <span>{aiError}</span>
+          </div>
+        )}
 
-      {/* ── Task Drafts List ─────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
+        {/* ── Task Drafts List ─────────────────────────────────────────────────── */}
         {drafts.map((draft, i) => {
           const draftErrors: Record<string, string> = {};
           if (errors[`${draft.id}-title`]) draftErrors.title = errors[`${draft.id}-title`];
@@ -303,7 +303,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
               key={draft.id}
               className="card animate-fade-in"
               style={{
-                padding: 20,
+                padding: '16px 18px',
                 position: 'relative',
                 borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustImproved ? '2px solid var(--completed)' : undefined,
@@ -316,8 +316,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: 16,
-                  paddingBottom: 10,
+                  marginBottom: 12,
                   borderBottom: '1px solid var(--border-subtle)',
                 }}
               >
@@ -580,7 +579,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
         >
           <Plus style={{ width: 16, height: 16 }} /> Add Another Task
         </button>
-      </div>
 
       {errors.submit && (
         <div
@@ -598,24 +596,19 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
         </div>
       )}
 
-      {/* ── Sticky Bottom Actions Bar ────────────────────────────────────────── */}
+      </div>
+
+      {/* ── Fixed Bottom Actions Bar ────────────────────────────────────────── */}
       <div
         style={{
           display: 'flex',
           gap: 10,
-          marginTop: 'auto',
-          paddingTop: 16,
+          padding: '14px 24px',
           borderTop: '1px solid var(--border-subtle)',
           justifyContent: 'space-between',
           alignItems: 'center',
-          margin: '0 -24px -24px -24px',
-          paddingRight: 24,
-          paddingLeft: 24,
-          paddingBottom: 24,
           background: 'var(--bg-elevated)',
-          position: 'sticky',
-          bottom: -24,
-          zIndex: 10,
+          flexShrink: 0,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

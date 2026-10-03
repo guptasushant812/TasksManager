@@ -49,10 +49,21 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box animate-slide-up" style={{ maxWidth: mode ? 700 : 500, padding: 0 }}>
+      <div 
+        className="modal-box animate-slide-up" 
+        style={{ 
+          maxWidth: mode ? 820 : 520, 
+          width: '100%',
+          maxHeight: '92vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          padding: 0 
+        }}
+      >
 
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+        <div style={{ padding: '16px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {mode === null && 'Create New Task'}
@@ -114,7 +125,16 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
         </div>
 
         {/* Content Area */}
-        <div style={{ padding: '24px', maxHeight: 'calc(85vh - 70px)', overflowY: 'auto' }}>
+        <div 
+          style={{ 
+            flex: 1, 
+            minHeight: 0, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            overflow: mode ? 'hidden' : 'auto', 
+            padding: mode ? 0 : '24px' 
+          }}
+        >
 
           {/* Mode selection */}
           {mode === null && (
@@ -218,13 +238,13 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
           {/* Forms */}
           {mode === 'manual' && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <ManualTaskForm defaultFilters={defaultFilters} onSaved={onSaved} onCancel={() => setMode(null)} />
             </div>
           )}
 
           {mode === 'ai' && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <AiInputForm onSaved={onSaved} onCancel={() => setMode(null)} />
             </div>
           )}

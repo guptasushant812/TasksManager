@@ -269,69 +269,72 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
   // ── Step 1: Raw text input ───────────────────────────────────────────────
   if (step === 'input') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
         {showDiscardConfirm && renderDiscardModal()}
 
-        <div style={{
-          padding: '16px', marginBottom: 16,
-          background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
-          borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
-          lineHeight: 1.6,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <strong style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <Sparkles style={{ width: 14, height: 14 }} /> AI Task Structuring
-            </strong>
-            {rawText.trim().length > 0 && (
-              <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <CheckCircle2 style={{ width: 12, height: 12 }} /> Draft saved locally
-              </span>
-            )}
-          </div>
-          Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
-        </div>
-
-        <div style={{ marginBottom: 4 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
-            {rawText.trim().length > 0 && (
-              <button
-                type="button"
-                onClick={() => setShowDiscardConfirm(true)}
-                style={{
-                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                  fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-              >
-                <Trash2 style={{ width: 12, height: 12 }} /> Discard draft
-              </button>
-            )}
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px' }}>
+          <div style={{
+            padding: '16px', marginBottom: 16,
+            background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
+            borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
+            lineHeight: 1.6,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <strong style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Sparkles style={{ width: 14, height: 14 }} /> AI Task Structuring
+              </strong>
+              {rawText.trim().length > 0 && (
+                <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CheckCircle2 style={{ width: 12, height: 12 }} /> Draft saved locally
+                </span>
+              )}
+            </div>
+            Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
           </div>
 
-          <textarea
-            id="ai-raw-input"
-            className="input"
-            placeholder={`Examples (English, Marathi, or Hinglish):
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
+              {rawText.trim().length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowDiscardConfirm(true)}
+                  style={{
+                    background: 'none', border: 'none', color: 'var(--text-muted)',
+                    fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >
+                  <Trash2 style={{ width: 12, height: 12 }} /> Discard draft
+                </button>
+              )}
+            </div>
+
+            <textarea
+              id="ai-raw-input"
+              className="input"
+              placeholder={`Examples (English, Marathi, or Hinglish):
 
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
 2. Follow up with IT floor router repair sathi. Pending aahe karan technician udya yenar.
 3. Attach 2 notices to Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026.`}
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            rows={8}
-            style={{ resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit' }}
-          />
-          {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
-          {aiError && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--high)', marginTop: 8, padding: '8px 12px', background: 'var(--high-bg)', borderRadius: 'var(--radius-sm)' }}>
-              <AlertCircle style={{ width: 14, height: 14 }} /> {aiError}
-            </div>
-          )}
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              rows={8}
+              style={{ resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit' }}
+            />
+            {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
+            {aiError && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--high)', marginTop: 8, padding: '8px 12px', background: 'var(--high-bg)', borderRadius: 'var(--radius-sm)' }}>
+                <AlertCircle style={{ width: 14, height: 14 }} /> {aiError}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between', alignItems: 'center', margin: '24px -24px -24px -24px', paddingRight: 24, paddingLeft: 24, paddingBottom: 24, background: 'var(--bg-surface)' }}>
+        {/* Pinned Bottom Actions Bar */}
+        <div style={{ display: 'flex', gap: 10, padding: '14px 24px', borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-surface)', flexShrink: 0 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Closing will preserve your draft automatically.
           </span>
@@ -354,8 +357,11 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
 
   // ── Step 2: Editable preview ─────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {showDiscardConfirm && renderDiscardModal()}
+
+      {/* Scrollable Form Body (The ONLY scrollable element) */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Top Banner */}
       <div style={{
@@ -670,13 +676,15 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
         </div>
       )}
 
-      {/* Sticky Bottom Actions Bar */}
+      </div>
+
+      {/* Pinned Bottom Actions Bar */}
       <div style={{
-        display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 16,
+        display: 'flex', gap: 10,
+        padding: '14px 24px',
         borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between',
-        alignItems: 'center', margin: '0 -24px -24px -24px', paddingRight: 24,
-        paddingLeft: 24, paddingBottom: 24, background: 'var(--bg-elevated)',
-        position: 'sticky', bottom: -24, zIndex: 10
+        alignItems: 'center', background: 'var(--bg-elevated)',
+        flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button 
