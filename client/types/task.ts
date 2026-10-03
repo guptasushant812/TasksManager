@@ -26,6 +26,7 @@ export interface Task {
 }
 
 export interface TaskDraft {
+  id?: string;
   title: string;
   description: string;
   givenBy: string;

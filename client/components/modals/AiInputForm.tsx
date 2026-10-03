@@ -11,6 +11,12 @@ import {
 
 const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
 
+function generateId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `draft_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
 interface AiInputFormProps {
   onSaved: () => void;
   onCancel: () => void;
@@ -55,7 +61,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             setRawText(parsed.rawText);
           }
           if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
-            setDrafts(parsed.drafts);
+            setDrafts(parsed.drafts.map((d: any) => ({ ...d, id: d.id || generateId() })));
             setStep('preview');
           } else if (parsed.step === 'input' || parsed.step === 'preview') {
             setStep(parsed.step);
@@ -97,7 +103,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
     setErrors({});
     const result = await generateDrafts(rawText);
     if (result && result.length > 0) {
-      setDrafts(result);
+      setDrafts(result.map(d => ({ ...d, id: d.id || generateId() })));
       setStep('preview');
     }
   }
@@ -169,6 +175,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
     setDrafts(prev => [
       ...prev,
       {
+        id: generateId(),
         title: '',
         description: '',
         givenBy: '',
@@ -206,7 +213,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
     if (result) {
       setDrafts(prev => {
         const next = [...prev];
-        next[index] = result;
+        next[index] = { ...result, id: task.id || generateId() };
         return next;
       });
       setActiveRegenIndex(null);
@@ -435,34 +442,61 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
 
           return (
             <div 
-              key={i} 
+              key={draft.id || i} 
               className="card animate-fade-in" 
               style={{ 
                 padding: 20, 
                 position: 'relative',
-                border: isThisRegenerating ? '2px solid var(--accent)' : wasJustRegenerated ? '2px solid var(--completed)' : undefined,
+                borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
+                borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustRegenerated ? '2px solid var(--completed)' : undefined,
                 transition: 'border 0.2s ease'
               }}
             >
-              {/* Card Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              {/* Card Header matching Image 2 */}
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  marginBottom: 16,
+                  paddingBottom: 10,
+                  borderBottom: '1px solid var(--border-subtle)',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                    Task {i + 1}
+                  <h3 
+                    style={{ 
+                      fontFamily: "'JetBrains Mono', monospace", 
+                      fontSize: 13.5, 
+                      fontWeight: 900, 
+                      letterSpacing: '0.06em', 
+                      textTransform: 'uppercase', 
+                      color: 'var(--text-primary)', 
+                      margin: 0 
+                    }}
+                  >
+                    TASK {i + 1}
                   </h3>
                   {wasJustRegenerated && (
                     <span style={{
-                      fontSize: 11, fontWeight: 700, background: 'var(--completed-bg)',
-                      color: 'var(--completed)', padding: '2px 8px', borderRadius: 9999,
-                      border: '1px solid var(--completed)'
+                      fontSize: 11, 
+                      fontWeight: 800, 
+                      background: 'var(--completed-bg)',
+                      color: 'var(--completed)', 
+                      padding: '2px 8px', 
+                      borderRadius: 9999,
+                      border: '1px solid var(--completed)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
                     }}>
-                      Regenerated!
+                      <CheckCircle2 style={{ width: 11, height: 11 }} /> Regenerated!
                     </span>
                   )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {/* Single-Task Regenerate Button */}
+                  {/* Single-Task Regenerate Button matching Image 2 */}
                   <button
                     type="button"
                     onClick={() => {
@@ -476,36 +510,51 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
                     }}
                     disabled={isThisRegenerating || saving}
                     style={{
-                      background: isRegenBoxOpen ? 'var(--accent-subtle)' : 'none',
+                      background: isRegenBoxOpen ? 'var(--accent-subtle)' : 'transparent',
                       border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm, 4px)',
+                      padding: '4px 10px',
                       cursor: 'pointer',
                       color: 'var(--accent)',
                       fontSize: 12,
-                      fontWeight: 600,
-                      display: 'flex',
+                      fontWeight: 700,
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 5
+                      gap: 6,
+                      transition: 'all 0.15s ease'
                     }}
                     title="Regenerate only this specific task with AI"
                   >
                     <RefreshCw style={{ width: 12, height: 12, animation: isThisRegenerating ? 'spin 1s linear infinite' : 'none' }} />
-                    {isThisRegenerating ? 'Regenerating…' : 'Regenerate'}
+                    <span>{isThisRegenerating ? 'Regenerating…' : 'Regenerate'}</span>
                   </button>
 
-                  {/* Remove Task Button */}
-                  <button 
-                    type="button"
-                    onClick={() => removeDraft(i)}
-                    disabled={isThisRegenerating || saving}
-                    style={{ 
-                      background: 'none', border: 'none', cursor: 'pointer', 
-                      color: 'var(--high)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 
-                    }}
-                  >
-                    <Trash2 style={{ width: 14, height: 14 }} /> Remove
-                  </button>
+                  {/* Remove Task Button (ONLY shown when drafts.length > 1) */}
+                  {drafts.length > 1 && (
+                    <button 
+                      type="button"
+                      onClick={() => removeDraft(i)}
+                      disabled={isThisRegenerating || saving}
+                      style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        color: 'var(--high)', 
+                        fontSize: 12, 
+                        fontWeight: 600,
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: 4,
+                        padding: '4px 6px',
+                        borderRadius: 'var(--radius-sm)',
+                        transition: 'opacity 0.15s ease'
+                      }}
+                      title={`Remove Task ${i + 1}`}
+                    >
+                      <Trash2 style={{ width: 14, height: 14 }} />
+                      <span>Remove</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -579,15 +628,27 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           );
         })}
 
-        {/* Add Another Task Button */}
+        {/* Add Another Task Button matching Image 1 */}
         <button
           type="button"
           onClick={handleAddNewTaskManually}
           style={{
-            padding: '12px 16px', background: 'var(--bg-surface)',
-            border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 13,
-            fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            width: '100%',
+            padding: '14px 20px',
+            background: 'var(--bg-surface)',
+            border: '2px dashed var(--border)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            fontFamily: "'JetBrains Mono', monospace",
+            textTransform: 'uppercase',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
             transition: 'all 0.15s ease'
           }}
           onMouseEnter={(e) => {
@@ -599,7 +660,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
             e.currentTarget.style.color = 'var(--text-secondary)';
           }}
         >
-          <Plus style={{ width: 16, height: 16 }} /> Add Another Task
+          <Plus style={{ width: 15, height: 15 }} /> Add Another Task
         </button>
       </div>
 
