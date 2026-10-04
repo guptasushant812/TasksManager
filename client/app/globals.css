@@ -2206,10 +2206,10 @@ html:not(.dark) .badge {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Card Filter Buttons (2x2 Grid on Mobile & Tablet) */
+/* Card Filter Buttons (Desktop: hidden, Tablet: 4 columns, Mobile: 2x2 grid) */
 .public-mobile-filter-chips {
   display: none;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 20px;
   width: 100%;
@@ -2317,10 +2317,12 @@ html:not(.dark) .badge {
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   font-size: 12.5px;
   color: var(--text-muted);
   line-height: 1.5;
+  width: 100%;
 }
 
 /* ── MediaQueryPrompt.md Standards: Mobile/Tablet Fluid Breakpoints ─────── */
@@ -2339,9 +2341,25 @@ html:not(.dark) .badge {
     display: none !important;
   }
 
-  /* Show 2x2 card filter buttons on tablet and mobile */
+  /* Tablet screens (641px - 1024px): show all 4 card filters in 1 row of 4 */
   .public-mobile-filter-chips {
     display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .public-filter-chip {
+    padding: 10px 10px;
+    gap: 6px;
+  }
+
+  .public-filter-chip .chip-left {
+    gap: 6px;
+  }
+
+  .public-filter-chip .chip-label {
+    font-size: 12.5px;
   }
 
   .public-main {
@@ -2364,7 +2382,9 @@ html:not(.dark) .badge {
     width: 100% !important;
   }
 
+  /* Mobile screens: show 2x2 grid */
   .public-mobile-filter-chips {
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     margin-bottom: 16px;
   }
@@ -2378,9 +2398,9 @@ html:not(.dark) .badge {
   }
 
   .public-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
   }
 }
 
