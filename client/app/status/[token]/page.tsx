@@ -920,7 +920,11 @@ export default function PublicStatusPage() {
             <strong style={{ color: '#2563eb', fontWeight: 800 }}>
               TasksManager
             </strong>
-            <span style={{ color: 'var(--text-muted, #94a3b8)', opacity: 0.6 }}>•</span>
+            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>by</span>
+            <strong style={{ color: 'var(--text-primary)', fontWeight: 800 }}>
+              Sushant Gupta
+            </strong>
+            <span style={{ color: 'var(--text-muted, #94a3b8)', opacity: 0.5 }}>•</span>
             <span style={{ color: 'var(--text-muted, #94a3b8)' }}>
               All Rights Reserved.
             </span>
