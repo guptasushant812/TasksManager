@@ -2173,31 +2173,70 @@ html:not(.dark) .badge {
 }
 
 .public-sidebar {
-  width: 280px;
+  width: 260px;
   height: 100vh;
   position: fixed;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  border-right: 1px solid var(--border);
-  z-index: 50;
-  transition: transform 0.3s var(--ease-out);
+  border-inline-end: 1px solid var(--border);
+  z-index: 70;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 1px 0 10px rgba(0, 0, 0, 0.03);
 }
 
 .dark .public-sidebar {
   background: var(--bg-surface);
-  border-right: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
   box-shadow: none;
+}
+
+.public-sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm, 4px);
+  align-items: center;
+  justify-content: center;
+}
+
+.public-sidebar-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.public-mobile-overlay {
+  display: none;
+}
+
+.public-mobile-toggle-btn {
+  display: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm, 6px);
+  padding: 7px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.public-mobile-toggle-btn:hover {
+  background: var(--bg-hover);
 }
 
 .public-layout .loading-bar {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   height: 3px;
   background: var(--bg-hover);
   z-index: 99999;
@@ -2205,52 +2244,81 @@ html:not(.dark) .badge {
 
 .public-main {
   flex: 1;
-  margin-left: 280px;
-  padding: 40px 48px;
-  max-width: 1200px;
-  margin-right: auto;
-  min-height: 100vh;
+  margin-inline-start: 260px;
+  padding: clamp(20px, 3.5vw, 40px) clamp(16px, 3.5vw, 48px);
+  max-width: 1240px;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 280px);
+  width: calc(100% - 260px);
 }
 
-@media (max-width: 900px) {
-  .public-layout {
-    flex-direction: column;
+/* ── MediaQueryPrompt.md Standards: Mobile Drawer & Fluid Breakpoints ─────── */
+@media (max-width: 1024px) {
+  .public-mobile-toggle-btn {
+    display: inline-flex;
+  }
+
+  .public-sidebar-close-btn {
+    display: inline-flex;
+  }
+
+  .public-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 65;
+    animation: fadeIn 0.2s ease forwards;
   }
 
   .public-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(280px, 85vw);
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    z-index: 70;
+  }
+
+  [dir="rtl"] .public-sidebar {
+    transform: translateX(100%);
+  }
+
+  .public-sidebar.mobile-open {
+    transform: translateX(0);
   }
 
   .public-main {
-    margin-left: 0;
+    margin-inline-start: 0;
     width: 100%;
-    padding: 28px 20px;
-    min-height: calc(100vh - 120px);
-  }
-
-  .public-sidebar-nav {
-    display: flex;
-    flex-direction: row !important;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    gap: 8px;
-  }
-
-  .public-sidebar-nav button {
-    flex-shrink: 0;
+    padding: clamp(16px, 2.5vw, 24px) clamp(12px, 2vw, 20px);
+    min-height: 100dvh;
   }
 }
 
-@media (max-width: 480px) {
-  .public-main {
-    padding: 20px 14px;
+@media (max-width: 640px) {
+  .public-main header {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 14px;
+  }
+
+  .public-main header > div:last-child {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-sidebar {
+    transition: none !important;
+  }
+  .loading-bar-inner {
+    animation: none !important;
   }
 }
 

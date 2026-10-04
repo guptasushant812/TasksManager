@@ -15,13 +15,12 @@ import {
   Calendar,
   User,
   UserPlus,
-  Sun,
-  Moon,
   ShieldCheck,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   X,
+  Menu,
   AlertCircle,
 } from 'lucide-react';
 
@@ -56,7 +55,7 @@ export default function PublicStatusPage() {
   // Default goal: show only today's tasks first
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [page, setPage] = useState(1);
-  const [isDark, setIsDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isTabSwitching, setIsTabSwitching] = useState(false);
 
   // Smooth scroll page and main container to top
@@ -76,6 +75,7 @@ export default function PublicStatusPage() {
     scrollToTop();
     setIsTabSwitching(true);
     setActiveTab(newTab);
+    setMobileMenuOpen(false);
     setPage(1);
     setTimeout(() => {
       setIsTabSwitching(false);
@@ -93,27 +93,27 @@ export default function PublicStatusPage() {
     }, 260);
   };
 
+  // Theme synchronization: defaults to neo-dark theme ('dark') on first load,
+  // or automatically applies whatever theme the user selected in settings (localStorage.theme).
   useEffect(() => {
     try {
-      const darkActive = document.documentElement.classList.contains('dark');
-      setIsDark(darkActive);
+      const applyTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        const themeToApply = savedTheme || 'dark';
+
+        document.documentElement.setAttribute('data-theme', themeToApply);
+        if (themeToApply === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      };
+
+      applyTheme();
+      window.addEventListener('storage', applyTheme);
+      return () => window.removeEventListener('storage', applyTheme);
     } catch { }
   }, []);
-
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.theme = 'dark';
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.theme = 'light';
-    }
-    window.dispatchEvent(new Event('storage'));
-  };
 
   const fetchStatus = useCallback(async (isSilent = false) => {
     if (!token) return;
@@ -272,8 +272,17 @@ export default function PublicStatusPage() {
         </div>
       )}
 
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="public-mobile-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Sidebar Navigation matching Main Module ────────────────── */}
-      <aside className="public-sidebar">
+      <aside className={`public-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         {/* Brand Header matching main module style */}
         <div style={{
           height: '64px',
@@ -309,26 +318,14 @@ export default function PublicStatusPage() {
             </div>
           </div>
 
+          {/* Close button inside mobile drawer */}
           <button
             type="button"
-            onClick={toggleTheme}
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
+            className="public-sidebar-close-btn"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close navigation"
           >
-            {isDark ? <Sun style={{ width: 15, height: 15, color: '#f59e0b' }} /> : <Moon style={{ width: 15, height: 15, color: 'var(--text-primary)' }} />}
+            <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
 
@@ -415,13 +412,25 @@ export default function PublicStatusPage() {
           flexWrap: 'wrap',
           gap: 16,
         }}>
-          <div>
-            <h1 style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 6px', color: 'var(--text-primary)' }}>
-              {activeTitle}
-            </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
-              Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Mobile Hamburger Button matching main dashboard sidebar */}
+            <button
+              type="button"
+              className="public-mobile-toggle-btn"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <Menu style={{ width: 20, height: 20 }} />
+            </button>
+
+            <div>
+              <h1 style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                {activeTitle}
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
+                Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 360 }}>
