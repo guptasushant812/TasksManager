@@ -1355,26 +1355,40 @@ html:not(.dark) .badge {
   }
 }
 
-/* ── Header Responsive System ────────────────────────────────────────────── */
+/* ── Unified Header Design System ────────────────────────────────────────── */
 .app-header {
+  height: 64px;
+  border-bottom: var(--border-width-layout) solid var(--border);
+  background: var(--bg-surface);
+  position: sticky;
+  top: 0px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(16px, 2.5vw, 28px) !important;
+  gap: 12px;
   box-sizing: border-box;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
   width: 100%;
 }
 
 .header-breadcrumb {
   display: flex;
   align-items: center;
-  font-size: 16px;
+  font-size: 15px;
   min-width: 0;
   overflow: hidden;
+  gap: 2px;
 }
 
 .header-page-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
 }
 
 .header-actions {
@@ -1384,76 +1398,229 @@ html:not(.dark) .badge {
   flex-shrink: 0;
 }
 
-.header-btn-icon-mobile {
-  display: none;
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-utility-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-divider {
+  width: 2px;
+  height: 24px;
+  background: var(--border);
+  opacity: 0.45;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* Base header button shared styles — EXACT 38px height, matching brutalist borders & shadows */
+.header-btn {
+  height: 38px !important;
+  box-sizing: border-box !important;
+  border: var(--border-width-layout) solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--box-shadow-brutalist) !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease !important;
+  line-height: 1 !important;
+  user-select: none;
+  font-family: inherit;
+  outline: none;
+}
+
+.header-btn:hover {
+  transform: translate(-1px, -1px);
+}
+
+.header-btn:active,
+.header-btn.is-open {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
+}
+
+/* 1. Share Button */
+.header-btn-share {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  gap: 6px;
+}
+
+.header-btn-share:hover {
+  background: var(--bg-hover) !important;
+}
+
+/* 2. New Task Button */
+.header-btn-new-task {
+  background: var(--accent) !important;
+  color: #000000 !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  gap: 6px;
+}
+
+.header-btn-new-task:hover {
+  filter: brightness(1.08) !important;
+}
+
+/* 3. Notification Bell Button */
+.header-notif-btn {
+  width: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  position: relative !important;
+}
+
+.header-notif-btn:hover {
+  background: var(--bg-hover) !important;
+}
+
+.header-notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--high);
+  color: #ffffff;
+  fontSize: 10px;
+  font-weight: 800;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* 4. User Profile Avatar Button */
+.header-user-btn {
+  width: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  background: var(--medium) !important;
+  color: var(--text-primary) !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em;
+  position: relative !important;
 }
 
 /* Tablet & Mobile: ≤ 1023px (Clearance for Sidebar fixed hamburger button at top-4 left-4) */
 @media (max-width: 1023px) {
   .app-header {
-    padding-left: clamp(56px, 8vw, 68px) !important;
+    padding-left: clamp(58px, 7vw, 68px) !important;
   }
 }
 
-/* Medium Mobile / Small Tablet: ≤ 768px */
-@media (max-width: 768px) {
+/* Medium Mobile / Small Tablet: ≤ 880px */
+@media (max-width: 880px) {
   .breadcrumb-prefix {
     display: none !important;
   }
+}
+
+/* Mobile: ≤ 768px */
+@media (max-width: 768px) {
   .header-actions {
     gap: 8px !important;
   }
+  .header-actions-group {
+    gap: 6px !important;
+  }
+  .header-utility-group {
+    gap: 6px !important;
+  }
+  .header-divider {
+    display: none !important;
+  }
 }
 
-/* Mobile: ≤ 640px */
+/* Phablet & Landscape: ≤ 640px */
 @media (max-width: 640px) {
-  .header-actions {
-    gap: 6px !important;
+  .header-btn {
+    height: 36px !important;
+  }
+  .header-notif-btn,
+  .header-user-btn {
+    width: 36px !important;
+    min-width: 36px !important;
+    font-size: 14px !important;
+  }
+  .header-btn-new-task {
+    padding: 0 12px !important;
+    font-size: 12px !important;
   }
   .header-btn-new-task .header-new-task-word {
     display: none !important;
   }
+  .header-btn-share {
+    padding: 0 10px !important;
+    font-size: 12px !important;
+  }
 }
 
-/* Small screens: ≤ 480px */
-@media (max-width: 480px) {
-  .breadcrumb-prefix {
-    display: none !important;
-  }
+/* Small Screens: ≤ 520px */
+@media (max-width: 520px) {
   .header-btn-share {
-    padding: 7px 9px !important;
-  }
-  .header-btn-share .header-btn-text {
-    display: none !important;
-  }
-  .header-btn-share .header-btn-icon-mobile {
-    display: inline-flex !important;
-  }
-  .header-user-btn {
     width: 36px !important;
-    height: 36px !important;
-    font-size: 14px !important;
+    min-width: 36px !important;
+    padding: 0 !important;
   }
-  .header-notif-btn {
-    padding: 7px !important;
+  .header-btn-share .header-share-text {
+    display: none !important;
   }
   .header-page-title {
     max-width: 110px;
   }
 }
 
-/* Ultra Small Screens: ≤ 360px */
-@media (max-width: 360px) {
+/* Ultra Small Screens: ≤ 380px */
+@media (max-width: 380px) {
   .app-header {
-    padding-left: 50px !important;
+    padding-left: 52px !important;
     padding-right: 8px !important;
-    gap: 4px !important;
+    gap: 6px !important;
   }
   .header-actions {
-    gap: 4px !important;
+    gap: 5px !important;
+  }
+  .header-actions-group,
+  .header-utility-group {
+    gap: 5px !important;
+  }
+  .header-btn {
+    height: 34px !important;
+  }
+  .header-btn-share,
+  .header-notif-btn,
+  .header-user-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    font-size: 13px !important;
   }
   .header-btn-new-task {
-    padding: 7px 9px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    padding: 0 !important;
   }
   .header-btn-new-task .header-new-task-text {
     display: none !important;

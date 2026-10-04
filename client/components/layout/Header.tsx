@@ -53,26 +53,10 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
 
   return (
     <>
-      <header
-        className="app-header"
-        style={{
-          height: 64,
-          borderBottom: 'var(--border-width-layout) solid var(--border)',
-          background: 'var(--bg-surface)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'clamp(12px, 3vw, 24px)',
-          gap: 8,
-        }}
-      >
+      <header className="app-header">
         {/* Breadcrumb */}
         <nav
           className="header-breadcrumb"
-          style={{ display: 'flex', alignItems: 'center', fontSize: 16, minWidth: 0, overflow: 'hidden' }}
           aria-label="Breadcrumb"
         >
           <span
@@ -83,89 +67,63 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
           </span>
           <ChevronRight
             className="breadcrumb-prefix"
-            style={{ width: 18, height: 18, margin: '0px 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }}
+            style={{ width: 16, height: 16, margin: '0px 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }}
           />
-          <span
-            className="header-page-title"
-            style={{ color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
-          >
+          <span className="header-page-title">
             {getPageName()}
           </span>
         </nav>
 
         {/* Actions */}
-        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            className="btn btn-ghost header-btn-share"
-            onClick={() => setShowShareModal(true)}
-            title="Share Public Link"
-            aria-label="Share"
-          >
-            <Share2 className="header-btn-icon-mobile" style={{ width: 15, height: 15 }} />
-            <span className="header-btn-text">Share</span>
-          </button>
-
-          <button
-            id="btn-new-task"
-            className="btn btn-primary header-btn-new-task"
-            onClick={() => setShowModal(true)}
-            title="New Task"
-          >
-            <Plus style={{ width: 16, height: 16, strokeWidth: 3 }} />
-            <span className="header-new-task-text">
-              <span className="header-new-task-word">New </span>Task
-            </span>
-          </button>
-
-          {/* Notification bell & popover */}
-          <div ref={notifRef} style={{ position: 'relative' }}>
+        <div className="header-actions">
+          {/* Workspace Action Group */}
+          <div className="header-actions-group">
             <button
               type="button"
-              className="header-notif-btn"
-              onClick={() => setNotifOpen(!notifOpen)}
-              aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
-              title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
-              style={{
-                background: notifOpen ? 'var(--bg-hover)' : 'var(--bg-surface)',
-                border: 'var(--border-width-layout) solid var(--border)',
-                cursor: 'pointer',
-                padding: 8,
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist)',
-                transform: notifOpen ? 'translate(2px, 2px)' : 'none',
-                position: 'relative',
-                transition: '0.1s',
-              }}
+              className="header-btn header-btn-share"
+              onClick={() => setShowShareModal(true)}
+              title="Share Public Link"
+              aria-label="Share"
             >
-              <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
-              {totalAlerts > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    background: overdueCount > 0 ? 'var(--high)' : 'var(--accent)',
-                    color: '#ffffff',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    width: 17,
-                    height: 17,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid var(--bg-surface)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  }}
-                >
-                  {totalAlerts > 9 ? '9+' : totalAlerts}
-                </span>
-              )}
+              <Share2 className="header-share-icon" style={{ width: 15, height: 15, strokeWidth: 2.5, flexShrink: 0 }} />
+              <span className="header-share-text">Share</span>
             </button>
+
+            <button
+              id="btn-new-task"
+              type="button"
+              className="header-btn header-btn-new-task"
+              onClick={() => setShowModal(true)}
+              title="Create New Task"
+            >
+              <Plus style={{ width: 16, height: 16, strokeWidth: 3, flexShrink: 0 }} />
+              <span className="header-new-task-text">
+                <span className="header-new-task-word">New </span>Task
+              </span>
+            </button>
+          </div>
+
+          {/* Visual Divider between workspace actions and personal utilities */}
+          <div className="header-divider" role="separator" aria-orientation="vertical" />
+
+          {/* Personal Utility Group */}
+          <div className="header-utility-group">
+            {/* Notification bell & popover */}
+            <div ref={notifRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={`header-btn header-notif-btn ${notifOpen ? 'is-open' : ''}`}
+                onClick={() => setNotifOpen(!notifOpen)}
+                aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
+                title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
+              >
+                <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
+                {totalAlerts > 0 && (
+                  <span className="header-notif-badge">
+                    {totalAlerts > 9 ? '9+' : totalAlerts}
+                  </span>
+                )}
+              </button>
 
             {notifOpen && (
               <div
@@ -293,29 +251,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
           <div ref={profileRef} style={{ position: 'relative' }}>
             <button
               type="button"
-              className="header-user-btn"
+              className={`header-btn header-user-btn ${profileOpen ? 'is-open' : ''}`}
               onClick={() => setProfileOpen(!profileOpen)}
               aria-label="User menu"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--medium)',
-                border: 'var(--border-width-layout) solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 16,
-                fontWeight: 900,
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                boxShadow: profileOpen ? 'none' : 'var(--box-shadow-brutalist)',
-                transition: '0.1s',
-                transform: profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)',
-              }}
-              onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)'; e.currentTarget.style.boxShadow = profileOpen ? 'none' : 'var(--box-shadow-brutalist)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)'; e.currentTarget.style.boxShadow = profileOpen ? 'none' : 'var(--box-shadow-brutalist)'; }}
             >
               SG
             </button>
@@ -382,7 +320,8 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             )}
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Share Modal */}
       {showShareModal && (
