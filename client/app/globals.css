@@ -2040,6 +2040,99 @@ html:not(.dark) .badge {
   font-family: var(--font-sans);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   PUBLIC STATUS PORTAL (Modern Responsive Architecture)
+   ───────────────────────────────────────────────────────────────────────────── */
+.public-portal {
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+}
+
+.public-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px clamp(16px, 3vw, 36px);
+  background: var(--bg-surface);
+  border-bottom: var(--border-width-layout, 1px) solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .public-topbar {
+  background: rgba(18, 18, 26, 0.88);
+}
+
+.public-container {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(16px, 2.5vw, 32px) clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Public Task Card with Container Query */
+.public-task-card-container {
+  container-type: inline-size;
+  container-name: taskcard;
+  width: 100%;
+}
+
+.public-task-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 8px);
+  padding: clamp(16px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  box-shadow: var(--box-shadow-brutalist-sm, 2px 2px 0px 0px var(--border));
+}
+
+.public-task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-brutalist, 4px 4px 0px 0px var(--border));
+}
+
+.public-task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@container taskcard (max-width: 520px) {
+  .public-task-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+.public-callout {
+  padding: 14px 18px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Medium reading typography on the public page (Both Light & Dark modes) */
 .public-main h1 {
   font-size: var(--text-h1);
