@@ -23,10 +23,6 @@ import {
   ChevronRight,
   X,
   AlertCircle,
-  Grid3X3,
-  Table,
-  Layers,
-  Sparkles,
 } from 'lucide-react';
 
 interface PublicStatusData {
@@ -62,8 +58,6 @@ export default function PublicStatusPage() {
   const [page, setPage] = useState(1);
   const [isDark, setIsDark] = useState(false);
   const [isTabSwitching, setIsTabSwitching] = useState(false);
-  // View mode options: 'glass' (Modern Rich Glass Cards), 'grid' (2-Column Grid), 'table' (Clean Dashboard Table), 'expanded' (Streamlined List)
-  const [viewMode, setViewMode] = useState<'glass' | 'grid' | 'table' | 'expanded'>('glass');
 
   // Smooth scroll page and main container to top
   const scrollToTop = () => {
@@ -430,49 +424,9 @@ export default function PublicStatusPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {/* View Mode Switcher (Allows comparing all 4 options live) */}
-            <div className="public-view-switcher" title="Select Layout Mode">
-              <button
-                type="button"
-                className={`public-view-btn ${viewMode === 'glass' ? 'active' : ''}`}
-                onClick={() => setViewMode('glass')}
-                title="Option 1: Modern Rich Glass Cards"
-              >
-                <Sparkles style={{ width: 13, height: 13 }} />
-                <span>Modern Glass</span>
-              </button>
-              <button
-                type="button"
-                className={`public-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="Option 2: 2-Column Responsive Grid"
-              >
-                <Grid3X3 style={{ width: 13, height: 13 }} />
-                <span>Grid Cards</span>
-              </button>
-              <button
-                type="button"
-                className={`public-view-btn ${viewMode === 'table' ? 'active' : ''}`}
-                onClick={() => setViewMode('table')}
-                title="Option 3: Dashboard Table View"
-              >
-                <Table style={{ width: 13, height: 13 }} />
-                <span>Table</span>
-              </button>
-              <button
-                type="button"
-                className={`public-view-btn ${viewMode === 'expanded' ? 'active' : ''}`}
-                onClick={() => setViewMode('expanded')}
-                title="Option 4: Streamlined List"
-              >
-                <Layers style={{ width: 13, height: 13 }} />
-                <span>List</span>
-              </button>
-            </div>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 360 }}>
             {/* Clean Instant Search Bar */}
-            <div style={{ position: 'relative', width: 220 }}>
+            <div style={{ position: 'relative', flex: 1 }}>
               <Search style={{ position: 'absolute', left: 12, top: 11, width: 15, height: 15, color: 'var(--text-muted)' }} />
               <input
                 type="text"
@@ -530,81 +484,6 @@ export default function PublicStatusPage() {
           </div>
         </header>
 
-        {/* ── Option 2 & 4: Top Interactive Metric Summary Cards ─────── */}
-        <div className="public-metrics-grid">
-          <div
-            className={`public-metric-card ${activeTab === 'today' ? 'active' : ''}`}
-            onClick={() => handleTabChange('today')}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: activeTab === 'today' ? 'var(--accent)' : 'var(--text-muted)' }}>
-                Today's Focus
-              </span>
-              <Target style={{ width: 14, height: 14, color: 'var(--inprogress)' }} />
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1 }}>
-              {data.counts.today}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {activeTab === 'today' ? 'Active Filter • Click to browse' : 'Targeted priority tasks'}
-            </div>
-          </div>
-
-          <div
-            className={`public-metric-card ${activeTab === 'inProgress' ? 'active' : ''}`}
-            onClick={() => handleTabChange('inProgress')}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: activeTab === 'inProgress' ? 'var(--accent)' : 'var(--text-muted)' }}>
-                In Progress
-              </span>
-              <Activity style={{ width: 14, height: 14, color: 'var(--inprogress)' }} />
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--inprogress)', lineHeight: 1 }}>
-              {data.counts.inProgress}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {activeTab === 'inProgress' ? 'Active Filter • Click to browse' : 'Currently being executed'}
-            </div>
-          </div>
-
-          <div
-            className={`public-metric-card ${activeTab === 'pending' ? 'active' : ''}`}
-            onClick={() => handleTabChange('pending')}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: activeTab === 'pending' ? 'var(--accent)' : 'var(--text-muted)' }}>
-                Pending Queue
-              </span>
-              <Timer style={{ width: 14, height: 14, color: 'var(--pending)' }} />
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--pending)', lineHeight: 1 }}>
-              {data.counts.pending}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {activeTab === 'pending' ? 'Active Filter • Click to browse' : 'Awaiting follow-up / action'}
-            </div>
-          </div>
-
-          <div
-            className={`public-metric-card ${activeTab === 'completed' ? 'active' : ''}`}
-            onClick={() => handleTabChange('completed')}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: activeTab === 'completed' ? 'var(--accent)' : 'var(--text-muted)' }}>
-                Completed
-              </span>
-              <CheckSquare style={{ width: 14, height: 14, color: 'var(--completed)' }} />
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--completed)', lineHeight: 1 }}>
-              {data.counts.completed}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {activeTab === 'completed' ? 'Active Filter • Click to browse' : 'Successfully fulfilled'}
-            </div>
-          </div>
-        </div>
-
         {/* ── Task Cards Feed ─────────────────────────────────────────── */}
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={`${activeTab}-${page}`}>
           {isTabSwitching ? (
@@ -650,217 +529,41 @@ export default function PublicStatusPage() {
                 </button>
               )}
             </div>
-          ) : viewMode === 'table' ? (
-            /* ── OPTION 3: Sleek Dashboard Table Layout ─────────────────── */
-            <div className="public-table-wrap">
-              <table className="public-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 90 }}>Task ID</th>
-                    <th style={{ minWidth: 220 }}>Task Title & Description</th>
-                    <th>Created By / Assignee</th>
-                    <th>Date / Due</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Details / Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTasks.map((task) => {
-                    return (
-                      <tr key={task._id}>
-                        <td>
-                          <span
-                            className="pill"
-                            style={{
-                              fontWeight: 900,
-                              fontSize: 11,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border)',
-                              color: 'var(--text-primary)',
-                              padding: '3px 8px',
-                              display: 'inline-block',
-                            }}
-                          >
-                            {task.taskId || '—'}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 13.5, marginBottom: 4 }}>
-                            {task.title}
-                          </div>
-                          {task.description && (
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.45, maxWidth: 360 }}>
-                              {task.description}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700 }}>
-                            {task.givenBy || '—'}
-                          </div>
-                          {task.contactPerson && (
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                              Contact: {task.contactPerson}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>
-                            {formatDate(task.createdAt || task.date)}
-                          </div>
-                          {task.dueDate && (
-                            <div style={{ fontSize: 11, color: 'var(--high)', fontWeight: 700 }}>
-                              Due: {formatDate(task.dueDate)}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          {task.priority ? <PriorityBadge priority={task.priority} /> : <span style={{ color: 'var(--text-muted)' }}>—</span>}
-                        </td>
-                        <td>
-                          <StatusBadge status={task.workStatus} />
-                        </td>
-                        <td style={{ maxWidth: 260 }}>
-                          {task.reason && (
-                            <div style={{ fontSize: 11.5, color: 'var(--pending)', fontWeight: 600, marginBottom: 2 }}>
-                              <strong>Reason:</strong> {task.reason}
-                            </div>
-                          )}
-                          {task.remarks && (
-                            <div style={{ fontSize: 11.5, color: 'var(--completed)', fontWeight: 600 }}>
-                              <strong>Remarks:</strong> {task.remarks}
-                            </div>
-                          )}
-                          {!task.reason && !task.remarks && <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : viewMode === 'grid' ? (
-            /* ── OPTION 2: 2-Column Responsive Card Grid ────────────────── */
-            <div className="public-cards-grid">
-              {paginatedTasks.map((task, index) => {
-                const statusAccentColor =
-                  task.workStatus === 'Completed' ? 'var(--completed)' :
-                  task.workStatus === 'InProgress' ? 'var(--inprogress)' : 'var(--pending)';
-
-                return (
-                  <article
-                    key={task._id}
-                    className="card brutalist-hover"
-                    style={{
-                      padding: '18px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border)',
-                      borderTop: `4px solid ${statusAccentColor}`,
-                      borderRadius: 'var(--radius-lg, 10px)',
-                      animation: `slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s forwards`,
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                        {task.taskId && (
-                          <span
-                            className="pill"
-                            style={{
-                              fontWeight: 900,
-                              fontSize: 11,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border)',
-                              color: 'var(--text-primary)',
-                              padding: '2px 8px',
-                            }}
-                          >
-                            {task.taskId}
-                          </span>
-                        )}
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          {task.priority && <PriorityBadge priority={task.priority} />}
-                          <StatusBadge status={task.workStatus} />
-                        </div>
-                      </div>
-
-                      <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.35 }}>
-                        {task.title}
-                      </h2>
-
-                      {task.description && (
-                        <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5, maxHeight: 72, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {task.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      {/* Meta chips */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-                        {task.givenBy && (
-                          <span style={{ background: 'var(--bg-hover)', padding: '3px 8px', borderRadius: 4, border: '1px solid var(--border-subtle)' }}>
-                            👤 {task.givenBy}
-                          </span>
-                        )}
-                        <span style={{ background: 'var(--bg-hover)', padding: '3px 8px', borderRadius: 4, border: '1px solid var(--border-subtle)' }}>
-                          📅 {formatDate(task.createdAt || task.date)}
-                        </span>
-                      </div>
-
-                      {(task.reason || task.remarks) && (
-                        <div style={{
-                          padding: '8px 10px',
-                          background: 'var(--bg-hover)',
-                          borderRadius: 'var(--radius-sm, 6px)',
-                          borderLeft: `3px solid ${task.reason ? 'var(--pending)' : 'var(--completed)'}`,
-                          fontSize: 11.5,
-                        }}>
-                          {task.reason && <div><strong style={{ color: 'var(--pending)' }}>Reason:</strong> {task.reason}</div>}
-                          {task.remarks && <div><strong style={{ color: 'var(--completed)' }}>Remarks:</strong> {task.remarks}</div>}
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : viewMode === 'glass' ? (
-            /* ── OPTION 1: Ultra-Modern Glassmorphic Frosted Cards ───────── */
+          ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {paginatedTasks.map((task, index) => {
-                const statusAccentColor =
-                  task.workStatus === 'Completed' ? 'var(--completed)' :
-                  task.workStatus === 'InProgress' ? 'var(--inprogress)' : 'var(--pending)';
-
                 return (
                   <article
                     key={task._id}
-                    className="public-glass-card"
+                    className="card"
                     style={{
-                      borderLeft: `5px solid ${statusAccentColor}`,
-                      animation: `slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s forwards`,
+                      padding: '22px 26px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 14,
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-lg, 8px)',
+                      boxShadow: 'none',
+                      transition: 'border-color 0.15s ease',
+                      animation: `slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s forwards`,
                     }}
                   >
-                    {/* Header */}
+                    {/* Header: Title and Status Badge */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                       <div style={{ flex: 1, minWidth: 220 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
                           {task.taskId && (
                             <span
-                              className="pill"
                               style={{
-                                fontWeight: 900,
-                                letterSpacing: '0.04em',
+                                fontWeight: 800,
+                                letterSpacing: '0.03em',
                                 fontSize: 11,
                                 background: 'var(--bg-elevated)',
                                 border: '1px solid var(--border)',
-                                color: 'var(--text-primary)',
+                                color: 'var(--text-secondary)',
                                 padding: '2px 8px',
+                                borderRadius: 'var(--radius-sm, 4px)',
                               }}
                             >
                               {task.taskId}
@@ -869,10 +572,11 @@ export default function PublicStatusPage() {
 
                           <h2 style={{
                             margin: 0,
-                            fontSize: 'clamp(1rem, 0.95rem + 0.35vw, 1.2rem)',
-                            fontWeight: 800,
+                            fontSize: '16px',
+                            fontWeight: 700,
                             color: 'var(--text-primary)',
                             lineHeight: 1.35,
+                            letterSpacing: '-0.01em',
                           }}>
                             {task.title}
                           </h2>
@@ -885,13 +589,14 @@ export default function PublicStatusPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: 6,
-                              background: 'var(--bg-hover)',
+                              background: 'var(--bg-elevated)',
                               border: '1px solid var(--border-subtle)',
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-sm, 6px)',
+                              padding: '3px 8px',
+                              borderRadius: 'var(--radius-sm, 4px)',
+                              fontSize: 12,
                             }}>
                               <UserPlus style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
-                              <span>Given by: <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{task.givenBy}</strong></span>
+                              <span>Given by: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{task.givenBy}</strong></span>
                             </div>
                           )}
 
@@ -899,13 +604,14 @@ export default function PublicStatusPage() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: 6,
-                            background: 'var(--bg-hover)',
+                            background: 'var(--bg-elevated)',
                             border: '1px solid var(--border-subtle)',
-                            padding: '4px 10px',
-                            borderRadius: 'var(--radius-sm, 6px)',
+                            padding: '3px 8px',
+                            borderRadius: 'var(--radius-sm, 4px)',
+                            fontSize: 12,
                           }}>
                             <Calendar style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
-                            <span>Created: <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{formatDate(task.createdAt || task.date)}</strong></span>
+                            <span>Created: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatDate(task.createdAt || task.date)}</strong></span>
                           </div>
 
                           {task.contactPerson && (
@@ -913,13 +619,14 @@ export default function PublicStatusPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: 6,
-                              background: 'var(--bg-hover)',
+                              background: 'var(--bg-elevated)',
                               border: '1px solid var(--border-subtle)',
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-sm, 6px)',
+                              padding: '3px 8px',
+                              borderRadius: 'var(--radius-sm, 4px)',
+                              fontSize: 12,
                             }}>
                               <User style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
-                              <span>Contact: <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{task.contactPerson}</strong></span>
+                              <span>Contact: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{task.contactPerson}</strong></span>
                             </div>
                           )}
 
@@ -928,19 +635,20 @@ export default function PublicStatusPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: 6,
-                              background: 'var(--bg-hover)',
+                              background: 'var(--bg-elevated)',
                               border: '1px solid var(--border-subtle)',
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-sm, 6px)',
+                              padding: '3px 8px',
+                              borderRadius: 'var(--radius-sm, 4px)',
+                              fontSize: 12,
                             }}>
-                              <Clock style={{ width: 12, height: 12, color: 'var(--high)' }} />
-                              <span>Due: <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{formatDate(task.dueDate)}</strong></span>
+                              <Clock style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
+                              <span>Due: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatDate(task.dueDate)}</strong></span>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         {task.priority && <PriorityBadge priority={task.priority} />}
                         <StatusBadge status={task.workStatus} />
                       </div>
@@ -950,7 +658,7 @@ export default function PublicStatusPage() {
                     {task.description && (
                       <p style={{
                         margin: 0,
-                        fontSize: 13.5,
+                        fontSize: 14,
                         color: 'var(--text-secondary)',
                         lineHeight: 1.6,
                         whiteSpace: 'pre-wrap',
@@ -959,85 +667,34 @@ export default function PublicStatusPage() {
                       </p>
                     )}
 
-                    {/* Reason / Remarks Callout Box */}
+                    {/* Reason / Remarks Note Box */}
                     {(task.reason || task.remarks) && (
                       <div style={{
                         marginTop: 2,
                         padding: '12px 16px',
-                        background: 'var(--bg-hover)',
-                        borderRadius: 'var(--radius-md, 6px)',
+                        background: 'var(--bg-elevated)',
+                        borderRadius: 'var(--radius-sm, 6px)',
                         border: '1px solid var(--border)',
-                        borderLeft: `4px solid ${task.reason ? 'var(--pending)' : 'var(--completed)'}`,
                         fontSize: 13,
                         lineHeight: 1.5,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 6,
+                        gap: 4,
                       }}>
-                        {task.reason && (
-                          <div>
-                            <strong style={{ color: 'var(--pending)', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
-                              Reason:{' '}
-                            </strong>
-                            <span style={{ color: 'var(--text-primary)' }}>{task.reason}</span>
-                          </div>
-                        )}
-                        {task.remarks && (
-                          <div>
-                            <strong style={{ color: 'var(--completed)', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
-                              Remarks:{' '}
-                            </strong>
-                            <span style={{ color: 'var(--text-primary)' }}>{task.remarks}</span>
-                          </div>
-                        )}
+                        <div style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          color: 'var(--text-muted)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                        }}>
+                          {task.reason ? 'Pending Reason' : 'Completed Remarks'}
+                        </div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.5 }}>
+                          {task.reason || task.remarks}
+                        </div>
                       </div>
                     )}
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            /* ── OPTION 4: Streamlined List ──────────────────────────────── */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {paginatedTasks.map((task, index) => {
-                const statusAccentColor =
-                  task.workStatus === 'Completed' ? 'var(--completed)' :
-                  task.workStatus === 'InProgress' ? 'var(--inprogress)' : 'var(--pending)';
-
-                return (
-                  <article
-                    key={task._id}
-                    className="card brutalist-hover"
-                    style={{
-                      padding: '16px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 16,
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border)',
-                      borderLeft: `4px solid ${statusAccentColor}`,
-                      borderRadius: 'var(--radius-md, 8px)',
-                      flexWrap: 'wrap',
-                      animation: `slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.02}s forwards`,
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 240 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span className="pill" style={{ fontSize: 10.5, fontWeight: 900, padding: '1px 6px' }}>{task.taskId}</span>
-                        <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: 'var(--text-primary)' }}>{task.title}</h3>
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        Given by: <strong style={{ color: 'var(--text-secondary)' }}>{task.givenBy || 'N/A'}</strong> • {formatDate(task.createdAt || task.date)}
-                        {task.reason && <span style={{ color: 'var(--pending)', marginLeft: 8 }}>• Reason: {task.reason}</span>}
-                        {task.remarks && <span style={{ color: 'var(--completed)', marginLeft: 8 }}>• Remarks: {task.remarks}</span>}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {task.priority && <PriorityBadge priority={task.priority} />}
-                      <StatusBadge status={task.workStatus} />
-                    </div>
                   </article>
                 );
               })}
@@ -1187,34 +844,33 @@ function TaskCardSkeleton() {
   return (
     <div
       style={{
-        padding: '20px 24px',
+        padding: '22px 26px',
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg, 8px)',
-        boxShadow: 'var(--box-shadow-brutalist-sm)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 999 }} />
+          <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 4 }} />
           <div className="skeleton" style={{ width: 240, height: 22, borderRadius: 4 }} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 999 }} />
-          <div className="skeleton" style={{ width: 90, height: 22, borderRadius: 999 }} />
+          <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 6 }} />
+          <div className="skeleton" style={{ width: 90, height: 22, borderRadius: 6 }} />
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <div className="skeleton" style={{ width: 140, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
-        <div className="skeleton" style={{ width: 150, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
-        <div className="skeleton" style={{ width: 160, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
+        <div className="skeleton" style={{ width: 140, height: 26, borderRadius: 'var(--radius-sm, 4px)' }} />
+        <div className="skeleton" style={{ width: 150, height: 26, borderRadius: 'var(--radius-sm, 4px)' }} />
+        <div className="skeleton" style={{ width: 160, height: 26, borderRadius: 'var(--radius-sm, 4px)' }} />
       </div>
       <div className="skeleton" style={{ width: '85%', height: 16, borderRadius: 4 }} />
       <div className="skeleton" style={{ width: '60%', height: 16, borderRadius: 4 }} />
-      <div className="skeleton" style={{ width: '100%', height: 38, borderRadius: 6 }} />
+      <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
     </div>
   );
 }
@@ -1266,73 +922,75 @@ function PaginationBtn({
 
 function PriorityBadge({ priority }: { priority: Priority }) {
   const p = priority.toLowerCase();
-  let color = 'var(--text-secondary)';
-  let bg = 'var(--bg-hover)';
-  let border = 'var(--border)';
-
-  if (p === 'high') {
-    color = 'var(--high)';
-    bg = 'var(--high-bg, rgba(255, 51, 102, 0.1))';
-    border = 'var(--high)';
-  } else if (p === 'medium') {
-    color = 'var(--medium)';
-    bg = 'var(--medium-bg, rgba(255, 0, 255, 0.1))';
-    border = 'var(--medium)';
-  } else if (p === 'low') {
-    color = 'var(--low)';
-    bg = 'var(--low-bg, rgba(0, 212, 255, 0.1))';
-    border = 'var(--low)';
-  }
+  const dotColor =
+    p === 'high' ? '#ef4444' :
+    p === 'medium' ? '#f59e0b' : '#94a3b8';
 
   return (
-    <span style={{
-      color,
-      background: bg,
-      border: `1px solid ${border}`,
-      borderRadius: 'var(--radius-full, 9999px)',
-      padding: '3px 10px',
-      fontSize: 11,
-      fontWeight: 800,
-      letterSpacing: '0.04em',
-      textTransform: 'uppercase',
-    }}>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '3px 9px',
+        borderRadius: 'var(--radius-sm, 6px)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border)',
+        fontSize: 11,
+        fontWeight: 700,
+        color: 'var(--text-secondary)',
+        letterSpacing: '0.02em',
+        textTransform: 'uppercase',
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: dotColor,
+          display: 'inline-block',
+        }}
+      />
       {priority}
     </span>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  let color = 'var(--text-secondary)';
-  let bg = 'var(--bg-hover)';
-  let border = 'var(--border)';
+  const dotColor =
+    status === 'Completed' ? '#22c55e' :
+    status === 'InProgress' ? '#0ea5e9' : '#f59e0b';
 
-  if (status === 'Completed') {
-    color = 'var(--completed)';
-    bg = 'var(--completed-bg, rgba(0, 255, 136, 0.1))';
-    border = 'var(--completed)';
-  } else if (status === 'InProgress') {
-    color = 'var(--inprogress)';
-    bg = 'var(--inprogress-bg, rgba(0, 212, 255, 0.1))';
-    border = 'var(--inprogress)';
-  } else if (status === 'Pending') {
-    color = 'var(--pending)';
-    bg = 'var(--pending-bg, rgba(255, 0, 255, 0.1))';
-    border = 'var(--pending)';
-  }
+  const label = status === 'InProgress' ? 'In Progress' : status;
 
   return (
-    <span style={{
-      color,
-      background: bg,
-      border: `1px solid ${border}`,
-      borderRadius: 'var(--radius-full, 9999px)',
-      padding: '3px 10px',
-      fontSize: 11,
-      fontWeight: 800,
-      letterSpacing: '0.04em',
-      textTransform: 'uppercase',
-    }}>
-      {status === 'InProgress' ? 'In Progress' : status}
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '3px 9px',
+        borderRadius: 'var(--radius-sm, 6px)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border)',
+        fontSize: 11,
+        fontWeight: 700,
+        color: 'var(--text-secondary)',
+        letterSpacing: '0.02em',
+        textTransform: 'uppercase',
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: dotColor,
+          display: 'inline-block',
+        }}
+      />
+      {label}
     </span>
   );
 }
