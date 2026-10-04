@@ -2201,6 +2201,10 @@ html:not(.dark) .badge {
   padding: 40px 48px;
   max-width: 1200px;
   margin-right: auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 280px);
 }
 
 @media (max-width: 900px) {
@@ -2218,7 +2222,9 @@ html:not(.dark) .badge {
 
   .public-main {
     margin-left: 0;
+    width: 100%;
     padding: 28px 20px;
+    min-height: calc(100vh - 120px);
   }
 
   .public-sidebar-nav {

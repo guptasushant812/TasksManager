@@ -17,7 +17,8 @@ import {
   Moon,
   ShieldCheck,
   RefreshCw,
-  Layers,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from 'lucide-react';
 
@@ -37,7 +38,9 @@ interface PublicStatusData {
   tasks?: Task[];
 }
 
-type TabType = 'today' | 'all' | 'inProgress' | 'pending' | 'completed';
+type TabType = 'today' | 'inProgress' | 'pending' | 'completed';
+
+const ITEMS_PER_PAGE = 5;
 
 export default function PublicStatusPage() {
   const { token } = useParams<{ token: string }>();
@@ -47,8 +50,9 @@ export default function PublicStatusPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   
-  // Default goal of public page: show today's tasks first
+  // Default goal: show only today's tasks first
   const [activeTab, setActiveTab] = useState<TabType>('today');
+  const [page, setPage] = useState(1);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -94,7 +98,7 @@ export default function PublicStatusPage() {
     fetchStatus();
   }, [fetchStatus]);
 
-  // Periodic background refresh every 15s
+  // Periodic silent background sync every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
@@ -103,35 +107,60 @@ export default function PublicStatusPage() {
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
-  // Extract raw tasks for active tab
-  const tabTasks = useMemo(() => {
+  // Reset pagination whenever activeTab or search changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, search]);
+
+  // Raw list for currently selected category
+  const rawTabTasks = useMemo(() => {
     if (!data) return [];
     if (activeTab === 'today') return data.today || [];
-    if (activeTab === 'all') return data.all || [];
     if (activeTab === 'inProgress') return data.inProgress || [];
     if (activeTab === 'pending') return data.pending || [];
     if (activeTab === 'completed') return data.completed || [];
     return [];
   }, [data, activeTab]);
 
-  // Client-side search for instantaneous feedback
-  const displayedTasks = useMemo(() => {
-    if (!search.trim()) return tabTasks;
-    const q = search.toLowerCase().trim();
-    return tabTasks.filter((t) =>
-      (t.taskId && t.taskId.toLowerCase().includes(q)) ||
-      t.title.toLowerCase().includes(q) ||
-      (t.description && t.description.toLowerCase().includes(q)) ||
-      (t.givenBy && t.givenBy.toLowerCase().includes(q)) ||
-      (t.contactPerson && t.contactPerson.toLowerCase().includes(q)) ||
-      (t.reason && t.reason.toLowerCase().includes(q)) ||
-      (t.remarks && t.remarks.toLowerCase().includes(q))
-    );
-  }, [tabTasks, search]);
+  // Client-side search and latest-first sorting (TK-005, TK-004, etc.)
+  const sortedAndFilteredTasks = useMemo(() => {
+    let list = [...rawTabTasks];
+
+    // Search query filter
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      list = list.filter((t) =>
+        (t.taskId && t.taskId.toLowerCase().includes(q)) ||
+        t.title.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.givenBy && t.givenBy.toLowerCase().includes(q)) ||
+        (t.contactPerson && t.contactPerson.toLowerCase().includes(q)) ||
+        (t.reason && t.reason.toLowerCase().includes(q)) ||
+        (t.remarks && t.remarks.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort by taskId descending: higher/latest task ID number first (e.g. TK-005 before TK-004)
+    list.sort((a, b) => {
+      const idA = a.taskId || '';
+      const idB = b.taskId || '';
+      return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    return list;
+  }, [rawTabTasks, search]);
+
+  // Pagination calculations: show only top 5 data per page
+  const totalTasks = sortedAndFilteredTasks.length;
+  const totalPages = Math.max(1, Math.ceil(totalTasks / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedTasks = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedAndFilteredTasks.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedAndFilteredTasks, currentPage]);
 
   const activeTitle =
     activeTab === 'today' ? "Today's Focus" :
-    activeTab === 'all' ? "All Tasks" :
     activeTab === 'inProgress' ? "In Progress Tasks" :
     activeTab === 'pending' ? "Pending Queue" : "Completed Tasks";
 
@@ -143,7 +172,6 @@ export default function PublicStatusPage() {
             <div className="skeleton" style={{ width: 140, height: 24, borderRadius: 6 }} />
           </div>
           <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
             <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
             <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
             <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
@@ -184,7 +212,7 @@ export default function PublicStatusPage() {
 
   return (
     <div className="public-layout">
-      {/* ── Sidebar Navigation ───────────────────────────────────────── */}
+      {/* ── Sidebar Navigation (No All Tasks button) ────────────────── */}
       <aside className="public-sidebar">
         {/* Sidebar Header with Theme Switcher */}
         <div style={{ height: '64px', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -236,14 +264,14 @@ export default function PublicStatusPage() {
           </button>
         </div>
 
-        {/* Sidebar Content */}
+        {/* Sidebar Categories Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 14px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '0 8px', marginBottom: 10, fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Categories
           </div>
 
           <nav className="public-sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* 1. Today's Focus (Default!) */}
+            {/* 1. Today's Focus (Default Primary Focus) */}
             <SidebarButton
               label="Today's Focus"
               icon={<Clock style={{ width: 15, height: 15 }} />}
@@ -253,17 +281,7 @@ export default function PublicStatusPage() {
               indicatorColor="var(--inprogress)"
             />
 
-            {/* 2. All Tasks */}
-            <SidebarButton
-              label="All Tasks"
-              icon={<Layers style={{ width: 15, height: 15 }} />}
-              count={data.counts.total}
-              active={activeTab === 'all'}
-              onClick={() => setActiveTab('all')}
-              indicatorColor="var(--text-primary)"
-            />
-
-            {/* 3. In Progress */}
+            {/* 2. In Progress */}
             <SidebarButton
               label="In Progress"
               icon={<Clock style={{ width: 15, height: 15 }} />}
@@ -273,7 +291,7 @@ export default function PublicStatusPage() {
               indicatorColor="var(--inprogress)"
             />
 
-            {/* 4. Pending Queue */}
+            {/* 3. Pending Queue */}
             <SidebarButton
               label="Pending"
               icon={<AlertCircle style={{ width: 15, height: 15 }} />}
@@ -283,7 +301,7 @@ export default function PublicStatusPage() {
               indicatorColor="var(--pending)"
             />
 
-            {/* 5. Completed Tasks */}
+            {/* 4. Completed Tasks */}
             <SidebarButton
               label="Completed"
               icon={<CheckCircle2 style={{ width: 15, height: 15 }} />}
@@ -326,6 +344,7 @@ export default function PublicStatusPage() {
 
       {/* ── Main Content Area ────────────────────────────────────────── */}
       <main className="public-main">
+        {/* Content Header with clean search and sync */}
         <header className="animate-fade-in" style={{
           marginBottom: 24,
           paddingBottom: 20,
@@ -341,7 +360,7 @@ export default function PublicStatusPage() {
               {activeTitle}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
-              Showing {displayedTasks.length} task{displayedTasks.length !== 1 ? 's' : ''} in this view.
+              Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
             </p>
           </div>
 
@@ -406,8 +425,8 @@ export default function PublicStatusPage() {
         </header>
 
         {/* ── Task Cards Feed ─────────────────────────────────────────── */}
-        <section className="animate-slide-up" key={activeTab}>
-          {displayedTasks.length === 0 ? (
+        <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={activeTab}>
+          {totalTasks === 0 ? (
             <div
               className="card"
               style={{
@@ -422,6 +441,7 @@ export default function PublicStatusPage() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 12,
+                margin: 'auto 0',
               }}
             >
               <AlertCircle style={{ width: 40, height: 40, opacity: 0.4, color: 'var(--text-muted)' }} />
@@ -445,7 +465,7 @@ export default function PublicStatusPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {displayedTasks.map((task, index) => {
+              {paginatedTasks.map((task, index) => {
                 const statusAccentColor =
                   task.workStatus === 'Completed' ? 'var(--completed)' :
                   task.workStatus === 'InProgress' ? 'var(--inprogress)' : 'var(--pending)';
@@ -618,33 +638,95 @@ export default function PublicStatusPage() {
               })}
             </div>
           )}
+
+          {/* ── Pagination (Same as Task module: top 5 per page) ──────── */}
+          {totalTasks > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              marginTop: 18,
+              marginBottom: 20,
+              background: 'var(--bg-surface)',
+              border: 'var(--border-width-layout) solid var(--border)',
+              borderRadius: 'var(--radius-md, 8px)',
+              boxShadow: 'var(--box-shadow-brutalist-sm)',
+              fontSize: 13,
+              color: 'var(--text-primary)',
+              fontWeight: 800,
+              flexWrap: 'wrap',
+              gap: 12,
+            }}>
+              <span>
+                {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalTasks)} of {totalTasks}
+              </span>
+
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <PaginationBtn
+                  disabled={currentPage === 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft style={{ width: 14, height: 14 }} />
+                </PaginationBtn>
+
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const p = idx + 1;
+                  if (totalPages > 7) {
+                    if (p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
+                      if (p === 2 || p === totalPages - 1) return <span key={p} style={{ padding: '0 2px', opacity: 0.3, fontSize: 11 }}>…</span>;
+                      return null;
+                    }
+                  }
+                  const isActive = p === currentPage;
+                  return (
+                    <PaginationBtn
+                      key={p}
+                      active={isActive}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </PaginationBtn>
+                  );
+                })}
+
+                <PaginationBtn
+                  disabled={currentPage === totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  <ChevronRight style={{ width: 14, height: 14 }} />
+                </PaginationBtn>
+              </div>
+            </div>
+          )}
         </section>
 
-        {/* ── Footer ─────────────────────────────────────────────────── */}
+        {/* ── Professional Clean Footer (PDF Format Style, Pinned at Bottom) ─── */}
         <footer style={{
-          marginTop: 32,
-          paddingTop: 20,
+          marginTop: 'auto',
+          paddingTop: 24,
+          paddingBottom: 24,
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: 12,
+          gap: 16,
           fontSize: 12,
           color: 'var(--text-muted)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <ShieldCheck style={{ width: 14, height: 14, color: 'var(--completed)' }} />
-            <span>Read-only protected view • TasksManager</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ShieldCheck style={{ width: 16, height: 16, color: 'var(--completed)' }} />
+            <span>
+              Read-only Protected View • <strong style={{ color: 'var(--text-primary)', fontWeight: 800 }}>TasksManager</strong> by <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Sushant Gupta</span>
+            </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 700, padding: 0 }}
-          >
-            Back to Top ↑
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, fontWeight: 600 }}>
+            <span>© {new Date().getFullYear()} All Rights Reserved.</span>
+            <span>•</span>
+            <span style={{ color: 'var(--completed)', fontWeight: 700 }}>Live Feed Active</span>
+          </div>
         </footer>
       </main>
     </div>
@@ -715,6 +797,47 @@ function SidebarButton({
       }}>
         {count}
       </span>
+    </button>
+  );
+}
+
+function PaginationBtn({
+  children,
+  active,
+  disabled,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      className={`brutalist-hover ${active ? 'active' : ''}`}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
+        color: active ? 'var(--bg-base)' : 'var(--text-primary)',
+        border: 'var(--border-width-layout) solid var(--border)',
+        borderRadius: 'var(--radius-sm)',
+        minWidth: 32,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: 13,
+        fontWeight: 900,
+        opacity: disabled ? 0.3 : 1,
+        padding: '0 6px',
+        boxShadow: active ? 'none' : 'var(--box-shadow-brutalist-sm)',
+        transform: active ? 'translate(2px, 2px)' : 'none',
+        transition: 'all 0.1s ease',
+      }}
+    >
+      {children}
     </button>
   );
 }
