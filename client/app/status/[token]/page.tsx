@@ -124,13 +124,25 @@ export default function PublicStatusPage() {
     } catch { }
   }, []);
 
-  const fetchStatus = useCallback(async (isSilent = false) => {
+  const fetchStatus = useCallback(async (mode: 'initial' | 'manual' | 'silent' = 'initial') => {
     if (!token) return;
-    if (!isSilent) setLoading(true);
-    else setRefreshing(true);
+    const startTime = Date.now();
+    if (mode === 'initial') {
+      setLoading(true);
+    } else if (mode === 'manual') {
+      setRefreshing(true);
+      setIsTabSwitching(true);
+    }
 
     try {
       const result = await apiFetch<PublicStatusData>(`/api/public/status/${token}`);
+      if (mode !== 'silent') {
+        const elapsed = Date.now() - startTime;
+        const minDuration = mode === 'manual' ? 320 : 350;
+        if (elapsed < minDuration) {
+          await new Promise((r) => setTimeout(r, minDuration - elapsed));
+        }
+      }
       setData(result);
       setError(null);
     } catch (err) {
@@ -138,18 +150,21 @@ export default function PublicStatusPage() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      if (mode === 'manual') {
+        setIsTabSwitching(false);
+      }
     }
   }, [token]);
 
   useEffect(() => {
-    fetchStatus();
+    fetchStatus('initial');
   }, [fetchStatus]);
 
   // Periodic silent background sync every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      fetchStatus(true);
+      fetchStatus('silent');
     }, 15000);
     return () => clearInterval(interval);
   }, [fetchStatus]);
@@ -229,31 +244,49 @@ export default function PublicStatusPage() {
   if (loading) {
     return (
       <div className="public-layout">
+        <div className="loading-bar">
+          <div className="loading-bar-inner" />
+        </div>
+
         {/* Mobile / Tablet Top Header Skeleton */}
-        <header className="public-mobile-header">
+        <header className="public-mobile-header animate-fade-in">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               background: 'var(--accent)',
               borderRadius: 'var(--radius-sm)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 900,
               color: '#000',
+              boxShadow: '0 0 10px var(--accent-subtle)',
             }}>
               T
             </div>
             <div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
+              <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
                 TasksManager
               </span>
               <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Project Status
+                Tasks Status
               </span>
             </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: 'var(--completed)',
+              display: 'inline-block',
+              boxShadow: '0 0 6px var(--completed)',
+            }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+              Live
+            </span>
           </div>
         </header>
 
@@ -268,12 +301,26 @@ export default function PublicStatusPage() {
             <div className="skeleton" style={{ width: '100%', height: 42, borderRadius: 6 }} />
           </div>
         </aside>
+
         <main className="public-main">
-          <div className="skeleton" style={{ width: '40%', height: 36, marginBottom: 12, borderRadius: 6 }} />
-          <div className="skeleton" style={{ width: '25%', height: 18, marginBottom: 36, borderRadius: 4 }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div className="skeleton" style={{ width: '100%', height: 140, borderRadius: 'var(--radius-lg, 8px)' }} />
-            <div className="skeleton" style={{ width: '100%', height: 140, borderRadius: 'var(--radius-lg, 8px)' }} />
+          <div className="public-page-header">
+            <div>
+              <div className="skeleton" style={{ width: 'min(280px, 60%)', height: 32, marginBottom: 10, borderRadius: 6 }} />
+              <div className="skeleton" style={{ width: 'min(160px, 40%)', height: 16, borderRadius: 4 }} />
+            </div>
+          </div>
+
+          <div className="public-mobile-filter-chips" style={{ opacity: 0.7 }}>
+            <div className="skeleton" style={{ height: 46, borderRadius: 'var(--radius-md, 8px)' }} />
+            <div className="skeleton" style={{ height: 46, borderRadius: 'var(--radius-md, 8px)' }} />
+            <div className="skeleton" style={{ height: 46, borderRadius: 'var(--radius-md, 8px)' }} />
+            <div className="skeleton" style={{ height: 46, borderRadius: 'var(--radius-md, 8px)' }} />
+          </div>
+
+          <div className="public-task-list" style={{ marginTop: 8 }}>
+            <TaskCardSkeleton />
+            <TaskCardSkeleton />
+            <TaskCardSkeleton />
           </div>
         </main>
       </div>
@@ -291,7 +338,7 @@ export default function PublicStatusPage() {
           <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
             {error || 'This public status link is inactive, private, or has expired.'}
           </p>
-          <button className="btn btn-ghost" onClick={() => fetchStatus()}>
+          <button className="btn btn-ghost" onClick={() => fetchStatus('initial')}>
             <RefreshCw style={{ width: 14, height: 14 }} />
             Try Again
           </button>
@@ -359,7 +406,7 @@ export default function PublicStatusPage() {
               TasksManager
             </span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Project Status
+              Tasks Status
             </span>
           </div>
         </div>
@@ -411,7 +458,7 @@ export default function PublicStatusPage() {
                 TasksManager
               </span>
               <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Project Status
+                Tasks Status
               </span>
             </div>
           </div>
@@ -469,32 +516,24 @@ export default function PublicStatusPage() {
       {/* ── Main Content Area ────────────────────────────────────────── */}
       <main className="public-main">
         {/* Content Header with clean search and sync */}
-        <header className="animate-fade-in" style={{
-          marginBottom: 16,
-          paddingBottom: 18,
-          borderBottom: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}>
-          <div>
-            <h1 style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+        <header className="public-page-header animate-fade-in">
+          <div className="public-page-heading">
+            <h1 className="public-page-title">
               {activeTitle}
             </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
+            <p className="public-page-subtitle" aria-live="polite">
               Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 360 }}>
+          <div className="public-page-actions">
             {/* Clean Instant Search Bar */}
-            <div style={{ position: 'relative', flex: 1 }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
               <Search style={{ position: 'absolute', left: 12, top: 11, width: 15, height: 15, color: 'var(--text-muted)' }} />
               <input
-                type="text"
-                className="input"
+                type="search"
+                aria-label="Search tasks"
+                className="input public-search-input"
                 placeholder="Search tasks..."
                 style={{
                   width: '100%',
@@ -505,7 +544,6 @@ export default function PublicStatusPage() {
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-md, 6px)',
                   color: 'var(--text-primary)',
-                  fontSize: 13,
                   outline: 'none',
                 }}
                 value={search}
@@ -536,20 +574,20 @@ export default function PublicStatusPage() {
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => fetchStatus(true)}
-              disabled={refreshing}
+              onClick={() => fetchStatus('manual')}
+              disabled={refreshing || isTabSwitching}
               title="Refresh status feed"
               aria-label="Refresh status feed"
               style={{ height: 38, paddingInline: 12, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800 }}
             >
-              <RefreshCw style={{ width: 14, height: 14, animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+              <RefreshCw style={{ width: 14, height: 14, animation: (refreshing || isTabSwitching) ? 'spin 1s linear infinite' : 'none' }} />
               <span className="hide-on-mobile">Sync</span>
             </button>
           </div>
         </header>
 
         {/* ── Mobile / Tablet Card Filter Buttons (2x2 Grid with counts) ── */}
-        <div className="public-mobile-filter-chips">
+        <div className="public-mobile-filter-chips" role="group" aria-label="Task categories">
           {categoryTabs.map((cat) => {
             const isActive = activeTab === cat.id;
             return (
@@ -557,6 +595,7 @@ export default function PublicStatusPage() {
                 key={cat.id}
                 type="button"
                 className={`public-filter-chip ${isActive ? 'active' : ''}`}
+                aria-pressed={isActive}
                 onClick={() => handleTabChange(cat.id)}
               >
                 <div className="chip-left">
@@ -570,31 +609,15 @@ export default function PublicStatusPage() {
         </div>
 
         {/* ── Task Cards Feed ─────────────────────────────────────────── */}
-        <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={`${activeTab}-${page}`}>
+        <section className="public-feed animate-slide-up" key={`${activeTab}-${page}`} aria-busy={isTabSwitching}>
           {isTabSwitching ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="public-task-list">
               <TaskCardSkeleton />
               <TaskCardSkeleton />
               <TaskCardSkeleton />
             </div>
           ) : totalTasks === 0 ? (
-            <div
-              className="card"
-              style={{
-                padding: '64px 24px',
-                color: 'var(--text-muted)',
-                fontSize: 14,
-                textAlign: 'center',
-                border: '1px dashed var(--border)',
-                background: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-lg, 8px)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 12,
-                margin: 'auto 0',
-              }}
-            >
+            <div className="public-empty-state">
               <AlertCircle style={{ width: 40, height: 40, opacity: 0.4, color: 'var(--text-muted)' }} />
               <div style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: 16 }}>
                 {search
@@ -615,7 +638,7 @@ export default function PublicStatusPage() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="public-task-list">
               {paginatedTasks.map((task, index) => {
                 const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
                 const taskNumber = totalTasks - globalIndex;
@@ -623,113 +646,48 @@ export default function PublicStatusPage() {
                 return (
                   <article
                     key={task._id}
-                    className="card"
-                    style={{
-                      padding: '22px 26px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 14,
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-lg, 8px)',
-                      boxShadow: 'none',
-                      transition: 'border-color 0.15s ease',
-                      animation: `slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s forwards`,
-                    }}
+                    className="public-task-card"
+                    style={{ animationDelay: `${index * 0.03}s` }}
                   >
                     {/* Header: Task Number, Title and Badges */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-                      <div style={{ flex: 1, minWidth: 220 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                    <div className="public-task-card-header">
+                      <div className="public-task-main">
+                        <div className="public-task-title-row">
                           <span
-                            style={{
-                              fontWeight: 900,
-                              letterSpacing: '0.02em',
-                              fontSize: 12,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border)',
-                              color: 'var(--text-primary)',
-                              padding: '2px 9px',
-                              borderRadius: 'var(--radius-sm, 4px)',
-                            }}
+                            className="public-task-number"
                             title={task.taskId ? `Task ID: ${task.taskId}` : undefined}
                           >
                             #{taskNumber}
                           </span>
 
-                          <h2 style={{
-                            margin: 0,
-                            fontSize: '16px',
-                            fontWeight: 800,
-                            color: 'var(--text-primary)',
-                            lineHeight: 1.35,
-                            letterSpacing: '-0.01em',
-                            overflowWrap: 'anywhere',
-                            wordBreak: 'break-word',
-                          }}>
+                          <h2 className="public-task-title">
                             {task.title}
                           </h2>
                         </div>
 
                         {/* Metadata Row */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                        <div className="public-task-meta">
                           {task.givenBy && (
-                            <div style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border-subtle)',
-                              padding: '3px 8px',
-                              borderRadius: 'var(--radius-sm, 4px)',
-                              fontSize: 12,
-                            }}>
+                            <div className="public-meta-chip">
                               <UserPlus style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
                               <span>Given by: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{task.givenBy}</strong></span>
                             </div>
                           )}
 
-                          <div style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            background: 'var(--bg-elevated)',
-                            border: '1px solid var(--border-subtle)',
-                            padding: '3px 8px',
-                            borderRadius: 'var(--radius-sm, 4px)',
-                            fontSize: 12,
-                          }}>
+                          <div className="public-meta-chip">
                             <Calendar style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
-                            <span>Created: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatDate(task.createdAt || task.date)}</strong></span>
+                            <span>Created: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatDate(task.date || task.createdAt)}</strong></span>
                           </div>
 
                           {task.contactPerson && (
-                            <div style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border-subtle)',
-                              padding: '3px 8px',
-                              borderRadius: 'var(--radius-sm, 4px)',
-                              fontSize: 12,
-                            }}>
+                            <div className="public-meta-chip">
                               <User style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
                               <span>Contact: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{task.contactPerson}</strong></span>
                             </div>
                           )}
 
                           {task.dueDate && (
-                            <div style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              background: 'var(--bg-elevated)',
-                              border: '1px solid var(--border-subtle)',
-                              padding: '3px 8px',
-                              borderRadius: 'var(--radius-sm, 4px)',
-                              fontSize: 12,
-                            }}>
+                            <div className="public-meta-chip">
                               <Clock style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
                               <span>Due: <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatDate(task.dueDate)}</strong></span>
                             </div>
@@ -737,7 +695,7 @@ export default function PublicStatusPage() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <div className="public-task-badges">
                         {task.priority && <PriorityBadge priority={task.priority} />}
                         {activeTab === 'today' && <StatusBadge status={task.workStatus} />}
                       </div>
@@ -756,21 +714,11 @@ export default function PublicStatusPage() {
                           {hasRemarksContent && (
                             <button
                               type="button"
+                              className="public-desc-toggle"
+                              aria-expanded={isExpanded}
+                              aria-controls={`desc-${task._id}`}
                               onClick={() => toggleDescription(task._id)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                background: 'transparent',
-                                border: 'none',
-                                padding: '4px 0',
-                                color: isExpanded ? 'var(--text-secondary)' : 'var(--accent)',
-                                fontSize: 12.5,
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                width: 'fit-content',
-                                transition: 'color 0.15s ease',
-                              }}
+                              style={{ color: isExpanded ? 'var(--text-secondary)' : 'var(--accent)' }}
                             >
                               {isExpanded ? (
                                 <>
@@ -787,15 +735,7 @@ export default function PublicStatusPage() {
                           )}
 
                           {isExpanded && (
-                            <p style={{
-                              margin: 0,
-                              fontSize: 14,
-                              color: 'var(--text-secondary)',
-                              lineHeight: 1.6,
-                              whiteSpace: 'pre-wrap',
-                              overflowWrap: 'anywhere',
-                              wordBreak: 'break-word',
-                            }}>
+                            <p id={`desc-${task._id}`} className="public-task-desc">
                               {task.description}
                             </p>
                           )}
@@ -815,20 +755,7 @@ export default function PublicStatusPage() {
                       const NoteIcon = isPendingNote ? AlertCircle : isCompletedNote ? CheckSquare : Activity;
 
                       return (
-                        <div style={{
-                          marginTop: 4,
-                          padding: '12px 16px',
-                          background: bgTint,
-                          borderRadius: 'var(--radius-sm, 6px)',
-                          border: `1px solid ${borderTint}`,
-                          fontSize: 13,
-                          lineHeight: 1.5,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 6,
-                          overflowWrap: 'anywhere',
-                          wordBreak: 'break-word',
-                        }}>
+                        <div className="public-task-note" style={{ background: bgTint, border: `1px solid ${borderTint}` }}>
                           <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -856,28 +783,12 @@ export default function PublicStatusPage() {
 
           {/* ── Pagination (Only shown when there are more than 5 tasks / > 1 page) ──────── */}
           {totalTasks > ITEMS_PER_PAGE && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '16px 20px',
-              marginTop: 18,
-              marginBottom: 20,
-              background: 'var(--bg-surface)',
-              border: 'var(--border-width-layout) solid var(--border)',
-              borderRadius: 'var(--radius-md, 8px)',
-              boxShadow: 'var(--box-shadow-brutalist-sm)',
-              fontSize: 13,
-              color: 'var(--text-primary)',
-              fontWeight: 800,
-              flexWrap: 'wrap',
-              gap: 12,
-            }}>
-              <span>
+            <nav className="public-pagination" aria-label="Task pages">
+              <span className="public-pagination-range">
                 {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalTasks)} of {totalTasks}
               </span>
 
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div className="public-pagination-pages">
                 <PaginationBtn
                   disabled={currentPage === 1}
                   onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
@@ -907,7 +818,7 @@ export default function PublicStatusPage() {
                   <ChevronRight style={{ width: 14, height: 14 }} />
                 </PaginationBtn>
               </div>
-            </div>
+            </nav>
           )}
         </section>
 
@@ -987,21 +898,11 @@ function SidebarButton({
 
 function TaskCardSkeleton() {
   return (
-    <div
-      style={{
-        padding: '22px 26px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 14,
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg, 8px)',
-      }}
-    >
+    <div className="public-task-card public-task-card--skeleton" aria-hidden="true">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 4 }} />
-          <div className="skeleton" style={{ width: 240, height: 22, borderRadius: 4 }} />
+          <div className="skeleton" style={{ width: 'min(240px, 50vw)', height: 22, borderRadius: 4 }} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 6 }} />
@@ -1035,18 +936,17 @@ function PaginationBtn({
 }) {
   return (
     <button
-      className={`brutalist-hover ${active ? 'active' : ''}`}
+      className={`public-page-btn brutalist-hover ${active ? 'active' : ''}`}
       onClick={onClick}
       disabled={disabled}
       title={title}
       aria-label={title}
+      aria-current={active ? 'page' : undefined}
       style={{
         background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
         color: active ? 'var(--bg-base)' : 'var(--text-primary)',
         border: 'var(--border-width-layout) solid var(--border)',
         borderRadius: 'var(--radius-sm)',
-        minWidth: 32,
-        height: 32,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
