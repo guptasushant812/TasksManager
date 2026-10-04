@@ -19,6 +19,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   X,
   Menu,
   AlertCircle,
@@ -57,6 +59,11 @@ export default function PublicStatusPage() {
   const [page, setPage] = useState(1);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
+
+  const toggleDescription = (taskId: string) => {
+    setExpandedDescIds((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
 
   // Smooth scroll page and main container to top
   const scrollToTop = () => {
@@ -734,20 +741,65 @@ export default function PublicStatusPage() {
                       </div>
                     </div>
 
-                    {/* Task Description with robust word-wrapping */}
-                    {task.description && (
-                      <p style={{
-                        margin: 0,
-                        fontSize: 14,
-                        color: 'var(--text-secondary)',
-                        lineHeight: 1.6,
-                        whiteSpace: 'pre-wrap',
-                        overflowWrap: 'anywhere',
-                        wordBreak: 'break-word',
-                      }}>
-                        {task.description}
-                      </p>
-                    )}
+                    {/* Task Description Logic:
+                        - If task has remarks / reason content: hide description by default and let user toggle it
+                        - If task has NO remarks / reason content: show description directly (don't hide)
+                    */}
+                    {task.description && (() => {
+                      const hasRemarksContent = Boolean(task.reason || task.remarks);
+                      const isExpanded = !hasRemarksContent || Boolean(expandedDescIds[task._id]);
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {hasRemarksContent && (
+                            <button
+                              type="button"
+                              onClick={() => toggleDescription(task._id)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                background: 'transparent',
+                                border: 'none',
+                                padding: '4px 0',
+                                color: isExpanded ? 'var(--text-secondary)' : 'var(--accent)',
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                width: 'fit-content',
+                                transition: 'color 0.15s ease',
+                              }}
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp style={{ width: 14, height: 14 }} />
+                                  <span>Hide Description</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown style={{ width: 14, height: 14 }} />
+                                  <span>View Description</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          {isExpanded && (
+                            <p style={{
+                              margin: 0,
+                              fontSize: 14,
+                              color: 'var(--text-secondary)',
+                              lineHeight: 1.6,
+                              whiteSpace: 'pre-wrap',
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word',
+                            }}>
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Reason / Remarks Note Box */}
                     {(task.reason || task.remarks) && (() => {
