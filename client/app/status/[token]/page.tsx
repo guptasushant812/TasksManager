@@ -59,10 +59,10 @@ export default function PublicStatusPage() {
   const [page, setPage] = useState(1);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isTabSwitching, setIsTabSwitching] = useState(false);
-  const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   const toggleDescription = (taskId: string) => {
-    setExpandedDescIds((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+    setExpandedTaskId((prev) => (prev === taskId ? null : taskId));
   };
 
   // Smooth scroll page and main container to top
@@ -83,6 +83,7 @@ export default function PublicStatusPage() {
     setIsTabSwitching(true);
     setActiveTab(newTab);
     setMobileMenuOpen(false);
+    setExpandedTaskId(null);
     setPage(1);
     setTimeout(() => {
       setIsTabSwitching(false);
@@ -95,6 +96,7 @@ export default function PublicStatusPage() {
     scrollToTop();
     setIsTabSwitching(true);
     setPage(newPage);
+    setExpandedTaskId(null);
     setTimeout(() => {
       setIsTabSwitching(false);
     }, 260);
@@ -742,12 +744,12 @@ export default function PublicStatusPage() {
                     </div>
 
                     {/* Task Description Logic:
-                        - If task has remarks / reason content: hide description by default and let user toggle it
+                        - If task has remarks / reason content: hide description by default and let user toggle it (accordion: only one open at a time)
                         - If task has NO remarks / reason content: show description directly (don't hide)
                     */}
                     {task.description && (() => {
                       const hasRemarksContent = Boolean(task.reason || task.remarks);
-                      const isExpanded = !hasRemarksContent || Boolean(expandedDescIds[task._id]);
+                      const isExpanded = !hasRemarksContent || expandedTaskId === task._id;
 
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
