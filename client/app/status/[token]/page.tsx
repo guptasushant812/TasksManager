@@ -639,8 +639,8 @@ export default function PublicStatusPage() {
             </div>
           )}
 
-          {/* ── Pagination (Same as Task module: top 5 per page) ──────── */}
-          {totalTasks > 0 && (
+          {/* ── Pagination (Only shown when there are more than 5 tasks / > 1 page) ──────── */}
+          {totalTasks > ITEMS_PER_PAGE && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
