@@ -2312,14 +2312,14 @@ html:not(.dark) .badge {
 /* Public Clean Footer */
 .public-footer {
   margin-top: auto;
-  padding-top: 22px;
-  padding-bottom: 22px;
+  padding-top: 28px;
+  padding-bottom: 32px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-muted);
   line-height: 1.5;
   width: 100%;
@@ -2329,6 +2329,8 @@ html:not(.dark) .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
   text-align: center;
   width: 100%;
   transition: transform 0.2s ease;
@@ -2437,6 +2439,8 @@ html:not(.dark) .badge {
   }
 
   .public-footer {
+    padding-top: 24px;
+    padding-bottom: 28px;
     justify-content: center;
     align-items: center;
     text-align: center;
