@@ -159,6 +159,21 @@ export default function PublicStatusPage() {
     return sortedAndFilteredTasks.slice(start, start + ITEMS_PER_PAGE);
   }, [sortedAndFilteredTasks, currentPage]);
 
+  // Compute 5-page window: < 1 2 3 4 5 > without ellipsis jumps
+  const visiblePages = useMemo(() => {
+    const MAX_PAGES = 5;
+    if (totalPages <= MAX_PAGES) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    let start = Math.max(1, currentPage - Math.floor(MAX_PAGES / 2));
+    let end = start + MAX_PAGES - 1;
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - MAX_PAGES + 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [totalPages, currentPage]);
+
   const activeTitle =
     activeTab === 'today' ? "Today's Focus" :
     activeTab === 'inProgress' ? "In Progress Tasks" :
@@ -670,14 +685,7 @@ export default function PublicStatusPage() {
                   <ChevronLeft style={{ width: 14, height: 14 }} />
                 </PaginationBtn>
 
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const p = idx + 1;
-                  if (totalPages > 7) {
-                    if (p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
-                      if (p === 2 || p === totalPages - 1) return <span key={p} style={{ padding: '0 2px', opacity: 0.3, fontSize: 11 }}>…</span>;
-                      return null;
-                    }
-                  }
+                {visiblePages.map((p) => {
                   const isActive = p === currentPage;
                   return (
                     <PaginationBtn
