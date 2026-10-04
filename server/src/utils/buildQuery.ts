@@ -29,9 +29,19 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     filter.isDeleted = { $ne: true };
   }
 
-  // ── Full-text search ──────────────────────────────────────────────────────
+  // ── Search (supports Task ID, title, description, givenBy, remarks) ───────
   if (query.search && typeof query.search === 'string' && query.search.trim()) {
-    filter.$text = { $search: query.search.trim() };
+    const term = query.search.trim();
+    const regex = new RegExp(escapeRegex(term), 'i');
+    filter.$or = [
+      { taskId: regex },
+      { title: regex },
+      { description: regex },
+      { givenBy: regex },
+      { contactPerson: regex },
+      { reason: regex },
+      { remarks: regex },
+    ];
   }
 
   // ── Work status filter ────────────────────────────────────────────────────
