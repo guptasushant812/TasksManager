@@ -12,7 +12,7 @@ interface FilterSortPanelProps {
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
 const SORT_FIELDS = [
-  { value: 'taskId', label: 'Task ID (Latest First)' },
+  { value: 'taskId', label: 'Task ID' },
   { value: 'date', label: 'Task Date' },
   { value: 'dueDate', label: 'Due Date' },
   { value: 'title', label: 'Title' },
@@ -25,13 +25,13 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
   const [local, setLocal] = useState({ ...filters });
 
   function apply() {
-    onFiltersChange(local);
+    onFiltersChange({ ...local, page: 1 });
     onClose();
   }
 
   function reset() {
     const cleared: Partial<TaskFilters> = {
-      status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'taskId', order: 'desc',
+      status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'taskId', order: 'desc', page: 1,
     };
     setLocal((p) => ({ ...p, ...cleared }));
     onFiltersChange(cleared);
@@ -228,7 +228,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
               <label className="label">Sort By</label>
               <select
                 className="input"
-                value={local.sort || 'date'}
+                value={local.sort || 'taskId'}
                 onChange={(e) => setLocal((l) => ({ ...l, sort: e.target.value }))}
               >
                 {SORT_FIELDS.map((f) => (

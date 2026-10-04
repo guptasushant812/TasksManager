@@ -10,7 +10,7 @@ import FilterSortPanel from '../tasks/FilterSortPanel';
 import ExportMenu from '../tasks/ExportMenu';
 import FollowUpPanel from './FollowUpPanel';
 import FollowUpQuickAdd from './FollowUpQuickAdd';
-import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, Sparkles, Plus } from 'lucide-react';
+import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, Sparkles, Plus, X } from 'lucide-react';
 import { SHORT_MONTHS } from '@/lib/dates';
 
 interface FollowUpWorkspaceProps {
@@ -130,28 +130,26 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           <div ref={filterRef} style={{ position: 'relative' }}>
             <button
               id="btn-filter-sort"
-              className="btn btn-ghost"
+              className={`btn ${activeFiltersCount > 0 ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setShowFilter(!showFilter)}
-              style={{ position: 'relative' }}
+              style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
               <Filter style={{ width: 14, height: 14 }} />
-              Filter
+              <span>Filter</span>
               {activeFiltersCount > 0 && (
                 <span
                   style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    background: 'var(--accent)',
-                    color: '#fff',
+                    background: 'var(--bg-base)',
+                    color: 'var(--text-primary)',
                     borderRadius: '50%',
-                    width: 16,
-                    height: 16,
+                    width: 18,
+                    height: 18,
                     fontSize: 10,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: 700,
+                    fontWeight: 900,
+                    border: '1px solid var(--border)',
                   }}
                 >
                   {activeFiltersCount}
@@ -201,6 +199,104 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           />
         </div>
       </div>
+
+      {/* ── Active Filters Chips Bar ───────────────────────────────── */}
+      {activeFiltersCount > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          flexWrap: 'wrap',
+          marginBottom: 14,
+          padding: '8px 12px',
+          background: 'var(--bg-surface)',
+          border: 'var(--border-width-layout) solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--box-shadow-brutalist-sm)',
+          fontSize: 12,
+          fontWeight: 700,
+        }}>
+          <span style={{ color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>
+            <Filter style={{ width: 12, height: 12 }} />
+            Active Filters ({activeFiltersCount}):
+          </span>
+
+          {filters.status && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '3px 8px' }}>
+              <span>Status: <strong>{filters.status}</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ status: '', page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
+                title="Remove status filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.priority && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '3px 8px' }}>
+              <span>Priority: <strong>{filters.priority}</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ priority: '', page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
+                title="Remove priority filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.givenBy && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '3px 8px' }}>
+              <span>Given By: <strong>{filters.givenBy}</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ givenBy: '', page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
+                title="Remove givenBy filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {(filters.dateFrom || filters.dateTo) && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '3px 8px' }}>
+              <span>Date: <strong>{filters.dateFrom || 'Any'} → {filters.dateTo || 'Any'}</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ dateFrom: '', dateTo: '', page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
+                title="Remove date range filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={() => onFiltersChange({ status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', page: 1 })}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--high)',
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              marginLeft: 'auto',
+              padding: '2px 6px',
+              textDecoration: 'underline',
+            }}
+          >
+            Clear All
+          </button>
+        </div>
+      )}
 
       {/* ── Main Follow-Up Container ────────────────────────────────────────── */}
       <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
