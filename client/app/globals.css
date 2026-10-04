@@ -1530,7 +1530,7 @@ html:not(.dark) .badge {
   right: -4px;
   background: var(--high);
   color: #ffffff;
-  fontSize: 10px;
+  font-size: 10px;
   font-weight: 800;
   width: 17px;
   height: 17px;
