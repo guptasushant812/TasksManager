@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Settings from '../models/Settings';
 import Task from '../models/Task';
-import { buildQuery } from '../utils/buildQuery';
 
 export async function getPublicStatus(req: Request, res: Response, next: NextFunction) {
   try {
@@ -15,60 +14,50 @@ export async function getPublicStatus(req: Request, res: Response, next: NextFun
       return;
     }
 
-    const { filter, sort } = buildQuery(req.query);
-
-    // Natural numeric ordering for task IDs (e.g. TK-10 before TK-9)
+    // Natural numeric ordering for task IDs (e.g. TK-010 before TK-009)
     const collation = { locale: 'en', numericOrdering: true };
 
-    const tasks = await Task.find(filter)
+    // Fetch all active, non-deleted tasks
+    const allTasks = await Task.find({ isDeleted: { $ne: true } })
       .collation(collation)
-      .sort(sort)
+      .sort({ taskId: -1 })
       .lean();
 
-    // Summary counts for the public page
-    const todayStr = new Date().toISOString().split('T')[0];
-    const startOfDay = new Date(`${todayStr}T00:00:00.000Z`);
-    const endOfDay = new Date(`${todayStr}T23:59:59.999Z`);
+    // Today's date calculations (comparing both ISO date strings and local timestamps)
+    const now = new Date();
+    const todayIso = now.toISOString().split('T')[0];
+    const localTodayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    const [todayCount, pendingCount, inProgressCount, completedCount, totalCount] = await Promise.all([
-      Task.countDocuments({ isDeleted: { $ne: true }, date: { $gte: startOfDay, $lte: endOfDay } }),
-      Task.countDocuments({ isDeleted: { $ne: true }, workStatus: 'Pending' }),
-      Task.countDocuments({ isDeleted: { $ne: true }, workStatus: 'InProgress' }),
-      Task.countDocuments({ isDeleted: { $ne: true }, workStatus: 'Completed' }),
-      Task.countDocuments({ isDeleted: { $ne: true } }),
-    ]);
+    const isTodayTask = (t: any) => {
+      if (t.date) {
+        const d = new Date(t.date);
+        const iso = d.toISOString().split('T')[0];
+        const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (iso === todayIso || local === localTodayStr || iso === localTodayStr || local === todayIso) return true;
+      }
+      return false;
+    };
 
-    // Backward compatibility with legacy today/pending/completed splits
-    const todayTasks = tasks.filter((t) => {
-      if (!t.date) return false;
-      const d = new Date(t.date).toISOString().split('T')[0];
-      return d === todayStr;
-    });
-    const pendingTasks = tasks.filter((t) => t.workStatus === 'Pending' || t.workStatus === 'InProgress');
-    const completedTasks = tasks.filter((t) => t.workStatus === 'Completed');
+    const todayTasks = allTasks.filter(isTodayTask);
+    const inProgressTasks = allTasks.filter((t) => t.workStatus === 'InProgress');
+    const pendingTasks = allTasks.filter((t) => t.workStatus === 'Pending');
+    const completedTasks = allTasks.filter((t) => t.workStatus === 'Completed');
 
     res.json({
-      tasks,
-      total: tasks.length,
+      all: allTasks,
+      today: todayTasks,
+      inProgress: inProgressTasks,
+      pending: pendingTasks,
+      completed: completedTasks,
       counts: {
-        total: totalCount,
-        today: todayCount,
-        pending: pendingCount,
-        inProgress: inProgressCount,
-        completed: completedCount,
+        total: allTasks.length,
+        today: todayTasks.length,
+        inProgress: inProgressTasks.length,
+        pending: pendingTasks.length,
+        completed: completedTasks.length,
       },
-      today: {
-        count: todayCount,
-        tasks: todayTasks,
-      },
-      pending: {
-        count: pendingCount + inProgressCount,
-        tasks: pendingTasks,
-      },
-      completed: {
-        count: completedCount,
-        tasks: completedTasks,
-      },
+      // Default to today's tasks for initial view
+      tasks: todayTasks,
     });
 
   } catch (err) {
