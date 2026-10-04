@@ -2206,35 +2206,31 @@ html:not(.dark) .badge {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Card Filter Buttons (Tabs shown on tablet & mobile) */
+/* Card Filter Buttons (2x2 Grid on Mobile & Tablet) */
 .public-mobile-filter-chips {
   display: none;
-  overflow-x: auto;
-  padding: 4px 2px 16px;
-  gap: 8px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.public-mobile-filter-chips::-webkit-scrollbar {
-  display: none;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .public-filter-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm, 6px);
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 8px);
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
   transition: all 0.15s ease;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .public-filter-chip:hover {
@@ -2247,20 +2243,35 @@ html:not(.dark) .badge {
   background: var(--accent);
   color: #000000;
   border-color: var(--accent);
-  box-shadow: 0 0 10px var(--accent-subtle);
+  box-shadow: 0 0 12px var(--accent-subtle);
+}
+
+.public-filter-chip .chip-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .public-filter-chip .chip-icon {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.public-filter-chip .chip-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
 }
 
 .public-filter-chip .chip-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 18px;
+  min-width: 22px;
+  height: 20px;
   padding: 0 6px;
   border-radius: 999px;
   font-size: 11px;
@@ -2268,6 +2279,7 @@ html:not(.dark) .badge {
   background: var(--bg-elevated);
   color: var(--text-secondary);
   border: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .public-filter-chip.active .chip-badge {
@@ -2327,9 +2339,9 @@ html:not(.dark) .badge {
     display: none !important;
   }
 
-  /* Show horizontal card filter buttons on tablet and mobile */
+  /* Show 2x2 card filter buttons on tablet and mobile */
   .public-mobile-filter-chips {
-    display: flex;
+    display: grid;
   }
 
   .public-main {
@@ -2352,10 +2364,29 @@ html:not(.dark) .badge {
     width: 100% !important;
   }
 
+  .public-mobile-filter-chips {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .public-filter-chip {
+    padding: 10px 12px;
+  }
+
+  .public-filter-chip .chip-label {
+    font-size: 12px;
+  }
+
   .public-footer {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .public-mobile-filter-chips {
+    grid-template-columns: 1fr;
   }
 }
 

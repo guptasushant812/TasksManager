@@ -539,7 +539,7 @@ export default function PublicStatusPage() {
           </div>
         </header>
 
-        {/* ── Mobile / Tablet Card Filter Buttons (Segmented Chips with counts) ── */}
+        {/* ── Mobile / Tablet Card Filter Buttons (2x2 Grid with counts) ── */}
         <div className="public-mobile-filter-chips">
           {categoryTabs.map((cat) => {
             const isActive = activeTab === cat.id;
@@ -550,8 +550,10 @@ export default function PublicStatusPage() {
                 className={`public-filter-chip ${isActive ? 'active' : ''}`}
                 onClick={() => handleTabChange(cat.id)}
               >
-                <span className="chip-icon">{cat.icon}</span>
-                <span className="chip-label">{cat.label}</span>
+                <div className="chip-left">
+                  <span className="chip-icon">{cat.icon}</span>
+                  <span className="chip-label">{cat.label}</span>
+                </div>
                 <span className="chip-badge">{cat.count}</span>
               </button>
             );
