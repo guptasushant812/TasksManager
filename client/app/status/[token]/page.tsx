@@ -220,6 +220,34 @@ export default function PublicStatusPage() {
   if (loading) {
     return (
       <div className="public-layout">
+        {/* Mobile / Tablet Top Header Skeleton */}
+        <header className="public-mobile-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 32,
+              height: 32,
+              background: 'var(--accent)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 16,
+              fontWeight: 900,
+              color: '#000',
+            }}>
+              T
+            </div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
+                TasksManager
+              </span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Project Status
+              </span>
+            </div>
+          </div>
+        </header>
+
         <aside className="public-sidebar">
           <div style={{ height: '64px', padding: '0 20px', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
             <div className="skeleton" style={{ width: 140, height: 24, borderRadius: 6 }} />
@@ -263,6 +291,33 @@ export default function PublicStatusPage() {
     );
   }
 
+  const categoryTabs: { id: TabType; label: string; icon: React.ReactNode; count: number }[] = [
+    {
+      id: 'today',
+      label: "Today's Focus",
+      icon: <Target style={{ width: 15, height: 15 }} />,
+      count: data.counts.today,
+    },
+    {
+      id: 'inProgress',
+      label: 'In Progress',
+      icon: <Activity style={{ width: 15, height: 15 }} />,
+      count: data.counts.inProgress,
+    },
+    {
+      id: 'pending',
+      label: 'Pending',
+      icon: <Timer style={{ width: 15, height: 15 }} />,
+      count: data.counts.pending,
+    },
+    {
+      id: 'completed',
+      label: 'Completed',
+      icon: <CheckSquare style={{ width: 15, height: 15 }} />,
+      count: data.counts.completed,
+    },
+  ];
+
   return (
     <div className="public-layout">
       {/* MNC-grade Top Loading Bar */}
@@ -272,17 +327,51 @@ export default function PublicStatusPage() {
         </div>
       )}
 
-      {/* Mobile Drawer Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="public-mobile-overlay"
-          onClick={() => setMobileMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      {/* ── Mobile / Tablet Top Header: Always visible on load with brand logo & project status ── */}
+      <header className="public-mobile-header animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 34,
+            height: 34,
+            background: 'var(--accent)',
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 17,
+            fontWeight: 900,
+            color: '#000',
+            boxShadow: '0 0 10px var(--accent-subtle)',
+          }}>
+            T
+          </div>
+          <div>
+            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
+              TasksManager
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Project Status
+            </span>
+          </div>
+        </div>
 
-      {/* ── Sidebar Navigation matching Main Module ────────────────── */}
-      <aside className={`public-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: 'var(--completed)',
+            display: 'inline-block',
+            boxShadow: '0 0 6px var(--completed)',
+          }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+            Live
+          </span>
+        </div>
+      </header>
+
+      {/* ── Desktop Sidebar Navigation (Hidden on Tablet / Mobile) ────────────────── */}
+      <aside className="public-sidebar">
         {/* Brand Header matching main module style */}
         <div style={{
           height: '64px',
@@ -317,16 +406,6 @@ export default function PublicStatusPage() {
               </span>
             </div>
           </div>
-
-          {/* Close button inside mobile drawer */}
-          <button
-            type="button"
-            className="public-sidebar-close-btn"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label="Close navigation"
-          >
-            <X style={{ width: 18, height: 18 }} />
-          </button>
         </div>
 
         {/* Navigation Categories matching main sidebar */}
@@ -344,37 +423,16 @@ export default function PublicStatusPage() {
           </div>
 
           <nav className="public-sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <SidebarButton
-              label="Today's Focus"
-              icon={<Target style={{ width: 17, height: 17 }} />}
-              count={data.counts.today}
-              active={activeTab === 'today'}
-              onClick={() => handleTabChange('today')}
-            />
-
-            <SidebarButton
-              label="In Progress"
-              icon={<Activity style={{ width: 17, height: 17 }} />}
-              count={data.counts.inProgress}
-              active={activeTab === 'inProgress'}
-              onClick={() => handleTabChange('inProgress')}
-            />
-
-            <SidebarButton
-              label="Pending"
-              icon={<Timer style={{ width: 17, height: 17 }} />}
-              count={data.counts.pending}
-              active={activeTab === 'pending'}
-              onClick={() => handleTabChange('pending')}
-            />
-
-            <SidebarButton
-              label="Completed"
-              icon={<CheckSquare style={{ width: 17, height: 17 }} />}
-              count={data.counts.completed}
-              active={activeTab === 'completed'}
-              onClick={() => handleTabChange('completed')}
-            />
+            {categoryTabs.map((cat) => (
+              <SidebarButton
+                key={cat.id}
+                label={cat.label}
+                icon={cat.icon}
+                count={cat.count}
+                active={activeTab === cat.id}
+                onClick={() => handleTabChange(cat.id)}
+              />
+            ))}
           </nav>
         </div>
 
@@ -403,8 +461,8 @@ export default function PublicStatusPage() {
       <main className="public-main">
         {/* Content Header with clean search and sync */}
         <header className="animate-fade-in" style={{
-          marginBottom: 24,
-          paddingBottom: 20,
+          marginBottom: 16,
+          paddingBottom: 18,
           borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
@@ -412,25 +470,13 @@ export default function PublicStatusPage() {
           flexWrap: 'wrap',
           gap: 16,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* Mobile Hamburger Button matching main dashboard sidebar */}
-            <button
-              type="button"
-              className="public-mobile-toggle-btn"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open navigation menu"
-            >
-              <Menu style={{ width: 20, height: 20 }} />
-            </button>
-
-            <div>
-              <h1 style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 4px', color: 'var(--text-primary)' }}>
-                {activeTitle}
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
-                Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
-              </p>
-            </div>
+          <div>
+            <h1 style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+              {activeTitle}
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, fontWeight: 600 }}>
+              Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
+            </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 360 }}>
@@ -492,6 +538,25 @@ export default function PublicStatusPage() {
             </button>
           </div>
         </header>
+
+        {/* ── Mobile / Tablet Card Filter Buttons (Segmented Chips with counts) ── */}
+        <div className="public-mobile-filter-chips">
+          {categoryTabs.map((cat) => {
+            const isActive = activeTab === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                className={`public-filter-chip ${isActive ? 'active' : ''}`}
+                onClick={() => handleTabChange(cat.id)}
+              >
+                <span className="chip-icon">{cat.icon}</span>
+                <span className="chip-label">{cat.label}</span>
+                <span className="chip-badge">{cat.count}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* ── Task Cards Feed ─────────────────────────────────────────── */}
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={`${activeTab}-${page}`}>
@@ -785,30 +850,21 @@ export default function PublicStatusPage() {
         </section>
 
         {/* ── Professional Clean Footer (PDF Format Style, Pinned at Bottom) ─── */}
-        <footer style={{
-          marginTop: 'auto',
-          paddingTop: 24,
-          paddingBottom: 24,
-          borderTop: '1px solid var(--border-subtle)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          fontSize: 12,
-          color: 'var(--text-muted)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ShieldCheck style={{ width: 16, height: 16, color: 'var(--completed)' }} />
+        <footer className="public-footer">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <ShieldCheck style={{ width: 16, height: 16, color: 'var(--completed)', flexShrink: 0 }} />
             <span>
               Read-only Protected View • <strong style={{ color: 'var(--text-primary)', fontWeight: 800 }}>TasksManager</strong> by <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Sushant Gupta</span>
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, fontWeight: 600 }}>
-            <span>© {new Date().getFullYear()} All Rights Reserved.</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, fontWeight: 600, flexWrap: 'wrap' }}>
+            <span>© {new Date().getFullYear()} TasksManager. All Rights Reserved.</span>
             <span>•</span>
-            <span style={{ color: 'var(--completed)', fontWeight: 700 }}>Live Feed Active</span>
+            <span style={{ color: 'var(--completed)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--completed)', display: 'inline-block' }} />
+              Live Feed Active
+            </span>
           </div>
         </footer>
       </main>
