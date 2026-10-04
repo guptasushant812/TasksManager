@@ -19,9 +19,9 @@ const CARDS: { key: WorkStatus; label: string; varName: string; activeClass: str
 
 export default function SummaryCards({ summary, loading, activeStatus, onStatusClick }: SummaryCardsProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="summary-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Primary metrics */}
-      <div className="summary-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div className="summary-cards-grid">
         {CARDS.map(({ key, label, varName, activeClass }) => {
           const isActive = activeStatus === key;
           const color = `var(${varName})`;
@@ -83,27 +83,23 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
 
       {/* Secondary metrics row — Information-rich and directly actionable */}
       {(summary.overdueFollowUps !== undefined || summary.escalatedTasks !== undefined) && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+        <div className="summary-secondary-grid">
           <Link
             href="/follow-ups"
             style={{ textDecoration: 'none' }}
             title="View all overdue follow-ups"
           >
             <div
-              className="summary-card brutalist-hover"
+              className="summary-action-card brutalist-hover"
               style={{
-                padding: '20px',
-                cursor: 'pointer',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderLeft: summary.overdueFollowUps ? '4px solid var(--high)' : 'var(--border-width-layout) solid var(--border)',
+                borderInlineStart: summary.overdueFollowUps ? '5px solid var(--high)' : 'var(--border-width-layout) solid var(--border)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                 <div style={{
                   width: 36,
                   height: 36,
+                  flexShrink: 0,
                   borderRadius: 'var(--radius-sm)',
                   background: summary.overdueFollowUps ? 'var(--high-bg, #fee2e2)' : 'var(--bg-hover)',
                   display: 'flex',
@@ -113,8 +109,8 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 }}>
                   <PhoneCall style={{ width: 18, height: 18 }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     Overdue Follow-Ups
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', marginTop: 2 }}>
@@ -122,11 +118,11 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                 <span style={{ fontSize: 28, fontWeight: 900, color: summary.overdueFollowUps ? 'var(--high)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                   {summary.overdueFollowUps || 0}
                 </span>
-                <ArrowRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+                <ArrowRight className="rtl-flip" style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
               </div>
             </div>
           </Link>
@@ -137,20 +133,16 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
             title="Inspect escalated tasks"
           >
             <div
-              className="summary-card brutalist-hover"
+              className="summary-action-card brutalist-hover"
               style={{
-                padding: '20px',
-                cursor: 'pointer',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderLeft: summary.escalatedTasks ? '4px solid var(--medium)' : 'var(--border-width-layout) solid var(--border)',
+                borderInlineStart: summary.escalatedTasks ? '5px solid var(--medium)' : 'var(--border-width-layout) solid var(--border)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                 <div style={{
                   width: 36,
                   height: 36,
+                  flexShrink: 0,
                   borderRadius: 'var(--radius-sm)',
                   background: summary.escalatedTasks ? 'var(--medium-bg, #fef9c3)' : 'var(--bg-hover)',
                   display: 'flex',
@@ -160,8 +152,8 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 }}>
                   <AlertTriangle style={{ width: 18, height: 18 }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     Escalated Tasks
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: summary.escalatedTasks ? 'var(--medium)' : 'var(--text-muted)', marginTop: 2 }}>
@@ -169,11 +161,11 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                 <span style={{ fontSize: 28, fontWeight: 900, color: summary.escalatedTasks ? 'var(--medium)' : 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                   {summary.escalatedTasks || 0}
                 </span>
-                <ArrowRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+                <ArrowRight className="rtl-flip" style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
               </div>
             </div>
           </Link>

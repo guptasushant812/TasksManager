@@ -1048,31 +1048,58 @@ html:not(.dark) .badge {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   SUMMARY CARDS (dashboard metrics)
+   SUMMARY CARDS (dashboard metrics) — MediaQueryPrompt.md Sec. 4, 8, 9, 11
    ───────────────────────────────────────────────────────────────────────────── */
+.summary-cards-container {
+  container-type: inline-size;
+  container-name: summary-metrics;
+  width: 100%;
+}
+
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(10px, 1.8cqi, 16px);
+  width: 100%;
+}
+
 .summary-card {
   background: var(--bg-surface);
-  border: 4px solid var(--border);
+  border: var(--border-width-layout) solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: clamp(14px, 2.2cqi, 22px);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: all var(--duration-normal) var(--ease-smooth);
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth),
+              background var(--duration-fast) var(--ease-smooth);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: 6px 6px 0px 0px var(--border);
+  box-shadow: var(--box-shadow-brutalist);
+  user-select: none;
+  min-width: 0;
 }
 
-.summary-card>* {
+.summary-card > * {
   z-index: 1;
   position: relative;
 }
 
-.summary-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 10px 10px 0px 0px var(--border);
+/* Hover & Pointer capability guards (MediaQueryPrompt.md Sec. 6) */
+@media (hover: hover) and (pointer: fine) {
+  .summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 0px 0px var(--border);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .summary-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
 }
 
 .summary-card.active-inprogress {
@@ -1088,10 +1115,196 @@ html:not(.dark) .badge {
 }
 
 .summary-card .summary-count {
-  font-size: clamp(32px, 5vw, 40px);
+  font-size: clamp(28px, 4.5cqi, 40px);
   font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  margin-block: 2px;
+}
+
+/* Secondary metrics container & cards */
+.summary-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(12px, 2cqi, 16px);
+  width: 100%;
+}
+
+.summary-action-card {
+  background: var(--bg-surface);
+  border: var(--border-width-layout) solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(14px, 2.2cqi, 20px);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--box-shadow-brutalist);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .summary-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 8px 8px 0px 0px var(--border);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .summary-action-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+}
+
+/* Container query responsiveness for 3-up on larger containers (MediaQueryPrompt.md Sec. 8) */
+@container summary-metrics (min-width: 840px) {
+  .summary-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container summary-metrics (max-width: 520px) {
+  .summary-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Dashboard Scope Bar Responsive System (MediaQueryPrompt.md Sec. 4, 8) ─── */
+.dashboard-scope-container {
+  container-type: inline-size;
+  container-name: scope-bar;
+  width: 100%;
+}
+
+.dashboard-scope-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.5cqi, 14px);
+  padding: clamp(8px, 1.2cqi, 12px) clamp(10px, 1.8cqi, 16px);
+  background: var(--bg-surface);
+  border: var(--border-width-layout) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--box-shadow-brutalist-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scope-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.scope-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+@container scope-bar (max-width: 620px) {
+  .dashboard-scope-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .scope-bar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .scope-bar-right {
+    width: 100%;
+    justify-content: flex-end;
+    padding-block-start: 6px;
+    border-block-start: 1px dashed var(--border-subtle);
+  }
+}
+
+@container scope-bar (max-width: 420px) {
+  .scope-bar-left {
+    gap: 6px;
+  }
+  .scope-bar-label {
+    display: none;
+  }
+}
+
+/* ─── Internationalization & Direction (MediaQueryPrompt.md Sec. 4) ───────── */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+:lang(zh), :lang(ja) {
+  line-break: strict;
+}
+
+:lang(ko) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+:lang(th), :lang(lo), :lang(km) {
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+:lang(de) {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* ─── Accessibility & User Preferences (MediaQueryPrompt.md Sec. 5) ──────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin,
+  .animate-slide-down,
+  .animate-fade-in {
+    animation: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .summary-card,
+  .summary-action-card,
+  .dashboard-scope-bar,
+  .app-header {
+    border-width: calc(var(--border-width-layout) + 1px) !important;
+  }
+  .summary-card .summary-count {
+    text-shadow: 0 0 1px currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  .summary-card,
+  .summary-action-card {
+    border: 2px solid ButtonText !important;
+    background: ButtonFace !important;
+  }
+  .summary-card.active-inprogress,
+  .summary-card.active-pending,
+  .summary-card.active-completed {
+    outline: 3px solid Highlight !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .skeleton {
+    animation: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1699,11 +1912,6 @@ html:not(.dark) .badge {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
-  /* Summary cards — single column stack */
-  .summary-cards-grid {
-    grid-template-columns: 1fr !important;
-  }
-
   /* Task table — enable horizontal scroll, keep readable */
   .task-table {
     font-size: 12px;
@@ -1761,11 +1969,6 @@ html:not(.dark) .badge {
   .modal-box {
     max-width: 100%;
     max-height: 90vh;
-  }
-
-  /* Summary cards — 2 columns */
-  .summary-cards-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   /* Follow-Up Workspace Responsive Mode: Switch from table to adaptive cards */
