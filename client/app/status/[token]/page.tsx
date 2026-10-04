@@ -849,22 +849,15 @@ export default function PublicStatusPage() {
           )}
         </section>
 
-        {/* ── Professional Clean Footer (PDF Format Style, Pinned at Bottom) ─── */}
+        {/* ── Clean & Professional Minimal Footer ─── */}
         <footer className="public-footer">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <ShieldCheck style={{ width: 16, height: 16, color: 'var(--completed)', flexShrink: 0 }} />
-            <span>
-              Read-only Protected View • <strong style={{ color: 'var(--text-primary)', fontWeight: 800 }}>TasksManager</strong> by <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Sushant Gupta</span>
-            </span>
+          <div>
+            © {new Date().getFullYear()} <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>TasksManager</strong> by <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Sushant Gupta</span>. All Rights Reserved.
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, fontWeight: 600, flexWrap: 'wrap' }}>
-            <span>© {new Date().getFullYear()} TasksManager. All Rights Reserved.</span>
-            <span>•</span>
-            <span style={{ color: 'var(--completed)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--completed)', display: 'inline-block' }} />
-              Live Feed Active
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--completed)', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Live Protected Feed</span>
           </div>
         </footer>
       </main>
