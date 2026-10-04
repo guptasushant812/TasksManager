@@ -2188,11 +2188,19 @@ html:not(.dark) .badge {
 }
 
 .dark .public-sidebar {
-  background: rgba(18, 18, 26, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-surface);
   border-right: 1px solid var(--border);
   box-shadow: none;
+}
+
+.public-layout .loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--bg-hover);
+  z-index: 99999;
 }
 
 .public-main {

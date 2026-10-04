@@ -7,9 +7,11 @@ import { formatDate } from '@/lib/dates';
 import {
   Search,
   LayoutDashboard,
-  CheckCircle2,
+  CheckSquare,
+  Activity,
+  Timer,
+  Target,
   Clock,
-  AlertCircle,
   Calendar,
   User,
   UserPlus,
@@ -20,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  AlertCircle,
 } from 'lucide-react';
 
 interface PublicStatusData {
@@ -54,6 +57,41 @@ export default function PublicStatusPage() {
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [page, setPage] = useState(1);
   const [isDark, setIsDark] = useState(false);
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
+
+  // Smooth scroll page and main container to top
+  const scrollToTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, behavior: 'smooth' });
+      const mainEl = document.querySelector('.public-main');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Tab change with top scroll & MNC-grade reload animation
+  const handleTabChange = (newTab: TabType) => {
+    if (newTab === activeTab) return;
+    scrollToTop();
+    setIsTabSwitching(true);
+    setActiveTab(newTab);
+    setPage(1);
+    setTimeout(() => {
+      setIsTabSwitching(false);
+    }, 320);
+  };
+
+  // Page change with top scroll & reload animation
+  const handlePageChange = (newPage: number) => {
+    if (newPage === currentPage) return;
+    scrollToTop();
+    setIsTabSwitching(true);
+    setPage(newPage);
+    setTimeout(() => {
+      setIsTabSwitching(false);
+    }, 260);
+  };
 
   useEffect(() => {
     try {
@@ -227,31 +265,46 @@ export default function PublicStatusPage() {
 
   return (
     <div className="public-layout">
-      {/* ── Sidebar Navigation (No All Tasks button) ────────────────── */}
+      {/* MNC-grade Top Loading Bar */}
+      {isTabSwitching && (
+        <div className="loading-bar">
+          <div className="loading-bar-inner" />
+        </div>
+      )}
+
+      {/* ── Sidebar Navigation matching Main Module ────────────────── */}
       <aside className="public-sidebar">
-        {/* Sidebar Header with Theme Switcher */}
-        <div style={{ height: '64px', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Brand Header matching main module style */}
+        <div style={{
+          height: '64px',
+          padding: '0 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 32,
               height: 32,
               background: 'var(--accent)',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-sm)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--bg-base)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              fontSize: 16,
               fontWeight: 900,
+              color: '#000',
             }}>
-              <LayoutDashboard style={{ width: 16, height: 16 }} />
+              T
             </div>
             <div>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
-                Project Status
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
+                TasksManager
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                Live Feed
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Project Status
               </span>
             </div>
           </div>
@@ -262,9 +315,9 @@ export default function PublicStatusPage() {
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: '6px',
+              width: 32,
+              height: 32,
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               background: 'var(--bg-elevated)',
               color: 'var(--text-primary)',
@@ -279,80 +332,72 @@ export default function PublicStatusPage() {
           </button>
         </div>
 
-        {/* Sidebar Categories Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 14px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '0 8px', marginBottom: 10, fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+        {/* Navigation Categories matching main sidebar */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 12px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{
+            padding: '0 14px',
+            marginBottom: 10,
+            fontSize: 10,
+            fontWeight: 700,
+            color: 'var(--text-muted)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}>
             Categories
           </div>
 
-          <nav className="public-sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* 1. Today's Focus (Default Primary Focus) */}
+          <nav className="public-sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <SidebarButton
               label="Today's Focus"
-              icon={<Clock style={{ width: 15, height: 15 }} />}
+              icon={<Target style={{ width: 17, height: 17 }} />}
               count={data.counts.today}
               active={activeTab === 'today'}
-              onClick={() => setActiveTab('today')}
-              indicatorColor="var(--inprogress)"
+              onClick={() => handleTabChange('today')}
             />
 
-            {/* 2. In Progress */}
             <SidebarButton
               label="In Progress"
-              icon={<Clock style={{ width: 15, height: 15 }} />}
+              icon={<Activity style={{ width: 17, height: 17 }} />}
               count={data.counts.inProgress}
               active={activeTab === 'inProgress'}
-              onClick={() => setActiveTab('inProgress')}
-              indicatorColor="var(--inprogress)"
+              onClick={() => handleTabChange('inProgress')}
             />
 
-            {/* 3. Pending Queue */}
             <SidebarButton
               label="Pending"
-              icon={<AlertCircle style={{ width: 15, height: 15 }} />}
+              icon={<Timer style={{ width: 17, height: 17 }} />}
               count={data.counts.pending}
               active={activeTab === 'pending'}
-              onClick={() => setActiveTab('pending')}
-              indicatorColor="var(--pending)"
+              onClick={() => handleTabChange('pending')}
             />
 
-            {/* 4. Completed Tasks */}
             <SidebarButton
               label="Completed"
-              icon={<CheckCircle2 style={{ width: 15, height: 15 }} />}
+              icon={<CheckSquare style={{ width: 17, height: 17 }} />}
               count={data.counts.completed}
               active={activeTab === 'completed'}
-              onClick={() => setActiveTab('completed')}
-              indicatorColor="var(--completed)"
+              onClick={() => handleTabChange('completed')}
             />
           </nav>
+        </div>
 
-          {/* Status info box at bottom of sidebar */}
-          <div style={{ marginTop: 'auto', paddingTop: 24, paddingInline: 4 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
-              Status Information
-            </div>
-            <div style={{
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              background: 'var(--bg-hover)',
-              border: '1px solid var(--border)',
-              padding: '12px 14px',
-              borderRadius: 'var(--radius-md, 8px)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-primary)', fontWeight: 700 }}>
-                <Calendar style={{ width: 14, height: 14, color: 'var(--accent)' }} />
-                <span>{formatDate(new Date())}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 11 }}>
-                <ShieldCheck style={{ width: 13, height: 13, color: 'var(--completed)' }} />
-                <span>Read-only view • Minimized for privacy</span>
-              </div>
-            </div>
+        {/* Bottom Status Information matching main module bottom area */}
+        <div style={{ padding: '16px 14px', borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              display: 'inline-block',
+              boxShadow: '0 0 8px var(--accent)',
+            }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>
+              Live Feed Active
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+            Read-only secure view • Real-time status
           </div>
         </div>
       </aside>
@@ -440,8 +485,14 @@ export default function PublicStatusPage() {
         </header>
 
         {/* ── Task Cards Feed ─────────────────────────────────────────── */}
-        <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={activeTab}>
-          {totalTasks === 0 ? (
+        <section style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="animate-slide-up" key={`${activeTab}-${page}`}>
+          {isTabSwitching ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <TaskCardSkeleton />
+              <TaskCardSkeleton />
+              <TaskCardSkeleton />
+            </div>
+          ) : totalTasks === 0 ? (
             <div
               className="card"
               style={{
@@ -680,7 +731,8 @@ export default function PublicStatusPage() {
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <PaginationBtn
                   disabled={currentPage === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  title="Previous Page"
                 >
                   <ChevronLeft style={{ width: 14, height: 14 }} />
                 </PaginationBtn>
@@ -691,7 +743,7 @@ export default function PublicStatusPage() {
                     <PaginationBtn
                       key={p}
                       active={isActive}
-                      onClick={() => setPage(p)}
+                      onClick={() => handlePageChange(p)}
                     >
                       {p}
                     </PaginationBtn>
@@ -700,7 +752,8 @@ export default function PublicStatusPage() {
 
                 <PaginationBtn
                   disabled={currentPage === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  title="Next Page"
                 >
                   <ChevronRight style={{ width: 14, height: 14 }} />
                 </PaginationBtn>
@@ -747,65 +800,83 @@ function SidebarButton({
   count,
   active,
   onClick,
-  indicatorColor,
 }: {
   label: string;
   icon: React.ReactNode;
   count: number;
   active: boolean;
   onClick: () => void;
-  indicatorColor: string;
 }) {
   return (
     <button
       type="button"
+      className={`nav-item ${active ? 'active' : ''}`}
       onClick={onClick}
       style={{
-        padding: '10px 12px',
-        borderRadius: 'var(--radius-md, 6px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: active ? 'var(--bg-hover)' : 'transparent',
-        border: '1px solid',
-        borderColor: active ? 'var(--border)' : 'transparent',
-        boxShadow: active ? `inset 3px 0 0 ${indicatorColor}` : 'none',
-        color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-        cursor: 'pointer',
-        fontSize: 13,
-        fontWeight: active ? 700 : 500,
-        transition: 'all 0.15s ease',
+        width: '100%',
         textAlign: 'left',
-      }}
-      onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'var(--bg-hover)';
-          e.currentTarget.style.color = 'var(--text-primary)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--text-secondary)';
-        }
+        justifyContent: 'space-between',
+        cursor: 'pointer',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ color: active ? indicatorColor : 'var(--text-muted)' }}>{icon}</span>
+        {icon}
         <span>{label}</span>
       </div>
-      <span style={{
-        background: active ? indicatorColor : 'var(--bg-hover)',
-        color: active ? '#ffffff' : 'var(--text-primary)',
-        border: active ? 'none' : '1px solid var(--border)',
-        padding: '2px 8px',
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 800,
-      }}>
+      <span
+        style={{
+          marginLeft: 'auto',
+          background: active ? 'var(--accent)' : 'var(--bg-elevated)',
+          color: active ? '#000000' : 'var(--text-secondary)',
+          border: active ? 'none' : '1px solid var(--border)',
+          padding: '1px 7px',
+          borderRadius: 999,
+          fontSize: 11,
+          fontWeight: 800,
+          minWidth: 22,
+          textAlign: 'center',
+          lineHeight: '16px',
+        }}
+      >
         {count}
       </span>
     </button>
+  );
+}
+
+function TaskCardSkeleton() {
+  return (
+    <div
+      style={{
+        padding: '20px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg, 8px)',
+        boxShadow: 'var(--box-shadow-brutalist-sm)',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 999 }} />
+          <div className="skeleton" style={{ width: 240, height: 22, borderRadius: 4 }} />
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 999 }} />
+          <div className="skeleton" style={{ width: 90, height: 22, borderRadius: 999 }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="skeleton" style={{ width: 140, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
+        <div className="skeleton" style={{ width: 150, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
+        <div className="skeleton" style={{ width: 160, height: 26, borderRadius: 'var(--radius-sm, 6px)' }} />
+      </div>
+      <div className="skeleton" style={{ width: '85%', height: 16, borderRadius: 4 }} />
+      <div className="skeleton" style={{ width: '60%', height: 16, borderRadius: 4 }} />
+      <div className="skeleton" style={{ width: '100%', height: 38, borderRadius: 6 }} />
+    </div>
   );
 }
 
@@ -814,17 +885,21 @@ function PaginationBtn({
   active,
   disabled,
   onClick,
+  title,
 }: {
   children: React.ReactNode;
   active?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  title?: string;
 }) {
   return (
     <button
       className={`brutalist-hover ${active ? 'active' : ''}`}
       onClick={onClick}
       disabled={disabled}
+      title={title}
+      aria-label={title}
       style={{
         background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
         color: active ? 'var(--bg-base)' : 'var(--text-primary)',
