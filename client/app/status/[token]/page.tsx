@@ -854,11 +854,6 @@ export default function PublicStatusPage() {
           <div>
             © {new Date().getFullYear()} <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>TasksManager</strong> by <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Sushant Gupta</span>. All Rights Reserved.
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--completed)', display: 'inline-block' }} />
-            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Live Protected Feed</span>
-          </div>
         </footer>
       </main>
     </div>
