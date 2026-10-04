@@ -655,6 +655,8 @@ export default function PublicStatusPage() {
                             color: 'var(--text-primary)',
                             lineHeight: 1.35,
                             letterSpacing: '-0.01em',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
                           }}>
                             {task.title}
                           </h2>
@@ -732,7 +734,7 @@ export default function PublicStatusPage() {
                       </div>
                     </div>
 
-                    {/* Task Description */}
+                    {/* Task Description with robust word-wrapping */}
                     {task.description && (
                       <p style={{
                         margin: 0,
@@ -740,6 +742,8 @@ export default function PublicStatusPage() {
                         color: 'var(--text-secondary)',
                         lineHeight: 1.6,
                         whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
                       }}>
                         {task.description}
                       </p>
@@ -768,6 +772,8 @@ export default function PublicStatusPage() {
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 6,
+                          overflowWrap: 'anywhere',
+                          wordBreak: 'break-word',
                         }}>
                           <div style={{
                             display: 'flex',
@@ -782,7 +788,7 @@ export default function PublicStatusPage() {
                             <NoteIcon style={{ width: 13, height: 13, color: themeColor }} />
                             <span>{noteLabel}</span>
                           </div>
-                          <div style={{ color: 'var(--text-primary)', fontSize: 13.5, lineHeight: 1.55, fontWeight: 500 }}>
+                          <div style={{ color: 'var(--text-primary)', fontSize: 13.5, lineHeight: 1.55, fontWeight: 500, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                             {task.reason || task.remarks}
                           </div>
                         </div>
@@ -854,7 +860,11 @@ export default function PublicStatusPage() {
         {/* ── Clean & Professional Minimal Footer ─── */}
         <footer className="public-footer">
           <div>
-            © {new Date().getFullYear()} <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>TasksManager</strong> by <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Sushant Gupta</span>. All Rights Reserved.
+            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>© {new Date().getFullYear()} </span>
+            <strong style={{ color: '#2563eb', fontWeight: 800 }}>TasksManager</strong>
+            <span style={{ color: 'var(--text-muted, #94a3b8)' }}> by </span>
+            <strong style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Sushant Gupta</strong>
+            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>  •  All Rights Reserved.</span>
           </div>
         </footer>
       </main>
