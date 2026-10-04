@@ -2182,8 +2182,7 @@ html:not(.dark) .badge {
   flex-direction: column;
   background: var(--bg-surface);
   border-inline-end: 1px solid var(--border);
-  z-index: 70;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
   box-shadow: 1px 0 10px rgba(0, 0, 0, 0.03);
 }
 
@@ -2193,43 +2192,88 @@ html:not(.dark) .badge {
   box-shadow: none;
 }
 
-.public-sidebar-close-btn {
+/* Mobile & Tablet Top Header Bar */
+.public-mobile-header {
   display: none;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: var(--radius-sm, 4px);
+  position: sticky;
+  top: 0;
+  z-index: 60;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-.public-sidebar-close-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+/* Card Filter Buttons (Tabs shown on tablet & mobile) */
+.public-mobile-filter-chips {
+  display: none;
+  overflow-x: auto;
+  padding: 4px 2px 16px;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.public-mobile-overlay {
+.public-mobile-filter-chips::-webkit-scrollbar {
   display: none;
 }
 
-.public-mobile-toggle-btn {
-  display: none;
+.public-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm, 6px);
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm, 6px);
-  padding: 7px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  align-items: center;
-  justify-content: center;
+  white-space: nowrap;
   flex-shrink: 0;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.public-mobile-toggle-btn:hover {
+.public-filter-chip:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-focus, var(--accent));
+}
+
+.public-filter-chip.active {
+  background: var(--accent);
+  color: #000000;
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-subtle);
+}
+
+.public-filter-chip .chip-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.public-filter-chip .chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.public-filter-chip.active .chip-badge {
+  background: #000000;
+  color: #ffffff;
+  border: none;
 }
 
 .public-layout .loading-bar {
@@ -2253,50 +2297,47 @@ html:not(.dark) .badge {
   width: calc(100% - 260px);
 }
 
-/* ── MediaQueryPrompt.md Standards: Mobile Drawer & Fluid Breakpoints ─────── */
+/* Public Clean Footer */
+.public-footer {
+  margin-top: auto;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── MediaQueryPrompt.md Standards: Mobile/Tablet Fluid Breakpoints ─────── */
 @media (max-width: 1024px) {
-  .public-mobile-toggle-btn {
-    display: inline-flex;
+  .public-layout {
+    flex-direction: column;
   }
 
-  .public-sidebar-close-btn {
-    display: inline-flex;
+  /* Show brand header on top for tablet and mobile */
+  .public-mobile-header {
+    display: flex;
   }
 
-  .public-mobile-overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 65;
-    animation: fadeIn 0.2s ease forwards;
-  }
-
+  /* Hide sidebar on tablet and mobile */
   .public-sidebar {
-    position: fixed;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: min(280px, 85vw);
-    transform: translateX(-100%);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
-    z-index: 70;
+    display: none !important;
   }
 
-  [dir="rtl"] .public-sidebar {
-    transform: translateX(100%);
-  }
-
-  .public-sidebar.mobile-open {
-    transform: translateX(0);
+  /* Show horizontal card filter buttons on tablet and mobile */
+  .public-mobile-filter-chips {
+    display: flex;
   }
 
   .public-main {
     margin-inline-start: 0;
     width: 100%;
     padding: clamp(16px, 2.5vw, 24px) clamp(12px, 2vw, 20px);
-    min-height: 100dvh;
+    min-height: calc(100dvh - 64px);
   }
 }
 
@@ -2311,10 +2352,17 @@ html:not(.dark) .badge {
     max-width: 100% !important;
     width: 100% !important;
   }
+
+  .public-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .public-sidebar {
+  .public-sidebar,
+  .public-filter-chip {
     transition: none !important;
   }
   .loading-bar-inner {
