@@ -1355,12 +1355,112 @@ html:not(.dark) .badge {
   }
 }
 
-/* ── Smallest screens: ≤ 480px ───────────────────────────────────────────── */
-@media (max-width: 480px) {
+/* ── Header Responsive System ────────────────────────────────────────────── */
+.app-header {
+  box-sizing: border-box;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  width: 100%;
+}
 
-  /* Hide breadcrumb prefix on very small screens */
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header-page-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-btn-icon-mobile {
+  display: none;
+}
+
+/* Tablet & Mobile: ≤ 1023px (Clearance for Sidebar fixed hamburger button at top-4 left-4) */
+@media (max-width: 1023px) {
+  .app-header {
+    padding-left: clamp(56px, 8vw, 68px) !important;
+  }
+}
+
+/* Medium Mobile / Small Tablet: ≤ 768px */
+@media (max-width: 768px) {
   .breadcrumb-prefix {
     display: none !important;
+  }
+  .header-actions {
+    gap: 8px !important;
+  }
+}
+
+/* Mobile: ≤ 640px */
+@media (max-width: 640px) {
+  .header-actions {
+    gap: 6px !important;
+  }
+  .header-btn-new-task .header-new-task-word {
+    display: none !important;
+  }
+}
+
+/* Small screens: ≤ 480px */
+@media (max-width: 480px) {
+  .breadcrumb-prefix {
+    display: none !important;
+  }
+  .header-btn-share {
+    padding: 7px 9px !important;
+  }
+  .header-btn-share .header-btn-text {
+    display: none !important;
+  }
+  .header-btn-share .header-btn-icon-mobile {
+    display: inline-flex !important;
+  }
+  .header-user-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 14px !important;
+  }
+  .header-notif-btn {
+    padding: 7px !important;
+  }
+  .header-page-title {
+    max-width: 110px;
+  }
+}
+
+/* Ultra Small Screens: ≤ 360px */
+@media (max-width: 360px) {
+  .app-header {
+    padding-left: 50px !important;
+    padding-right: 8px !important;
+    gap: 4px !important;
+  }
+  .header-actions {
+    gap: 4px !important;
+  }
+  .header-btn-new-task {
+    padding: 7px 9px !important;
+  }
+  .header-btn-new-task .header-new-task-text {
+    display: none !important;
+  }
+  .header-page-title {
+    max-width: 75px;
+    font-size: 13px !important;
   }
 }
 
