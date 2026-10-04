@@ -38,13 +38,17 @@
   --accent-glow: #c4b5fd;
 
   /* Semantic colors (Vibrant Palette) */
-  --high: #f43f5e; /* Pink 500 */
+  --high: #f43f5e;
+  /* Pink 500 */
   --high-bg: #ffe4e6;
-  --medium: #eab308; /* Yellow 500 */
+  --medium: #eab308;
+  /* Yellow 500 */
   --medium-bg: #fef9c3;
-  --low: #22c55e; /* Green 500 */
+  --low: #22c55e;
+  /* Green 500 */
   --low-bg: #dcfce7;
-  --inprogress: #2563eb; /* Blue 600 */
+  --inprogress: #2563eb;
+  /* Blue 600 */
   --inprogress-bg: #eff6ff;
   --pending: #eab308;
   --pending-bg: #fef9c3;
@@ -82,14 +86,19 @@
   --font-inter: var(--font-sans);
 
   /* Medium type scale */
-  --text-ui: 14px;            /* nav, buttons, meta — 14/20 */
-  --text-body: 16px;          /* app body — 16/24 */
-  --text-reading: 20px;       /* article body — 20/32 */
+  --text-ui: 14px;
+  /* nav, buttons, meta — 14/20 */
+  --text-body: 16px;
+  /* app body — 16/24 */
+  --text-reading: 20px;
+  /* article body — 20/32 */
   --leading-reading: 32px;
   --tracking-reading: -0.003em;
-  --text-h1: 42px;            /* 42/52 */
+  --text-h1: 42px;
+  /* 42/52 */
   --leading-h1: 52px;
-  --text-h2: 24px;            /* 24/30 */
+  --text-h2: 24px;
+  /* 24/30 */
   --leading-h2: 30px;
   --tracking-heading: -0.016em;
 }
@@ -328,15 +337,18 @@ h6 {
   transition: all var(--duration-fast) var(--ease-smooth);
   box-shadow: var(--box-shadow-brutalist-sm);
 }
+
 .brutalist-hover:hover {
   background: var(--bg-hover);
   transform: translate(-2px, -2px);
   box-shadow: var(--box-shadow-brutalist);
 }
+
 .brutalist-hover:active {
   transform: translate(2px, 2px);
   box-shadow: none;
 }
+
 .brutalist-hover[aria-pressed="true"],
 .brutalist-hover.active {
   box-shadow: none;
@@ -346,10 +358,12 @@ h6 {
 html:not(.dark) .brutalist-hover {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
+
 html:not(.dark) .brutalist-hover:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
   transform: translateY(-1px);
 }
+
 html:not(.dark) .brutalist-hover:active {
   transform: translateY(0);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
@@ -371,10 +385,12 @@ html:not(.dark) .brutalist-hover:active {
   background: transparent;
   text-decoration: none;
 }
+
 .nav-item:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
+
 .nav-item.active {
   background: var(--accent-subtle);
   color: var(--accent);
@@ -388,6 +404,7 @@ html:not(.dark) .brutalist-hover:active {
   flex-direction: column;
   height: 100%;
 }
+
 .page-content {
   flex: 1;
   padding: clamp(16px, 4vw, 32px) clamp(12px, 3vw, 32px) 48px;
@@ -398,6 +415,7 @@ html:not(.dark) .brutalist-hover:active {
   flex-direction: column;
   gap: clamp(16px, 3vw, 24px);
 }
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -405,6 +423,7 @@ html:not(.dark) .brutalist-hover:active {
   flex-wrap: wrap;
   gap: 16px;
 }
+
 .page-header h1 {
   font-size: clamp(20px, 3vw, 26px);
   font-weight: 700;
@@ -412,11 +431,13 @@ html:not(.dark) .brutalist-hover:active {
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
+
 .page-header p {
   color: var(--text-muted);
   margin: 0;
   font-size: 13px;
 }
+
 .settings-layout {
   flex-direction: row;
   flex-wrap: wrap;
@@ -507,41 +528,49 @@ html:not(.dark) .btn {
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 8px 16px;
 }
+
 html:not(.dark) .btn:hover {
   background: var(--bg-hover);
   border-color: #9ca3af;
 }
+
 html:not(.dark) .btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
 html:not(.dark) .btn-primary {
   background: var(--accent);
   border: 1px solid var(--accent-hover);
   color: #ffffff;
   box-shadow: 0 1px 2px 0 rgba(139, 92, 246, 0.3);
 }
+
 html:not(.dark) .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
   transform: translateY(-1px);
 }
+
 html:not(.dark) .btn-ghost {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-secondary);
   box-shadow: none;
 }
+
 html:not(.dark) .btn-ghost:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
+
 html:not(.dark) .btn-danger {
   background: var(--high-bg);
   border: 1px solid var(--high);
   color: var(--high);
 }
+
 html:not(.dark) .btn-danger:hover {
   background: var(--high);
   color: #FFFFFF;
@@ -629,6 +658,7 @@ html:not(.dark) .input {
   color: var(--text-primary);
   transition: all 200ms ease;
 }
+
 html:not(.dark) .input:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px var(--accent-subtle);
@@ -693,6 +723,7 @@ html:not(.dark) .card {
   transition: box-shadow 200ms ease, transform 200ms ease;
   position: relative;
 }
+
 html:not(.dark) .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
@@ -1366,7 +1397,7 @@ html:not(.dark) .badge {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(16px, 2.5vw, 28px) !important;
+  padding: 10px clamp(16px, 2.5vw, 28px) !important;
   gap: 12px;
   box-sizing: border-box;
   width: 100%;
@@ -1543,12 +1574,15 @@ html:not(.dark) .badge {
   .header-actions {
     gap: 8px !important;
   }
+
   .header-actions-group {
     gap: 6px !important;
   }
+
   .header-utility-group {
     gap: 6px !important;
   }
+
   .header-divider {
     display: none !important;
   }
@@ -1559,19 +1593,23 @@ html:not(.dark) .badge {
   .header-btn {
     height: 36px !important;
   }
+
   .header-notif-btn,
   .header-user-btn {
     width: 36px !important;
     min-width: 36px !important;
     font-size: 14px !important;
   }
+
   .header-btn-new-task {
     padding: 0 12px !important;
     font-size: 12px !important;
   }
+
   .header-btn-new-task .header-new-task-word {
     display: none !important;
   }
+
   .header-btn-share {
     padding: 0 10px !important;
     font-size: 12px !important;
@@ -1585,9 +1623,11 @@ html:not(.dark) .badge {
     min-width: 36px !important;
     padding: 0 !important;
   }
+
   .header-btn-share .header-share-text {
     display: none !important;
   }
+
   .header-page-title {
     max-width: 110px;
   }
@@ -1600,16 +1640,20 @@ html:not(.dark) .badge {
     padding-right: 8px !important;
     gap: 6px !important;
   }
+
   .header-actions {
     gap: 5px !important;
   }
+
   .header-actions-group,
   .header-utility-group {
     gap: 5px !important;
   }
+
   .header-btn {
     height: 34px !important;
   }
+
   .header-btn-share,
   .header-notif-btn,
   .header-user-btn {
@@ -1617,14 +1661,17 @@ html:not(.dark) .badge {
     min-width: 34px !important;
     font-size: 13px !important;
   }
+
   .header-btn-new-task {
     width: 34px !important;
     min-width: 34px !important;
     padding: 0 !important;
   }
+
   .header-btn-new-task .header-new-task-text {
     display: none !important;
   }
+
   .header-page-title {
     max-width: 75px;
     font-size: 13px !important;
@@ -1736,6 +1783,7 @@ html:not(.dark) .badge {
   .settings-layout {
     flex-direction: column !important;
   }
+
   .settings-nav {
     width: 100% !important;
     min-width: 100% !important;
@@ -1746,13 +1794,16 @@ html:not(.dark) .badge {
     border-bottom: 1px solid var(--border);
     margin-bottom: 16px;
   }
+
   .settings-nav h1 {
     display: none;
   }
+
   .settings-nav nav {
     flex-direction: row !important;
     gap: 4px !important;
   }
+
   .settings-nav .nav-item {
     white-space: nowrap;
     flex-shrink: 0;
@@ -1809,9 +1860,20 @@ html:not(.dark) .badge {
 }
 
 @media (max-width: 728px) {
-  .public-main h1 { font-size: 32px; line-height: 38px; }
-  .public-main h2 { font-size: 20px; line-height: 24px; }
-  .public-main p { font-size: 18px; line-height: 28px; }
+  .public-main h1 {
+    font-size: 32px;
+    line-height: 38px;
+  }
+
+  .public-main h2 {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  .public-main p {
+    font-size: 18px;
+    line-height: 28px;
+  }
 }
 
 .public-sidebar {
@@ -1901,13 +1963,21 @@ html:not(.dark) .badge {
 }
 
 @keyframes progress {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(300%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
 }
 
 .loading-bar {
   position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
   background: var(--bg-hover);
   overflow: hidden;
   z-index: 10;
@@ -2022,24 +2092,25 @@ table.task-table {
 }
 
 @media (max-width: 768px) {
+
   /* Convert table structure to CSS Grid Blocks */
-  table.task-table, 
-  .task-table thead, 
-  .task-table tbody, 
-  .task-table tr, 
-  .task-table td, 
+  table.task-table,
+  .task-table thead,
+  .task-table tbody,
+  .task-table tr,
+  .task-table td,
   .task-table th {
     display: block;
     width: 100%;
   }
-  
+
   /* Visually hide headers, but keep them in DOM for accessibility */
   .task-table thead {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-  
+
   /* Row becomes a floating card */
   .task-table tr {
     display: grid;
@@ -2052,7 +2123,7 @@ table.task-table {
     margin-bottom: 16px;
     box-shadow: var(--box-shadow-brutalist-sm);
   }
-  
+
   /* Strip existing padding and borders from mobile cells */
   .task-table td {
     padding: 0 !important;
@@ -2061,22 +2132,73 @@ table.task-table {
     width: auto !important;
     max-width: 100% !important;
   }
-  
+
   /* 1. Checkbox or ID */
-  .task-table td:nth-child(1) { grid-column: 1 / -1; margin-bottom: -8px; opacity: 0.7; }
-  
+  .task-table td:nth-child(1) {
+    grid-column: 1 / -1;
+    margin-bottom: -8px;
+    opacity: 0.7;
+  }
+
   /* 2. Title */
-  .task-table td:nth-child(2) { grid-column: 1 / -1; font-size: 16px; font-weight: 700; }
-  
+  .task-table td:nth-child(2) {
+    grid-column: 1 / -1;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
   /* 3. Description */
-  .task-table td:nth-child(3) { grid-column: 1 / -1; margin-bottom: 8px; color: var(--text-secondary); }
-  
+  .task-table td:nth-child(3) {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+
   /* Add mini labels to data points */
-  .task-table td:nth-child(4)::before { content: "Given By"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-  .task-table td:nth-child(5)::before { content: "Priority"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-  .task-table td:nth-child(6)::before { content: "Status"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-  .task-table td:nth-child(7)::before { content: "Date"; display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-  
+  .task-table td:nth-child(4)::before {
+    content: "Given By";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .task-table td:nth-child(5)::before {
+    content: "Priority";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .task-table td:nth-child(6)::before {
+    content: "Status";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .task-table td:nth-child(7)::before {
+    content: "Date";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
   /* Ensure badges and dates align nicely */
   .task-table td:nth-child(4),
   .task-table td:nth-child(5),
@@ -2088,20 +2210,20 @@ table.task-table {
   }
 
   /* 8. Reason/Remarks */
-  .task-table td:nth-child(8) { 
-    grid-column: 1 / -1; 
-    margin-top: 8px; 
-    padding-top: 12px !important; 
-    border-top: 1px dashed var(--border-subtle) !important; 
+  .task-table td:nth-child(8) {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding-top: 12px !important;
+    border-top: 1px dashed var(--border-subtle) !important;
   }
-  
+
   /* 9. Actions */
-  .task-table td:nth-child(9) { 
-    grid-column: 1 / -1; 
-    margin-top: 8px; 
-    display: flex; 
-    justify-content: flex-end; 
-    align-items: center; 
+  .task-table td:nth-child(9) {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     padding-top: 12px !important;
     border-top: 1px solid var(--border-subtle) !important;
   }
