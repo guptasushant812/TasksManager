@@ -2407,16 +2407,33 @@ html:not(.dark) .badge {
   /* Mobile screens: show 2x2 grid */
   .public-mobile-filter-chips {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 16px;
   }
 
   .public-filter-chip {
-    padding: 10px 12px;
+    padding: 9px 8px;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .public-filter-chip .chip-left {
+    gap: 6px;
+    min-width: 0;
   }
 
   .public-filter-chip .chip-label {
-    font-size: 12px;
+    font-size: 11.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .public-filter-chip .chip-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 10.5px;
   }
 
   .public-footer {
@@ -2426,9 +2443,11 @@ html:not(.dark) .badge {
   }
 }
 
-@media (max-width: 380px) {
+/* Ultra-narrow devices only (e.g. <= 280px fold displays): stack 1 by 1 */
+@media (max-width: 280px) {
   .public-mobile-filter-chips {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 
