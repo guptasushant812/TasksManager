@@ -91,3 +91,6 @@ coverage/
 # Cloud & Hosting Providers
 .vercel/
 .serverless/
+
+# Prompt Files & Notes
+MediaQueryPrompt.md
