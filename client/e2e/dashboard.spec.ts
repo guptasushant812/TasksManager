@@ -46,4 +46,26 @@ test.describe('Dashboard Responsive Layout & Container Queries', () => {
     const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2); // allowance for subpixel rendering
   });
+
+  test('dashboard table shows at most 5 tasks with View All Tasks button and no numeric pagination', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    await expect(page.locator('.summary-cards-container')).toBeVisible({ timeout: 10000 });
+
+    // Table rows should be at most 5
+    const taskRows = page.locator('table.task-table tbody tr:not([class*="group"])');
+    const rowCount = await taskRows.count();
+    expect(rowCount).toBeLessThanOrEqual(5);
+
+    // If tasks are present, check View All Tasks button is present and numeric pagination buttons are absent
+    if (rowCount > 0) {
+      const viewAllBtn = page.getByRole('button', { name: /view all tasks/i });
+      await expect(viewAllBtn).toBeVisible();
+
+      // Ensure no ChevronLeft/ChevronRight pagination buttons
+      const paginationBtns = page.locator('button.brutalist-hover').filter({ hasText: /^[0-9]+$/ });
+      expect(await paginationBtns.count()).toBe(0);
+    }
+  });
 });

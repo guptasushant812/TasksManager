@@ -11,17 +11,19 @@ import EditTaskModal from '../modals/EditTaskModal';
 import NewTaskModal from '../modals/NewTaskModal';
 import FollowUpPanel from '../follow-ups/FollowUpPanel';
 import FollowUpQuickAdd from '../follow-ups/FollowUpQuickAdd';
-import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 
 interface TaskTableProps {
   filters: TaskFilters;
   onFiltersChange: (f: Partial<TaskFilters>) => void;
   refreshKey: number;
   mode?: 'tasks' | 'follow-ups';
+  isDashboard?: boolean;
 }
 
 const SORT_COLUMNS: { key: string; label: string }[] = [
-  { key: 'sr', label: '#' },
+  { key: 'taskId', label: '#' },
   { key: 'title', label: 'Task' },
   { key: 'description', label: 'Description' },
   { key: 'givenBy', label: 'Given By' },
@@ -32,7 +34,7 @@ const SORT_COLUMNS: { key: string; label: string }[] = [
   { key: 'actions', label: 'Actions' },
 ];
 
-export default function TaskTable({ filters, onFiltersChange, refreshKey, mode = 'tasks' }: TaskTableProps) {
+export default function TaskTable({ filters, onFiltersChange, refreshKey, mode = 'tasks', isDashboard = false }: TaskTableProps) {
   const { tasks, pagination, loading, error, fetchTasks, deleteTask, deleteManyTasks } = useTasks();
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -45,15 +47,18 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const filterRef = useRef<HTMLDivElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  const tableLimit = isDashboard ? 5 : (filters.limit || 20);
+  const displayedTasks = isDashboard ? tasks.slice(0, 5) : tasks;
+
   // Fetch whenever filters or refreshKey changes
   useEffect(() => {
-    fetchTasks({ ...filters, limit: filters.limit || 20 });
+    fetchTasks({ ...filters, limit: tableLimit });
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      fetchTasks({ ...filters, limit: filters.limit || 20 }, true);
+      fetchTasks({ ...filters, limit: tableLimit }, true);
     }, 5000);
     return () => clearInterval(interval);
-  }, [filters, refreshKey, fetchTasks]);
+  }, [filters, refreshKey, fetchTasks, tableLimit]);
 
   // Debounce search input
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this task?')) return;
     await deleteTask(id);
-    fetchTasks({ ...filters, limit: filters.limit || 20 });
+    fetchTasks({ ...filters, limit: tableLimit });
   };
 
   const handleDeleteSelected = async () => {
@@ -89,17 +94,18 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     try {
       await deleteManyTasks(selectedIds);
       setSelectedIds([]);
-      fetchTasks({ ...filters, limit: filters.limit || 20 });
+      fetchTasks({ ...filters, limit: tableLimit });
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete selected tasks');
     }
   };
 
   const handleSort = (field: string) => {
-    const sortable = ['title', 'date', 'dueDate', 'priority', 'workStatus', 'createdAt'];
-    if (!sortable.includes(field)) return;
-    const newOrder = filters.sort === field && filters.order === 'desc' ? 'asc' : 'desc';
-    onFiltersChange({ sort: field, order: newOrder });
+    const sortField = field === 'sr' ? 'taskId' : field;
+    const sortable = ['taskId', 'title', 'date', 'dueDate', 'priority', 'workStatus', 'createdAt'];
+    if (!sortable.includes(sortField)) return;
+    const newOrder = (filters.sort === sortField || (!filters.sort && sortField === 'taskId')) && filters.order === 'desc' ? 'asc' : 'desc';
+    onFiltersChange({ sort: sortField, order: newOrder });
   };
 
   const activeFiltersCount = [
@@ -189,22 +195,22 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                     <th
                       key={col.key}
                       onClick={() => {
-                        if (col.key === 'sr' && selectMode) { toggleSelectAll(); return; }
+                        if (col.key === 'taskId' && selectMode) { toggleSelectAll(); return; }
                         handleSort(col.key);
                       }}
                       style={{ cursor: col.key === 'actions' ? 'default' : 'pointer' }}
                     >
-                      {col.key === 'sr' && selectMode ? (
+                      {col.key === 'taskId' && selectMode ? (
                         <input
                           type="checkbox"
-                          checked={selectedIds.length === tasks.length && tasks.length > 0}
+                          checked={selectedIds.length === displayedTasks.length && displayedTasks.length > 0}
                           onChange={toggleSelectAll}
                           style={{ width: 14, height: 14, accentColor: 'var(--accent)', cursor: 'pointer' }}
                         />
                       ) : (
                         <span>
                           {col.label}
-                          {filters.sort === col.key && (
+                          {(filters.sort === col.key || (col.key === 'taskId' && (!filters.sort || filters.sort === 'taskId'))) && (
                             <span style={{ marginLeft: 4, opacity: 0.6 }}>
                               {filters.order === 'asc' ? '↑' : '↓'}
                             </span>
@@ -278,7 +284,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                     
                     let lastWeekKey = '';
                     
-                    return tasks.map((task, i) => {
+                    return displayedTasks.map((task, i) => {
                       const showWeekGroup = filters.month && filters.sort === 'date';
                       let weekGroupHeader = null;
 
@@ -359,53 +365,86 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           </div>
         )}
 
-        {/* ── Pagination ────────────────────────────────────────────── */}
-        {!loading && tasks.length > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '16px',
-            borderTop: 'var(--border-width-layout) solid var(--border)',
-            fontSize: 14, color: 'var(--text-primary)', fontWeight: 700
-          }}>
-            <span>
-              {(pagination.page - 1) * (filters.limit || 10) + 1}–{Math.min(pagination.page * (filters.limit || 10), pagination.total)} of {pagination.total}
-            </span>
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-              <PaginationBtn
-                disabled={pagination.page === 1}
-                onClick={() => onFiltersChange({ page: Math.max(1, pagination.page - 1) })}
-              >
-                <ChevronLeft style={{ width: 14, height: 14 }} />
-              </PaginationBtn>
-
-              {Array.from({ length: pagination.pages }).map((_, idx) => {
-                const p = idx + 1;
-                if (pagination.pages > 7) {
-                  if (p !== 1 && p !== pagination.pages && Math.abs(p - pagination.page) > 1) {
-                    if (p === 2 || p === pagination.pages - 1) return <span key={p} style={{ padding: '0 2px', opacity: 0.3, fontSize: 11 }}>…</span>;
-                    return null;
-                  }
-                }
-                const isActive = p === pagination.page;
-                return (
-                  <PaginationBtn
-                    key={p}
-                    active={isActive}
-                    onClick={() => onFiltersChange({ page: p })}
-                  >
-                    {p}
-                  </PaginationBtn>
-                );
-              })}
-
-              <PaginationBtn
-                disabled={pagination.page === pagination.pages}
-                onClick={() => onFiltersChange({ page: Math.min(pagination.pages, pagination.page + 1) })}
-              >
-                <ChevronRight style={{ width: 14, height: 14 }} />
-              </PaginationBtn>
+        {/* ── Dashboard Footer / Pagination ────────────────────────────── */}
+        {!loading && (isDashboard ? tasks.slice(0, 5).length > 0 : tasks.length > 0) && (
+          isDashboard ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 16px',
+              borderTop: 'var(--border-width-layout) solid var(--border)',
+              background: 'var(--bg-surface)',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 700 }}>
+                Showing top {Math.min(5, tasks.length)} latest tasks of {pagination.total} total
+              </span>
+              <Link href="/tasks" style={{ textDecoration: 'none' }}>
+                <button
+                  className="btn btn-primary brutalist-hover"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    padding: '7px 16px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span>View All Tasks</span>
+                  <ArrowRight className="rtl-flip" style={{ width: 14, height: 14 }} />
+                </button>
+              </Link>
             </div>
-          </div>
+          ) : (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '16px',
+              borderTop: 'var(--border-width-layout) solid var(--border)',
+              fontSize: 14, color: 'var(--text-primary)', fontWeight: 700
+            }}>
+              <span>
+                {(pagination.page - 1) * (filters.limit || 10) + 1}–{Math.min(pagination.page * (filters.limit || 10), pagination.total)} of {pagination.total}
+              </span>
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <PaginationBtn
+                  disabled={pagination.page === 1}
+                  onClick={() => onFiltersChange({ page: Math.max(1, pagination.page - 1) })}
+                >
+                  <ChevronLeft style={{ width: 14, height: 14 }} />
+                </PaginationBtn>
+
+                {Array.from({ length: pagination.pages }).map((_, idx) => {
+                  const p = idx + 1;
+                  if (pagination.pages > 7) {
+                    if (p !== 1 && p !== pagination.pages && Math.abs(p - pagination.page) > 1) {
+                      if (p === 2 || p === pagination.pages - 1) return <span key={p} style={{ padding: '0 2px', opacity: 0.3, fontSize: 11 }}>…</span>;
+                      return null;
+                    }
+                  }
+                  const isActive = p === pagination.page;
+                  return (
+                    <PaginationBtn
+                      key={p}
+                      active={isActive}
+                      onClick={() => onFiltersChange({ page: p })}
+                    >
+                      {p}
+                    </PaginationBtn>
+                  );
+                })}
+
+                <PaginationBtn
+                  disabled={pagination.page === pagination.pages}
+                  onClick={() => onFiltersChange({ page: Math.min(pagination.pages, pagination.page + 1) })}
+                >
+                  <ChevronRight style={{ width: 14, height: 14 }} />
+                </PaginationBtn>
+              </div>
+            </div>
+          )
         )}
       </div>
 
@@ -414,7 +453,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         <EditTaskModal
           task={editTask}
           onClose={() => setEditTask(null)}
-          onSaved={() => { setEditTask(null); fetchTasks({ ...filters, limit: filters.limit || 10 }); }}
+          onSaved={() => { setEditTask(null); fetchTasks({ ...filters, limit: tableLimit }); }}
         />
       )}
 
@@ -425,7 +464,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           onClose={() => setShowNewTaskModal(false)}
           onSaved={() => {
             setShowNewTaskModal(false);
-            fetchTasks({ ...filters, limit: filters.limit || 20 });
+            fetchTasks({ ...filters, limit: tableLimit });
           }}
         />
       )}
@@ -435,7 +474,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         <FollowUpPanel
           task={followUpTask}
           onClose={() => setFollowUpTask(null)}
-          onTaskUpdated={() => fetchTasks({ ...filters, limit: filters.limit || 10 }, true)}
+          onTaskUpdated={() => fetchTasks({ ...filters, limit: tableLimit }, true)}
         />
       )}
 
@@ -444,7 +483,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         <FollowUpQuickAdd
           task={quickFollowUpTask}
           onClose={() => setQuickFollowUpTask(null)}
-          onAdded={() => fetchTasks({ ...filters, limit: filters.limit || 10 }, true)}
+          onAdded={() => fetchTasks({ ...filters, limit: tableLimit }, true)}
         />
       )}
     </div>

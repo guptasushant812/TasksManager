@@ -23,7 +23,12 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
     }
 
     const [tasks, total] = await Promise.all([
-      Task.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+      Task.find(filter)
+        .collation({ locale: 'en', numericOrdering: true })
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
       Task.countDocuments(filter),
     ]);
 

@@ -88,6 +88,8 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
 
   const handleSort = (field: string) => {
     const sortableMap: Record<string, string> = {
+      sr: 'taskId',
+      taskId: 'taskId',
       title: 'title',
       date: 'date',
       latestFollowUp: 'date',
@@ -95,7 +97,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
     };
     const mapped = sortableMap[field];
     if (!mapped) return;
-    const newOrder = filters.sort === mapped && filters.order === 'desc' ? 'asc' : 'desc';
+    const newOrder = (filters.sort === mapped || (!filters.sort && mapped === 'taskId')) && filters.order === 'desc' ? 'asc' : 'desc';
     onFiltersChange({ sort: mapped, order: newOrder });
   };
 
@@ -287,7 +289,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                         ) : (
                           <span>
                             {col.label}
-                            {filters.sort === col.key && (
+                            {(filters.sort === col.key || (col.key === 'sr' && (filters.sort === 'taskId' || !filters.sort))) && (
                               <span style={{ marginLeft: 4, opacity: 0.6 }}>
                                 {filters.order === 'asc' ? '↑' : '↓'}
                               </span>

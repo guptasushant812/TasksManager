@@ -4,8 +4,6 @@ import Header from '@/components/layout/Header';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import DashboardScopeBar from '@/components/dashboard/DashboardScopeBar';
 import TaskTable from '@/components/tasks/TaskTable';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 
 export default function DashboardPage() {
   const {
@@ -63,18 +61,13 @@ export default function DashboardPage() {
           </div>
 
           {/* We reuse the TaskTable component which automatically syncs with the context filters */}
-          <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
+          <TaskTable
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            refreshKey={refreshKey}
+            isDashboard={true}
+          />
         </section>
-
-        {/* Action — clear next step */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 8 }}>
-          <Link href="/tasks" style={{ textDecoration: 'none' }}>
-            <button className="btn btn-primary" style={{ fontSize: 13, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span>View Tasks</span>
-              <ArrowRight className="rtl-flip" style={{ width: 14, height: 14 }} />
-            </button>
-          </Link>
-        </div>
       </main>
     </div>
   );

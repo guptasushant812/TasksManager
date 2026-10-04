@@ -12,6 +12,7 @@ interface FilterSortPanelProps {
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
 const SORT_FIELDS = [
+  { value: 'taskId', label: 'Task ID (Latest First)' },
   { value: 'date', label: 'Task Date' },
   { value: 'dueDate', label: 'Due Date' },
   { value: 'title', label: 'Title' },
@@ -30,7 +31,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
 
   function reset() {
     const cleared: Partial<TaskFilters> = {
-      status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'date', order: 'desc',
+      status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'taskId', order: 'desc',
     };
     setLocal((p) => ({ ...p, ...cleared }));
     onFiltersChange(cleared);

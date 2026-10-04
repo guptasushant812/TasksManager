@@ -891,10 +891,13 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
     }
 
     const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
-      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
-      : { date: -1, createdAt: -1, _id: -1 };
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, taskId: -1, createdAt: -1, _id: -1 }
+      : { taskId: -1, createdAt: -1, _id: -1 };
 
-    const tasks = await Task.find(filter).sort(exportSort).lean();
+    const tasks = await Task.find(filter)
+      .collation({ locale: 'en', numericOrdering: true })
+      .sort(exportSort)
+      .lean();
     if (tasks.length === 0) {
       return res.status(404).json({
         success: false,
@@ -954,10 +957,13 @@ export async function exportExcel(req: Request, res: Response, next: NextFunctio
     }
 
     const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
-      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
-      : { date: -1, createdAt: -1, _id: -1 };
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, taskId: -1, createdAt: -1, _id: -1 }
+      : { taskId: -1, createdAt: -1, _id: -1 };
 
-    const tasks = await Task.find(filter).sort(exportSort).lean();
+    const tasks = await Task.find(filter)
+      .collation({ locale: 'en', numericOrdering: true })
+      .sort(exportSort)
+      .lean();
     if (tasks.length === 0) {
       return res.status(404).json({
         success: false,
@@ -1063,10 +1069,13 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     }
 
     const exportSort: Record<string, 1 | -1> = req.query.sort && typeof req.query.sort === 'string'
-      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, createdAt: -1, _id: -1 }
-      : { date: -1, createdAt: -1, _id: -1 };
+      ? { [req.query.sort]: req.query.order === 'asc' ? 1 : -1, taskId: -1, createdAt: -1, _id: -1 }
+      : { taskId: -1, createdAt: -1, _id: -1 };
 
-    const tasks = await Task.find(filter).sort(exportSort).lean();
+    const tasks = await Task.find(filter)
+      .collation({ locale: 'en', numericOrdering: true })
+      .sort(exportSort)
+      .lean();
     if (tasks.length === 0) {
       return res.status(404).json({
         success: false,

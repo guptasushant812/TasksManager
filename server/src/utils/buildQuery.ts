@@ -111,12 +111,15 @@ export function buildQuery(query: ParsedQs): TaskQuery {
   }
 
   // ── Sort ──────────────────────────────────────────────────────────────────
-  const sortableFields = ['date', 'dueDate', 'title', 'priority', 'workStatus', 'createdAt'];
+  const sortableFields = ['taskId', 'date', 'dueDate', 'title', 'priority', 'workStatus', 'createdAt'];
   const sortField = typeof query.sort === 'string' && sortableFields.includes(query.sort)
     ? query.sort
-    : 'date';
+    : 'taskId';
   const sortOrder: 1 | -1 = query.order === 'asc' ? 1 : -1;
   const sort: Record<string, 1 | -1> = { [sortField]: sortOrder };
+  if (sortField !== 'taskId') {
+    sort.taskId = -1;
+  }
 
   // ── Pagination ────────────────────────────────────────────────────────────
   const page = Math.max(1, parseInt((query.page as string) || '1', 10));
