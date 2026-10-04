@@ -52,7 +52,7 @@ export default function PublicStatusPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  
+
   // Default goal: show only today's tasks first
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [page, setPage] = useState(1);
@@ -97,7 +97,7 @@ export default function PublicStatusPage() {
     try {
       const darkActive = document.documentElement.classList.contains('dark');
       setIsDark(darkActive);
-    } catch {}
+    } catch { }
   }, []);
 
   const toggleTheme = () => {
@@ -214,8 +214,8 @@ export default function PublicStatusPage() {
 
   const activeTitle =
     activeTab === 'today' ? "Today's Focus" :
-    activeTab === 'inProgress' ? "In Progress Tasks" :
-    activeTab === 'pending' ? "Pending Queue" : "Completed Tasks";
+      activeTab === 'inProgress' ? "In Progress Tasks" :
+        activeTab === 'pending' ? "Pending Queue" : "Completed Tasks";
 
   if (loading) {
     return (
@@ -515,8 +515,8 @@ export default function PublicStatusPage() {
                 {search
                   ? 'No tasks matching your search query.'
                   : activeTab === 'today'
-                  ? 'No tasks scheduled for today.'
-                  : `No tasks found in ${activeTitle.toLowerCase()}.`}
+                    ? 'No tasks scheduled for today.'
+                    : `No tasks found in ${activeTitle.toLowerCase()}.`}
               </div>
               {search && (
                 <button
@@ -532,6 +532,9 @@ export default function PublicStatusPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {paginatedTasks.map((task, index) => {
+                const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
+                const taskNumber = totalTasks - globalIndex;
+
                 return (
                   <article
                     key={task._id}
@@ -549,31 +552,30 @@ export default function PublicStatusPage() {
                       animation: `slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s forwards`,
                     }}
                   >
-                    {/* Header: Title and Status Badge */}
+                    {/* Header: Task Number, Title and Badges */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                       <div style={{ flex: 1, minWidth: 220 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                          {task.taskId && (
-                            <span
-                              style={{
-                                fontWeight: 800,
-                                letterSpacing: '0.03em',
-                                fontSize: 11,
-                                background: 'var(--bg-elevated)',
-                                border: '1px solid var(--border)',
-                                color: 'var(--text-secondary)',
-                                padding: '2px 8px',
-                                borderRadius: 'var(--radius-sm, 4px)',
-                              }}
-                            >
-                              {task.taskId}
-                            </span>
-                          )}
+                          <span
+                            style={{
+                              fontWeight: 900,
+                              letterSpacing: '0.02em',
+                              fontSize: 12,
+                              background: 'var(--bg-elevated)',
+                              border: '1px solid var(--border)',
+                              color: 'var(--text-primary)',
+                              padding: '2px 9px',
+                              borderRadius: 'var(--radius-sm, 4px)',
+                            }}
+                            title={task.taskId ? `Task ID: ${task.taskId}` : undefined}
+                          >
+                            #{taskNumber}
+                          </span>
 
                           <h2 style={{
                             margin: 0,
                             fontSize: '16px',
-                            fontWeight: 700,
+                            fontWeight: 800,
                             color: 'var(--text-primary)',
                             lineHeight: 1.35,
                             letterSpacing: '-0.01em',
@@ -650,7 +652,7 @@ export default function PublicStatusPage() {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         {task.priority && <PriorityBadge priority={task.priority} />}
-                        <StatusBadge status={task.workStatus} />
+                        {activeTab === 'today' && <StatusBadge status={task.workStatus} />}
                       </div>
                     </div>
 
@@ -668,33 +670,48 @@ export default function PublicStatusPage() {
                     )}
 
                     {/* Reason / Remarks Note Box */}
-                    {(task.reason || task.remarks) && (
-                      <div style={{
-                        marginTop: 2,
-                        padding: '12px 16px',
-                        background: 'var(--bg-elevated)',
-                        borderRadius: 'var(--radius-sm, 6px)',
-                        border: '1px solid var(--border)',
-                        fontSize: 13,
-                        lineHeight: 1.5,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 4,
-                      }}>
+                    {(task.reason || task.remarks) && (() => {
+                      const isPendingNote = Boolean(task.reason && (activeTab === 'pending' || task.workStatus === 'Pending'));
+                      const isCompletedNote = Boolean(task.remarks && (activeTab === 'completed' || task.workStatus === 'Completed'));
+
+                      const noteLabel = isPendingNote ? 'Pending Reason' : isCompletedNote ? 'Completed Remarks' : 'Status Note';
+                      const themeColor = isPendingNote ? '#f59e0b' : isCompletedNote ? '#22c55e' : '#0ea5e9';
+                      const bgTint = isPendingNote ? 'rgba(245, 158, 11, 0.08)' : isCompletedNote ? 'rgba(34, 197, 94, 0.08)' : 'rgba(14, 165, 233, 0.08)';
+                      const borderTint = isPendingNote ? 'rgba(245, 158, 11, 0.28)' : isCompletedNote ? 'rgba(34, 197, 94, 0.28)' : 'rgba(14, 165, 233, 0.28)';
+                      const NoteIcon = isPendingNote ? AlertCircle : isCompletedNote ? CheckSquare : Activity;
+
+                      return (
                         <div style={{
-                          fontSize: 10,
-                          fontWeight: 800,
-                          color: 'var(--text-muted)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
+                          marginTop: 4,
+                          padding: '12px 16px',
+                          background: bgTint,
+                          borderRadius: 'var(--radius-sm, 6px)',
+                          border: `1px solid ${borderTint}`,
+                          fontSize: 13,
+                          lineHeight: 1.5,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6,
                         }}>
-                          {task.reason ? 'Pending Reason' : 'Completed Remarks'}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            color: themeColor,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                          }}>
+                            <NoteIcon style={{ width: 13, height: 13, color: themeColor }} />
+                            <span>{noteLabel}</span>
+                          </div>
+                          <div style={{ color: 'var(--text-primary)', fontSize: 13.5, lineHeight: 1.55, fontWeight: 500 }}>
+                            {task.reason || task.remarks}
+                          </div>
                         </div>
-                        <div style={{ color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.5 }}>
-                          {task.reason || task.remarks}
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </article>
                 );
               })}
@@ -922,9 +939,30 @@ function PaginationBtn({
 
 function PriorityBadge({ priority }: { priority: Priority }) {
   const p = priority.toLowerCase();
-  const dotColor =
-    p === 'high' ? '#ef4444' :
-    p === 'medium' ? '#f59e0b' : '#94a3b8';
+  const config =
+    p === 'high'
+      ? {
+          color: '#ef4444',
+          bg: 'rgba(239, 68, 68, 0.14)',
+          border: 'rgba(239, 68, 68, 0.35)',
+          dot: '#ef4444',
+          glow: '0 0 6px rgba(239, 68, 68, 0.5)',
+        }
+      : p === 'medium'
+      ? {
+          color: '#f59e0b',
+          bg: 'rgba(245, 158, 11, 0.14)',
+          border: 'rgba(245, 158, 11, 0.35)',
+          dot: '#f59e0b',
+          glow: '0 0 6px rgba(245, 158, 11, 0.5)',
+        }
+      : {
+          color: '#0ea5e9',
+          bg: 'rgba(14, 165, 233, 0.14)',
+          border: 'rgba(14, 165, 233, 0.35)',
+          dot: '#0ea5e9',
+          glow: '0 0 6px rgba(14, 165, 233, 0.5)',
+        };
 
   return (
     <span
@@ -932,14 +970,14 @@ function PriorityBadge({ priority }: { priority: Priority }) {
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
-        padding: '3px 9px',
+        padding: '3px 10px',
         borderRadius: 'var(--radius-sm, 6px)',
-        background: 'var(--bg-elevated)',
-        border: '1px solid var(--border)',
+        background: config.bg,
+        border: `1px solid ${config.border}`,
         fontSize: 11,
-        fontWeight: 700,
-        color: 'var(--text-secondary)',
-        letterSpacing: '0.02em',
+        fontWeight: 800,
+        color: config.color,
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
       }}
     >
@@ -948,7 +986,8 @@ function PriorityBadge({ priority }: { priority: Priority }) {
           width: 6,
           height: 6,
           borderRadius: '50%',
-          background: dotColor,
+          background: config.dot,
+          boxShadow: config.glow,
           display: 'inline-block',
         }}
       />
@@ -958,9 +997,31 @@ function PriorityBadge({ priority }: { priority: Priority }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const dotColor =
-    status === 'Completed' ? '#22c55e' :
-    status === 'InProgress' ? '#0ea5e9' : '#f59e0b';
+  const s = status.toLowerCase();
+  const config =
+    status === 'Completed'
+      ? {
+          color: '#22c55e',
+          bg: 'rgba(34, 197, 94, 0.14)',
+          border: 'rgba(34, 197, 94, 0.35)',
+          dot: '#22c55e',
+          glow: '0 0 6px rgba(34, 197, 94, 0.5)',
+        }
+      : status === 'InProgress'
+      ? {
+          color: '#0ea5e9',
+          bg: 'rgba(14, 165, 233, 0.14)',
+          border: 'rgba(14, 165, 233, 0.35)',
+          dot: '#0ea5e9',
+          glow: '0 0 6px rgba(14, 165, 233, 0.5)',
+        }
+      : {
+          color: '#f59e0b',
+          bg: 'rgba(245, 158, 11, 0.14)',
+          border: 'rgba(245, 158, 11, 0.35)',
+          dot: '#f59e0b',
+          glow: '0 0 6px rgba(245, 158, 11, 0.5)',
+        };
 
   const label = status === 'InProgress' ? 'In Progress' : status;
 
@@ -970,14 +1031,14 @@ function StatusBadge({ status }: { status: string }) {
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
-        padding: '3px 9px',
+        padding: '3px 10px',
         borderRadius: 'var(--radius-sm, 6px)',
-        background: 'var(--bg-elevated)',
-        border: '1px solid var(--border)',
+        background: config.bg,
+        border: `1px solid ${config.border}`,
         fontSize: 11,
-        fontWeight: 700,
-        color: 'var(--text-secondary)',
-        letterSpacing: '0.02em',
+        fontWeight: 800,
+        color: config.color,
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
       }}
     >
@@ -986,7 +1047,8 @@ function StatusBadge({ status }: { status: string }) {
           width: 6,
           height: 6,
           borderRadius: '50%',
-          background: dotColor,
+          background: config.dot,
+          boxShadow: config.glow,
           display: 'inline-block',
         }}
       />
