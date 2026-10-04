@@ -913,7 +913,7 @@ export default function PublicStatusPage() {
 
         {/* ── Clean & Professional Minimal Footer ─── */}
         <footer className="public-footer">
-          <div style={{ textAlign: 'center', width: '100%' }}>
+          <div className="public-footer-inner" style={{ textAlign: 'center', width: '100%' }}>
             <span style={{ color: 'var(--text-muted, #94a3b8)' }}>© {new Date().getFullYear()} </span>
             <strong style={{ color: '#2563eb', fontWeight: 800 }}>TasksManager</strong>
             <span style={{ color: 'var(--text-muted, #94a3b8)' }}> by </span>
