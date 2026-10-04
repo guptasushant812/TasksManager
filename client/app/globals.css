@@ -72,6 +72,26 @@
 
   /* Sidebar */
   --sidebar-width: 240px;
+
+  /* Typography — Medium.com system
+     Medium uses licensed "sohne" (UI) + "source-serif-pro" (reading).
+     Inter is the closest free match for sohne; Source Serif 4 is the
+     open-source successor of source-serif-pro. */
+  --font-sans: "sohne", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: "source-serif-pro", "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-inter: var(--font-sans);
+
+  /* Medium type scale */
+  --text-ui: 14px;            /* nav, buttons, meta — 14/20 */
+  --text-body: 16px;          /* app body — 16/24 */
+  --text-reading: 20px;       /* article body — 20/32 */
+  --leading-reading: 32px;
+  --tracking-reading: -0.003em;
+  --text-h1: 42px;            /* 42/52 */
+  --leading-h1: 52px;
+  --text-h2: 24px;            /* 24/30 */
+  --leading-h2: 30px;
+  --tracking-heading: -0.016em;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -195,13 +215,14 @@
 }
 
 html {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 16px;
-  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  font-size: var(--text-body);
+  line-height: 24px;
   font-weight: 400;
 }
 
@@ -211,13 +232,14 @@ html h3,
 html h4,
 html h5,
 html h6 {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
+  letter-spacing: var(--tracking-heading);
 }
 
-/* Cyberpunk Dark Mode Font & Overlay */
+/* Dark Mode Font — same Medium typography as light mode */
 html.dark {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-sans);
   font-weight: 400;
 }
 
@@ -227,9 +249,9 @@ html.dark h3,
 html.dark h4,
 html.dark h5,
 html.dark h6 {
-  font-family: 'Orbitron', 'Share Tech Mono', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: var(--tracking-heading);
 }
 
 html.dark body::after {
@@ -473,7 +495,7 @@ html:not(.dark) .brutalist-hover:active {
 
 /* Minimalist Premium Light Mode Button Overrides */
 html:not(.dark) .btn {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
   border-radius: var(--radius-md);
@@ -527,8 +549,8 @@ html:not(.dark) .btn-danger:hover {
 
 /* Cyberpunk Dark Mode Button Overrides */
 .dark .btn {
-  font-family: 'Share Tech Mono', monospace;
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 500;
   border: 1px solid var(--accent);
   box-shadow: var(--box-shadow-neon-sm);
   background: transparent;
@@ -596,7 +618,7 @@ html:not(.dark) .btn-danger:hover {
 }
 
 html:not(.dark) .input {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   border: 1px solid var(--border);
   background: var(--bg-surface);
@@ -729,7 +751,7 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 html:not(.dark) .label {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -753,7 +775,7 @@ html:not(.dark) .label {
 }
 
 html:not(.dark) .badge {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   border: 1px solid var(--border-subtle);
@@ -1494,7 +1516,35 @@ html:not(.dark) .badge {
   min-height: 100vh;
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-inter);
+  font-family: var(--font-sans);
+}
+
+/* Medium reading typography on the public page (Both Light & Dark modes) */
+.public-main h1 {
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  font-weight: 700;
+  letter-spacing: -0.011em;
+}
+
+.public-main h2 {
+  font-size: var(--text-h2);
+  line-height: var(--leading-h2);
+  letter-spacing: var(--tracking-heading);
+}
+
+.public-main p {
+  font-family: var(--font-serif);
+  font-size: var(--text-reading);
+  line-height: var(--leading-reading);
+  letter-spacing: var(--tracking-reading);
+  color: var(--text-primary);
+}
+
+@media (max-width: 728px) {
+  .public-main h1 { font-size: 32px; line-height: 38px; }
+  .public-main h2 { font-size: 20px; line-height: 24px; }
+  .public-main p { font-size: 18px; line-height: 28px; }
 }
 
 .public-sidebar {
