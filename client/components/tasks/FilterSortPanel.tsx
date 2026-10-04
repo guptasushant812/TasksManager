@@ -190,34 +190,61 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
 
           {/* Given By */}
           <div>
-            <label className="label">Given By</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="label" style={{ margin: 0 }}>Given By</label>
+              {local.givenBy && local.givenBy.trim() && (
+                <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>Active</span>
+              )}
+            </div>
             <input
               className="input"
               type="text"
               placeholder="Filter by assigned person"
               value={local.givenBy || ''}
               onChange={(e) => setLocal((l) => ({ ...l, givenBy: e.target.value }))}
+              style={local.givenBy && local.givenBy.trim() ? {
+                borderColor: 'var(--accent)',
+                boxShadow: 'var(--box-shadow-neon-sm)',
+              } : undefined}
             />
           </div>
 
           {/* Date range */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
-              <label className="label">Date From</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Date From</label>
+                {local.dateFrom && (
+                  <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>Active</span>
+                )}
+              </div>
               <input
                 className="input"
                 type="date"
                 value={local.dateFrom || ''}
                 onChange={(e) => setLocal((l) => ({ ...l, dateFrom: e.target.value }))}
+                style={local.dateFrom ? {
+                  borderColor: 'var(--accent)',
+                  boxShadow: 'var(--box-shadow-neon-sm)',
+                } : undefined}
               />
             </div>
             <div>
-              <label className="label">Date To</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Date To</label>
+                {local.dateTo && (
+                  <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>Active</span>
+                )}
+              </div>
               <input
                 className="input"
                 type="date"
                 value={local.dateTo || ''}
                 onChange={(e) => setLocal((l) => ({ ...l, dateTo: e.target.value }))}
+                style={local.dateTo ? {
+                  borderColor: 'var(--accent)',
+                  boxShadow: 'var(--box-shadow-neon-sm)',
+                } : undefined}
               />
             </div>
           </div>
@@ -225,11 +252,23 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
           {/* Sort */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10 }}>
             <div>
-              <label className="label">Sort By</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Sort By</label>
+                {local.sort && local.sort !== 'taskId' && (
+                  <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>Active</span>
+                )}
+              </div>
               <select
                 className="input"
                 value={local.sort || 'taskId'}
                 onChange={(e) => setLocal((l) => ({ ...l, sort: e.target.value }))}
+                style={{
+                  height: '44px',
+                  borderColor: local.sort && local.sort !== 'taskId' ? 'var(--accent)' : 'var(--border)',
+                  boxShadow: local.sort && local.sort !== 'taskId' ? 'var(--box-shadow-neon-sm)' : undefined,
+                  color: local.sort && local.sort !== 'taskId' ? 'var(--accent)' : 'var(--text-primary)',
+                  fontWeight: local.sort && local.sort !== 'taskId' ? 700 : 400,
+                }}
               >
                 {SORT_FIELDS.map((f) => (
                   <option key={f.value} value={f.value}>{f.label}</option>
@@ -237,11 +276,27 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
               </select>
             </div>
             <div>
-              <label className="label">Order</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Order</label>
+                {local.order === 'asc' && (
+                  <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>Active</span>
+                )}
+              </div>
               <button
-                className="btn btn-ghost"
-                style={{ width: '100%', height: '48px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: 6 }}
+                className={`btn ${local.order === 'asc' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{
+                  width: '100%',
+                  height: '44px',
+                  padding: '0 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: local.order === 'asc' ? 'none' : 'var(--box-shadow-brutalist-sm)',
+                  transform: local.order === 'asc' ? 'translate(2px, 2px)' : 'none',
+                  transition: 'all 0.1s',
+                }}
                 onClick={() => setLocal((l) => ({ ...l, order: l.order === 'asc' ? 'desc' : 'asc' }))}
+                title={`Order is ${local.order === 'asc' ? 'Ascending' : 'Descending'}. Click to toggle.`}
               >
                 {local.order === 'asc' ? <ArrowUp style={{ width: 14, height: 14, strokeWidth: 3 }} /> : <ArrowDown style={{ width: 14, height: 14, strokeWidth: 3 }} />}
                 {local.order === 'asc' ? 'Asc' : 'Desc'}

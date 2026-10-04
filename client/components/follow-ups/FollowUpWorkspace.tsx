@@ -28,6 +28,16 @@ const SORTABLE_COLUMNS: { key: string; label: string; width?: string }[] = [
   { key: 'actions', label: 'Actions', width: '1%' },
 ];
 
+const SORT_LABELS: Record<string, string> = {
+  taskId: 'Task ID',
+  date: 'Task Date',
+  dueDate: 'Due Date',
+  title: 'Title',
+  priority: 'Priority',
+  workStatus: 'Status',
+  createdAt: 'Created At',
+};
+
 export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey }: FollowUpWorkspaceProps) {
   const { tasks, pagination, loading, error, fetchTasks, deleteManyTasks } = useTasks();
   const { settings } = useEscalation();
@@ -101,12 +111,15 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
     onFiltersChange({ sort: mapped, order: newOrder });
   };
 
+  const isCustomSort = Boolean((filters.sort && filters.sort !== 'taskId') || (filters.order && filters.order === 'asc'));
+
   const activeFiltersCount = [
     filters.status,
     filters.priority,
     filters.givenBy,
     filters.dateFrom,
     filters.dateTo,
+    isCustomSort ? 'customSort' : '',
   ].filter(Boolean).length;
 
   return (
@@ -277,9 +290,23 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
             </span>
           )}
 
+          {isCustomSort && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '3px 8px' }}>
+              <span>Sort: <strong>{SORT_LABELS[filters.sort || 'taskId'] || filters.sort}</strong> ({filters.order === 'asc' ? 'Asc' : 'Desc'})</span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ sort: 'taskId', order: 'desc', page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
+                title="Reset sort to default"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
           <button
             type="button"
-            onClick={() => onFiltersChange({ status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', page: 1 })}
+            onClick={() => onFiltersChange({ status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'taskId', order: 'desc', page: 1 })}
             style={{
               background: 'transparent',
               border: 'none',
