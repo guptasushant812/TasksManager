@@ -16,7 +16,7 @@ export default function FollowUpsPage() {
     hasFollowUps: 'true',
     page: 1,
     limit: 15,
-    sort: 'date',
+    sort: 'taskId',
     order: 'desc',
   });
 
