@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
         {/* Tasks Overview */}
         <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBlockEnd: 16 }}>
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Tasks Overview {filters.status ? `(${filters.status})` : ''}
             </h2>
@@ -64,12 +64,14 @@ export default function DashboardPage() {
 
           {/* We reuse the TaskTable component which automatically syncs with the context filters */}
           <TaskTable filters={filters} onFiltersChange={handleFiltersChange} refreshKey={refreshKey} />
-        </section>        {/* Action — clear next step */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        </section>
+
+        {/* Action — clear next step */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 8 }}>
           <Link href="/tasks" style={{ textDecoration: 'none' }}>
-            <button className="btn btn-primary" style={{ fontSize: 13, padding: '8px 16px' }}>
-              View Tasks
-              <ArrowRight style={{ width: 14, height: 14 }} />
+            <button className="btn btn-primary" style={{ fontSize: 13, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span>View Tasks</span>
+              <ArrowRight className="rtl-flip" style={{ width: 14, height: 14 }} />
             </button>
           </Link>
         </div>

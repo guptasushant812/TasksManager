@@ -140,11 +140,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Source+Sans+3:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;900&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
       </head>
-      <body style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', minHeight: '100vh', display: 'flex' }}>
+      <body style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', minHeight: '100dvh', display: 'flex' }}>
         <PasswordGate>
           <TaskProvider>
             <Sidebar />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto', minWidth: 0 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100dvh', overflowY: 'auto', minWidth: 0 }}>
               {children}
             </div>
           </TaskProvider>
