@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
 import NewTaskModal from '../modals/NewTaskModal';
 import ShareModal from '../modals/ShareModal';
-import { ChevronRight, Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ChevronRight, Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight, Share2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
@@ -53,48 +53,75 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
 
   return (
     <>
-      <header style={{
-        height: 64,
-        borderBottom: 'var(--border-width-layout) solid var(--border)',
-        background: 'var(--bg-surface)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 clamp(12px, 3vw, 24px)',
-        gap: 8,
-      }}>
+      <header
+        className="app-header"
+        style={{
+          height: 64,
+          borderBottom: 'var(--border-width-layout) solid var(--border)',
+          background: 'var(--bg-surface)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: 'clamp(12px, 3vw, 24px)',
+          gap: 8,
+        }}
+      >
         {/* Breadcrumb */}
-        <nav style={{ display: 'flex', alignItems: 'center', fontSize: 16, minWidth: 0, overflow: 'hidden' }} aria-label="Breadcrumb">
-          <span className="breadcrumb-prefix" style={{ color: 'var(--text-primary)', fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>TasksManager</span>
-          <ChevronRight className="breadcrumb-prefix" style={{ width: 18, height: 18, margin: '0 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }} />
-          <span style={{ color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{getPageName()}</span>
+        <nav
+          className="header-breadcrumb"
+          style={{ display: 'flex', alignItems: 'center', fontSize: 16, minWidth: 0, overflow: 'hidden' }}
+          aria-label="Breadcrumb"
+        >
+          <span
+            className="breadcrumb-prefix"
+            style={{ color: 'var(--text-primary)', fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
+          >
+            TasksManager
+          </span>
+          <ChevronRight
+            className="breadcrumb-prefix"
+            style={{ width: 18, height: 18, margin: '0px 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }}
+          />
+          <span
+            className="header-page-title"
+            style={{ color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
+          >
+            {getPageName()}
+          </span>
         </nav>
 
         {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            className="btn btn-ghost"
+            className="btn btn-ghost header-btn-share"
             onClick={() => setShowShareModal(true)}
+            title="Share Public Link"
+            aria-label="Share"
           >
-            Share
+            <Share2 className="header-btn-icon-mobile" style={{ width: 15, height: 15 }} />
+            <span className="header-btn-text">Share</span>
           </button>
 
           <button
             id="btn-new-task"
-            className="btn btn-primary"
+            className="btn btn-primary header-btn-new-task"
             onClick={() => setShowModal(true)}
+            title="New Task"
           >
             <Plus style={{ width: 16, height: 16, strokeWidth: 3 }} />
-            New Task
+            <span className="header-new-task-text">
+              <span className="header-new-task-word">New </span>Task
+            </span>
           </button>
 
           {/* Notification bell & popover */}
           <div ref={notifRef} style={{ position: 'relative' }}>
             <button
               type="button"
+              className="header-notif-btn"
               onClick={() => setNotifOpen(!notifOpen)}
               aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
               title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
@@ -111,7 +138,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 boxShadow: notifOpen ? 'none' : 'var(--box-shadow-brutalist)',
                 transform: notifOpen ? 'translate(2px, 2px)' : 'none',
                 position: 'relative',
-                transition: 'all 0.1s',
+                transition: '0.1s',
               }}
             >
               <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
@@ -149,6 +176,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   top: 'calc(100% + 10px)',
                   zIndex: 60,
                   width: 320,
+                  maxWidth: 'calc(100vw - 24px)',
                   padding: 16,
                   background: 'var(--bg-surface)',
                   border: '1px solid var(--border)',
@@ -265,6 +293,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
           <div ref={profileRef} style={{ position: 'relative' }}>
             <button
               type="button"
+              className="header-user-btn"
               onClick={() => setProfileOpen(!profileOpen)}
               aria-label="User menu"
               style={{
@@ -280,12 +309,13 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 fontWeight: 900,
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
-                boxShadow: 'var(--box-shadow-brutalist)',
-                transition: 'all 0.1s',
+                boxShadow: profileOpen ? 'none' : 'var(--box-shadow-brutalist)',
+                transition: '0.1s',
+                transform: profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)',
               }}
               onMouseDown={(e) => { e.currentTarget.style.transform = 'translate(2px, 2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translate(0, 0)'; e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)'; e.currentTarget.style.boxShadow = profileOpen ? 'none' : 'var(--box-shadow-brutalist)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = profileOpen ? 'translate(2px, 2px)' : 'translate(0px, 0px)'; e.currentTarget.style.boxShadow = profileOpen ? 'none' : 'var(--box-shadow-brutalist)'; }}
             >
               SG
             </button>
@@ -299,6 +329,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   top: 'calc(100% + 12px)',
                   zIndex: 50,
                   width: 240,
+                  maxWidth: 'calc(100vw - 24px)',
                   background: 'var(--bg-surface)',
                   border: 'var(--border-width-layout) solid var(--border)',
                   borderRadius: 'var(--radius-md)',
