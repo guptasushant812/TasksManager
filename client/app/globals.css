@@ -1610,7 +1610,7 @@ html:not(.dark) .badge {
   z-index: 40;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 10px clamp(16px, 2.5vw, 28px) !important;
   gap: 12px;
   box-sizing: border-box;
@@ -1641,6 +1641,7 @@ html:not(.dark) .badge {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+  margin-inline-start: auto;
 }
 
 .header-actions-group {

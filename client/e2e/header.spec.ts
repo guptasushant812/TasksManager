@@ -9,16 +9,12 @@ test.describe('Header Navigation & Actions', () => {
     });
   });
 
-  test('header components render with proper buttons and breadcrumb', async ({ page }) => {
+  test('header components render with proper buttons and actions', async ({ page }) => {
     await page.goto('/');
 
     // Verify header exists
     const header = page.locator('header.app-header');
     await expect(header).toBeVisible();
-
-    // Verify breadcrumb
-    const breadcrumb = page.locator('nav.header-breadcrumb');
-    await expect(breadcrumb).toBeVisible();
 
     // Verify action buttons
     const shareBtn = page.locator('.header-btn-share');
