@@ -490,6 +490,21 @@ export default function PublicStatusPage() {
               />
             ))}
           </nav>
+
+          {/* Restored Today's Date / Live Overview Card */}
+          <div className="public-sidebar-overview">
+            <div className="public-sidebar-overview-header">
+              <span className="overview-title">Today's Date</span>
+              <span className="overview-badge">Live</span>
+            </div>
+            <div className="public-sidebar-overview-date">
+              <Calendar style={{ width: 14, height: 14 }} />
+              <span>{formatDate(new Date())}</span>
+            </div>
+            <p className="public-sidebar-overview-sub">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long' })} · Status View
+            </p>
+          </div>
         </div>
 
         {/* Bottom Status Information matching main module bottom area */}
@@ -518,11 +533,21 @@ export default function PublicStatusPage() {
         {/* Content Header with clean search and sync */}
         <header className="public-page-header animate-fade-in">
           <div className="public-page-heading">
-            <h1 className="public-page-title">
-              {activeTitle}
-            </h1>
+            <div className="public-page-title-row">
+              <h1 className="public-page-title">
+                {activeTitle}
+              </h1>
+              {activeTab === 'today' && (
+                <div className="public-today-date-badge" title={`Today's Date: ${formatDate(new Date())}`}>
+                  <Calendar style={{ width: 12, height: 12 }} />
+                  <span>{formatDate(new Date())}</span>
+                </div>
+              )}
+            </div>
             <p className="public-page-subtitle" aria-live="polite">
-              Showing {totalTasks} task{totalTasks !== 1 ? 's' : ''} in this view.
+              {activeTab === 'today'
+                ? `Showing ${totalTasks} task${totalTasks !== 1 ? 's' : ''} scheduled for today (${formatDate(new Date())}).`
+                : `Showing ${totalTasks} task${totalTasks !== 1 ? 's' : ''} in this view.`}
             </p>
           </div>
 
@@ -623,7 +648,7 @@ export default function PublicStatusPage() {
                 {search
                   ? 'No tasks matching your search query.'
                   : activeTab === 'today'
-                    ? 'No tasks scheduled for today.'
+                    ? `No tasks scheduled for today (${formatDate(new Date())}).`
                     : `No tasks found in ${activeTitle.toLowerCase()}.`}
               </div>
               {search && (
