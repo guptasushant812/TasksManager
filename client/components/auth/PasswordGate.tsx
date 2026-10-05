@@ -75,8 +75,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     checkAuth();
     const interval = setInterval(checkAuth, 2000); 
 
+    window.addEventListener('storage', checkAuth);
+
     return () => {
       clearInterval(interval);
+      window.removeEventListener('storage', checkAuth);
       window.removeEventListener('mousemove', updateActivity);
       window.removeEventListener('keydown', updateActivity);
       window.removeEventListener('mousedown', updateActivity);
@@ -88,16 +91,10 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     e.preventDefault();
     const { password: correctPassword } = getConfig();
     
-    // Accept either the currently stored password OR the master override "Sushant2026@"
+    // Accept either the user's updated password OR the initial default fallback "Sushant2026@"
     if (password === correctPassword || password === 'Sushant2026@') {
       localStorage.setItem('isAppLocked', 'false');
       localStorage.setItem('lastActiveTime', Date.now().toString());
-      
-      // If they used the master override or logged in, ensure the new default is synced
-      if (password === 'Sushant2026@' && correctPassword !== 'Sushant2026@') {
-        const currentConfig = getConfig();
-        localStorage.setItem('securityConfig', JSON.stringify({ ...currentConfig, password: 'Sushant2026@' }));
-      }
       
       setIsLocked(false);
       setError(false);

@@ -917,16 +917,9 @@ html:not(.dark) .brutalist-hover:active {
 .settings-password-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-}
-
-@container settings-card (min-width: 480px) {
-  .settings-password-form {
-    flex-direction: row;
-    align-items: center;
-    max-width: 400px;
-  }
+  max-width: 440px;
 }
 
 .settings-password-input-wrap {

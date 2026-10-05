@@ -157,9 +157,21 @@ export default function SettingsPage() {
 
   // Security password state
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
+
+  // Escalation confirmation & success state
+  const [showEscalationConfirmModal, setShowEscalationConfirmModal] = useState(false);
+  const [escalationSaved, setEscalationSaved] = useState(false);
+  const [escalationSaveError, setEscalationSaveError] = useState<string | null>(null);
+
+  // Inactivity timeout state
+  const [timeoutSaved, setTimeoutSaved] = useState(false);
+  const [timeoutSavedMsg, setTimeoutSavedMsg] = useState('');
 
   // Notifications preferences state (persisted locally)
   const [notifPreferences, setNotifPreferences] = useState({
@@ -229,29 +241,43 @@ export default function SettingsPage() {
     });
   };
 
-  const handleUpdatePassword = (e?: React.FormEvent) => {
+  const handleInitiatePasswordUpdate = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const trimmed = newPassword.trim();
+    const trimmedConfirm = confirmPassword.trim();
     if (!trimmed) {
-      setPasswordError('Enter a password first');
+      setPasswordError('Please enter a new password first.');
       return;
     }
     if (trimmed.length < 4) {
-      setPasswordError('Password must be at least 4 characters');
+      setPasswordError('Password must be at least 4 characters long.');
       return;
     }
+    if (trimmed !== trimmedConfirm) {
+      setPasswordError('Passwords do not match. Please ensure both fields are identical.');
+      return;
+    }
+    setPasswordError('');
+    setShowPasswordConfirmModal(true);
+  };
 
+  const handleConfirmPasswordUpdate = () => {
     try {
+      const trimmed = newPassword.trim();
       const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
       current.password = trimmed;
       localStorage.setItem('securityConfig', JSON.stringify(current));
       window.dispatchEvent(new Event('storage'));
+      
       setPasswordSaved(true);
       setPasswordError('');
       setNewPassword('');
-      setTimeout(() => setPasswordSaved(false), 3000);
+      setConfirmPassword('');
+      setShowPasswordConfirmModal(false);
+      setTimeout(() => setPasswordSaved(false), 5000);
     } catch {
-      setPasswordError('Could not save password');
+      setPasswordError('Could not save password to storage.');
+      setShowPasswordConfirmModal(false);
     }
   };
 
@@ -268,10 +294,23 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
-  const handleSave = async () => {
+  const handleInitiateEscalationSave = () => {
+    setShowEscalationConfirmModal(true);
+  };
+
+  const handleConfirmEscalationSave = async () => {
     setIsSaving(true);
-    await updateSettings(localSettings);
-    setTimeout(() => setIsSaving(false), 500);
+    setShowEscalationConfirmModal(false);
+    setEscalationSaveError(null);
+    try {
+      await updateSettings(localSettings);
+      setEscalationSaved(true);
+      setTimeout(() => setEscalationSaved(false), 5000);
+    } catch (err: any) {
+      setEscalationSaveError(err?.message || 'Failed to update escalation settings.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const hasChanges = 
@@ -546,6 +585,54 @@ export default function SettingsPage() {
                   </div>
                 ) : (
                   <div className="settings-card">
+                    {/* Escalation Success Alert */}
+                    {escalationSaved && (
+                      <div style={{
+                        padding: '12px 16px',
+                        background: 'rgba(0, 255, 136, 0.1)',
+                        border: '1px solid var(--accent)',
+                        borderRadius: 'var(--radius-md, 6px)',
+                        color: 'var(--accent)',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <CheckCircle2 size={18} />
+                          <span>Escalation policies saved and synchronized successfully!</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEscalationSaved(false)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 2 }}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Escalation Error Alert */}
+                    {escalationSaveError && (
+                      <div style={{
+                        padding: '12px 16px',
+                        background: 'rgba(255, 59, 48, 0.1)',
+                        border: '1px solid var(--high)',
+                        borderRadius: 'var(--radius-md, 6px)',
+                        color: 'var(--high)',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}>
+                        <AlertTriangle size={18} />
+                        <span>{escalationSaveError}</span>
+                      </div>
+                    )}
+
                     {/* Enable Toggle */}
                     <div className="settings-row">
                       <div className="settings-row-text">
@@ -689,7 +776,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={handleSave}
+                        onClick={handleInitiateEscalationSave}
                         disabled={isSaving || !hasChanges}
                         style={{ fontSize: 13, padding: '9px 24px', display: 'flex', alignItems: 'center', gap: 8 }}
                       >
@@ -908,26 +995,76 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="settings-card">
+                  {/* Password Success Alert Banner */}
+                  {passwordSaved && (
+                    <div style={{
+                      padding: '12px 16px',
+                      background: 'rgba(0, 255, 136, 0.12)',
+                      border: '1px solid var(--accent)',
+                      borderRadius: 'var(--radius-md, 6px)',
+                      color: 'var(--accent)',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <CheckCircle2 size={18} />
+                        <span>Master Application Password updated successfully! Your workspace is secured.</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPasswordSaved(false)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 2 }}
+                        aria-label="Dismiss message"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Password Error Alert Banner */}
+                  {passwordError && (
+                    <div style={{
+                      padding: '10px 14px',
+                      background: 'rgba(255, 59, 48, 0.1)',
+                      border: '1px solid var(--high)',
+                      borderRadius: 'var(--radius-md, 6px)',
+                      color: 'var(--high)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}>
+                      <AlertTriangle size={16} />
+                      <span>{passwordError}</span>
+                    </div>
+                  )}
+
                   {/* Master Password Form */}
                   <div className="settings-row">
                     <div className="settings-row-text">
                       <div className="settings-row-title">Master Application Password</div>
                       <p className="settings-row-desc">
-                        Change the secret code required to unlock your workspace.
+                        Change the secret code required to unlock your workspace. Requires at least 4 characters.
                       </p>
                     </div>
                     
                     <form 
-                      onSubmit={handleUpdatePassword} 
+                      onSubmit={handleInitiatePasswordUpdate} 
                       className="settings-password-form"
                     >
+                      {/* New Password Input */}
                       <div className="settings-password-input-wrap">
                         <input
                           type={showPassword ? "text" : "password"}
-                          placeholder="New password…"
+                          placeholder="New password (min 4 characters)…"
                           className="input"
                           value={newPassword}
-                          style={{ width: '100%', fontSize: 14, padding: '8px 36px 8px 12px' }}
+                          style={{ width: '100%', fontSize: 14, padding: '9px 36px 9px 12px' }}
                           onChange={(e) => {
                             setNewPassword(e.target.value);
                             if (passwordError) setPasswordError('');
@@ -956,26 +1093,51 @@ export default function SettingsPage() {
                         </button>
                       </div>
 
+                      {/* Confirm New Password Input */}
+                      <div className="settings-password-input-wrap">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm new password…"
+                          className="input"
+                          value={confirmPassword}
+                          style={{ width: '100%', fontSize: 14, padding: '9px 36px 9px 12px' }}
+                          onChange={(e) => {
+                            setConfirmPassword(e.target.value);
+                            if (passwordError) setPasswordError('');
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: 4,
+                          }}
+                          title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+
                       <button
                         type="submit"
                         className="btn btn-primary"
-                        style={{ fontSize: 13, padding: '8px 16px', whiteSpace: 'nowrap' }}
+                        style={{ fontSize: 13, padding: '9px 20px', whiteSpace: 'nowrap', alignSelf: 'flex-start' }}
                       >
-                        Update
+                        Update Password
                       </button>
                     </form>
                   </div>
-
-                  {passwordError && (
-                    <div style={{ fontSize: 12, color: 'var(--high)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <AlertTriangle size={14} /> {passwordError}
-                    </div>
-                  )}
-                  {passwordSaved && (
-                    <div style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <CheckCircle2 size={14} /> Password updated successfully.
-                    </div>
-                  )}
 
                   <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
@@ -992,10 +1154,15 @@ export default function SettingsPage() {
                         className="input"
                         style={{ width: 'min(200px, 100%)', fontSize: 14, padding: '8px 12px' }}
                         onChange={(e) => {
+                          const val = parseInt(e.target.value);
                           const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
-                          current.timeoutMs = parseInt(e.target.value);
+                          current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
                           window.dispatchEvent(new Event('storage'));
+                          const minutes = Math.round(val / 60000);
+                          setTimeoutSavedMsg(`Auto-lock inactivity timeout set to ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+                          setTimeoutSaved(true);
+                          setTimeout(() => setTimeoutSaved(false), 4000);
                         }}
                         defaultValue={
                           (() => {
@@ -1212,6 +1379,279 @@ export default function SettingsPage() {
           </div>
         );
       })()}
+      {/* Timeout feedback alert */}
+      {timeoutSaved && (
+        <div
+          className="animate-fade-in"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 9999,
+            padding: '12px 18px',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--accent)',
+            borderRadius: 'var(--radius-md, 6px)',
+            color: 'var(--accent)',
+            fontSize: 13,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          }}
+        >
+          <CheckCircle2 size={16} />
+          <span>{timeoutSavedMsg}</span>
+        </div>
+      )}
+
+      {/* Password Update Confirmation Modal */}
+      {showPasswordConfirmModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 'clamp(12px, 4vw, 24px)',
+          }}
+          onClick={() => setShowPasswordConfirmModal(false)}
+        >
+          <div
+            className="card animate-fade-in"
+            style={{
+              maxWidth: 440,
+              width: '100%',
+              padding: 'clamp(18px, 4vw, 24px)',
+              background: 'var(--bg-surface)',
+              border: '2px solid var(--border)',
+              borderRadius: 'var(--radius-lg, 8px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Shield size={18} style={{ color: 'var(--accent)' }} />
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                  Confirm Password Update
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirmModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+              Are you sure you want to update your Master Application Password? You will need this new password to unlock your workspace.
+            </p>
+
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md, 6px)',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-elevated)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>New Password:</span>
+              <span style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 700, color: 'var(--accent)' }}>
+                {newPassword}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setShowPasswordConfirmModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-md, 6px)',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmPasswordUpdate}
+                style={{
+                  padding: '8px 18px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-md, 6px)',
+                  cursor: 'pointer',
+                }}
+              >
+                Confirm & Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Escalation Policies Confirmation Modal */}
+      {showEscalationConfirmModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 'clamp(12px, 4vw, 24px)',
+          }}
+          onClick={() => setShowEscalationConfirmModal(false)}
+        >
+          <div
+            className="card animate-fade-in"
+            style={{
+              maxWidth: 460,
+              width: '100%',
+              padding: 'clamp(18px, 4vw, 24px)',
+              background: 'var(--bg-surface)',
+              border: '2px solid var(--border)',
+              borderRadius: 'var(--radius-lg, 8px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertTriangle size={18} style={{ color: 'var(--accent)' }} />
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                  Save Escalation Policies?
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEscalationConfirmModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+              Are you sure you want to update and apply these escalation alert settings?
+            </p>
+
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md, 6px)',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-elevated)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                fontSize: 12,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+                <span style={{ fontWeight: 700, color: localSettings.enabled ? 'var(--completed)' : 'var(--text-secondary)' }}>
+                  {localSettings.enabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Follow-up Threshold:</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {localSettings.threshold} follow-ups
+                </span>
+              </div>
+              {localSettings.managerEmail && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Manager Email:</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{localSettings.managerEmail}</span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setShowEscalationConfirmModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-md, 6px)',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmEscalationSave}
+                style={{
+                  padding: '8px 18px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-md, 6px)',
+                  cursor: 'pointer',
+                }}
+              >
+                Confirm & Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
