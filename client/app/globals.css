@@ -932,9 +932,16 @@ html:not(.dark) .brutalist-hover:active {
 @media (prefers-reduced-motion: reduce) {
   .settings-theme-card,
   .settings-nav-btn,
+  .faq-hub-wrap,
   .faq-category-card,
+  .faq-category-icon-box,
   .faq-item-card,
-  .faq-item-chevron {
+  .faq-item-trigger,
+  .faq-item-chevron,
+  .faq-item-chevron-wrap,
+  .faq-item-collapse,
+  .faq-item-collapse-inner {
+    animation: none !important;
     transition: none !important;
     transform: none !important;
   }
@@ -945,6 +952,17 @@ html:not(.dark) .brutalist-hover:active {
    Multi-tier breakpoints, container queries, fluid typography, logical properties,
    user preferences (motion, contrast, data), and WCAG 2.2 touch-target compliance.
    ───────────────────────────────────────────────────────────────────────────── */
+
+@keyframes faqFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .faq-hub-wrap {
   width: 100%;
@@ -957,6 +975,7 @@ html:not(.dark) .brutalist-hover:active {
   gap: clamp(20px, 3vw, 36px);
   container-type: inline-size;
   container-name: faq-hub;
+  animation: faqFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ── Hero & Search ───────────────────────────────────────────────────────── */
@@ -1152,7 +1171,7 @@ html:not(.dark) .brutalist-hover:active {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.22s ease, background-color 0.2s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
   position: relative;
   min-width: 0;
   overflow-wrap: break-word;
@@ -1164,6 +1183,10 @@ html:not(.dark) .brutalist-hover:active {
     background: var(--bg-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  }
+
+  .faq-category-card:hover .faq-category-icon-box {
+    transform: scale(1.08);
   }
 }
 
@@ -1198,7 +1221,7 @@ html:not(.dark) .brutalist-hover:active {
   justify-content: center;
   color: var(--accent);
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .faq-category-card.active .faq-category-icon-box {
@@ -1300,7 +1323,7 @@ html:not(.dark) .brutalist-hover:active {
   border-radius: var(--radius-md, 8px);
   background: var(--bg-surface);
   overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.22s ease, box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   container-type: inline-size;
   container-name: faq-item;
 }
@@ -1311,7 +1334,7 @@ html:not(.dark) .brutalist-hover:active {
 
 .faq-item-card.open {
   border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
 }
 
 .faq-item-trigger {
@@ -1327,7 +1350,7 @@ html:not(.dark) .brutalist-hover:active {
   text-align: left;
   gap: 16px;
   min-height: 48px;
-  transition: background 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 
 .faq-item-card.open .faq-item-trigger {
@@ -1358,7 +1381,9 @@ html:not(.dark) .brutalist-hover:active {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .faq-item-card.open .faq-item-chevron-wrap {
@@ -1368,12 +1393,36 @@ html:not(.dark) .brutalist-hover:active {
 
 .faq-item-chevron {
   color: var(--text-muted);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
 }
 
 .faq-item-card.open .faq-item-chevron {
   transform: rotate(180deg);
   color: #000;
+}
+
+/* ── Smooth Grid-Row Accordion Collapse ──────────────────────────────────── */
+.faq-item-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-item-card.open .faq-item-collapse {
+  grid-template-rows: 1fr;
+}
+
+.faq-item-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+  transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.faq-item-card.open .faq-item-collapse-inner {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ── Accordion Answer Body ───────────────────────────────────────────────── */
@@ -1617,6 +1666,17 @@ html:not(.dark) .brutalist-hover:active {
   .faq-contact-card,
   .faq-item-chevron-wrap {
     display: none !important;
+  }
+
+  .faq-item-collapse {
+    display: block !important;
+    grid-template-rows: none !important;
+  }
+
+  .faq-item-collapse-inner {
+    overflow: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .faq-item-body {

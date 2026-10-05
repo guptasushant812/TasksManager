@@ -372,6 +372,7 @@ export default function HelpPage() {
                         onClick={() => toggleItem(faq.id)}
                         className="faq-item-trigger"
                         aria-expanded={isOpen}
+                        aria-controls={`faq-answer-${faq.id}`}
                       >
                         <h3 className="faq-item-question">{faq.q}</h3>
                         <div className="faq-item-chevron-wrap">
@@ -379,11 +380,18 @@ export default function HelpPage() {
                         </div>
                       </button>
 
-                      {isOpen && (
-                        <div className="faq-item-body">
-                          {faq.answer}
+                      <div
+                        id={`faq-answer-${faq.id}`}
+                        className="faq-item-collapse"
+                        role="region"
+                        aria-hidden={!isOpen}
+                      >
+                        <div className="faq-item-collapse-inner">
+                          <div className="faq-item-body">
+                            {faq.answer}
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </article>
                   );
                 })}
