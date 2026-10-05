@@ -2139,8 +2139,8 @@ html:not(.dark) .badge {
 
 /* ── Restored Sidebar Today's Date / Overview Block ──────────────────────── */
 .public-sidebar-overview {
-  margin-block-start: auto;
-  margin-block-end: 6px;
+  margin-block-start: 0;
+  margin-block-end: 18px;
   padding: 12px 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);

@@ -461,6 +461,21 @@ export default function PublicStatusPage() {
 
         {/* Navigation Categories matching main sidebar */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 12px', display: 'flex', flexDirection: 'column' }}>
+          {/* Restored Today's Date / Live Overview Card (Placed first at top of sidebar) */}
+          <div className="public-sidebar-overview">
+            <div className="public-sidebar-overview-header">
+              <span className="overview-title">Today's Date</span>
+              <span className="overview-badge">Live</span>
+            </div>
+            <div className="public-sidebar-overview-date">
+              <Calendar style={{ width: 14, height: 14 }} />
+              <span>{formatDate(new Date())}</span>
+            </div>
+            <p className="public-sidebar-overview-sub">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long' })} · Status View
+            </p>
+          </div>
+
           <div style={{
             padding: '0 14px',
             marginBottom: 10,
@@ -485,21 +500,6 @@ export default function PublicStatusPage() {
               />
             ))}
           </nav>
-
-          {/* Restored Today's Date / Live Overview Card */}
-          <div className="public-sidebar-overview">
-            <div className="public-sidebar-overview-header">
-              <span className="overview-title">Today's Date</span>
-              <span className="overview-badge">Live</span>
-            </div>
-            <div className="public-sidebar-overview-date">
-              <Calendar style={{ width: 14, height: 14 }} />
-              <span>{formatDate(new Date())}</span>
-            </div>
-            <p className="public-sidebar-overview-sub">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long' })} · Status View
-            </p>
-          </div>
         </div>
 
         {/* Bottom Status Information matching main module bottom area */}
@@ -541,7 +541,7 @@ export default function PublicStatusPage() {
             </div>
             <p className="public-page-subtitle" aria-live="polite">
               {activeTab === 'today'
-                ? `Showing ${totalTasks} task${totalTasks !== 1 ? 's' : ''} scheduled for today (${formatDate(new Date())}).`
+                ? `Showing ${totalTasks} task${totalTasks !== 1 ? 's' : ''} scheduled for today.`
                 : `Showing ${totalTasks} task${totalTasks !== 1 ? 's' : ''} in this view.`}
             </p>
           </div>
@@ -643,7 +643,7 @@ export default function PublicStatusPage() {
                 {search
                   ? 'No tasks matching your search query.'
                   : activeTab === 'today'
-                    ? `No tasks scheduled for today (${formatDate(new Date())}).`
+                    ? 'No tasks scheduled for today.'
                     : `No tasks found in ${activeTitle.toLowerCase()}.`}
               </div>
               {search && (
