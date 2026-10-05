@@ -1,212 +1,493 @@
 'use client';
+
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { 
-  Search, BookOpen, Sparkles, ShieldCheck, Clock, FileSpreadsheet, 
-  LifeBuoy, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Zap, 
-  AlertTriangle, RefreshCw, CheckCircle2, Copy, Check, ExternalLink, 
-  Keyboard, X, Mail, MessageSquare, ArrowRight
+  Search, 
+  Plus, 
+  Sparkles, 
+  Zap, 
+  FileSpreadsheet, 
+  Shield, 
+  Sliders, 
+  ChevronDown, 
+  ChevronLeft, 
+  ChevronRight, 
+  X, 
+  Mail, 
+  ExternalLink, 
+  BookOpen, 
+  Info,
+  CheckCircle2,
+  Lock,
+  Clock,
+  Layers
 } from 'lucide-react';
 
 interface FaqItem {
   id: string;
-  category: 'getting-started' | 'ai-drafts' | 'draft-safety' | 'lifecycle-notes' | 'exports-followups';
+  category: 'tasks' | 'ai-assistant' | 'followups' | 'reports' | 'security' | 'settings-system';
   q: string;
-  whatItDoes: string;
-  whenToUse: string;
-  example: string;
-  badge?: string;
+  answer: React.ReactNode;
 }
 
 const CATEGORIES = [
-  { id: 'all', label: 'All Questions', icon: BookOpen },
-  { id: 'getting-started', label: 'Task Creation', icon: Plus },
-  { id: 'ai-drafts', label: 'AI Assistant', icon: Sparkles },
-  { id: 'draft-safety', label: 'Draft Safety', icon: ShieldCheck },
-  { id: 'lifecycle-notes', label: 'Lifecycle & Notes', icon: Clock },
-  { id: 'exports-followups', label: 'Exports & Follow-Ups', icon: FileSpreadsheet },
+  { id: 'all', label: 'All Topics', icon: BookOpen },
+  { id: 'tasks', label: 'Task Creation & Lifecycle', icon: Plus },
+  { id: 'ai-assistant', label: 'AI Task Assistant', icon: Sparkles },
+  { id: 'followups', label: 'Follow-ups & Escalations', icon: Zap },
+  { id: 'reports', label: 'Reports & Exports', icon: FileSpreadsheet },
+  { id: 'security', label: 'Security & Auto-Lock', icon: Shield },
+  { id: 'settings-system', label: 'Settings & Interface', icon: Sliders },
 ] as const;
 
-const QUICK_CARDS = [
-  {
-    id: 'getting-started',
-    title: 'Task Creation',
-    desc: 'Manual task forms, rapid batch additions, and priority definitions.',
-    icon: Plus,
-    badge: 'Core',
-  },
-  {
-    id: 'ai-drafts',
-    title: 'AI Assistant',
-    desc: 'Multilingual structuring (Marathi, Hinglish, English) and 1-click single card regeneration.',
-    icon: Sparkles,
-    badge: 'Smart',
-  },
-  {
-    id: 'draft-safety',
-    title: 'Draft Safety',
-    desc: 'Continuous local browser backups, safe popup dismissals, and instant restoration.',
-    icon: ShieldCheck,
-    badge: 'Auto-Save',
-  },
-  {
-    id: 'exports-followups',
-    title: 'Exports & Follow-Ups',
-    desc: 'Excel/PDF reporting, zero-task notices, communication logs, and escalation policies.',
-    icon: FileSpreadsheet,
-    badge: 'Reports',
-  },
-];
+type CategoryId = typeof CATEGORIES[number]['id'];
 
 const FAQS: FaqItem[] = [
-  // ── 1. Getting Started & Task Creation ─────────────────────────────────────
+  // ── 1. Task Creation & Lifecycle ──────────────────────────────────────────
   {
-    id: 'create-task-manual',
-    category: 'getting-started',
-    q: 'How do I create a task manually?',
-    whatItDoes: 'Opens the manual task form where you can enter the title, description, priority, date, and status notes directly.',
-    whenToUse: 'When you are creating a single task with known details.',
-    example: 'Click "+ New Task" → "Manual Form", fill in the fields, and click "Save Task".'
+    id: 'task-creation-workflow',
+    category: 'tasks',
+    q: 'How do I create and prioritize tasks?',
+    answer: (
+      <>
+        <p>
+          Tasks can be created either manually via the structured form or generated in batches using the AI Assistant:
+        </p>
+        <ol>
+          <li>Click the <code>+ New Task</code> button in the top navigation header.</li>
+          <li>Choose <strong>Manual Form</strong> to specify title, priority, category, due date, and subtasks.</li>
+          <li>
+            Select a priority level based on urgency:
+            <ul>
+              <li><strong>High:</strong> Critical path items that require immediate resolution and daily monitoring.</li>
+              <li><strong>Medium:</strong> Standard operational tasks scheduled for completion within the cycle.</li>
+              <li><strong>Low:</strong> Routine or backlog items with flexible turnaround times.</li>
+            </ul>
+          </li>
+          <li>Click <strong>Save Task</strong> to commit the entry to your active schedule.</li>
+        </ol>
+      </>
+    ),
   },
   {
-    id: 'add-multiple-tasks',
-    category: 'getting-started',
-    q: 'Can I create multiple tasks at the same time?',
-    whatItDoes: 'Yes. Type multiple numbered tasks into the AI Assistant or click "+ Add Another Task" inside the draft editor.',
-    whenToUse: 'When you have several tasks to record at once after a meeting or at the end of the day.',
-    example: 'In the AI Assistant, enter:\n1. Check attendance records\n2. Call IT support for router repair. Pending\n3. Send semester report to HOD\nAll 3 tasks are generated and saved together.'
+    id: 'description-vs-reason-vs-remarks',
+    category: 'tasks',
+    q: 'What is the distinction between Description, Reason, and Remarks?',
+    answer: (
+      <>
+        <p>
+          TasksManager maintains a strict data lifecycle to preserve operational clarity across team handoffs:
+        </p>
+        <ul>
+          <li>
+            <strong>Description:</strong> The task scope and primary deliverable. Defined at creation and specifies <em>what</em> must be accomplished.
+          </li>
+          <li>
+            <strong>Reason (Pending / In-Progress):</strong> Explains operational blockers, pending external approvals, or bottlenecks. Required when transitioning tasks out of active progress so team members understand delays.
+          </li>
+          <li>
+            <strong>Remarks (Completed):</strong> The closing documentation entered when marking a task complete. Documents final deliverables, document reference numbers, or resolution notes.
+          </li>
+        </ul>
+        <div className="help-tip-callout">
+          <Info size={16} />
+          <span>
+            <strong>Audit Preservation:</strong> Changing a task's status automatically logs the timestamp, reason, and transition history in the task's audit ledger.
+          </span>
+        </div>
+      </>
+    ),
   },
   {
-    id: 'add-manual-to-ai-draft',
-    category: 'getting-started',
-    q: 'Can I add a manual task into an AI draft list?',
-    whatItDoes: 'Clicking "+ Add Another Task" inserts a blank card directly into your generated list.',
-    whenToUse: 'When AI created your main tasks, but you want to add an extra task without re-running the AI.',
-    example: 'AI generated 4 tasks. You remember one more item. Click "+ Add Another Task", type "Sign gate pass", and save all 5 tasks together.'
+    id: 'subtasks-and-checklists',
+    category: 'tasks',
+    q: 'How do subtasks and itemized checklists work?',
+    answer: (
+      <>
+        <p>
+          Large deliverables can be broken down into ordered subtasks inside the task editor:
+        </p>
+        <ul>
+          <li>Type individual checklist items in the subtasks section and press <code>Enter</code> to append.</li>
+          <li>Toggle checkboxes directly from the task card to record incremental progress.</li>
+          <li>The card displays a visual progress indicator showing completed versus total subtasks (e.g. <code>3/5 done</code>).</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: 'date-filters-and-focus',
+    category: 'tasks',
+    q: 'How do I filter tasks by date or view historical records?',
+    answer: (
+      <>
+        <p>
+          The top navigation bar contains date controls tailored for high-velocity review:
+        </p>
+        <ul>
+          <li>
+            <strong>Date Picker:</strong> Select any calendar date to inspect scheduled deliverables for that specific day.
+          </li>
+          <li>
+            <strong>Today's Focus:</strong> One-click preset to instantly return to today's active task register.
+          </li>
+          <li>
+            <strong>Status Filters:</strong> Narrow views by <em>All</em>, <em>Pending</em>, <em>In Progress</em>, or <em>Completed</em> without modifying date parameters.
+          </li>
+        </ul>
+      </>
+    ),
   },
 
-  // ── 2. AI Task Assistant & Drafts ──────────────────────────────────────────
+  // ── 2. AI Task Assistant ──────────────────────────────────────────────────
+  {
+    id: 'ai-prompt-parsing',
+    category: 'ai-assistant',
+    q: 'How does the AI Assistant parse natural language into structured tasks?',
+    answer: (
+      <>
+        <p>
+          The AI Task Assistant uses Google Gemini to transform unstructured paragraphs, meeting notes, or bullet points into production-ready task records:
+        </p>
+        <ul>
+          <li>Click <code>+ New Task</code> and select the <strong>AI Assistant</strong> tab.</li>
+          <li>Paste or type conversational meeting notes, action items, or departmental directives.</li>
+          <li>The model automatically extracts and maps:
+            <ul>
+              <li>Concise, action-oriented <strong>Titles</strong></li>
+              <li>Operational <strong>Descriptions</strong> and extracted <strong>Subtask</strong> lists</li>
+              <li>Estimated <strong>Priority</strong> (High, Medium, Low) based on context</li>
+              <li>Departmental <strong>Categories</strong> and targeted <strong>Due Dates</strong></li>
+            </ul>
+          </li>
+          <li>Review the generated card drafts before saving to ensure full alignment.</li>
+        </ul>
+      </>
+    ),
+  },
   {
     id: 'ai-multilingual-support',
-    category: 'ai-drafts',
-    badge: 'Multilingual',
-    q: 'How does AI task structuring work, and what languages are supported?',
-    whatItDoes: 'Converts unstructured notes into organized task records. It understands English, Marathi, and Hinglish, and organizes everything into clean English fields.',
-    whenToUse: 'When you want to type notes quickly without filling individual dropdowns and fields.',
-    example: 'You enter: "HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela."\nThe AI creates a task titled "Prepare Exam Timetable", notes "HOD Sir", lists subtasks, sets status to "Completed", and dates it today.'
+    category: 'ai-assistant',
+    q: 'Does the AI Assistant support Marathi, Hinglish, and regional phrasing?',
+    answer: (
+      <>
+        <p>
+          Yes. The AI pipeline is trained on multilingual phrasing common in Indian enterprise and academic environments:
+        </p>
+        <ul>
+          <li><strong>Marathi:</strong> Prompts like <em>"HOD sir ni sangitla exam timetable tayar karaycha aahe, subtasks batch count ani room allocation"</em> are recognized accurately.</li>
+          <li><strong>Hinglish:</strong> Mixed English and Hindi instructions are parsed without requiring formal grammar.</li>
+          <li><strong>Standardized Output:</strong> Regardless of prompt language, the resulting task titles and descriptions are standardized into clean, professional English task objects.</li>
+        </ul>
+      </>
+    ),
   },
   {
-    id: 'single-task-regen',
-    category: 'ai-drafts',
-    badge: 'Fast',
-    q: 'How does single-task regeneration work?',
-    whatItDoes: 'Clicking "Regenerate" on a card refines only that task, leaving your other drafts untouched. You can also give an optional instruction (e.g. "Make title shorter").',
-    whenToUse: 'When most drafts look good, and you only want to tweak one specific task.',
-    example: 'Tasks 1, 3, and 4 look good, but Task 2 is too wordy. Click "Regenerate" on Task 2, enter "Make title shorter", and refresh.'
+    id: 'ai-single-card-regeneration',
+    category: 'ai-assistant',
+    q: 'Can I regenerate a single draft card without re-running the entire batch?',
+    answer: (
+      <>
+        <p>
+          Yes. In multi-task AI generation sessions:
+        </p>
+        <ul>
+          <li>Each generated draft card displays an individual <strong>Regenerate</strong> icon button.</li>
+          <li>Clicking regenerate refines only that single item while keeping your edits to other cards intact.</li>
+          <li>You can also click <code>+ Add Another Task</code> to manually insert a blank card alongside AI-generated drafts.</li>
+        </ul>
+      </>
+    ),
   },
   {
-    id: 'ai-token-cost',
-    category: 'ai-drafts',
-    q: 'Does editing fields or saving tasks use AI again?',
-    whatItDoes: 'No. Editing text fields, changing dropdowns, or clicking "Save Tasks" works locally in your browser and database with no extra AI calls.',
-    whenToUse: 'Whenever you want to adjust priority, tweak a date, or fix a typo directly.',
-    example: 'Change priority from "Medium" to "High" in the dropdown. The change happens instantly without any network call.'
-  },
-
-  // ── 3. Draft Safety & Recovery ─────────────────────────────────────────────
-  {
-    id: 'draft-auto-recovery',
-    category: 'draft-safety',
-    badge: 'Auto-Save',
-    q: 'What happens if I accidentally close the popup or refresh?',
-    whatItDoes: 'Your input text and generated drafts save automatically to your browser storage. If you close the window or refresh, nothing is lost.',
-    whenToUse: 'When you get interrupted or accidentally close the window while reviewing tasks.',
-    example: 'You generate 5 tasks and accidentally close the tab. Reopen the app, click "+ New Task", and your drafts are restored.'
-  },
-  {
-    id: 'close-keep-draft',
-    category: 'draft-safety',
-    q: 'Can I close the AI window to check other tasks without losing my draft?',
-    whatItDoes: 'Yes. Click "Close" or the "X" button. Your draft remains saved until you save or discard it.',
-    whenToUse: 'When you want to look at the main task table to verify something before saving.',
-    example: 'You want to check if a task was already added yesterday. Close the modal, check the list, and reopen "+ New Task" to continue.'
-  },
-  {
-    id: 'discard-draft-safety',
-    category: 'draft-safety',
-    q: 'What does "Discard" do?',
-    whatItDoes: 'Clears the saved draft and resets the form. A confirmation step prevents accidental loss.',
-    whenToUse: 'When you want to scrap the draft batch and start fresh.',
-    example: 'You no longer need the drafts you generated. Click "Discard", confirm the prompt, and the draft clears.'
+    id: 'ai-draft-safety-and-recovery',
+    category: 'ai-assistant',
+    q: 'Are uncommitted drafts protected against accidental closure or page refresh?',
+    answer: (
+      <>
+        <p>
+          Yes. Unsaved drafts are continuously cached in local browser storage:
+        </p>
+        <ul>
+          <li>If you close the modal inadvertently or your browser tab reloads, opening the AI Assistant restores your prompt and active draft cards.</li>
+          <li>Once you click <strong>Save All Tasks</strong>, the draft cache is cleared cleanly.</li>
+        </ul>
+      </>
+    ),
   },
 
-  // ── 4. Task Lifecycle: Description, Reasons & Remarks ──────────────────────
+  // ── 3. Follow-ups & Escalations ───────────────────────────────────────────
   {
-    id: 'desc-vs-reason-vs-remarks',
-    category: 'lifecycle-notes',
-    q: 'What is the difference between Description, Status Reason, and Remarks?',
-    whatItDoes: 'Keeps task records clean and organized:\n• Description: What the task is about and what needs to be done.\n• Reason (Pending / In Progress): Why the task is delayed or what is currently being worked on.\n• Remarks (Completed): Final outcome or delivery details.',
-    whenToUse: 'Keep task requirements in Description, delay obstacles in Reason, and accomplishments in Remarks.',
-    example: '• Description: "Repair floor Wi-Fi router."\n• Reason (Pending): "Waiting for replacement cable from vendor."\n• Remarks (Completed): "Cable replaced and tested on all workstations."'
+    id: 'follow-up-zap-logging',
+    category: 'followups',
+    q: 'What is the Follow-up (⚡ Zap) module and how do I log interactions?',
+    answer: (
+      <>
+        <p>
+          The Follow-up module provides an audit trail for tasks dependent on external stakeholders, vendors, or departmental approvals:
+        </p>
+        <ol>
+          <li>Click the <code>⚡ Zap</code> button on any active task card to open its follow-up timeline.</li>
+          <li>Select the communication channel: <strong>Phone Call</strong>, <strong>Email</strong>, <strong>WhatsApp</strong>, or <strong>In-Person Meeting</strong>.</li>
+          <li>Enter the contact person's name and a summary of what was discussed.</li>
+          <li>Set a <strong>Next Follow-up Date</strong> to track future check-ins.</li>
+          <li>Save the entry to record the interaction on the immutable timeline.</li>
+        </ol>
+      </>
+    ),
   },
   {
-    id: 'status-delay-comparison',
-    category: 'lifecycle-notes',
-    badge: 'History',
-    q: 'What is the "Status History & Notes" section?',
-    whatItDoes: 'Preserves your notes across each stage of a task ([Pending], [InProgress], and [Completed]) instead of overwriting them when status changes.',
-    whenToUse: 'When a task moved through multiple stages and you want a clear record of what happened at each step.',
-    example: 'A task was Pending on Monday ("Technician unavailable"), In Progress on Tuesday ("Wiring in progress"), and Completed on Wednesday ("Tested and signed off"). All three notes remain saved.'
+    id: 'automatic-escalation-policy',
+    category: 'followups',
+    q: 'How does the Automatic Escalation policy trigger and who is notified?',
+    answer: (
+      <>
+        <p>
+          To prevent pending tasks from stagnating, TasksManager provides threshold-based automated escalation:
+        </p>
+        <ul>
+          <li>
+            <strong>Threshold Trigger:</strong> Configure the threshold in <code>Settings → Escalation</code> (e.g. 3 follow-ups). Once a task logs that number of unsuccessful follow-ups without being marked Completed, an <strong>Escalated</strong> warning flag is activated.
+          </li>
+          <li>
+            <strong>Configurable Recipients:</strong> Alerts are routed directly to designated email addresses for:
+            <ul>
+              <li>Reporting Manager</li>
+              <li>Head of Department (HOD)</li>
+              <li>Deputy Head of Department (DyHOD)</li>
+              <li>Optional CC department addresses</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Visual Warning:</strong> Escalated tasks display a prominent red border indicator and warning icon across the dashboard.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: 'editing-follow-up-history',
+    category: 'followups',
+    q: 'Can I edit or delete individual follow-up timeline entries?',
+    answer: (
+      <>
+        <p>
+          Yes. While chronological order is maintained:
+        </p>
+        <ul>
+          <li>You can edit notes on any logged entry if details were mistyped.</li>
+          <li>Erroneous logs can be deleted. The system maintains an internal audit mark ensuring timeline integrity is preserved.</li>
+        </ul>
+      </>
+    ),
   },
 
-  // ── 5. Follow-ups, Escalations & Exports ───────────────────────────────────
+  // ── 4. Reports & Exports ──────────────────────────────────────────────────
   {
-    id: 'quick-followup-zap',
-    category: 'exports-followups',
-    q: 'How does quick follow-up work?',
-    whatItDoes: 'Clicking the Zap (⚡) icon on any task opens a panel to log communication, contact person, follow-up dates, and file attachments.',
-    whenToUse: 'When you speak with a colleague or vendor about an active task and want to log the update quickly.',
-    example: 'You call IT support about a router. Click ⚡ on that task, enter "Spoke with technician Rajesh, visiting at 2:30 PM", set next follow-up date, and save.'
+    id: 'excel-export-formatting',
+    category: 'reports',
+    q: 'How do I export tasks to Microsoft Excel (.xlsx)?',
+    answer: (
+      <>
+        <p>
+          TasksManager exports structured spreadsheets configured for corporate reporting:
+        </p>
+        <ul>
+          <li>Click the <strong>Export Excel</strong> option in the main toolbar or export dropdown.</li>
+          <li>The generated <code>.xlsx</code> workbook contains:
+            <ul>
+              <li>Formatted table headers with column auto-fit</li>
+              <li>Color-coded Priority (High, Medium, Low) and Status badges</li>
+              <li>Full Descriptions, Reasons for delay, and Completion Remarks</li>
+              <li>Follow-up counts and timestamped audit metadata</li>
+            </ul>
+          </li>
+        </ul>
+      </>
+    ),
   },
   {
-    id: 'export-zero-defect',
-    category: 'exports-followups',
-    q: 'How does exporting work, and what is the zero-task notice?',
-    whatItDoes: 'Generates Excel and PDF reports with status summaries and lifecycle notes. If you export a date with 0 tasks, the app lets you know so you don\'t create empty files.',
-    whenToUse: 'When sharing daily work summaries or progress reports with your team or supervisor.',
-    example: 'Click "Export", choose "Excel", and download. The file includes status totals and full task details.'
+    id: 'pdf-summary-exports',
+    category: 'reports',
+    q: 'How do I generate formal PDF summary reports?',
+    answer: (
+      <>
+        <p>
+          PDF exports are formatted for executive and departmental review:
+        </p>
+        <ul>
+          <li>Select <strong>Export PDF</strong> from the export menu.</li>
+          <li>The report generates a clean layout featuring:
+            <ul>
+              <li>Department header with report generation date</li>
+              <li>Executive metrics breakdown (Total, Completed, Pending, In-Progress, Escalated)</li>
+              <li>Tabular task register with priority indicators and notes</li>
+            </ul>
+          </li>
+        </ul>
+      </>
+    ),
   },
   {
-    id: 'escalations-overview',
-    category: 'exports-followups',
-    q: 'What triggers an escalation warning?',
-    whatItDoes: 'Highlights overdue or high-priority tasks that have remained incomplete beyond your configured threshold.',
-    whenToUse: 'To spot bottlenecks before deadlines pass.',
-    example: 'A high-priority task stays pending for 3 days past the threshold. It flags an alert and lets you send an escalation email to management.'
-  }
+    id: 'zero-tasks-warning',
+    category: 'reports',
+    q: 'Why does the system display a "Zero Tasks Found" notice on export?',
+    answer: (
+      <>
+        <p>
+          If your current date filter or search query returns 0 scheduled items, TasksManager warns you before generating an empty document. This prevents blank PDF and Excel files from being sent to managers. Simply select a date containing task records to proceed.
+        </p>
+      </>
+    ),
+  },
+
+  // ── 5. Security & Auto-Lock ───────────────────────────────────────────────
+  {
+    id: 'master-security-password',
+    category: 'security',
+    q: 'How do I set up or modify the Master Security Password?',
+    answer: (
+      <>
+        <p>
+          The Master Password protects critical workspace configurations and security lock states:
+        </p>
+        <ol>
+          <li>Navigate to <code>Settings → Security</code>.</li>
+          <li>Enter your current password to authorize changes.</li>
+          <li>Specify and confirm your new Master Password (minimum 6 characters recommended).</li>
+          <li>Click <strong>Update Password</strong>. A confirmation modal will appear to prevent accidental changes.</li>
+        </ol>
+      </>
+    ),
+  },
+  {
+    id: 'inactivity-auto-lock',
+    category: 'security',
+    q: 'How does the Inactivity Auto-Lock feature operate?',
+    answer: (
+      <>
+        <p>
+          Auto-lock safeguards your task records when stepping away from your workstation:
+        </p>
+        <ul>
+          <li>Go to <code>Settings → Security → Auto-Lock Inactivity Timeout</code>.</li>
+          <li>Choose an inactivity threshold: <strong>5 minutes</strong>, <strong>15 minutes</strong>, <strong>30 minutes</strong>, <strong>1 hour</strong>, or <strong>Disabled</strong>.</li>
+          <li>If no keyboard or pointer movement is registered within that duration, the screen blurs and locks automatically.</li>
+          <li>Enter your Master Password to resume your active session.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: 'public-view-links',
+    category: 'security',
+    q: 'How do Public Share Links work and is my private data safe?',
+    answer: (
+      <>
+        <p>
+          Public links provide read-only views for external coordinators or client updates:
+        </p>
+        <ul>
+          <li>Public links expose strictly read-only views of selected dates without edit controls.</li>
+          <li>External viewers cannot alter statuses, edit follow-up notes, view Master Passwords, or access administrative settings.</li>
+        </ul>
+      </>
+    ),
+  },
+
+  // ── 6. Settings & Interface ───────────────────────────────────────────────
+  {
+    id: 'interface-themes',
+    category: 'settings-system',
+    q: 'How do I toggle themes (Cyberpunk, Neo-Brutalist, Midnight Slate)?',
+    answer: (
+      <>
+        <p>
+          TasksManager provides three curated visual design systems:
+        </p>
+        <ul>
+          <li><strong>Cyberpunk (Dark & Neon):</strong> Deep void background with high-contrast electric green and neon accents.</li>
+          <li><strong>Neo-Brutalist (Clean White):</strong> Minimalist white surface with crisp solid borders and purple highlights.</li>
+          <li><strong>Midnight Slate (Deep Blue):</strong> Oceanic navy slate with calm sky blue highlights and subtle borders.</li>
+        </ul>
+        <p>
+          To change themes, visit <code>Settings → General → Interface Theme</code>, select your preferred theme preview, and click <strong>Save & Apply</strong>.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'keyboard-shortcuts',
+    category: 'settings-system',
+    q: 'What keyboard shortcuts are available for power users?',
+    answer: (
+      <>
+        <p>
+          High-frequency shortcuts supported across TasksManager:
+        </p>
+        <ul>
+          <li><code>/</code> or <code>Ctrl + K</code>: Instant focus on search input.</li>
+          <li><code>Alt + N</code>: Open the New Task creation modal.</li>
+          <li><code>Esc</code>: Dismiss active modals, drawers, or search inputs.</li>
+          <li><code>Tab</code> / <code>Shift + Tab</code>: Accessible navigation across category filters and form fields.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: 'tablet-and-mobile-layout',
+    category: 'settings-system',
+    q: 'Is TasksManager optimized for touch devices and tablets?',
+    answer: (
+      <>
+        <p>
+          Yes. The application strictly follows the <code>MediaQueryPrompt.md</code> architecture:
+        </p>
+        <ul>
+          <li><strong>Mobile & Tablet (&lt;1024px):</strong> Navigation tabs and categories convert into horizontal swipeable carousels with smooth edge fade masks and scroll chevrons.</li>
+          <li><strong>Touch Target Sizing:</strong> All buttons and interactive triggers scale to a minimum of 44px on coarse pointer devices.</li>
+          <li><strong>Desktop (&ge;1024px):</strong> Automatically organizes into a high-density two-column layout with sticky navigation.</li>
+        </ul>
+      </>
+    ),
+  },
 ];
 
-export default function HelpCenterPage() {
+export default function HelpPage() {
   const { filters, handleTaskCreated } = useTaskContext();
+  const [activeCategory, setActiveCategory] = useState<CategoryId>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [openFaqs, setOpenFaqs] = useState<Set<string>>(new Set([FAQS[0]?.id || '']));
-  const [copiedFaqId, setCopiedFaqId] = useState<string | null>(null);
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
+    'task-creation-workflow': true,
+    'description-vs-reason-vs-remarks': true,
+  });
 
-  // Modals state
-  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [copiedEmail, setCopiedEmail] = useState(false);
-
-  // Category navigation scroll state
-  const categoryListRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const checkCategoryScroll = useCallback(() => {
-    const el = categoryListRef.current;
+  // Keyboard shortcut: '/' or 'Ctrl+K' focuses search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Check scroll boundary on category list for touch devices
+  const checkScroll = useCallback(() => {
+    const el = categoryScrollRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
     setCanScrollLeft(scrollLeft > 4);
@@ -214,677 +495,301 @@ export default function HelpCenterPage() {
   }, []);
 
   useEffect(() => {
-    const el = categoryListRef.current;
+    const el = categoryScrollRef.current;
     if (!el) return;
-    checkCategoryScroll();
-    el.addEventListener('scroll', checkCategoryScroll, { passive: true });
-    window.addEventListener('resize', checkCategoryScroll);
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
     return () => {
-      el.removeEventListener('scroll', checkCategoryScroll);
-      window.removeEventListener('resize', checkCategoryScroll);
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
     };
-  }, [checkCategoryScroll]);
+  }, [checkScroll, activeCategory]);
 
-  const handleScrollCategories = (direction: 'left' | 'right') => {
-    const el = categoryListRef.current;
+  const handleScrollNav = (direction: 'left' | 'right') => {
+    const el = categoryScrollRef.current;
     if (!el) return;
-    const offset = direction === 'left' ? -180 : 180;
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollBy({ left: offset, behavior: isReducedMotion ? 'auto' : 'smooth' });
+    const offset = direction === 'left' ? -160 : 160;
+    el.scrollBy({ left: offset, behavior: 'smooth' });
   };
 
-  const handleSelectCategory = (catId: string) => {
-    setSelectedCategory(catId);
-    const el = categoryListRef.current;
-    if (!el) return;
-    const targetBtn = el.querySelector<HTMLElement>(`[data-cat-id="${catId}"]`);
-    if (targetBtn) {
-      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      targetBtn.scrollIntoView({
-        behavior: isReducedMotion ? 'auto' : 'smooth',
-        inline: 'center',
-        block: 'nearest',
-      });
-    }
-  };
+  // Filter FAQs based on active category and search query
+  const filteredFaqs = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return FAQS.filter(item => {
+      const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
+      if (!matchesCategory) return false;
+      if (!q) return true;
+      return item.q.toLowerCase().includes(q) || (typeof item.answer === 'string' && item.answer.toLowerCase().includes(q));
+    });
+  }, [activeCategory, searchQuery]);
 
-  // Keyboard shortcut listener (/ to focus search, Esc to clear)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === '/' || (e.ctrlKey && e.key.toLowerCase() === 'k')) && document.activeElement !== searchInputRef.current) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.key === 'Escape') {
-        if (showShortcutsModal) setShowShortcutsModal(false);
-        else if (showSupportModal) setShowSupportModal(false);
-        else if (searchQuery) setSearchQuery('');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [searchQuery, showShortcutsModal, showSupportModal]);
-
-  // Compute category counts
+  // Compute counts per category
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: FAQS.length };
-    for (const faq of FAQS) {
-      counts[faq.category] = (counts[faq.category] || 0) + 1;
+    for (const cat of CATEGORIES) {
+      if (cat.id !== 'all') {
+        counts[cat.id] = FAQS.filter(f => f.category === cat.id).length;
+      }
     }
     return counts;
   }, []);
 
-  // Filter FAQs based on active category and live search query
-  const filteredFaqs = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    return FAQS.filter((faq) => {
-      const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;
-      if (!matchesCategory) return false;
-      if (!q) return true;
-
-      return (
-        faq.q.toLowerCase().includes(q) ||
-        faq.whatItDoes.toLowerCase().includes(q) ||
-        faq.whenToUse.toLowerCase().includes(q) ||
-        faq.example.toLowerCase().includes(q)
-      );
-    });
-  }, [searchQuery, selectedCategory]);
-
-  const toggleFaq = (id: string) => {
-    setOpenFaqs((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  const toggleItem = (id: string) => {
+    setOpenItems(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
-  const areAllExpanded = filteredFaqs.length > 0 && filteredFaqs.every((f) => openFaqs.has(f.id));
+  const areAllExpanded = useMemo(() => {
+    if (filteredFaqs.length === 0) return false;
+    return filteredFaqs.every(item => !!openItems[item.id]);
+  }, [filteredFaqs, openItems]);
 
-  const toggleAllFaqs = () => {
+  const handleToggleAll = () => {
     if (areAllExpanded) {
-      setOpenFaqs(new Set());
+      const next: Record<string, boolean> = {};
+      filteredFaqs.forEach(item => {
+        next[item.id] = false;
+      });
+      setOpenItems(prev => ({ ...prev, ...next }));
     } else {
-      setOpenFaqs(new Set(filteredFaqs.map((f) => f.id)));
+      const next: Record<string, boolean> = {};
+      filteredFaqs.forEach(item => {
+        next[item.id] = true;
+      });
+      setOpenItems(prev => ({ ...prev, ...next }));
     }
   };
 
-  const copyFaqSnippet = (faq: FaqItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const text = `Q: ${faq.q}\n\nWhat It Does:\n${faq.whatItDoes}\n\nWhen To Use It:\n${faq.whenToUse}\n\nExample:\n${faq.example}`;
-    navigator.clipboard.writeText(text);
-    setCopiedFaqId(faq.id);
-    setTimeout(() => setCopiedFaqId(null), 2000);
+  const handleSelectCategory = (catId: CategoryId) => {
+    setActiveCategory(catId);
+    // Smooth scroll the category into view on mobile
+    const el = categoryScrollRef.current;
+    if (el) {
+      const btn = el.querySelector<HTMLElement>(`[data-category-id="${catId}"]`);
+      if (btn) {
+        btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
   };
 
-  const copySupportEmail = () => {
-    navigator.clipboard.writeText('guptasushant812@gmail.com');
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
-  };
+  const activeCategoryMeta = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
 
   return (
     <div className="page-layout">
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main className="help-page-wrap" style={{ flex: 1, overflowY: 'auto' }}>
-        {/* Hero Section */}
-        <section className="help-hero">
-          <div className="help-hero-badge">
-            <Sparkles size={13} />
-            <span>Help Center & Knowledge Base</span>
-          </div>
+      <main className="page-content" style={{ maxWidth: 1100 }}>
+        <div className="help-layout">
 
-          <h1 className="help-hero-title">
-            How can we help your workflow?
-          </h1>
-          <p className="help-hero-desc">
-            Master task creation, AI prompt structuring, draft safety auto-backups, status reasoning, and audit exports.
-          </p>
+          {/* ── Left Sticky Navigation / Mobile Scroll Bar ── */}
+          <aside className="help-nav" aria-label="Knowledge Base Navigation">
+            <div className="help-nav-header">
+              <h1 className="help-nav-title">
+                <BookOpen size={22} className="text-accent" />
+                Knowledge Base
+              </h1>
+              <p className="help-nav-subtitle">
+                Operational guides and technical workflows for TasksManager.
+              </p>
+            </div>
 
-          {/* Search Box with Fluid Input & Clear Button */}
-          <div className="help-search-container">
-            <Search className="help-search-icon" size={18} />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search features, questions, or keywords (Press '/' to focus)…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="help-search-input"
-              aria-label="Search documentation"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="help-search-clear"
-                title="Clear search"
-                aria-label="Clear search query"
+            {/* Category Filter Pills / List */}
+            <div 
+              className={`help-nav-scroll-wrap ${canScrollLeft ? 'has-overflow-left' : ''} ${canScrollRight ? 'has-overflow-right' : ''}`}
+            >
+              <div 
+                ref={categoryScrollRef}
+                className="help-category-list" 
+                role="tablist"
               >
-                <X size={12} />
-                <span>Clear</span>
-              </button>
-            )}
-          </div>
-        </section>
-
-        <div className="help-content-wrap">
-          {/* Quick Start Feature Cards (Intrinsic Grid) */}
-          <section aria-label="Feature Quick Cards">
-            <div className="help-quick-grid">
-              {QUICK_CARDS.map((card) => {
-                const Icon = card.icon;
-                const isSelected = selectedCategory === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => handleSelectCategory(card.id)}
-                    className="help-quick-card"
-                    style={{
-                      borderColor: isSelected ? 'var(--accent)' : undefined,
-                      background: isSelected ? 'var(--bg-elevated)' : undefined,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <div className="help-quick-card-icon">
-                        <Icon size={18} />
-                      </div>
-                      <span style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        padding: '2px 7px',
-                        borderRadius: 9999,
-                        background: 'var(--accent-subtle)',
-                        color: 'var(--accent)',
-                        border: '1px solid var(--accent)',
-                        letterSpacing: '0.04em',
-                      }}>
-                        {card.badge}
-                      </span>
-                    </div>
-                    <span className="help-quick-card-title">{card.title}</span>
-                    <p className="help-quick-card-desc">{card.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Categories Filter Tabs (with Edge Fade Masks & Chevrons) */}
-          <section aria-label="Filter Documentation Categories">
-            <div className="help-category-container">
-              {canScrollLeft && (
-                <button
-                  type="button"
-                  onClick={() => handleScrollCategories('left')}
-                  className="help-category-chevron help-category-chevron-left"
-                  aria-label="Scroll categories left"
-                  title="Scroll left"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-              )}
-
-              <div
-                className={`help-category-scroll-wrap ${canScrollLeft ? 'has-overflow-left' : ''} ${canScrollRight ? 'has-overflow-right' : ''}`}
-              >
-                <div
-                  ref={categoryListRef}
-                  className="help-category-list"
-                  role="tablist"
-                  aria-label="FAQ Categories"
-                >
-                  {CATEGORIES.map((cat) => {
-                    const Icon = cat.icon;
-                    const isActive = selectedCategory === cat.id;
-                    const count = categoryCounts[cat.id] || 0;
-                    return (
-                      <button
-                        key={cat.id}
-                        data-cat-id={cat.id}
-                        type="button"
-                        onClick={() => handleSelectCategory(cat.id)}
-                        className={`help-category-btn ${isActive ? 'active' : ''}`}
-                        role="tab"
-                        aria-selected={isActive}
-                      >
-                        <Icon size={15} style={{ color: isActive ? 'var(--accent)' : 'inherit' }} />
-                        <span>{cat.label}</span>
-                        <span className="help-category-count">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {canScrollRight && (
-                <button
-                  type="button"
-                  onClick={() => handleScrollCategories('right')}
-                  className="help-category-chevron help-category-chevron-right"
-                  aria-label="Scroll categories right"
-                  title="Scroll right"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              )}
-            </div>
-          </section>
-
-          {/* FAQ Accordion Section */}
-          <section aria-label="Frequently Asked Questions">
-            <div className="help-faq-header">
-              <h2 className="help-faq-title">
-                <span>
-                  {selectedCategory === 'all' 
-                    ? 'All Frequently Asked Questions' 
-                    : CATEGORIES.find(c => c.id === selectedCategory)?.label}
-                </span>
-                <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                  ({filteredFaqs.length} {filteredFaqs.length === 1 ? 'article' : 'articles'})
-                </span>
-              </h2>
-
-              <div className="help-faq-actions">
-                {filteredFaqs.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={toggleAllFaqs}
-                    className="help-toggle-all-btn"
-                  >
-                    {areAllExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    <span>{areAllExpanded ? 'Collapse All' : 'Expand All'}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Zero State */}
-            {filteredFaqs.length === 0 ? (
-              <div className="card" style={{ padding: 40, textAlign: 'center', background: 'var(--bg-surface)' }}>
-                <p style={{ fontSize: 15, color: 'var(--text-muted)', margin: 0 }}>
-                  No matching questions found for &quot;{searchQuery}&quot;.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
-                  style={{ marginTop: 12, fontSize: 13 }}
-                >
-                  Reset search & view all
-                </button>
-              </div>
-            ) : (
-              /* FAQ Accordion Cards with Container Query Adaptation */
-              <div className="help-faq-list" style={{ marginTop: 16 }}>
-                {filteredFaqs.map((faq) => {
-                  const isOpen = openFaqs.has(faq.id);
+                {CATEGORIES.map(cat => {
+                  const Icon = cat.icon;
+                  const isActive = activeCategory === cat.id;
+                  const count = categoryCounts[cat.id] || 0;
 
                   return (
-                    <article
-                      key={faq.id}
-                      className={`help-faq-card ${isOpen ? 'open' : ''}`}
+                    <button
+                      key={cat.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      data-category-id={cat.id}
+                      onClick={() => handleSelectCategory(cat.id)}
+                      className={`help-nav-btn ${isActive ? 'active' : ''}`}
+                    >
+                      <div className="help-nav-btn-content">
+                        <Icon size={16} className="help-nav-btn-icon" />
+                        <span>{cat.label}</span>
+                      </div>
+                      <span className="help-nav-badge">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Desktop Sidebar Info Card */}
+            <div className="help-sidebar-card">
+              <h3 className="help-sidebar-card-title">Documentation v2.4</h3>
+              <p className="help-sidebar-card-text">
+                Current build incorporates multilingual Gemini parsing, threshold escalation routing, and enterprise data exports.
+              </p>
+              <a 
+                href="mailto:support@tasksmanager.local" 
+                className="help-sidebar-card-link"
+              >
+                <Mail size={13} />
+                <span>Contact Engineering</span>
+              </a>
+            </div>
+          </aside>
+
+          {/* ── Right Content Area ── */}
+          <section className="help-content" aria-label="Frequently Asked Questions">
+
+            {/* Search Input Bar */}
+            <div className="help-search-box">
+              <Search size={16} className="help-search-icon" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search topics, shortcuts, lifecycle rules..."
+                className="help-search-input"
+                aria-label="Search Documentation"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="help-search-clear"
+                  title="Clear search"
+                >
+                  <X size={12} />
+                  <span>Clear</span>
+                </button>
+              ) : (
+                <div className="help-search-shortcut" title="Press / or Ctrl+K to search">
+                  <span>/</span>
+                </div>
+              )}
+            </div>
+
+            {/* Active Category Header & Bulk Controls */}
+            <div className="help-section-header">
+              <div className="help-section-title-wrap">
+                <h2 className="help-section-title">
+                  {searchQuery ? `Search Results for "${searchQuery}"` : activeCategoryMeta.label}
+                </h2>
+                <span className="help-section-count">
+                  ({filteredFaqs.length} {filteredFaqs.length === 1 ? 'article' : 'articles'})
+                </span>
+              </div>
+
+              {filteredFaqs.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleToggleAll}
+                  className="help-expand-all-btn"
+                >
+                  {areAllExpanded ? 'Collapse All' : 'Expand All'}
+                </button>
+              )}
+            </div>
+
+            {/* Accordion List */}
+            {filteredFaqs.length > 0 ? (
+              <div className="help-faq-list" role="region" aria-label="FAQ Accordion">
+                {filteredFaqs.map(faq => {
+                  const isOpen = !!openItems[faq.id];
+
+                  return (
+                    <article 
+                      key={faq.id} 
+                      className={`help-item ${isOpen ? 'open' : ''}`}
                     >
                       <button
                         type="button"
-                        onClick={() => toggleFaq(faq.id)}
-                        className="help-faq-trigger"
+                        onClick={() => toggleItem(faq.id)}
+                        className="help-item-trigger"
                         aria-expanded={isOpen}
-                        aria-controls={`faq-body-${faq.id}`}
+                        aria-controls={`faq-answer-${faq.id}`}
                       >
-                        <div className="help-faq-question-wrap">
-                          <span className="help-faq-q-text">{faq.q}</span>
-                          {faq.badge && (
-                            <span className="help-faq-badge">{faq.badge}</span>
-                          )}
-                        </div>
-
-                        <div className="help-faq-icon-wrap" aria-hidden="true">
-                          <ChevronDown size={16} />
-                        </div>
+                        <h3 className="help-item-q">{faq.q}</h3>
+                        <ChevronDown 
+                          size={18} 
+                          className="help-item-chevron" 
+                        />
                       </button>
 
                       {isOpen && (
-                        <div id={`faq-body-${faq.id}`} className="help-faq-body animate-fade-in">
-                          {/* Adaptive 2-Column Section on Wider Viewports */}
-                          <div className="help-faq-sections-grid">
-                            {/* What it does */}
-                            <div className="help-faq-section-block">
-                              <span className="help-faq-section-label">What It Does</span>
-                              <div style={{ color: 'var(--text-primary)', whiteSpace: 'pre-line' }}>
-                                {faq.whatItDoes}
-                              </div>
-                            </div>
-
-                            {/* When to use it */}
-                            <div className="help-faq-section-block">
-                              <span className="help-faq-section-label" style={{ color: 'var(--inprogress)' }}>
-                                When To Use It
-                              </span>
-                              <div style={{ color: 'var(--text-secondary)' }}>
-                                {faq.whenToUse}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Real-Life Example Callout Box */}
-                          <div className="help-faq-example-box">
-                            <div className="help-faq-example-label">
-                              <CheckCircle2 size={13} />
-                              <span>Real-Life Example</span>
-                            </div>
-                            <div style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
-                              {faq.example}
-                            </div>
-                          </div>
-
-                          {/* Footer Actions: Copy Snippet */}
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
-                            <button
-                              type="button"
-                              onClick={(e) => copyFaqSnippet(faq, e)}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: copiedFaqId === faq.id ? 'var(--completed)' : 'var(--text-muted)',
-                                fontSize: 11,
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 5,
-                                padding: '4px 8px',
-                                borderRadius: 4,
-                              }}
-                              title="Copy this answer snippet"
-                            >
-                              {copiedFaqId === faq.id ? (
-                                <>
-                                  <Check size={13} />
-                                  <span>Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy size={13} />
-                                  <span>Copy Snippet</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
+                        <div 
+                          id={`faq-answer-${faq.id}`}
+                          className="help-item-body"
+                        >
+                          {faq.answer}
                         </div>
                       )}
                     </article>
                   );
                 })}
               </div>
+            ) : (
+              /* Empty State */
+              <div className="help-empty-state">
+                <Search size={28} className="text-muted" />
+                <h3 className="help-empty-title">No matching articles found</h3>
+                <p className="help-empty-desc">
+                  We could not find any topics matching &ldquo;{searchQuery}&rdquo;. Try using broader keywords or reset your filters.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveCategory('all');
+                  }}
+                  className="help-empty-reset-btn"
+                >
+                  Reset Search & Filters
+                </button>
+              </div>
             )}
-          </section>
 
-          {/* Support & Shortcuts Banner */}
-          <section className="help-support-banner" aria-label="Support and Shortcuts">
-            <div>
-              <h3 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: 'var(--text-primary)' }}>
-                Need more assistance or have suggestions?
-              </h3>
-              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13, lineHeight: 1.5 }}>
-                Our team is here to support you. Explore keyboard shortcuts or contact the developer directly.
-              </p>
-            </div>
+            {/* Clean Professional Footer Banner */}
+            <footer className="help-footer-card">
+              <div className="help-footer-info">
+                <h4 className="help-footer-title">Need additional technical assistance?</h4>
+                <p className="help-footer-sub">
+                  Our engineering team is available for escalation configuration and custom module inquiries.
+                </p>
+              </div>
+              <div className="help-footer-actions">
+                <a 
+                  href="mailto:support@tasksmanager.local" 
+                  className="help-footer-btn"
+                >
+                  <Mail size={13} />
+                  <span>Email Support</span>
+                </a>
+                <a 
+                  href="https://github.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="help-footer-btn"
+                >
+                  <ExternalLink size={13} />
+                  <span>GitHub Issues</span>
+                </a>
+              </div>
+            </footer>
 
-            <div className="help-support-buttons">
-              <button
-                type="button"
-                onClick={() => setShowShortcutsModal(true)}
-                className="btn btn-ghost"
-                style={{ fontSize: 12.5, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 7 }}
-              >
-                <Keyboard size={15} />
-                <span>Shortcuts</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(true)}
-                className="btn btn-primary"
-                style={{ fontSize: 12.5, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 7 }}
-              >
-                <LifeBuoy size={15} />
-                <span>Contact Support</span>
-              </button>
-            </div>
           </section>
         </div>
       </main>
-
-      {/* Keyboard Shortcuts Dialog */}
-      {showShortcutsModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'clamp(12px, 4vw, 24px)',
-          }}
-          onClick={() => setShowShortcutsModal(false)}
-        >
-          <div
-            className="card animate-fade-in"
-            style={{
-              maxWidth: 480,
-              width: '100%',
-              padding: 'clamp(18px, 4vw, 24px)',
-              background: 'var(--bg-surface)',
-              border: '2px solid var(--border)',
-              borderRadius: 'var(--radius-lg, 8px)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Keyboard size={18} style={{ color: 'var(--accent)' }} />
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  Keyboard Shortcuts
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowShortcutsModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { key: 'Ctrl + K or /', desc: 'Focus help search bar' },
-                { key: 'Esc', desc: 'Close dialogs or clear active search' },
-                { key: 'Tab / Shift + Tab', desc: 'Navigate through questions and buttons' },
-                { key: 'Enter / Space', desc: 'Expand or collapse highlighted question' },
-              ].map((shortcut, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm, 4px)',
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: 13,
-                  }}
-                >
-                  <span style={{ color: 'var(--text-secondary)' }}>{shortcut.desc}</span>
-                  <span style={{
-                    fontFamily: 'monospace',
-                    fontWeight: 700,
-                    fontSize: 12,
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 4,
-                    padding: '2px 8px',
-                    color: 'var(--accent)',
-                  }}>
-                    {shortcut.key}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowShortcutsModal(false)}
-                style={{ fontSize: 13, padding: '8px 18px' }}
-              >
-                Got It
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Support & Feedback Dialog */}
-      {showSupportModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'clamp(12px, 4vw, 24px)',
-          }}
-          onClick={() => setShowSupportModal(false)}
-        >
-          <div
-            className="card animate-fade-in"
-            style={{
-              maxWidth: 480,
-              width: '100%',
-              padding: 'clamp(18px, 4vw, 24px)',
-              background: 'var(--bg-surface)',
-              border: '2px solid var(--border)',
-              borderRadius: 'var(--radius-lg, 8px)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LifeBuoy size={18} style={{ color: 'var(--accent)' }} />
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  Contact Support & Feedback
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-              Need personal assistance, discovered a bug, or have a feature idea for TasksManager? Reach out directly:
-            </p>
-
-            {/* Email contact card */}
-            <div
-              style={{
-                padding: '14px 16px',
-                borderRadius: 'var(--radius-md, 6px)',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                <Mail size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Developer Contact</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', wordBreak: 'break-all' }}>
-                    guptasushant812@gmail.com
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={copySupportEmail}
-                className="btn btn-ghost"
-                style={{ fontSize: 11, padding: '6px 12px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}
-              >
-                {copiedEmail ? <Check size={13} style={{ color: 'var(--completed)' }} /> : <Copy size={13} />}
-                <span>{copiedEmail ? 'Copied!' : 'Copy'}</span>
-              </button>
-            </div>
-
-            {/* GitHub Issues link */}
-            <a
-              href="https://github.com/guptasushant812/TasksManager/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost"
-              style={{
-                padding: '10px 14px',
-                fontSize: 13,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                textDecoration: 'none',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MessageSquare size={16} />
-                <span>Submit GitHub Issue / Feature Request</span>
-              </div>
-              <ExternalLink size={14} />
-            </a>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowSupportModal(false)}
-                style={{ fontSize: 13, padding: '8px 18px' }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
