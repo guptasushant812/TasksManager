@@ -3004,6 +3004,319 @@ html:not(.dark) .badge {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   NOTIFICATION CENTER DROPDOWN (MediaQueryPrompt.md Architecture)
+   Container queries, fluid clamp sizing, mobile-centered safe overlay,
+   WCAG 2.2 touch-target compliance, high contrast & reduced motion.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.header-notif-wrapper {
+  position: relative;
+}
+
+.header-notif-dropdown {
+  position: absolute;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  z-index: 70;
+  width: clamp(290px, 85vw, 340px);
+  max-width: calc(100vw - 24px);
+  padding: clamp(12px, 2.5cqi, 16px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: notifSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  container-type: inline-size;
+  container-name: notif-dropdown;
+}
+
+@keyframes notifSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.header-notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block-end: 10px;
+  border-block-end: 1px solid var(--border-subtle);
+  gap: 8px;
+}
+
+.header-notif-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-notif-title-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.header-notif-title {
+  font-size: clamp(13.5px, 0.95rem, 14.5px);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-notif-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding-block: 2px;
+  padding-inline: 8px;
+  border-radius: 9999px;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.header-notif-status-badge.is-alert {
+  background: var(--high-bg, #fee2e2);
+  color: var(--high);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+.header-notif-status-badge.is-clear {
+  background: var(--low-bg, #dcfce7);
+  color: var(--low);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.header-notif-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.header-notif-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.header-notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(320px, 45dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.header-notif-item {
+  text-decoration: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-block: 10px;
+  padding-inline: 12px;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-primary);
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .header-notif-item:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.header-notif-item.is-overdue {
+  background: var(--high-bg, #fee2e2);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.header-notif-item.is-escalated {
+  background: var(--medium-bg, #fef9c3);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.header-notif-item-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-block-start: 2px;
+}
+
+.header-notif-item-icon.text-high {
+  color: var(--high);
+}
+
+.header-notif-item-icon.text-medium {
+  color: var(--medium);
+}
+
+.header-notif-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-notif-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.header-notif-item-title.text-high {
+  color: var(--high);
+}
+
+.header-notif-item-title.text-medium {
+  color: var(--medium);
+}
+
+.header-notif-item-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-block-start: 2px;
+  line-height: 1.35;
+}
+
+.header-notif-item-arrow {
+  width: 14px;
+  height: 14px;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.header-notif-item-arrow.text-high {
+  color: var(--high);
+}
+
+.header-notif-item-arrow.text-medium {
+  color: var(--medium);
+}
+
+.header-notif-empty {
+  padding-block: 16px 12px;
+  padding-inline: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-notif-empty-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--completed);
+}
+
+.header-notif-empty-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-notif-empty-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.header-notif-footer {
+  margin-block-start: 4px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.header-notif-footer-val {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ── Mobile Viewport Adaptation (≤ 520px) (MediaQueryPrompt.md Section 3) ── */
+@media (max-width: 520px) {
+  .header-notif-dropdown {
+    position: fixed;
+    inset-block-start: 56px;
+    inset-inline: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 76px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .header-notif-close-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ── Touch Target Compliance (MediaQueryPrompt.md Section 5) ─────────────── */
+@media (pointer: coarse) {
+  .header-notif-item {
+    min-height: 48px;
+    padding-block: 12px;
+  }
+
+  .header-notif-close-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* ── High Contrast Mode (MediaQueryPrompt.md Section 5) ───────────────────── */
+@media (prefers-contrast: more) {
+  .header-notif-dropdown {
+    border-width: 2px !important;
+    border-color: var(--text-primary) !important;
+  }
+
+  .header-notif-item.is-overdue,
+  .header-notif-item.is-escalated {
+    border-width: 2px !important;
+  }
+}
+
+/* ── Reduced Motion (MediaQueryPrompt.md Section 5) ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .header-notif-dropdown {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .header-notif-item {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 /* 4. User Profile Avatar Button */
 .header-user-btn {
   width: 38px !important;
