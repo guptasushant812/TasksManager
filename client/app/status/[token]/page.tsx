@@ -251,21 +251,19 @@ export default function PublicStatusPage() {
         {/* Mobile / Tablet Top Header Skeleton */}
         <header className="public-mobile-header animate-fade-in">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 34,
-              height: 34,
-              background: 'var(--accent)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 17,
-              fontWeight: 900,
-              color: '#000',
-              boxShadow: '0 0 10px var(--accent-subtle)',
-            }}>
-              T
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icon-192.png"
+              alt="TasksManager Logo"
+              width={34}
+              height={34}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '8px',
+                objectFit: 'contain',
+              }}
+            />
             <div>
               <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
                 TasksManager
@@ -386,21 +384,19 @@ export default function PublicStatusPage() {
       {/* ── Mobile / Tablet Top Header: Always visible on load with brand logo & project status ── */}
       <header className="public-mobile-header animate-fade-in">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 34,
-            height: 34,
-            background: 'var(--accent)',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 17,
-            fontWeight: 900,
-            color: '#000',
-            boxShadow: '0 0 10px var(--accent-subtle)',
-          }}>
-            T
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icon-192.png"
+            alt="TasksManager Logo"
+            width={34}
+            height={34}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: '8px',
+              objectFit: 'contain',
+            }}
+          />
           <div>
             <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
               TasksManager
@@ -439,20 +435,19 @@ export default function PublicStatusPage() {
           flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 32,
-              height: 32,
-              background: 'var(--accent)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 16,
-              fontWeight: 900,
-              color: '#000',
-            }}>
-              T
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icon-192.png"
+              alt="TasksManager Logo"
+              width={32}
+              height={32}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '8px',
+                objectFit: 'contain',
+              }}
+            />
             <div>
               <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', display: 'block', lineHeight: 1.2 }}>
                 TasksManager
