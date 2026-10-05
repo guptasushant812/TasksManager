@@ -2099,13 +2099,102 @@ html:not(.dark) .badge {
   min-width: 0;
 }
 
+.public-page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-block-end: 4px;
+}
+
 .public-main .public-page-title {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.875rem);
   line-height: 1.2;
   font-weight: 900;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+}
+
+.public-today-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 9999px);
+  font-size: clamp(11.5px, 0.72rem + 0.15vw, 12.5px);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.public-today-date-badge svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Restored Sidebar Today's Date / Overview Block ──────────────────────── */
+.public-sidebar-overview {
+  margin-block-start: auto;
+  margin-block-end: 6px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.public-sidebar-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.public-sidebar-overview-header .overview-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.public-sidebar-overview-header .overview-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--completed, #22c55e);
+  background: var(--completed-bg, rgba(34, 197, 94, 0.1));
+  padding: 1px 6px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.public-sidebar-overview-date {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.public-sidebar-overview-date svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.public-sidebar-overview-sub {
+  margin: 0 !important;
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  color: var(--text-muted) !important;
 }
 
 /* Overrides the serif `.public-main p` reading style for UI meta text */
