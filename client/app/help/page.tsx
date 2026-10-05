@@ -203,10 +203,14 @@ export default function HelpPage() {
   }, []);
 
   const toggleItem = (id: string) => {
-    setOpenItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    setOpenItems(prev => {
+      // If the clicked accordion is already open, close it
+      if (prev[id]) {
+        return {};
+      }
+      // If opening a new accordion, automatically close any previously open accordion
+      return { [id]: true };
+    });
   };
 
   const areAllOpen = useMemo(() => {
@@ -216,11 +220,15 @@ export default function HelpPage() {
 
   const handleToggleAll = () => {
     const nextState = !areAllOpen;
-    const updated: Record<string, boolean> = {};
-    filteredFaqs.forEach(item => {
-      updated[item.id] = nextState;
-    });
-    setOpenItems(prev => ({ ...prev, ...updated }));
+    if (!nextState) {
+      setOpenItems({});
+    } else {
+      const updated: Record<string, boolean> = {};
+      filteredFaqs.forEach(item => {
+        updated[item.id] = true;
+      });
+      setOpenItems(updated);
+    }
   };
 
   const handleSelectCategory = (catId: string) => {
