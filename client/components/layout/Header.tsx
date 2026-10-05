@@ -25,10 +25,11 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const overdueCount = summary?.overdueFollowUps || 0;
   const escalatedCount = summary?.escalatedTasks || 0;
   const totalAlerts = overdueCount + escalatedCount;
+  const activeTasksCount = (summary?.inProgress || 0) + (summary?.pending || 0);
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click, touch, or Escape key
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handleClick(e: MouseEvent | TouchEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
       }
@@ -36,8 +37,22 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
         setNotifOpen(false);
       }
     }
-    if (profileOpen || notifOpen) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setNotifOpen(false);
+        setProfileOpen(false);
+      }
+    }
+    if (profileOpen || notifOpen) {
+      document.addEventListener('mousedown', handleClick);
+      document.addEventListener('touchstart', handleClick, { passive: true });
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('touchstart', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [profileOpen, notifOpen]);
 
   return (
@@ -78,13 +93,15 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
           {/* Personal Utility Group */}
           <div className="header-utility-group">
             {/* Notification bell & popover */}
-            <div ref={notifRef} style={{ position: 'relative' }}>
+            <div ref={notifRef} className="header-notif-wrapper">
               <button
                 type="button"
                 className={`header-btn header-notif-btn ${notifOpen ? 'is-open' : ''}`}
                 onClick={() => setNotifOpen(!notifOpen)}
                 aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
                 title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
+                aria-expanded={notifOpen}
+                aria-haspopup="dialog"
               >
                 <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
                 {totalAlerts > 0 && (
@@ -94,130 +111,105 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                 )}
               </button>
 
-            {notifOpen && (
-              <div
-                className="animate-slide-down card"
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 'calc(100% + 10px)',
-                  zIndex: 60,
-                  width: 320,
-                  maxWidth: 'calc(100vw - 24px)',
-                  padding: 16,
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md, 8px)',
-                  boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Bell style={{ width: 15, height: 15, color: 'var(--text-primary)' }} />
-                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Notification Center
-                    </span>
-                  </div>
-                  {totalAlerts > 0 ? (
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'var(--high-bg, #fee2e2)', color: 'var(--high)' }}>
-                      {totalAlerts} Alert{totalAlerts > 1 ? 's' : ''}
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: 'var(--low-bg, #dcfce7)', color: 'var(--low)' }}>
-                      All clear
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
-                  {overdueCount > 0 && (
-                    <Link
-                      href="/follow-ups"
-                      onClick={() => setNotifOpen(false)}
-                      style={{
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 10,
-                        padding: 10,
-                        background: 'var(--high-bg, #fee2e2)',
-                        border: '1px solid rgba(239, 68, 68, 0.25)',
-                        borderRadius: 6,
-                        color: 'var(--text-primary)',
-                        transition: 'transform 0.1s ease',
-                      }}
-                    >
-                      <Clock style={{ width: 16, height: 16, color: 'var(--high)', flexShrink: 0, marginTop: 2 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--high)' }}>
-                          {overdueCount} Overdue Follow-Up{overdueCount > 1 ? 's' : ''}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-                          Scheduled dates passed without logged resolution.
-                        </div>
-                      </div>
-                      <ArrowRight style={{ width: 14, height: 14, color: 'var(--high)', alignSelf: 'center' }} />
-                    </Link>
-                  )}
-
-                  {escalatedCount > 0 && (
-                    <Link
-                      href="/tasks"
-                      onClick={() => setNotifOpen(false)}
-                      style={{
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 10,
-                        padding: 10,
-                        background: 'var(--medium-bg, #fef9c3)',
-                        border: '1px solid rgba(234, 179, 8, 0.25)',
-                        borderRadius: 6,
-                        color: 'var(--text-primary)',
-                        transition: 'transform 0.1s ease',
-                      }}
-                    >
-                      <AlertTriangle style={{ width: 16, height: 16, color: 'var(--medium)', flexShrink: 0, marginTop: 2 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--medium)' }}>
-                          {escalatedCount} Escalated Task{escalatedCount > 1 ? 's' : ''}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-                          Tasks reached or exceeded escalation limits.
-                        </div>
-                      </div>
-                      <ArrowRight style={{ width: 14, height: 14, color: 'var(--medium)', alignSelf: 'center' }} />
-                    </Link>
-                  )}
-
-                  {totalAlerts === 0 && (
-                    <div style={{ padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <CheckCircle2 style={{ width: 24, height: 24, color: 'var(--completed)' }} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-                        All tasks & follow-ups on track
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        No overdue milestones or threshold alerts.
-                      </span>
+              {notifOpen && (
+                <div
+                  className="header-notif-dropdown"
+                  role="region"
+                  aria-label="Notification Center"
+                >
+                  <div className="header-notif-header">
+                    <div className="header-notif-title-wrap">
+                      <Bell className="header-notif-title-icon" />
+                      <h2 className="header-notif-title">
+                        Notification Center
+                      </h2>
                     </div>
-                  )}
+                    <div className="header-notif-header-actions">
+                      {totalAlerts > 0 ? (
+                        <span className="header-notif-status-badge is-alert">
+                          {totalAlerts} Alert{totalAlerts > 1 ? 's' : ''}
+                        </span>
+                      ) : (
+                        <span className="header-notif-status-badge is-clear">
+                          All clear
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="header-notif-close-btn"
+                        onClick={() => setNotifOpen(false)}
+                        aria-label="Close notification center"
+                        title="Close"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
 
-                  <div style={{ marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
-                    <span>Active tasks:</span>
-                    <strong style={{ color: 'var(--text-primary)' }}>
-                      {(summary?.inProgress || 0) + (summary?.pending || 0)} tasks
-                    </strong>
+                  <div className="header-notif-list">
+                    {overdueCount > 0 && (
+                      <Link
+                        href="/follow-ups"
+                        onClick={() => setNotifOpen(false)}
+                        className="header-notif-item is-overdue"
+                      >
+                        <Clock className="header-notif-item-icon text-high" />
+                        <div className="header-notif-item-content">
+                          <div className="header-notif-item-title text-high">
+                            {overdueCount} Overdue Follow-Up{overdueCount > 1 ? 's' : ''}
+                          </div>
+                          <div className="header-notif-item-desc">
+                            Scheduled dates passed without logged resolution.
+                          </div>
+                        </div>
+                        <ArrowRight className="header-notif-item-arrow text-high" />
+                      </Link>
+                    )}
+
+                    {escalatedCount > 0 && (
+                      <Link
+                        href="/tasks"
+                        onClick={() => setNotifOpen(false)}
+                        className="header-notif-item is-escalated"
+                      >
+                        <AlertTriangle className="header-notif-item-icon text-medium" />
+                        <div className="header-notif-item-content">
+                          <div className="header-notif-item-title text-medium">
+                            {escalatedCount} Escalated Task{escalatedCount > 1 ? 's' : ''}
+                          </div>
+                          <div className="header-notif-item-desc">
+                            Tasks reached or exceeded escalation limits.
+                          </div>
+                        </div>
+                        <ArrowRight className="header-notif-item-arrow text-medium" />
+                      </Link>
+                    )}
+
+                    {totalAlerts === 0 && (
+                      <div className="header-notif-empty">
+                        <CheckCircle2 className="header-notif-empty-icon" />
+                        <span className="header-notif-empty-title">
+                          All tasks &amp; follow-ups on track
+                        </span>
+                        <span className="header-notif-empty-desc">
+                          No overdue milestones or threshold alerts.
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="header-notif-footer">
+                      <span>Active tasks:</span>
+                      <strong className="header-notif-footer-val">
+                        {activeTasksCount} {activeTasksCount === 1 ? 'task' : 'tasks'}
+                      </strong>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Profile avatar */}
-          <div ref={profileRef} style={{ position: 'relative' }}>
+            {/* Profile avatar */}
+            <div ref={profileRef} style={{ position: 'relative' }}>
             <button
               type="button"
               className={`header-btn header-user-btn ${profileOpen ? 'is-open' : ''}`}
