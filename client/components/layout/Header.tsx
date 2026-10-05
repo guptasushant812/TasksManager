@@ -1,9 +1,20 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import { TaskFilters } from '@/types/task';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { TaskFilters, WorkStatus } from '@/types/task';
 import NewTaskModal from '../modals/NewTaskModal';
 import ShareModal from '../modals/ShareModal';
-import { Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight, Share2 } from 'lucide-react';
+import { 
+  Bell, 
+  Plus, 
+  X, 
+  AlertTriangle, 
+  Clock, 
+  CheckCircle2, 
+  ArrowRight, 
+  Share2, 
+  Sliders, 
+  Info 
+} from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
 
@@ -12,11 +23,27 @@ interface HeaderProps {
   onTaskCreated: () => void;
 }
 
+interface NotificationPreferences {
+  overdueAlerts: boolean;
+  escalationAlerts: boolean;
+  soundAlerts: boolean;
+  dailyDigest: boolean;
+}
+
+const DEFAULT_NOTIF_PREFS: NotificationPreferences = {
+  overdueAlerts: true,
+  escalationAlerts: true,
+  soundAlerts: false,
+  dailyDigest: true,
+};
+
 export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const [showModal, setShowModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifPreferences, setNotifPreferences] = useState<NotificationPreferences>(DEFAULT_NOTIF_PREFS);
+
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -24,8 +51,73 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const summary = taskContext?.summary;
   const overdueCount = summary?.overdueFollowUps || 0;
   const escalatedCount = summary?.escalatedTasks || 0;
-  const totalAlerts = overdueCount + escalatedCount;
+
+  // Sync Notification Preferences from Settings module in real-time
+  useEffect(() => {
+    const loadPreferences = () => {
+      try {
+        const saved = localStorage.getItem('notificationPreferences');
+        if (saved) {
+          setNotifPreferences(prev => ({ ...prev, ...JSON.parse(saved) }));
+        }
+      } catch {}
+    };
+
+    loadPreferences();
+    window.addEventListener('storage', loadPreferences);
+    window.addEventListener('notificationPreferencesChanged', loadPreferences);
+    return () => {
+      window.removeEventListener('storage', loadPreferences);
+      window.removeEventListener('notificationPreferencesChanged', loadPreferences);
+    };
+  }, []);
+
+  // Settings-aware display: respect switches from Settings -> Notifications tab
+  const showOverdue = notifPreferences.overdueAlerts && overdueCount > 0;
+  const showEscalated = notifPreferences.escalationAlerts && escalatedCount > 0;
+  const activeAlertsCount = (showOverdue ? overdueCount : 0) + (showEscalated ? escalatedCount : 0);
+  const isAnyAlertMuted = !notifPreferences.overdueAlerts || !notifPreferences.escalationAlerts;
   const activeTasksCount = (summary?.inProgress || 0) + (summary?.pending || 0);
+
+  // Play subtle audio cue if enabled in Settings
+  const playChime = useCallback((type: 'alert' | 'clear') => {
+    if (!notifPreferences.soundAlerts || typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (type === 'alert') {
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+      } else {
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.12);
+      }
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.18);
+    } catch {}
+  }, [notifPreferences.soundAlerts]);
+
+  const toggleNotifOpen = () => {
+    const nextState = !notifOpen;
+    setNotifOpen(nextState);
+    if (nextState) {
+      playChime(activeAlertsCount > 0 ? 'alert' : 'clear');
+    }
+  };
+
+  const handleStatusFilter = (status: WorkStatus) => {
+    setNotifOpen(false);
+    if (taskContext?.handleStatusClick) {
+      taskContext.handleStatusClick(status);
+    }
+  };
 
   // Close dropdowns on outside click, touch, or Escape key
   useEffect(() => {
@@ -97,16 +189,16 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               <button
                 type="button"
                 className={`header-btn header-notif-btn ${notifOpen ? 'is-open' : ''}`}
-                onClick={() => setNotifOpen(!notifOpen)}
-                aria-label={`Notifications${totalAlerts > 0 ? ` (${totalAlerts} active alerts)` : ''}`}
-                title={totalAlerts > 0 ? `${totalAlerts} items require attention` : 'Notifications'}
+                onClick={toggleNotifOpen}
+                aria-label={`Notifications${activeAlertsCount > 0 ? ` (${activeAlertsCount} active alerts)` : ''}`}
+                title={activeAlertsCount > 0 ? `${activeAlertsCount} items require attention` : 'Notifications'}
                 aria-expanded={notifOpen}
                 aria-haspopup="dialog"
               >
                 <Bell style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
-                {totalAlerts > 0 && (
+                {activeAlertsCount > 0 && (
                   <span className="header-notif-badge">
-                    {totalAlerts > 9 ? '9+' : totalAlerts}
+                    {activeAlertsCount > 9 ? '9+' : activeAlertsCount}
                   </span>
                 )}
               </button>
@@ -125,9 +217,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </h2>
                     </div>
                     <div className="header-notif-header-actions">
-                      {totalAlerts > 0 ? (
+                      {activeAlertsCount > 0 ? (
                         <span className="header-notif-status-badge is-alert">
-                          {totalAlerts} Alert{totalAlerts > 1 ? 's' : ''}
+                          {activeAlertsCount} Alert{activeAlertsCount > 1 ? 's' : ''}
                         </span>
                       ) : (
                         <span className="header-notif-status-badge is-clear">
@@ -147,7 +239,8 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   </div>
 
                   <div className="header-notif-list">
-                    {overdueCount > 0 && (
+                    {/* 1. Overdue Follow-ups Alert (configured via Settings -> Overdue Warnings) */}
+                    {showOverdue && (
                       <Link
                         href="/follow-ups"
                         onClick={() => setNotifOpen(false)}
@@ -159,14 +252,15 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                             {overdueCount} Overdue Follow-Up{overdueCount > 1 ? 's' : ''}
                           </div>
                           <div className="header-notif-item-desc">
-                            Scheduled dates passed without logged resolution.
+                            Scheduled follow-up dates passed without resolution.
                           </div>
                         </div>
                         <ArrowRight className="header-notif-item-arrow text-high" />
                       </Link>
                     )}
 
-                    {escalatedCount > 0 && (
+                    {/* 2. Escalated Tasks Alert (configured via Settings -> Escalation Banner) */}
+                    {showEscalated && (
                       <Link
                         href="/tasks"
                         onClick={() => setNotifOpen(false)}
@@ -185,7 +279,50 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </Link>
                     )}
 
-                    {totalAlerts === 0 && (
+                    {/* 3. Daily Morning Digest (configured via Settings -> Daily Morning Digest) */}
+                    {notifPreferences.dailyDigest && (
+                      <div className="header-notif-digest">
+                        <div className="header-notif-digest-header">
+                          <span className="header-notif-digest-title">Work Snapshot</span>
+                          <span className="header-notif-digest-badge">Daily Digest</span>
+                        </div>
+                        <div className="header-notif-digest-grid">
+                          <Link
+                            href="/tasks?status=Pending"
+                            onClick={() => handleStatusFilter('Pending')}
+                            className="header-notif-digest-pill is-pending"
+                            title="Filter Pending Tasks"
+                          >
+                            <span className="header-notif-digest-dot" />
+                            <span className="header-notif-digest-label">Pending</span>
+                            <span className="header-notif-digest-num">{summary?.pending || 0}</span>
+                          </Link>
+                          <Link
+                            href="/tasks?status=InProgress"
+                            onClick={() => handleStatusFilter('InProgress')}
+                            className="header-notif-digest-pill is-inprogress"
+                            title="Filter In-Progress Tasks"
+                          >
+                            <span className="header-notif-digest-dot" />
+                            <span className="header-notif-digest-label">In Progress</span>
+                            <span className="header-notif-digest-num">{summary?.inProgress || 0}</span>
+                          </Link>
+                          <Link
+                            href="/tasks?status=Completed"
+                            onClick={() => handleStatusFilter('Completed')}
+                            className="header-notif-digest-pill is-completed"
+                            title="Filter Completed Tasks"
+                          >
+                            <span className="header-notif-digest-dot" />
+                            <span className="header-notif-digest-label">Done</span>
+                            <span className="header-notif-digest-num">{summary?.completed || 0}</span>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. When no alerts and digest is disabled, show pristine all-clear card */}
+                    {activeAlertsCount === 0 && !notifPreferences.dailyDigest && (
                       <div className="header-notif-empty">
                         <CheckCircle2 className="header-notif-empty-icon" />
                         <span className="header-notif-empty-title">
@@ -197,11 +334,35 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </div>
                     )}
 
+                    {/* 5. Muted notice if user silenced alerts in Settings */}
+                    {isAnyAlertMuted && (
+                      <div className="header-notif-muted-notice">
+                        <Info size={12} className="header-notif-muted-icon" />
+                        <span>
+                          {!notifPreferences.overdueAlerts && !notifPreferences.escalationAlerts
+                            ? 'Overdue & Escalation alerts muted'
+                            : !notifPreferences.overdueAlerts
+                              ? 'Overdue alerts muted'
+                              : 'Escalation alerts muted'}
+                          {' in Settings'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* 6. Footer with Direct Link to Settings Module */}
                     <div className="header-notif-footer">
-                      <span>Active tasks:</span>
-                      <strong className="header-notif-footer-val">
-                        {activeTasksCount} {activeTasksCount === 1 ? 'task' : 'tasks'}
-                      </strong>
+                      <Link
+                        href="/settings?tab=notifications"
+                        onClick={() => setNotifOpen(false)}
+                        className="header-notif-settings-link"
+                        title="Configure Notification Preferences in Settings"
+                      >
+                        <Sliders size={12} />
+                        <span>Configure in Settings</span>
+                      </Link>
+                      <span className="header-notif-active-summary">
+                        Active: <strong>{activeTasksCount} {activeTasksCount === 1 ? 'task' : 'tasks'}</strong>
+                      </span>
                     </div>
                   </div>
                 </div>

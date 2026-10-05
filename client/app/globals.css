@@ -3260,6 +3260,144 @@ html:not(.dark) .badge {
   font-weight: 700;
 }
 
+/* ── Notification Daily Digest & Status Snapshot ─────────────────────────── */
+.header-notif-digest {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.header-notif-digest-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-notif-digest-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.header-notif-digest-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.header-notif-digest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.header-notif-digest-pill {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  position: relative;
+  min-height: 44px;
+  justify-content: center;
+}
+
+@media (hover: hover) {
+  .header-notif-digest-pill:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    background: var(--bg-hover);
+  }
+}
+
+.header-notif-digest-pill.is-pending .header-notif-digest-dot {
+  background: var(--pending, #eab308);
+}
+
+.header-notif-digest-pill.is-inprogress .header-notif-digest-dot {
+  background: var(--inprogress, #2563eb);
+}
+
+.header-notif-digest-pill.is-completed .header-notif-digest-dot {
+  background: var(--completed, #22c55e);
+}
+
+.header-notif-digest-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-bottom: 2px;
+}
+
+.header-notif-digest-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.header-notif-digest-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* ── Muted Notice ────────────────────────────────────────────────────────── */
+.header-notif-muted-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.header-notif-muted-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* ── Settings Link in Footer ─────────────────────────────────────────────── */
+.header-notif-settings-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.header-notif-settings-link:hover {
+  text-decoration: underline;
+  color: var(--accent-hover);
+}
+
+.header-notif-active-summary {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* ── Mobile Viewport Adaptation (≤ 520px) (MediaQueryPrompt.md Section 3) ── */
 @media (max-width: 520px) {
   .header-notif-dropdown {

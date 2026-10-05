@@ -80,6 +80,19 @@ export default function SettingsPage() {
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
   }, []);
 
+  // Support direct deep-linking to tabs (e.g. /settings?tab=notifications)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const hash = window.location.hash.replace('#', '');
+      const initialTab = tabParam || hash;
+      if (initialTab && TABS.some(t => t.id === initialTab)) {
+        setActiveTab(initialTab);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const el = navListRef.current;
     if (!el) return;
@@ -234,6 +247,7 @@ export default function SettingsPage() {
       try {
         localStorage.setItem('notificationPreferences', JSON.stringify(updated));
         window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('notificationPreferencesChanged', { detail: updated }));
         setNotifSaved(true);
         setTimeout(() => setNotifSaved(false), 2500);
       } catch {}
