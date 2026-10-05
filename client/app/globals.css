@@ -1342,19 +1342,20 @@ html:not(.dark) .brutalist-hover:active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: clamp(13px, 2cqi, 16px);
+  padding-block: clamp(10px, 1.8cqi, 13px);
   padding-inline: clamp(14px, 2.5cqi, 20px);
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
-  gap: 16px;
-  min-height: 48px;
+  gap: 14px;
+  min-height: 44px;
   transition: background-color 0.2s ease;
 }
 
 .faq-item-card.open .faq-item-trigger {
   background: var(--bg-elevated);
+  padding-block-end: 8px;
 }
 
 .faq-item-trigger:hover {
@@ -1362,10 +1363,10 @@ html:not(.dark) .brutalist-hover:active {
 }
 
 .faq-item-question {
-  font-size: clamp(14px, 0.9rem + 0.15cqi, 15.5px);
+  font-size: clamp(14px, 0.9rem + 0.15cqi, 15px);
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.45;
+  line-height: 1.4;
   margin: 0;
   flex: 1;
   overflow-wrap: break-word;
@@ -1427,15 +1428,15 @@ html:not(.dark) .brutalist-hover:active {
 
 /* ── Accordion Answer Body ───────────────────────────────────────────────── */
 .faq-item-body {
-  padding-block: clamp(12px, 2cqi, 16px);
+  padding-block: 6px 12px;
   padding-inline: clamp(14px, 2.5cqi, 20px);
   background: var(--bg-surface);
   border-block-start: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  font-size: clamp(13px, 1.8cqi, 13.5px);
-  line-height: 1.55;
+  gap: 6px;
+  font-size: clamp(12.5px, 1.6cqi, 13px);
+  line-height: 1.5;
   color: var(--text-secondary);
   overflow-wrap: break-word;
 }
@@ -1447,10 +1448,11 @@ html:not(.dark) .brutalist-hover:active {
 .faq-item-body ul,
 .faq-item-body ol {
   margin: 0;
-  padding-inline-start: 18px;
+  padding-inline-start: 16px;
+  list-style-type: disc;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .faq-item-body li {
@@ -1464,28 +1466,28 @@ html:not(.dark) .brutalist-hover:active {
 
 .faq-item-body code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
+  font-size: 11.5px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  padding-block: 2px;
-  padding-inline: 6px;
+  padding-block: 1px;
+  padding-inline: 5px;
   border-radius: 4px;
   color: var(--accent);
   overflow-wrap: break-word;
 }
 
 .faq-tip-box {
-  padding-block: 10px;
-  padding-inline: 14px;
+  padding-block: 6px;
+  padding-inline: 10px;
   background: var(--bg-elevated);
   border-inline-start: 3px solid var(--accent);
   border-radius: 0 var(--radius-sm, 4px) var(--radius-sm, 4px) 0;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 .faq-tip-box strong {
