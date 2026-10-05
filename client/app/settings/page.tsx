@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
@@ -17,7 +17,11 @@ import {
   Mail, 
   Clock, 
   Smartphone,
-  Save
+  Save,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  LayoutGrid
 } from 'lucide-react';
 
 const TABS = [
@@ -62,6 +66,78 @@ const THEME_OPTIONS: ThemeOption[] = [
 export default function SettingsPage() {
   const { filters, handleTaskCreated } = useTaskContext();
   const [activeTab, setActiveTab] = useState('general');
+  const [mobileNavMode, setMobileNavMode] = useState<'scroll' | 'grid'>('scroll');
+  const navListRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Check scroll boundary to reveal edge gradient masks & chevron buttons
+  const checkNavScroll = useCallback(() => {
+    const el = navListRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    const el = navListRef.current;
+    if (!el) return;
+    checkNavScroll();
+    el.addEventListener('scroll', checkNavScroll, { passive: true });
+    window.addEventListener('resize', checkNavScroll);
+    return () => {
+      el.removeEventListener('scroll', checkNavScroll);
+      window.removeEventListener('resize', checkNavScroll);
+    };
+  }, [checkNavScroll, activeTab, mobileNavMode]);
+
+  const handleSelectTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (mobileNavMode === 'scroll') {
+      const el = navListRef.current;
+      if (!el) return;
+      const targetBtn = el.querySelector<HTMLElement>(`[data-tab-id="${tabId}"]`);
+      if (targetBtn) {
+        const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        targetBtn.scrollIntoView({
+          behavior: isReducedMotion ? 'auto' : 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        });
+      }
+    }
+  };
+
+  const handleScrollNav = (direction: 'left' | 'right') => {
+    const el = navListRef.current;
+    if (!el) return;
+    const offset = direction === 'left' ? -160 : 160;
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollBy({ left: offset, behavior: isReducedMotion ? 'auto' : 'smooth' });
+  };
+
+  const handleKeyDownTab = (e: React.KeyboardEvent, currentIndex: number) => {
+    let nextIndex = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % TABS.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = TABS.length - 1;
+    }
+
+    if (nextIndex !== -1) {
+      e.preventDefault();
+      const nextTab = TABS[nextIndex];
+      handleSelectTab(nextTab.id);
+      const el = navListRef.current;
+      const targetBtn = el?.querySelector<HTMLElement>(`[data-tab-id="${nextTab.id}"]`);
+      targetBtn?.focus();
+    }
+  };
 
   const { settings, updateSettings, loading } = useEscalation();
   const [isSaving, setIsSaving] = useState(false);
@@ -213,30 +289,144 @@ export default function SettingsPage() {
       <main className="page-content" style={{ maxWidth: 1100 }}>
         <div className="settings-layout">
 
-          {/* Settings Navigation Bar (Adaptive Sidebar / Touch Scroll Bar) */}
+          {/* Settings Navigation Bar (Adaptive Sidebar / Touch Scroll Bar with Visual Affordances) */}
           <aside className="settings-nav" aria-label="Settings Categories">
             <div className="settings-nav-header">
               <h1 className="settings-nav-title">Settings</h1>
+
+              {/* Mobile View Mode Switcher: Scroll ↔ vs 2x2 Grid ⊞ */}
+              <div className="settings-nav-mode-toggle" role="group" aria-label="Tab Layout Mode">
+                <button
+                  type="button"
+                  onClick={() => setMobileNavMode('scroll')}
+                  className={`settings-mode-btn ${mobileNavMode === 'scroll' ? 'active' : ''}`}
+                  title="Horizontal Scroll View"
+                  aria-pressed={mobileNavMode === 'scroll'}
+                >
+                  <SlidersHorizontal size={12} />
+                  <span>Scroll</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavMode('grid')}
+                  className={`settings-mode-btn ${mobileNavMode === 'grid' ? 'active' : ''}`}
+                  title="2x2 Grid View (All tabs visible)"
+                  aria-pressed={mobileNavMode === 'grid'}
+                >
+                  <LayoutGrid size={12} />
+                  <span>Grid (All)</span>
+                </button>
+              </div>
             </div>
-            <nav className="settings-nav-list" role="tablist">
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`settings-nav-btn ${isActive ? 'active' : ''}`}
-                    role="tab"
-                    aria-selected={isActive}
-                    type="button"
+
+            {/* In Grid Mode (all 4 tabs immediately accessible on mobile without scrolling) */}
+            {mobileNavMode === 'grid' ? (
+              <nav className="settings-nav-grid" role="tablist" aria-label="Settings Tabs">
+                {TABS.map((tab, idx) => {
+                  const isActive = activeTab === tab.id;
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      data-tab-id={tab.id}
+                      onClick={() => handleSelectTab(tab.id)}
+                      onKeyDown={(e) => handleKeyDownTab(e, idx)}
+                      className={`settings-nav-btn ${isActive ? 'active' : ''}`}
+                      role="tab"
+                      aria-selected={isActive}
+                      type="button"
+                    >
+                      <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            ) : (
+              /* In Scroll Mode (with dynamic edge gradients, chevrons, and step dots) */
+              <>
+                <div className="settings-nav-scroll-container">
+                  {/* Left scroll chevron */}
+                  {canScrollLeft && (
+                    <button
+                      type="button"
+                      onClick={() => handleScrollNav('left')}
+                      className="settings-nav-chevron settings-nav-chevron-left"
+                      aria-label="Scroll tabs left"
+                      title="Previous tabs"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                  )}
+
+                  <div 
+                    className={`settings-nav-scroll-wrap ${canScrollLeft ? 'has-overflow-left' : ''} ${canScrollRight ? 'has-overflow-right' : ''}`}
                   >
-                    <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+                    <nav 
+                      ref={navListRef}
+                      className="settings-nav-list" 
+                      role="tablist"
+                      aria-label="Settings Tabs"
+                    >
+                      {TABS.map((tab, idx) => {
+                        const isActive = activeTab === tab.id;
+                        const Icon = tab.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            data-tab-id={tab.id}
+                            onClick={() => handleSelectTab(tab.id)}
+                            onKeyDown={(e) => handleKeyDownTab(e, idx)}
+                            className={`settings-nav-btn ${isActive ? 'active' : ''}`}
+                            role="tab"
+                            aria-selected={isActive}
+                            type="button"
+                          >
+                            <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
+                            <span>{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  </div>
+
+                  {/* Right scroll chevron */}
+                  {canScrollRight && (
+                    <button
+                      type="button"
+                      onClick={() => handleScrollNav('right')}
+                      className="settings-nav-chevron settings-nav-chevron-right"
+                      aria-label="Scroll tabs right"
+                      title="More tabs"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Mobile Scroll Meta & Dot Progress Indicator */}
+                <div className="settings-nav-meta">
+                  <span className="settings-nav-hint">
+                    {canScrollRight ? 'Swipe tabs or tap › for more' : 'All tabs visible'}
+                  </span>
+                  <div className="settings-nav-dots" role="presentation">
+                    {TABS.map((tab) => {
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => handleSelectTab(tab.id)}
+                          className={`settings-nav-dot ${isActive ? 'active' : ''}`}
+                          title={`Go to ${tab.label}`}
+                          aria-label={`Go to ${tab.label}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </aside>
 
           {/* Settings Content & Container Query Context */}

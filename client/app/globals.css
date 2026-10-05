@@ -479,6 +479,7 @@ html:not(.dark) .brutalist-hover:active {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .settings-nav-title {
@@ -489,13 +490,165 @@ html:not(.dark) .brutalist-hover:active {
   color: var(--text-primary);
 }
 
+/* Mobile View Mode Switcher (Scroll ↔ vs 2x2 Grid ⊞) */
+.settings-nav-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 6px);
+  padding: 2px;
+  gap: 2px;
+}
+
+@media (min-width: 1024px) {
+  .settings-nav-mode-toggle {
+    display: none !important;
+  }
+}
+
+.settings-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--duration-fast, 0.15s) ease;
+  white-space: nowrap;
+}
+
+.settings-mode-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.settings-mode-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* 2x2 Grid View on Mobile / Tablet */
+.settings-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.settings-nav-grid .settings-nav-btn {
+  justify-content: center;
+  width: 100%;
+  padding: 10px 8px;
+  font-size: 12.5px;
+}
+
+/* Scroll Container & Edge Gradient Overlays */
+.settings-nav-scroll-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.settings-nav-scroll-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md, 6px);
+}
+
+.settings-nav-scroll-wrap::before,
+.settings-nav-scroll-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.settings-nav-scroll-wrap::before {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, var(--bg-surface, #0a0a0f), transparent);
+}
+
+.settings-nav-scroll-wrap::after {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, var(--bg-surface, #0a0a0f), transparent);
+}
+
+.settings-nav-scroll-wrap.has-overflow-left::before {
+  opacity: 1;
+}
+
+.settings-nav-scroll-wrap.has-overflow-right::after {
+  opacity: 1;
+}
+
+/* Interactive Scroll Chevrons */
+.settings-nav-chevron {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.settings-nav-chevron:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.settings-nav-chevron-left {
+  inset-inline-start: -4px;
+}
+
+.settings-nav-chevron-right {
+  inset-inline-end: -4px;
+}
+
+@media (min-width: 1024px) {
+  .settings-nav-chevron,
+  .settings-nav-scroll-wrap::before,
+  .settings-nav-scroll-wrap::after {
+    display: none !important;
+  }
+}
+
 .settings-nav-list {
   display: flex;
   flex-direction: row;
   gap: 8px;
   overflow-x: auto;
-  padding-block-end: 4px;
+  padding-block: 4px;
+  padding-inline-end: 28px;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
 }
 
@@ -507,7 +660,9 @@ html:not(.dark) .brutalist-hover:active {
   .settings-nav-list {
     flex-direction: column;
     overflow-x: visible;
-    padding-block-end: 0;
+    padding-block: 0;
+    padding-inline-end: 0;
+    scroll-snap-type: none;
   }
 }
 
@@ -526,6 +681,7 @@ html:not(.dark) .brutalist-hover:active {
   white-space: nowrap;
   transition: all var(--duration-fast, 0.15s) ease;
   min-height: 40px;
+  scroll-snap-align: start;
 }
 
 @media (pointer: coarse) {
@@ -545,6 +701,58 @@ html:not(.dark) .brutalist-hover:active {
   color: var(--accent);
   border-color: var(--accent);
   font-weight: 700;
+}
+
+/* Mobile Scroll Meta & Dot Progress Indicator */
+.settings-nav-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 4px;
+  margin-block-start: -4px;
+}
+
+@media (min-width: 1024px) {
+  .settings-nav-meta {
+    display: none !important;
+  }
+}
+
+.settings-nav-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.settings-nav-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.settings-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-nav-dot:hover {
+  background: var(--text-muted);
+}
+
+.settings-nav-dot.active {
+  background: var(--accent);
+  width: 14px;
+  border-radius: 4px;
+  box-shadow: 0 0 6px var(--accent);
 }
 
 /* ── Settings Content & Container Query Context ──────────────────────────── */
