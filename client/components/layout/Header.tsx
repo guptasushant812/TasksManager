@@ -3,8 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
 import NewTaskModal from '../modals/NewTaskModal';
 import ShareModal from '../modals/ShareModal';
-import { ChevronRight, Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight, Share2 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Bell, Plus, X, AlertTriangle, Clock, CheckCircle2, ArrowRight, Share2 } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
 
@@ -20,22 +19,12 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
 
   const taskContext = useTaskContext();
   const summary = taskContext?.summary;
   const overdueCount = summary?.overdueFollowUps || 0;
   const escalatedCount = summary?.escalatedTasks || 0;
   const totalAlerts = overdueCount + escalatedCount;
-
-  const getPageName = () => {
-    if (pathname === '/') return 'Dashboard';
-    if (pathname === '/tasks') return 'Tasks';
-    if (pathname === '/follow-ups') return 'Follow-Ups';
-    if (pathname === '/settings') return 'Settings';
-    if (pathname === '/help') return 'Help';
-    return '';
-  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -54,26 +43,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   return (
     <>
       <header className="app-header">
-        {/* Breadcrumb */}
-        <nav
-          className="header-breadcrumb"
-          aria-label="Breadcrumb"
-        >
-          <span
-            className="breadcrumb-prefix"
-            style={{ color: 'var(--text-primary)', fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
-          >
-            TasksManager
-          </span>
-          <ChevronRight
-            className="breadcrumb-prefix"
-            style={{ width: 16, height: 16, margin: '0px 6px', color: 'var(--text-primary)', strokeWidth: 3, flexShrink: 0 }}
-          />
-          <span className="header-page-title">
-            {getPageName()}
-          </span>
-        </nav>
-
         {/* Actions */}
         <div className="header-actions">
           {/* Workspace Action Group */}
