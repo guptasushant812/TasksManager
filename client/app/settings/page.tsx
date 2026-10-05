@@ -244,7 +244,7 @@ export default function SettingsPage() {
             
             {/* ── GENERAL PREFERENCES TAB ─────────────────────────────────── */}
             {activeTab === 'general' && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
                   <h2>General Preferences</h2>
                   <p>Manage application themes, visual appearance, and interface customization.</p>
@@ -343,7 +343,7 @@ export default function SettingsPage() {
 
             {/* ── ESCALATION POLICIES TAB ─────────────────────────────────── */}
             {activeTab === 'escalation' && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
                   <h2>Escalation Policies</h2>
                   <p>Configure automatic warnings and designated email recipients when tasks require excess follow-ups.</p>
@@ -523,7 +523,7 @@ export default function SettingsPage() {
 
             {/* ── NOTIFICATIONS PREFERENCES TAB ───────────────────────────── */}
             {activeTab === 'notifications' && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
                   <h2>Notification Preferences</h2>
                   <p>Fine-tune when and how you receive alerts, reminder sounds, and milestone updates.</p>
@@ -711,7 +711,7 @@ export default function SettingsPage() {
 
             {/* ── SECURITY CONFIGURATION TAB ──────────────────────────────── */}
             {activeTab === 'security' && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
                   <h2>Security Configuration</h2>
                   <p>Manage access control passwords, automatic session timeouts, and manual app locks.</p>

@@ -450,10 +450,11 @@ html:not(.dark) .brutalist-hover:active {
   width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .settings-layout {
     flex-direction: row;
     align-items: flex-start;
+    gap: 32px;
   }
 }
 
@@ -466,7 +467,7 @@ html:not(.dark) .brutalist-hover:active {
   gap: 12px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .settings-nav {
     width: 220px;
     position: sticky;
@@ -491,7 +492,7 @@ html:not(.dark) .brutalist-hover:active {
 .settings-nav-list {
   display: flex;
   flex-direction: row;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   padding-block-end: 4px;
   -webkit-overflow-scrolling: touch;
@@ -502,7 +503,7 @@ html:not(.dark) .brutalist-hover:active {
   display: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .settings-nav-list {
     flex-direction: column;
     overflow-x: visible;
@@ -548,6 +549,7 @@ html:not(.dark) .brutalist-hover:active {
 
 /* ── Settings Content & Container Query Context ──────────────────────────── */
 .settings-content {
+  width: 100%;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -558,6 +560,7 @@ html:not(.dark) .brutalist-hover:active {
 }
 
 .settings-header {
+  width: 100%;
   margin-block-end: 2px;
 }
 
@@ -574,9 +577,11 @@ html:not(.dark) .brutalist-hover:active {
   font-size: clamp(12px, 0.8rem + 0.2vw, 13.5px);
   line-height: 1.5;
   margin: 0;
+  max-width: 720px;
 }
 
 .settings-card {
+  width: 100%;
   container-type: inline-size;
   container-name: settings-card;
   background: var(--bg-surface);
@@ -590,13 +595,14 @@ html:not(.dark) .brutalist-hover:active {
 
 /* ── Adaptive Setting Rows via Container Query ───────────────────────────── */
 .settings-row {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
   justify-content: space-between;
 }
 
-@container settings-card (min-width: 520px) {
+@container settings-card (min-width: 440px) {
   .settings-row {
     flex-direction: row;
     align-items: center;
@@ -2268,39 +2274,7 @@ html:not(.dark) .badge {
   }
 }
 
-/* ── Settings page — stack sidebar on mobile ─────────────────────────────── */
-@media (max-width: 768px) {
-  .settings-layout {
-    flex-direction: column !important;
-  }
 
-  .settings-nav {
-    width: 100% !important;
-    min-width: 100% !important;
-    flex-direction: row !important;
-    overflow-x: auto;
-    gap: 4px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
-
-  .settings-nav h1 {
-    display: none;
-  }
-
-  .settings-nav nav {
-    flex-direction: row !important;
-    gap: 4px !important;
-  }
-
-  .settings-nav .nav-item {
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-}
 
 /* ── Tablets portrait: ≤ 1024px ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
