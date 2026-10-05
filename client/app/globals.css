@@ -932,80 +932,82 @@ html:not(.dark) .brutalist-hover:active {
 @media (prefers-reduced-motion: reduce) {
   .settings-theme-card,
   .settings-nav-btn,
-  .faq-card,
-  .faq-chevron,
-  .faq-pill-btn {
+  .faq-category-card,
+  .faq-item-card,
+  .faq-item-chevron {
     transition: none !important;
     transform: none !important;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CLEAN FAQ MODULE (MediaQueryPrompt.md Architecture)
-   Minimalist, centered, high-signal FAQ layout matching clean design principles
+   FAQ & KNOWLEDGE HUB MODULE (SEJ Best-Practice Architecture)
+   Inspired by Caesarstone, Airtable, Nike & WhatsApp: Category Hub + Search + Clean Accordions
    ───────────────────────────────────────────────────────────────────────────── */
 
-.faq-wrapper {
+.faq-hub-wrap {
   width: 100%;
-  max-width: 760px;
+  max-width: 880px;
   margin-inline: auto;
-  padding-block: clamp(12px, 2vw, 24px) clamp(32px, 5vw, 64px);
+  padding-block: clamp(16px, 2.5vw, 28px) clamp(36px, 5vw, 64px);
   display: flex;
   flex-direction: column;
-  gap: clamp(20px, 3vw, 28px);
+  gap: clamp(24px, 3.5vw, 36px);
 }
 
-/* ── FAQ Header ──────────────────────────────────────────────────────────── */
-.faq-header {
+/* ── Hero & Search ───────────────────────────────────────────────────────── */
+.faq-hero {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding-block: 8px 12px;
+  gap: 10px;
+  padding-block: 4px 8px;
 }
 
-.faq-badge {
+.faq-hero-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 9999px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--accent);
   font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.faq-title {
-  font-size: clamp(24px, 1.4rem + 1vw, 32px);
+.faq-hero-title {
+  font-size: clamp(24px, 1.3rem + 1.2vw, 34px);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
-.faq-subtitle {
-  font-size: clamp(13px, 0.85rem + 0.2vw, 15px);
+.faq-hero-subtitle {
+  font-size: clamp(13.5px, 0.85rem + 0.25vw, 15px);
   color: var(--text-muted);
-  max-width: 520px;
-  margin: 0;
+  max-width: 540px;
+  margin: 0 0 8px 0;
   line-height: 1.5;
 }
 
-/* ── Search Bar ──────────────────────────────────────────────────────────── */
-.faq-search-box {
+/* ── Search Bar Bar ──────────────────────────────────────────────────────── */
+.faq-search-wrapper {
   position: relative;
   width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
 }
 
 .faq-search-icon {
   position: absolute;
-  inset-inline-start: 14px;
+  inset-inline-start: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-muted);
@@ -1014,8 +1016,8 @@ html:not(.dark) .brutalist-hover:active {
 
 .faq-search-input {
   width: 100%;
-  height: 46px;
-  padding-inline-start: 42px;
+  height: 48px;
+  padding-inline-start: 46px;
   padding-inline-end: 80px;
   font-size: 14px;
   border-radius: var(--radius-md, 8px);
@@ -1023,17 +1025,18 @@ html:not(.dark) .brutalist-hover:active {
   background: var(--bg-surface);
   color: var(--text-primary);
   transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .faq-search-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-subtle);
+  box-shadow: 0 0 0 2px var(--accent-subtle), 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .faq-search-shortcut {
   position: absolute;
-  inset-inline-end: 12px;
+  inset-inline-end: 14px;
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
@@ -1050,7 +1053,7 @@ html:not(.dark) .brutalist-hover:active {
 
 .faq-search-clear {
   position: absolute;
-  inset-inline-end: 10px;
+  inset-inline-end: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: var(--bg-elevated);
@@ -1073,107 +1076,199 @@ html:not(.dark) .brutalist-hover:active {
   border-color: var(--accent);
 }
 
-/* ── Filter Pills Bar ────────────────────────────────────────────────────── */
-.faq-pills-bar {
+/* ── Category Hub Grid (SEJ Inspiration: Caesarstone, Airtable) ──────────── */
+.faq-grid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-grid-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
-@media (max-width: 640px) {
-  .faq-pills-bar {
-    justify-content: flex-start;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-block: 4px;
-    padding-inline-end: 16px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .faq-pills-bar::-webkit-scrollbar {
-    display: none;
-  }
+.faq-grid-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.faq-pill-btn {
-  padding: 6px 14px;
-  border-radius: 9999px;
+.faq-all-pill-btn {
+  background: transparent;
   border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 12.5px;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  font-size: 11.5px;
   font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
-  white-space: nowrap;
   transition: all 0.15s ease;
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
-@media (pointer: coarse) {
-  .faq-pill-btn {
-    min-height: 42px;
-    padding-inline: 16px;
-  }
-}
-
-.faq-pill-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+.faq-all-pill-btn:hover {
   border-color: var(--accent);
+  color: var(--text-primary);
 }
 
-.faq-pill-btn.active {
+.faq-all-pill-btn.active {
   background: var(--accent-subtle);
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 700;
 }
 
-/* ── Bulk Controls & Count ───────────────────────────────────────────────── */
-.faq-meta-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-block-end: 4px;
-}
-
-.faq-meta-count {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.faq-toggle-all-btn {
-  background: transparent;
-  border: none;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: opacity 0.15s ease;
-}
-
-.faq-toggle-all-btn:hover {
-  text-decoration: underline;
-  opacity: 0.85;
-}
-
-/* ── Accordion List & Cards ──────────────────────────────────────────────── */
-.faq-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.faq-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  gap: 12px;
   width: 100%;
 }
 
-.faq-card {
+.faq-category-card {
+  padding: 16px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.faq-category-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.faq-category-card.active {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.faq-category-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.faq-category-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.faq-category-card.active .faq-category-icon-box {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+}
+
+.faq-category-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+}
+
+.faq-category-card.active .faq-category-count {
+  background: var(--accent);
+  color: #000;
+}
+
+.faq-category-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.faq-category-card-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Section Header Bar ──────────────────────────────────────────────────── */
+.faq-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-block-end: 10px;
+  border-block-end: 1px solid var(--border-subtle);
+}
+
+.faq-section-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.faq-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.faq-section-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.faq-expand-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 4px);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.faq-expand-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+/* ── Accordion List & Cards (SEJ Inspiration: Microsoft, Nike) ──────────── */
+.faq-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.faq-item-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
   background: var(--bg-surface);
@@ -1181,40 +1276,40 @@ html:not(.dark) .brutalist-hover:active {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.faq-card:hover {
-  border-color: var(--border-hover, rgba(255, 255, 255, 0.2));
+.faq-item-card:hover {
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.22));
 }
 
-.faq-card.open {
+.faq-item-card.open {
   border-color: var(--accent);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-.faq-trigger {
+.faq-item-trigger {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 15px 18px;
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
   gap: 16px;
-  min-height: 52px;
+  min-height: 50px;
   transition: background 0.15s ease;
 }
 
-.faq-card.open .faq-trigger {
+.faq-item-card.open .faq-item-trigger {
   background: var(--bg-elevated);
 }
 
-.faq-trigger:hover {
+.faq-item-trigger:hover {
   background: var(--bg-hover);
 }
 
-.faq-question {
-  font-size: clamp(14px, 0.9rem + 0.15vw, 15.5px);
+.faq-item-question {
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.45;
@@ -1222,9 +1317,9 @@ html:not(.dark) .brutalist-hover:active {
   flex: 1;
 }
 
-.faq-chevron-wrap {
-  width: 26px;
-  height: 26px;
+.faq-item-chevron-wrap {
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -1235,24 +1330,24 @@ html:not(.dark) .brutalist-hover:active {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.faq-card.open .faq-chevron-wrap {
+.faq-item-card.open .faq-item-chevron-wrap {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.faq-chevron {
+.faq-item-chevron {
   color: var(--text-muted);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
 }
 
-.faq-card.open .faq-chevron {
+.faq-item-card.open .faq-item-chevron {
   transform: rotate(180deg);
   color: #000;
 }
 
 /* ── Accordion Answer Body ───────────────────────────────────────────────── */
-.faq-body {
-  padding: 18px 22px 22px;
+.faq-item-body {
+  padding: 16px 20px 20px;
   background: var(--bg-surface);
   border-block-start: 1px solid var(--border-subtle);
   display: flex;
@@ -1263,12 +1358,12 @@ html:not(.dark) .brutalist-hover:active {
   color: var(--text-secondary);
 }
 
-.faq-body p {
+.faq-item-body p {
   margin: 0;
 }
 
-.faq-body ul,
-.faq-body ol {
+.faq-item-body ul,
+.faq-item-body ol {
   margin: 0;
   padding-inline-start: 20px;
   display: flex;
@@ -1276,16 +1371,16 @@ html:not(.dark) .brutalist-hover:active {
   gap: 6px;
 }
 
-.faq-body li {
+.faq-item-body li {
   color: var(--text-secondary);
 }
 
-.faq-body strong {
+.faq-item-body strong {
   color: var(--text-primary);
   font-weight: 600;
 }
 
-.faq-body code {
+.faq-item-body code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   background: var(--bg-elevated);
@@ -1295,7 +1390,7 @@ html:not(.dark) .brutalist-hover:active {
   color: var(--accent);
 }
 
-.faq-tip {
+.faq-tip-box {
   padding: 10px 14px;
   background: var(--bg-elevated);
   border-inline-start: 3px solid var(--accent);
@@ -1305,11 +1400,16 @@ html:not(.dark) .brutalist-hover:active {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  margin-top: 4px;
+}
+
+.faq-tip-box strong {
+  color: var(--accent);
 }
 
 /* ── Empty State ─────────────────────────────────────────────────────────── */
-.faq-empty {
-  padding: 40px 20px;
+.faq-empty-state {
+  padding: 44px 20px;
   text-align: center;
   background: var(--bg-surface);
   border: 1px dashed var(--border);
@@ -1330,7 +1430,7 @@ html:not(.dark) .brutalist-hover:active {
 .faq-empty-desc {
   font-size: 13px;
   color: var(--text-muted);
-  max-width: 340px;
+  max-width: 360px;
   margin: 0;
 }
 
@@ -1351,10 +1451,10 @@ html:not(.dark) .brutalist-hover:active {
   opacity: 0.9;
 }
 
-/* ── Minimalist Support Card ─────────────────────────────────────────────── */
-.faq-support-card {
+/* ── Contact Assistance Card (SEJ Inspiration: Lucy and Yak, Wateraid) ──── */
+.faq-contact-card {
   margin-top: 8px;
-  padding: 18px 20px;
+  padding: 20px 22px;
   border-radius: var(--radius-md, 8px);
   border: 1px solid var(--border);
   background: var(--bg-surface);
@@ -1362,40 +1462,40 @@ html:not(.dark) .brutalist-hover:active {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 16px;
 }
 
-.faq-support-text {
+.faq-contact-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
-.faq-support-title {
-  font-size: 13.5px;
+.faq-contact-title {
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
-.faq-support-desc {
-  font-size: 12px;
+.faq-contact-desc {
+  font-size: 12.5px;
   color: var(--text-muted);
   margin: 0;
 }
 
-.faq-support-links {
+.faq-contact-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.faq-support-btn {
+.faq-contact-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 4px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -1406,7 +1506,7 @@ html:not(.dark) .brutalist-hover:active {
   transition: all 0.15s ease;
 }
 
-.faq-support-btn:hover {
+.faq-contact-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
