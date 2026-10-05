@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'TasksManager — High-Performance Task & Escalation Platform',
+    name: 'TasksManager',
     short_name: 'TasksManager',
     description: 'Modern, agile task management with intelligent AI task parsing, automatic multi-tier escalation thresholds, and client follow-ups.',
     start_url: '/',

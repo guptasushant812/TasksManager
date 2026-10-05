@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'TasksManager — High-Performance Task & Escalation Management',
+    default: 'TasksManager',
     template: '%s | TasksManager',
   },
   description:
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteUrl,
     siteName: 'TasksManager',
-    title: 'TasksManager — High-Performance Task & Escalation Management',
+    title: 'TasksManager',
     description:
       'Manage team workflows, log follow-ups, configure multi-tier escalations, and share real-time public project status with TasksManager.',
     images: [
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TasksManager — High-Performance Task & Escalation Management',
+    title: 'TasksManager',
     description:
       'Streamline task tracking, multi-tier team escalations, and client follow-ups in one streamlined platform.',
     images: ['/og-image.png'],
