@@ -14,8 +14,7 @@ import {
   CheckSquare,
   Sparkles,
   Zap,
-  Shield,
-  Layers
+  Shield
 } from 'lucide-react';
 
 interface FaqItem {
@@ -36,25 +35,25 @@ const CATEGORIES: CategoryCard[] = [
   {
     id: 'tasks',
     title: 'Task Management',
-    desc: 'Creation, priorities, checklist subtasks & lifecycle states.',
+    desc: 'Create tasks, set priorities & subtasks.',
     icon: CheckSquare,
   },
   {
     id: 'ai',
     title: 'AI Task Assistant',
-    desc: 'Gemini multilingual parsing, card regeneration & draft recovery.',
+    desc: 'Marathi, Hinglish & English prompt parsing.',
     icon: Sparkles,
   },
   {
     id: 'followups',
     title: 'Follow-ups & Escalation',
-    desc: 'Communication logs, next dates & automated HOD alerts.',
+    desc: 'Log contacts & automated HOD alerts.',
     icon: Zap,
   },
   {
     id: 'security',
     title: 'Security & Exports',
-    desc: 'Excel/PDF reports, master password & auto-lock timeouts.',
+    desc: 'Excel/PDF reports, auto-lock & themes.',
     icon: Shield,
   },
 ];
@@ -63,37 +62,29 @@ const FAQS: FaqItem[] = [
   {
     id: 'create-and-prioritize',
     category: 'tasks',
-    q: 'How do I create, organize, and prioritize tasks?',
+    q: 'How do I create and prioritize tasks?',
     answer: (
-      <>
-        <p>
-          You can create tasks either by clicking <code>+ New Task</code> in the header to open the manual form, or by using the <strong>AI Assistant</strong> to generate them from raw notes.
-        </p>
-        <ul>
-          <li><strong>Priorities:</strong> Assign <strong>High</strong> (critical path blockers), <strong>Medium</strong> (scheduled operations), or <strong>Low</strong> (routine tasks) to control visual urgency.</li>
-          <li><strong>Due Dates:</strong> Assign calendar due dates and use the top date-picker or <em>Today&apos;s Focus</em> filter to isolate daily workloads.</li>
-          <li><strong>Subtask Checklists:</strong> Add ordered subtasks inside the task editor to track itemized checklist progress directly from the card.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Click <code>+ New Task</code> to create manually or generate with AI.</li>
+        <li>Set priority to <strong>High</strong> (urgent), <strong>Medium</strong> (normal), or <strong>Low</strong> (routine).</li>
+        <li>Add due dates and subtasks to track progress step-by-step.</li>
+      </ul>
     ),
   },
   {
     id: 'lifecycle-notes',
     category: 'tasks',
-    q: 'What is the difference between Description, Reason, and Remarks?',
+    q: 'What is Description, Reason, and Remarks?',
     answer: (
       <>
-        <p>
-          TasksManager separates the core deliverable scope from operational progress notes to keep audit records clean:
-        </p>
         <ul>
-          <li><strong>Description:</strong> Defines the deliverable and scope created at the beginning.</li>
-          <li><strong>Reason (Pending / In Progress):</strong> Explains operational blockers or delays (e.g. awaiting external vendor approval or IT resolution).</li>
-          <li><strong>Remarks (Completed):</strong> The closing resolution notes or reference numbers recorded when completing the task.</li>
+          <li><strong>Description:</strong> What needs to be done (task scope).</li>
+          <li><strong>Reason:</strong> Why a task is delayed or pending (blockers).</li>
+          <li><strong>Remarks:</strong> Wrap-up notes added when marked completed.</li>
         </ul>
         <div className="faq-tip-box">
-          <Info size={16} />
-          <span>Every status change automatically logs the timestamp and reason into the task&apos;s immutable audit history.</span>
+          <Info size={14} />
+          <span>Status changes are saved to the audit log automatically.</span>
         </div>
       </>
     ),
@@ -101,100 +92,69 @@ const FAQS: FaqItem[] = [
   {
     id: 'ai-assistant-features',
     category: 'ai',
-    q: 'How does the AI Assistant work and what languages are supported?',
+    q: 'What languages does the AI Assistant understand?',
     answer: (
-      <>
-        <p>
-          The AI Assistant uses Google Gemini to turn unformatted notes or meeting transcripts into structured task records:
-        </p>
-        <ul>
-          <li><strong>Multilingual Understanding:</strong> It naturally interprets notes in <strong>English</strong>, <strong>Marathi</strong> (e.g. <em>&ldquo;HOD sir ni sangitla exam timetable tayar karaycha aahe&rdquo;</em>), and <strong>Hinglish</strong>, automatically standardizing them into clean English task fields.</li>
-          <li><strong>Automated Extraction:</strong> Automatically sets concise titles, operational descriptions, extracted subtask checklists, and predicted priority levels.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Type or paste notes in <strong>English</strong>, <strong>Marathi</strong>, or <strong>Hinglish</strong>.</li>
+        <li>Gemini AI converts them into clean English task cards with priorities, subtasks, and dates.</li>
+      </ul>
     ),
   },
   {
     id: 'ai-single-card-regen',
     category: 'ai',
-    q: 'Can I regenerate a single draft card without re-running the entire prompt?',
+    q: 'Can I edit or regenerate individual AI cards?',
     answer: (
-      <>
-        <p>
-          Yes. Multi-task draft management is built for granular control:
-        </p>
-        <ul>
-          <li><strong>Single Card Regeneration:</strong> If one task card in a generated batch needs revision, click its individual refresh icon without discarding your other cards.</li>
-          <li><strong>Draft Auto-Save:</strong> Uncommitted drafts are automatically preserved in local browser storage so you never lose progress if the modal closes.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Click the 🔄 refresh icon on any single card to regenerate it.</li>
+        <li>Unsaved drafts are auto-saved in your browser so you never lose work.</li>
+      </ul>
     ),
   },
   {
     id: 'followups-logging',
     category: 'followups',
-    q: 'What is the Follow-up (⚡ Zap) module and how do I log interactions?',
+    q: 'How do Follow-ups (⚡ Zap) work?',
     answer: (
-      <>
-        <p>
-          For tasks that depend on external parties or awaiting departmental feedback, use the follow-up timeline:
-        </p>
-        <ul>
-          <li><strong>Log Interactions:</strong> Click <code>⚡ Zap</code> on any task card to log phone calls, WhatsApp messages, emails, or meetings, along with contact names and next follow-up dates.</li>
-          <li><strong>Chronological Audit:</strong> All communication touchpoints are saved to an immutable timeline with timestamps and interaction outcomes.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Click <code>⚡ Zap</code> on any task to log calls, WhatsApp messages, emails, or meetings.</li>
+        <li>Save contact names, notes, and next follow-up dates to keep an audit trail.</li>
+      </ul>
     ),
   },
   {
     id: 'automatic-escalation',
     category: 'followups',
-    q: 'How does the Automatic Escalation policy trigger and who gets notified?',
+    q: 'How do automatic escalations work?',
     answer: (
-      <>
-        <p>
-          To prevent pending tasks from slipping through the cracks, TasksManager provides threshold-based automated escalation:
-        </p>
-        <ul>
-          <li><strong>Configurable Threshold:</strong> Set a follow-up threshold in <code>Settings → Escalation</code> (e.g. 3 attempts). If a task exceeds this threshold without resolution, it triggers an <strong>Escalated</strong> warning flag.</li>
-          <li><strong>Notification Routing:</strong> Escalations automatically dispatch email alerts to your configured Manager, HOD, and DyHOD addresses.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Set a threshold in <code>Settings → Escalation</code> (e.g. 3 attempts).</li>
+        <li>If a task exceeds this limit, an <strong>Escalated</strong> warning flag triggers.</li>
+        <li>Automated email alerts are sent to your Manager, HOD, and DyHOD.</li>
+      </ul>
     ),
   },
   {
     id: 'exports-and-reports',
     category: 'security',
-    q: 'How do I export task reports to Microsoft Excel or PDF?',
+    q: 'How do I export to Excel or PDF?',
     answer: (
-      <>
-        <p>
-          TasksManager provides corporate-grade export formats for reporting:
-        </p>
-        <ul>
-          <li><strong>Excel (.xlsx):</strong> Exports formatted spreadsheets complete with color-coded status badges, delay reasons, completion remarks, and full audit timelines.</li>
-          <li><strong>PDF Summary:</strong> Generates executive summary sheets displaying departmental completion statistics and structured task registers.</li>
-          <li><strong>Zero-Task Safeguard:</strong> If your active date filter has 0 tasks, the system warns you before export to avoid generating blank documents.</li>
-        </ul>
-      </>
+      <ul>
+        <li>Click <strong>Export</strong> to download styled <strong>Excel (.xlsx)</strong> or <strong>PDF</strong> summaries.</li>
+        <li>If no tasks exist for the chosen date, a quick warning prevents blank files.</li>
+      </ul>
     ),
   },
   {
     id: 'security-and-settings',
     category: 'security',
-    q: 'How do Master Passwords, Inactivity Lock, and Themes work?',
+    q: 'How do Security, Auto-Lock, and Themes work?',
     answer: (
-      <>
-        <p>
-          All workspace controls are located in the <strong>Settings</strong> page:
-        </p>
-        <ul>
-          <li><strong>Master Security Password:</strong> Guards sensitive operations and lets you lock the workspace when stepping away.</li>
-          <li><strong>Auto-Lock Inactivity:</strong> Set an inactivity timeout (5m, 15m, 30m, 1hr) to automatically blur and lock the screen during periods of inactivity.</li>
-          <li><strong>Public Share Links:</strong> Generate read-only links to share daily progress with stakeholders without granting editing rights.</li>
-          <li><strong>Interface Themes:</strong> Switch between <strong>Cyberpunk</strong> (Dark &amp; Neon), <strong>Neo-Brutalist</strong> (Clean White), and <strong>Midnight Slate</strong> (Deep Blue).</li>
-        </ul>
-      </>
+      <ul>
+        <li><strong>Master Password:</strong> Protects sensitive actions and workspace unlock.</li>
+        <li><strong>Auto-Lock:</strong> Locks the screen after 5m to 1hr of inactivity.</li>
+        <li><strong>Themes:</strong> Choose Cyberpunk (Dark), Neo-Brutalist (White), or Slate (Blue) in <code>Settings</code>.</li>
+      </ul>
     ),
   },
 ];
@@ -284,11 +244,11 @@ export default function HelpPage() {
           <header className="faq-hero">
             <span className="faq-hero-badge">
               <HelpCircle size={13} />
-              Support &amp; Knowledge Hub
+              Help &amp; FAQ
             </span>
-            <h1 className="faq-hero-title">How can we help you today?</h1>
+            <h1 className="faq-hero-title">Frequently Asked Questions</h1>
             <p className="faq-hero-subtitle">
-              Find quick answers to common questions about task creation, AI workflows, follow-ups, and security.
+              Quick answers about task workflows, AI features, follow-ups, and security.
             </p>
 
             {/* Search Input Bar */}
@@ -321,7 +281,7 @@ export default function HelpPage() {
             </div>
           </header>
 
-          {/* ── 2. Category Hub Grid (Inspired by Caesarstone & Airtable) ── */}
+          {/* ── 2. Category Hub Grid ── */}
           <section className="faq-grid-section" aria-label="Browse by Category">
             <div className="faq-grid-header">
               <h2 className="faq-grid-title">Browse by Category</h2>
@@ -362,7 +322,7 @@ export default function HelpPage() {
             </div>
           </section>
 
-          {/* ── 3. Accordion List Section (Inspired by Microsoft & Nike) ── */}
+          {/* ── 3. Accordion List Section ── */}
           <section className="faq-list-section" ref={listRef} aria-label="Questions and Answers">
             <div className="faq-section-header">
               <div className="faq-section-title-wrap">
@@ -371,10 +331,10 @@ export default function HelpPage() {
                     ? `Results for "${searchQuery}"` 
                     : activeCategoryMeta 
                       ? activeCategoryMeta.title 
-                      : 'Frequently Asked Questions'}
+                      : 'Common Questions'}
                 </h2>
                 <span className="faq-section-count">
-                  ({filteredFaqs.length} {filteredFaqs.length === 1 ? 'question' : 'questions'})
+                  ({filteredFaqs.length} {filteredFaqs.length === 1 ? 'item' : 'items'})
                 </span>
               </div>
 
@@ -425,7 +385,7 @@ export default function HelpPage() {
                 <Search size={24} className="text-muted" />
                 <h3 className="faq-empty-title">No matching questions found</h3>
                 <p className="faq-empty-desc">
-                  We couldn&apos;t find anything matching &ldquo;{searchQuery}&rdquo;. Try another search term or reset category filters.
+                  We couldn&apos;t find anything matching &ldquo;{searchQuery}&rdquo;. Try another search term or reset filters.
                 </p>
                 <button
                   type="button"
@@ -441,12 +401,12 @@ export default function HelpPage() {
             )}
           </section>
 
-          {/* ── 4. Contact & Support Section (Inspired by Lucy & Yak, Wateraid) ── */}
+          {/* ── 4. Contact & Support Section ── */}
           <footer className="faq-contact-card">
             <div className="faq-contact-text">
-              <h3 className="faq-contact-title">Didn&apos;t find what you were looking for?</h3>
+              <h3 className="faq-contact-title">Still have questions?</h3>
               <p className="faq-contact-desc">
-                Our engineering team is ready to help with escalation policies, custom workflows, or account inquiries.
+                Our support team is here to help with escalation policies, custom workflows, or account inquiries.
               </p>
             </div>
             <div className="faq-contact-actions">
