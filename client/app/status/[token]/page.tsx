@@ -532,12 +532,6 @@ export default function PublicStatusPage() {
               <h1 className="public-page-title">
                 {activeTitle}
               </h1>
-              {activeTab === 'today' && (
-                <div className="public-today-date-badge" title={`Today's Date: ${formatDate(new Date())}`}>
-                  <Calendar style={{ width: 12, height: 12 }} />
-                  <span>{formatDate(new Date())}</span>
-                </div>
-              )}
             </div>
             <p className="public-page-subtitle" aria-live="polite">
               {activeTab === 'today'
