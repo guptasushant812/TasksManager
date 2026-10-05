@@ -439,10 +439,295 @@ html:not(.dark) .brutalist-hover:active {
   font-size: 13px;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   SETTINGS MODULE — Responsive System (MediaQueryPrompt.md Architecture)
+   Container queries, fluid typography, intrinsic grids & logical properties
+   ───────────────────────────────────────────────────────────────────────────── */
 .settings-layout {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vw, 32px);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .settings-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+/* ── Settings Navigation Bar (Adaptive Sidebar / Touch Scroll Bar) ──────── */
+.settings-nav {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .settings-nav {
+    width: 220px;
+    position: sticky;
+    top: 80px;
+  }
+}
+
+.settings-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-nav-title {
+  font-size: clamp(20px, 1.4rem + 0.4vw, 26px);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.settings-nav-list {
+  display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  gap: clamp(20px, 4vw, 40px);
+  gap: 6px;
+  overflow-x: auto;
+  padding-block-end: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.settings-nav-list::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .settings-nav-list {
+    flex-direction: column;
+    overflow-x: visible;
+    padding-block-end: 0;
+  }
+}
+
+.settings-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast, 0.15s) ease;
+  min-height: 40px;
+}
+
+@media (pointer: coarse) {
+  .settings-nav-btn {
+    min-height: 44px; /* WCAG touch target guideline */
+    padding: 10px 16px;
+  }
+}
+
+.settings-nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.settings-nav-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Settings Content & Container Query Context ──────────────────────────── */
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 24px);
+  container-type: inline-size;
+  container-name: settings-pane;
+}
+
+.settings-header {
+  margin-block-end: 2px;
+}
+
+.settings-header h2 {
+  font-size: clamp(18px, 1.1rem + 0.4vw, 22px);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-block-end: 4px;
+  letter-spacing: -0.01em;
+}
+
+.settings-header p {
+  color: var(--text-muted);
+  font-size: clamp(12px, 0.8rem + 0.2vw, 13.5px);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.settings-card {
+  container-type: inline-size;
+  container-name: settings-card;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 8px);
+  padding: clamp(16px, 3cqi, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Adaptive Setting Rows via Container Query ───────────────────────────── */
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+@container settings-card (min-width: 520px) {
+  .settings-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+  }
+}
+
+.settings-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-block-end: 3px;
+}
+
+.settings-row-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.settings-row-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Intrinsic Email Recipients Grid (No Breakpoints Needed) ─────────────── */
+.settings-recipients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: clamp(12px, 2cqi, 16px);
+}
+
+.settings-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Interactive Theme Selection Grid ────────────────────────────────────── */
+.settings-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.settings-theme-card {
+  padding: 16px;
+  border-radius: var(--radius-md, 6px);
+  border: 2px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all var(--duration-fast, 0.15s) ease;
+  position: relative;
+  text-align: start;
+}
+
+.settings-theme-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.settings-theme-card.active {
+  border-color: var(--accent);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(0, 255, 136, 0.12);
+}
+
+.settings-theme-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-theme-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Password Reset Adaptive Form ────────────────────────────────────────── */
+.settings-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+@container settings-card (min-width: 480px) {
+  .settings-password-form {
+    flex-direction: row;
+    align-items: center;
+    max-width: 400px;
+  }
+}
+
+.settings-password-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Accessibility & Reduced Motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .settings-theme-card,
+  .settings-nav-btn {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
