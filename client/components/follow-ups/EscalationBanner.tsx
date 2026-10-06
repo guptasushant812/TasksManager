@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useEscalation } from '@/hooks/useEscalation';
-import { CheckCircle2, AlertTriangle, Send, Settings2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Send, Settings2, X } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import EscalationConfigModal from './EscalationConfigModal';
 
@@ -24,6 +24,7 @@ export default function EscalationBanner({
   const [escalating, setEscalating] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const prevCountRef = useRef(activeFollowUpCount);
 
@@ -48,9 +49,10 @@ export default function EscalationBanner({
     try {
       await escalateTask(taskId);
       setSuccessMessage('Escalation email successfully sent to management.');
-      setTimeout(() => setSuccessMessage(''), 4000);
+      setTimeout(() => setSuccessMessage(''), 4500);
     } catch (err: any) {
-      alert(`Couldn't send escalation email: ${err.message}`);
+      setErrorMessage(`Couldn't send escalation email: ${err?.message || 'Server error'}`);
+      setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setEscalating(false);
     }
@@ -193,81 +195,108 @@ export default function EscalationBanner({
         </div>
       )}
 
-      {/* Success Notification */}
+      {/* Success Notification Pop */}
       {successMessage && (
-        <div
-          className="animate-slide-up"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            background: 'var(--completed)',
-            color: '#fff',
-            padding: '10px 18px',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            zIndex: 1000,
-            fontWeight: 600,
-            fontSize: 13,
-          }}
-        >
-          <CheckCircle2 style={{ width: 16, height: 16 }} />
-          {successMessage}
+        <div className="app-toast app-toast-success" role="status">
+          <div className="app-toast-icon">
+            <CheckCircle2 style={{ width: 16, height: 16 }} />
+          </div>
+          <span className="app-toast-text">{successMessage}</span>
+          <button
+            type="button"
+            className="app-toast-dismiss"
+            onClick={() => setSuccessMessage('')}
+            aria-label="Dismiss message"
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
+      )}
+
+      {/* Error Notification Pop */}
+      {errorMessage && (
+        <div className="app-toast app-toast-danger" role="alert">
+          <div className="app-toast-icon">
+            <AlertTriangle style={{ width: 16, height: 16 }} />
+          </div>
+          <span className="app-toast-text">{errorMessage}</span>
+          <button
+            type="button"
+            className="app-toast-dismiss"
+            onClick={() => setErrorMessage('')}
+            aria-label="Dismiss error"
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
         </div>
       )}
 
       {/* Escalation Confirm Modal */}
       {showConfirmModal && (
         <div
-          className="modal-overlay"
+          className="app-dialog-overlay"
           onClick={() => setShowConfirmModal(false)}
-          style={{ zIndex: 200 }}
         >
           <div
-            className="modal-box animate-scale-up"
+            className="app-dialog-box"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 440, padding: 0, overflow: 'hidden' }}
+            style={{ maxWidth: 440 }}
           >
-            <div style={{ background: 'var(--bg-elevated)', padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)' }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)' }}>
-                <Send style={{ width: 16, height: 16, color: 'var(--accent)' }} />
-                Send Escalation Email
-              </h3>
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
-                Notify leadership regarding this task’s communication status
-              </p>
+            <div className="app-dialog-accent-bar app-dialog-accent-primary" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-primary">
+                  <Send style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-primary">
+                    Executive Communication
+                  </div>
+                  <h3 className="app-dialog-title">Send Escalation Email</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="app-dialog-close-btn"
+                aria-label="Close"
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
             </div>
-            <div style={{ padding: '20px 24px' }}>
-              <p style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.5 }}>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">
                 An automated email briefing will be dispatched containing:
               </p>
-              <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.6 }}>
-                <li>Chronological follow-up timeline & outcomes</li>
-                <li>Latest response & outstanding next action</li>
-                <li>Designated Manager, HOD, and DyHOD recipients</li>
-              </ul>
+              <div className="app-dialog-card" style={{ gap: 8, margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Chronological follow-up timeline & outcomes
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Latest response & outstanding next action
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Designated Manager, HOD, and DyHOD recipients
+                </div>
+              </div>
             </div>
-            <div
-              style={{
-                padding: '14px 24px',
-                background: 'var(--bg-elevated)',
-                borderTop: '1px solid var(--border-subtle)',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 10,
-              }}
-            >
-              <button className="btn btn-ghost" onClick={() => setShowConfirmModal(false)}>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-cancel"
+                onClick={() => setShowConfirmModal(false)}
+              >
                 Cancel
               </button>
               <button
-                className="btn btn-primary"
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-primary"
                 onClick={handleConfirmEscalate}
-                style={{ background: 'var(--high)', borderColor: 'var(--high)', color: '#fff' }}
               >
+                <Send style={{ width: 14, height: 14 }} />
                 Send Escalation
               </button>
             </div>

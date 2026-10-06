@@ -12,7 +12,7 @@ import NewTaskModal from '../modals/NewTaskModal';
 import FollowUpPanel from '../follow-ups/FollowUpPanel';
 import FollowUpQuickAdd from '../follow-ups/FollowUpQuickAdd';
 import Link from 'next/link';
-import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, ArrowRight, X } from 'lucide-react';
+import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, ArrowRight, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface TaskTableProps {
   filters: TaskFilters;
@@ -54,6 +54,13 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [quickFollowUpTask, setQuickFollowUpTask] = useState<Task | null>(null);
+
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [deleteErrorMsg, setDeleteErrorMsg] = useState<string | null>(null);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const filterRef = useRef<HTMLDivElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -93,20 +100,51 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this task?')) return;
-    await deleteTask(id);
-    fetchTasks({ ...filters, limit: tableLimit });
+  const handleDelete = (id: string) => {
+    const target = tasks.find((t) => t._id === id);
+    if (target) {
+      setTaskToDelete(target);
+    } else {
+      setTaskToDelete({ _id: id, taskId: id, title: 'Selected task' } as Task);
+    }
   };
 
-  const handleDeleteSelected = async () => {
-    if (!confirm(`Delete ${selectedIds.length} selected task(s)?`)) return;
+  const executeSingleDelete = async () => {
+    if (!taskToDelete) return;
+    setIsDeleting(true);
     try {
+      await deleteTask(taskToDelete._id);
+      const deletedTaskId = taskToDelete.taskId;
+      setTaskToDelete(null);
+      fetchTasks({ ...filters, limit: tableLimit });
+      setDeleteSuccessMsg(`Task ${deletedTaskId} deleted successfully`);
+      setTimeout(() => setDeleteSuccessMsg(null), 3500);
+    } catch (err) {
+      setDeleteErrorMsg(err instanceof Error ? err.message : 'Failed to delete task');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.length === 0) return;
+    setShowBulkDeleteConfirm(true);
+  };
+
+  const executeBulkDelete = async () => {
+    setIsDeleting(true);
+    setShowBulkDeleteConfirm(false);
+    try {
+      const count = selectedIds.length;
       await deleteManyTasks(selectedIds);
       setSelectedIds([]);
       fetchTasks({ ...filters, limit: tableLimit });
+      setDeleteSuccessMsg(`Successfully deleted ${count} task${count > 1 ? 's' : ''}`);
+      setTimeout(() => setDeleteSuccessMsg(null), 3500);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete selected tasks');
+      setDeleteErrorMsg(err instanceof Error ? err.message : 'Failed to delete selected tasks');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -308,8 +346,8 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         </div>
       )}
 
-      {/* ── Table ──────────────────────────────────────────────────── */}
-      <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
+      {/* ── Table (Container Query & Responsive Scroll Surface) ───────── */}
+      <div className="glass task-table-wrapper" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
         {loading && (
           <div className="loading-bar">
             <div className="loading-bar-inner" />
@@ -321,7 +359,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Make sure the server is running on port 4000</p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="task-table-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table className="task-table">
               <thead>
                 <tr>
@@ -358,7 +396,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
               <tbody>
                 {loading && tasks.length === 0 ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={`skeleton-${i}`}>
+                    <tr key={`skeleton-${i}`} className="skeleton-row">
                       <td colSpan={10} style={{ padding: '16px 24px' }}>
                         <div className="skeleton" style={{ height: 20, width: '100%', opacity: 1 - i * 0.15 }} />
                       </td>
@@ -619,6 +657,245 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           onClose={() => setQuickFollowUpTask(null)}
           onAdded={() => fetchTasks({ ...filters, limit: tableLimit }, true)}
         />
+      )}
+
+      {/* ── Single Task Delete Modal ─────────────────────────────────────── */}
+      {taskToDelete && (
+        <div className="app-dialog-overlay" onClick={() => !isDeleting && setTaskToDelete(null)}>
+          <div
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 450 }}
+          >
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <Trash2 style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    CONFIRM DELETION
+                  </div>
+                  <h3 className="app-dialog-title">Delete Task?</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="app-dialog-close-btn"
+                onClick={() => !isDeleting && setTaskToDelete(null)}
+                aria-label="Close dialog"
+                disabled={isDeleting}
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+
+              <div className="app-dialog-card">
+                {taskToDelete.taskId && (
+                  <div className="app-dialog-row">
+                    <span className="app-dialog-label">Task ID</span>
+                    <span className="app-dialog-value" style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent)' }}>
+                      {taskToDelete.taskId}
+                    </span>
+                  </div>
+                )}
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">Title</span>
+                  <span className="app-dialog-value" style={{ maxWidth: 260, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {taskToDelete.title}
+                  </span>
+                </div>
+                {taskToDelete.workStatus && (
+                  <div className="app-dialog-row">
+                    <span className="app-dialog-label">Status</span>
+                    <span className="app-dialog-value">{taskToDelete.workStatus}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-cancel"
+                onClick={() => setTaskToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-danger"
+                onClick={executeSingleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>Deleting…</>
+                ) : (
+                  <>
+                    <Trash2 style={{ width: 14, height: 14 }} />
+                    Delete Task
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bulk Delete Modal ────────────────────────────────────────────── */}
+      {showBulkDeleteConfirm && (
+        <div className="app-dialog-overlay" onClick={() => !isDeleting && setShowBulkDeleteConfirm(false)}>
+          <div
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 440 }}
+          >
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <Trash2 style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    BULK DELETION
+                  </div>
+                  <h3 className="app-dialog-title">Delete {selectedIds.length} Tasks?</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="app-dialog-close-btn"
+                onClick={() => !isDeleting && setShowBulkDeleteConfirm(false)}
+                aria-label="Close dialog"
+                disabled={isDeleting}
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">
+                Are you sure you want to delete these <strong>{selectedIds.length}</strong> selected tasks? All associated follow-up logs will also be permanently removed.
+              </p>
+
+              <div className="app-dialog-card">
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">Tasks to Delete</span>
+                  <span className="app-dialog-value" style={{ color: '#f87171' }}>
+                    {selectedIds.length} Tasks
+                  </span>
+                </div>
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">Action</span>
+                  <span className="app-dialog-value">Permanent removal</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-cancel"
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-danger"
+                onClick={executeBulkDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>Deleting…</>
+                ) : (
+                  <>
+                    <Trash2 style={{ width: 14, height: 14 }} />
+                    Delete {selectedIds.length} Tasks
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Error Modal ──────────────────────────────────────────────────── */}
+      {deleteErrorMsg && (
+        <div className="app-dialog-overlay" onClick={() => setDeleteErrorMsg(null)}>
+          <div
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 420 }}
+          >
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <AlertTriangle style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    ACTION ERROR
+                  </div>
+                  <h3 className="app-dialog-title">Deletion Failed</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="app-dialog-close-btn"
+                onClick={() => setDeleteErrorMsg(null)}
+                aria-label="Close dialog"
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">{deleteErrorMsg}</p>
+            </div>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-danger"
+                onClick={() => setDeleteErrorMsg(null)}
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Success Toast Pop ────────────────────────────────────────────── */}
+      {deleteSuccessMsg && (
+        <div className="app-toast app-toast-success" role="status">
+          <div className="app-toast-icon">
+            <CheckCircle2 style={{ width: 16, height: 16 }} />
+          </div>
+          <span className="app-toast-text">{deleteSuccessMsg}</span>
+          <button
+            type="button"
+            className="app-toast-dismiss"
+            onClick={() => setDeleteSuccessMsg(null)}
+            aria-label="Dismiss toast"
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
       )}
     </div>
   );

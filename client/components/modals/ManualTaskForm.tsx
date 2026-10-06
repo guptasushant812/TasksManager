@@ -213,50 +213,57 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
       {/* ── Discard Confirmation Modal Overlay ─────────────────────────────────── */}
       {showDiscardConfirm && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.65)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
+          className="app-dialog-overlay"
+          onClick={() => setShowDiscardConfirm(false)}
         >
           <div
-            className="card animate-scale-in"
-            style={{
-              maxWidth: 420,
-              width: '100%',
-              background: 'var(--bg-elevated)',
-              border: '2px solid var(--high)',
-              padding: 24,
-              boxShadow: 'var(--box-shadow-brutalist)',
-            }}
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 420 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--high)', marginBottom: 12 }}>
-              <AlertTriangle style={{ width: 22, height: 22 }} />
-              <h4 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Discard Unsaved Tasks?</h4>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 20 }}>
-              {drafts.length > 1
-                ? `Are you sure you want to discard all ${drafts.length} unsaved task drafts? All entered content will be lost.`
-                : 'Are you sure you want to discard this unsaved task? All entered content will be lost.'}
-            </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <AlertTriangle style={{ width: 22, height: 22 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    Warning
+                  </div>
+                  <h3 className="app-dialog-title">Discard Unsaved Tasks?</h3>
+                </div>
+              </div>
               <button
                 type="button"
-                className="btn btn-ghost"
+                onClick={() => setShowDiscardConfirm(false)}
+                className="app-dialog-close-btn"
+                aria-label="Close"
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+                {drafts.length > 1
+                  ? `Are you sure you want to discard all ${drafts.length} unsaved task drafts? All entered content will be lost.`
+                  : 'Are you sure you want to discard this unsaved task? All entered content will be lost.'}
+              </p>
+            </div>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-cancel"
                 onClick={() => setShowDiscardConfirm(false)}
               >
                 Keep Editing
               </button>
               <button
                 type="button"
-                className="btn"
-                style={{ background: 'var(--high)', color: '#fff', fontWeight: 700 }}
+                className="app-dialog-btn-action app-dialog-btn-danger"
                 onClick={handleConfirmDiscard}
               >
                 Yes, Discard All
