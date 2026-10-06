@@ -163,7 +163,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
           {mode === 'ai' && (
             <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <AiInputForm onSaved={onSaved} onCancel={() => setMode(null)} />
+              <AiInputForm onSaved={onSaved} onCancel={() => setMode(null)} onSwitchToManual={() => setMode('manual')} />
             </div>
           )}
         </div>

@@ -4,9 +4,10 @@ import { useAiDraft } from '@/hooks/useAiDraft';
 import { useTasks } from '@/hooks/useTasks';
 import { TaskDraft, Priority, WorkStatus } from '@/types/task';
 import TaskFormFields from './TaskFormFields';
+import AiQuotaModal from './AiQuotaModal';
 import { 
   Sparkles, AlertCircle, CheckCircle2, Trash2, ArrowLeft, 
-  Save, RefreshCw, X, AlertTriangle, Plus 
+  Save, RefreshCw, X, AlertTriangle, Plus, Zap, ChevronDown, Check
 } from 'lucide-react';
 
 const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
@@ -20,11 +21,12 @@ function generateId(): string {
 interface AiInputFormProps {
   onSaved: () => void;
   onCancel: () => void;
+  onSwitchToManual?: () => void;
 }
 
 type Step = 'input' | 'preview';
 
-export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
+export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiInputFormProps) {
   const [step, setStep] = useState<Step>('input');
   const [rawText, setRawText] = useState('');
   const [drafts, setDrafts] = useState<TaskDraft[]>([]);
@@ -32,6 +34,7 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
   const [saving, setSaving] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [showModelPicker, setShowModelPicker] = useState(false);
 
   // Single-task regeneration state
   const [activeRegenIndex, setActiveRegenIndex] = useState<number | null>(null);
@@ -43,6 +46,16 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
     regeneratingIndex, 
     error: aiError, 
     warning, 
+    rateLimitInfo,
+    fallbackNotice,
+    modelUsed,
+    selectedModel,
+    customApiKey,
+    customProvider,
+    updateSelectedModel,
+    updateCustomApiKey,
+    clearRateLimit,
+    clearFallbackNotice,
     generateDrafts, 
     regenerateSingleDraft,
     setError: setAiError
@@ -295,9 +308,165 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
         {showDiscardConfirm && renderDiscardModal()}
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px' }}>
+        {/* Friendly AI Limit / Quota Recovery Modal */}
+        {rateLimitInfo && (
+          <AiQuotaModal
+            rateLimitInfo={rateLimitInfo}
+            selectedModel={selectedModel}
+            onSelectModel={updateSelectedModel}
+            customApiKey={customApiKey}
+            onSaveCustomKey={updateCustomApiKey}
+            onRetry={() => {
+              clearRateLimit();
+              handleGenerate();
+            }}
+            onSwitchToManual={onSwitchToManual}
+            onClose={clearRateLimit}
+          />
+        )}
+
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px' }}>
+          {/* Multi-AI Engine Status & Switcher Bar */}
           <div style={{
-            padding: '16px', marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            marginBottom: 12,
+            padding: '8px 12px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 'var(--radius-md, 8px)',
+            border: '1px solid var(--border)',
+            position: 'relative',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <Zap style={{ width: 14, height: 14, color: 'var(--accent)' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                AI Engine:
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowModelPicker(!showModelPicker)}
+                style={{
+                  background: 'rgba(0, 255, 102, 0.08)',
+                  border: '1px solid rgba(0, 255, 102, 0.25)',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  color: 'var(--accent)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>
+                  {selectedModel === 'auto' ? '⚡ Auto-Fallback (Multi-AI)' :
+                   selectedModel === 'gemini-3.5-flash' ? '⚡ Gemini 3.5 Flash' :
+                   selectedModel === 'gemini-3.7-flash' ? '🚀 Gemini 3.7 Flash' :
+                   selectedModel === 'gemini-3.5-flash-lite' ? '🏎️ Gemini 3.5 Lite' :
+                   selectedModel === 'groq' ? '🦙 Groq (Llama 3.3)' : selectedModel}
+                </span>
+                <ChevronDown style={{ width: 12, height: 12 }} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Auto-Fallback Ready</span>
+            </div>
+
+            {/* Model Picker Popover */}
+            {showModelPicker && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: 6,
+                  zIndex: 50,
+                  background: 'var(--bg-surface, #121218)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+              >
+                {[
+                  { id: 'auto', label: '⚡ Auto-Fallback Chain (Recommended)', desc: 'Automatically switches model/key if quota limit is reached' },
+                  { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash', desc: 'Fast, reliable daily timesheet extraction' },
+                  { id: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash', desc: 'High-accuracy reasoning & Marathi translation' },
+                  { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Lite', desc: 'Ultra-fast lightweight parsing' },
+                  { id: 'groq', label: 'Groq (Llama 3.3)', desc: 'High-speed open-weight AI fallback' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      updateSelectedModel(m.id);
+                      setShowModelPicker(false);
+                    }}
+                    style={{
+                      background: selectedModel === m.id ? 'var(--bg-elevated)' : 'transparent',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '8px 10px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: selectedModel === m.id ? 'var(--accent)' : 'var(--text-primary)' }}>
+                        {m.label}
+                      </span>
+                      {selectedModel === m.id && <Check style={{ width: 14, height: 14, color: 'var(--accent)' }} />}
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{m.desc}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Fallback Notice Banner */}
+          {fallbackNotice && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              padding: '8px 12px',
+              background: 'rgba(34, 197, 94, 0.1)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '6px',
+              marginBottom: 12,
+              fontSize: 12,
+              color: 'var(--text-primary)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles style={{ width: 14, height: 14, color: '#22c55e', flexShrink: 0 }} />
+                <span>{fallbackNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={clearFallbackNotice}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2 }}
+                aria-label="Dismiss notice"
+              >
+                <X style={{ width: 14, height: 14 }} />
+              </button>
+            </div>
+          )}
+
+          <div style={{
+            padding: '14px 16px', marginBottom: 16,
             background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
             borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
             lineHeight: 1.6,
@@ -356,18 +525,45 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
           </div>
         </div>
 
-        {/* Pinned Bottom Actions Bar */}
-        <div style={{ display: 'flex', gap: 10, padding: '14px 24px', borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-surface)', flexShrink: 0 }}>
+        {/* Pinned Bottom Actions Bar (Fully Responsive) */}
+        <div 
+          className="ai-modal-bottom-bar"
+          style={{ 
+            display: 'flex', 
+            gap: 12, 
+            padding: '14px 20px', 
+            borderTop: '1px solid var(--border-subtle)', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            background: 'var(--bg-surface)', 
+            flexShrink: 0,
+            flexWrap: 'wrap',
+          }}
+        >
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Closing will preserve your draft automatically.
           </span>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-ghost" onClick={onCancel} disabled={aiLoading}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-ghost" onClick={onCancel} disabled={aiLoading} style={{ minHeight: 40, padding: '8px 16px' }}>
               Close
             </button>
-            <button className="btn btn-primary" onClick={handleGenerate} disabled={aiLoading} style={{ background: 'var(--accent)' }}>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleGenerate} 
+              disabled={aiLoading} 
+              style={{ 
+                background: 'var(--accent, #00ff66)',
+                color: '#000000',
+                fontWeight: 800,
+                minHeight: 40,
+                padding: '8px 20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
               {aiLoading ? (
-                <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} /> Structuring…</>
+                <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000000', borderRadius: '50%' }} /> Structuring…</>
               ) : (
                 <><Sparkles style={{ width: 14, height: 14 }} /> Structure with AI</>
               )}
@@ -382,6 +578,25 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {showDiscardConfirm && renderDiscardModal()}
+
+      {/* Friendly AI Limit / Quota Recovery Modal */}
+      {rateLimitInfo && (
+        <AiQuotaModal
+          rateLimitInfo={rateLimitInfo}
+          selectedModel={selectedModel}
+          onSelectModel={updateSelectedModel}
+          customApiKey={customApiKey}
+          onSaveCustomKey={updateCustomApiKey}
+          onRetry={() => {
+            clearRateLimit();
+            if (activeRegenIndex !== null && drafts[activeRegenIndex]) {
+              handleConfirmRegen(activeRegenIndex);
+            }
+          }}
+          onSwitchToManual={onSwitchToManual}
+          onClose={clearRateLimit}
+        />
+      )}
 
       {/* Scrollable Form Body (The ONLY scrollable element) */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
