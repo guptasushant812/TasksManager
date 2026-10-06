@@ -27,11 +27,12 @@ export type AiGenerateResult = AiSuccessResult | AiRateLimitResult;
 
 // ── Models & Providers Configuration ─────────────────────────────────────────
 
-const GEMINI_MODELS = [
-  'gemini-3.5-flash',
-  'gemini-3.7-flash',
-  'gemini-3.5-flash-lite',
+// By default, gemini-3.8-flash is the primary flagship model
+const DEFAULT_GEMINI_MODELS = [
   'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
 ];
 
 const GROQ_MODELS = [
@@ -45,6 +46,29 @@ const OPENROUTER_MODELS = [
   'meta-llama/llama-3.3-70b-instruct:free',
   'deepseek/deepseek-chat:free',
 ];
+
+/**
+ * Intelligent task-nature analyzer:
+ * Selects the optimal model chain based on the text characteristics.
+ * Flagship default is ALWAYS gemini-3.8-flash.
+ */
+function getTaskOptimizedModels(rawText: string): string[] {
+  const text = (rawText || '').trim();
+  const lower = text.toLowerCase();
+
+  const hasDevanagari = /[\u0900-\u097F]/.test(text);
+  const hasRomanMarathi = /\b(sangitla|thambavlay|karan|kela|jhala|aahe|kiti|pathavla|baki|chalu)\b/i.test(lower);
+  const isMultiTask = /(?:\n\s*[0-9]+[.)]|\n\s*[-*•]|\bfirst\b|\bsecond\b)/i.test(text);
+  const isLong = text.length > 500;
+
+  // For complex linguistic or multi-task inputs, prioritize 3.8-flash with 3.7-flash as immediate high-context backup
+  if (hasDevanagari || hasRomanMarathi || isMultiTask || isLong) {
+    return ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+  }
+
+  // Standard rapid tasks
+  return ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite'];
+}
 
 // Helper to gather all configured Gemini keys
 function getGeminiKeys(customKey?: string): string[] {
@@ -154,7 +178,7 @@ function extractRetryAfter(err: any): string | undefined {
   return match ? match[1].trim() : undefined;
 }
 
-// ── Master Generate Orchestrator with Intelligent Multi-AI Fallback ───────────
+// ── Master Generate Orchestrator with Intelligent Silent Fallback ─────────────
 export async function executeAiWithFallback(
   prompt: string,
   options: AiTaskRequestOptions
@@ -162,7 +186,7 @@ export async function executeAiWithFallback(
   const exhaustedProviders: string[] = [];
   let detectedRetryAfter: string | undefined;
 
-  // 1. Prepare candidates queue
+  // 1. Prepare candidates queue with intelligent task-nature optimization
   interface AiCandidate {
     provider: 'gemini' | 'groq' | 'openrouter' | 'openai';
     model: string;
@@ -172,6 +196,9 @@ export async function executeAiWithFallback(
 
   const candidates: AiCandidate[] = [];
 
+  // Determine optimal Gemini model order based on task nature (default leads with gemini-3.8-flash)
+  const geminiModels = getTaskOptimizedModels(options.rawText);
+
   // Check if user provided custom key
   if (options.customApiKey && options.customApiKey.trim()) {
     const cProvider = (options.customProvider || 'gemini').toLowerCase();
@@ -180,33 +207,33 @@ export async function executeAiWithFallback(
         provider: 'groq',
         model: 'llama-3.3-70b-versatile',
         apiKey: options.customApiKey.trim(),
-        name: 'User Custom Groq (Llama 3.3)',
+        name: 'Custom Groq (Llama 3.3)',
       });
     } else if (cProvider === 'openrouter') {
       candidates.push({
         provider: 'openrouter',
         model: 'google/gemini-2.0-flash-exp:free',
         apiKey: options.customApiKey.trim(),
-        name: 'User Custom OpenRouter',
+        name: 'Custom OpenRouter',
       });
     } else {
-      for (const m of GEMINI_MODELS) {
+      for (const m of geminiModels) {
         candidates.push({
           provider: 'gemini',
           model: m,
           apiKey: options.customApiKey.trim(),
-          name: `User Custom Gemini (${m})`,
+          name: `Custom Gemini (${m})`,
         });
       }
     }
   }
 
-  // Server Gemini Keys & Models
+  // Server Gemini Keys & Models (Default starts with gemini-3.8-flash)
   const geminiKeys = getGeminiKeys();
   for (let keyIdx = 0; keyIdx < geminiKeys.length; keyIdx++) {
     const key = geminiKeys[keyIdx];
     const keyLabel = keyIdx === 0 ? 'Primary' : `Backup #${keyIdx}`;
-    for (const m of GEMINI_MODELS) {
+    for (const m of geminiModels) {
       candidates.push({
         provider: 'gemini',
         model: m,
@@ -242,15 +269,6 @@ export async function executeAiWithFallback(
     }
   }
 
-  // If user requested a specific preferred model or provider, prioritize matching candidate
-  if (options.preferredModel && options.preferredModel !== 'auto') {
-    const idx = candidates.findIndex(c => c.model === options.preferredModel);
-    if (idx > 0) {
-      const [matched] = candidates.splice(idx, 1);
-      candidates.unshift(matched);
-    }
-  }
-
   if (candidates.length === 0) {
     return {
       rateLimitExceeded: true,
@@ -259,10 +277,9 @@ export async function executeAiWithFallback(
     };
   }
 
-  // 2. Iterate candidates with automatic fallback on rate limit / server error
+  // 2. Iterate candidates with silent automatic fallback
   let lastError: any = null;
   let attempts = 0;
-  let primaryName = candidates[0].name;
 
   for (const candidate of candidates) {
     attempts++;
@@ -298,15 +315,13 @@ export async function executeAiWithFallback(
       }
 
       if (output) {
-        const fallbackTriggered = attempts > 1;
+        // Fallback happened silently — do NOT send alarming fallback messages to user
         return {
           text: output,
           providerUsed: candidate.provider,
           modelUsed: candidate.model,
-          fallbackTriggered,
-          fallbackReason: fallbackTriggered
-            ? `Primary ${primaryName} quota reached. Auto-switched to ${candidate.name}.`
-            : undefined,
+          fallbackTriggered: attempts > 1,
+          fallbackReason: undefined, // keep user experience completely smooth and seamless
         };
       }
     } catch (err: any) {
@@ -316,21 +331,21 @@ export async function executeAiWithFallback(
       if (retry && !detectedRetryAfter) detectedRetryAfter = retry;
 
       exhaustedProviders.push(`${candidate.name}${isLimit ? ' (Quota Limit)' : ''}`);
-      console.warn(`[AI Fallback] ${candidate.name} failed: ${err.message}. Trying next candidate...`);
+      console.warn(`[AI Engine] ${candidate.name} unavailable (${err.message}). Silently trying next candidate...`);
 
-      // If error is 404 (model not found), or 429 (rate limit), continue immediately to next candidate
+      // Try next candidate seamlessly
       continue;
     }
   }
 
-  // If we reach here, all candidates failed
+  // If ALL candidates across all models and keys failed
   return {
     rateLimitExceeded: true,
     exhaustedProviders,
     retryAfter: detectedRetryAfter,
     message: detectedRetryAfter
       ? `Daily request quota reached across AI models. Retry in ${detectedRetryAfter} or use an alternate AI key.`
-      : `Daily request quota reached across configured AI models. You can add a personal free Gemini or Groq key to continue immediately.`,
+      : `Daily request quota reached across configured AI models. You can add a personal free Gemini key to continue immediately.`,
   };
 }
 
@@ -346,8 +361,8 @@ export function getAvailableAiProviders() {
         id: 'gemini',
         name: 'Google Gemini',
         status: hasGemini ? 'active' : 'not_configured',
-        models: GEMINI_MODELS,
-        defaultModel: 'gemini-3.5-flash',
+        models: DEFAULT_GEMINI_MODELS,
+        defaultModel: 'gemini-3.8-flash',
       },
       {
         id: 'groq',
