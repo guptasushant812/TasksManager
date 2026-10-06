@@ -121,37 +121,113 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24
     }}>
-      <div className="card animate-slide-up" style={{ width: '100%', maxWidth: 400, padding: 32 }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 900, textTransform: 'uppercase', marginBottom: 8, color: 'var(--text-primary)' }}>Secure Access</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Enter your password to continue.</p>
+      <div className="card animate-slide-up" style={{
+        width: '100%',
+        maxWidth: 400,
+        padding: '36px 32px',
+        borderRadius: '16px',
+        boxShadow: 'var(--shadow-taste-lg)',
+        border: '1px solid var(--border)',
+        background: 'var(--bg-surface)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Top micro-sheen line */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent)',
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ textAlign: 'center', marginBottom: 28, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{
+            width: 44,
+            height: 44,
+            borderRadius: '12px',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-taste-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--accent)',
+            marginBottom: 16,
+          }}>
+            <Eye size={20} />
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 750, letterSpacing: '-0.02em', marginBottom: 6, color: 'var(--text-primary)' }}>
+            Secure Workspace
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.4 }}>
+            Enter your passcode to unlock TasksManager.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ position: 'relative' }}>
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter password..."
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(false); }}
-              className="input"
-              style={{ width: '100%', borderColor: error ? 'var(--high)' : undefined, paddingRight: 36 }}
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute', right: 12, top: 12, // assuming input padding is standard
-                background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'
-              }}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-            {error && <p style={{ color: 'var(--high)', fontSize: 12, margin: '8px 0 0 0', fontWeight: 700 }}>Incorrect password.</p>}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <label htmlFor="workspace-password" style={{ display: 'block', fontSize: 12, fontWeight: 650, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              Passcode
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="workspace-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password..."
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(false); }}
+                className="input"
+                style={{
+                  width: '100%',
+                  borderColor: error ? 'var(--high)' : undefined,
+                  paddingRight: 40,
+                  borderRadius: '8px',
+                  boxShadow: 'var(--shadow-taste-sm)',
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 4,
+                }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {error && <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600 }}>Incorrect passcode. Please try again.</p>}
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
-            Unlock
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              padding: '11px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: 13.5,
+              boxShadow: 'var(--shadow-taste-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            Unlock Workspace
           </button>
         </form>
       </div>

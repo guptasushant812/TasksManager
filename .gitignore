@@ -94,3 +94,8 @@ coverage/
 
 # Prompt Files & Notes
 MediaQueryPrompt.md
+
+# Agent Artifacts
+.agents/
+skills-lock.json
+

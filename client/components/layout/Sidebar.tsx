@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CheckSquare, PhoneCall, Settings, HelpCircle, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -19,90 +19,118 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Close mobile drawer when route changes
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile drawer is open (MediaQueryPrompt.md Sec. 8 Overflow)
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   // Hide sidebar on public status pages
   if (pathname?.startsWith('/status/')) return null;
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        type="button"
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2 rounded-lg"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Toggle navigation"
-      >
-        {mobileOpen ? (
-          <X className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
-        ) : (
+      {/* Mobile toggle button (only on screens < 1024px when drawer is closed) */}
+      {!mobileOpen && (
+        <button
+          type="button"
+          className="sidebar-mobile-toggle lg:hidden"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Toggle navigation"
+          aria-expanded={false}
+        >
           <Menu className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
-        )}
-      </button>
+        </button>
+      )}
 
-      {/* Mobile overlay */}
+      {/* Mobile backdrop overlay */}
       {mobileOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 65 }}
-          className="lg:hidden"
+          className="sidebar-mobile-overlay lg:hidden"
           onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-[70] transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        style={{
-          width: 'var(--sidebar-width)',
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'var(--bg-surface)',
-          borderRight: '1px solid var(--border)',
-        }}
+        className={`app-sidebar fixed inset-y-0 left-0 z-[70] transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
-        {/* Brand */}
-        <div style={{
-          height: 64,
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/icon-192.png"
-              alt="TasksManager Logo"
-              width={32}
-              height={32}
+        {/* Brand — Taste Skill Tactile Brand Header */}
+        <div className="app-sidebar-brand">
+          <Link
+            href="/"
+            className="group/brand"
+            style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flex: 1, minWidth: 0 }}
+            onClick={() => setMobileOpen(false)}
+          >
+            <span
+              className="relative flex items-center justify-center overflow-hidden"
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: '8px',
-                objectFit: 'contain',
+                width: 34,
+                height: 34,
+                borderRadius: '10px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-taste-sm)',
+                transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                flexShrink: 0,
               }}
-            />
-            <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-              TasksManager
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/icon-192.png"
+                alt="TasksManager Logo"
+                width={26}
+                height={26}
+                className="transition-transform duration-300 group-hover/brand:scale-110"
+                style={{
+                  width: 26,
+                  height: 26,
+                  objectFit: 'contain',
+                }}
+              />
             </span>
-          </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 15, fontWeight: 750, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                TasksManager
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+                Workbench
+              </span>
+            </div>
+          </Link>
+
+          {/* Close button inside mobile drawer header */}
+          <button
+            type="button"
+            className="sidebar-drawer-close lg:hidden"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 12px' }}>
-          <div style={{
-            padding: '0 14px',
-            marginBottom: 10,
-            fontSize: 10,
-            fontWeight: 700,
-            color: 'var(--text-muted)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-          }}>
+        {/* Navigation Section */}
+        <div className="app-sidebar-nav">
+          <div className="app-sidebar-eyebrow">
             Navigation
           </div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -117,9 +145,9 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom nav */}
-        <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border)' }}>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Bottom nav: Settings & Help */}
+        <div className="app-sidebar-bottom">
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {BOTTOM_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (

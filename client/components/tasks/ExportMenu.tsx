@@ -17,6 +17,7 @@ import {
   Layers,
   Clock,
   ShieldAlert,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface ExportMenuProps {
@@ -40,6 +41,8 @@ export default function ExportMenu({
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showInternalNewTaskModal, setShowInternalNewTaskModal] = useState(false);
   const [targetFormat, setTargetFormat] = useState<'pdf' | 'excel' | 'zip'>('excel');
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportSuccess, setExportSuccess] = useState<string | null>(null);
 
   function getFilterParams() {
     const params: Record<string, string> = {};
@@ -111,7 +114,7 @@ export default function ExportMenu({
         if (res.status === 404) {
           setShowAlertModal(true);
         } else {
-          alert(err.message || err.error || 'Failed to generate export file.');
+          setExportError(err.message || err.error || 'Failed to generate export file.');
         }
         return;
       }
@@ -145,7 +148,7 @@ export default function ExportMenu({
       // Create isolated in-memory Blob URL and trigger native browser file save
       const blob = await res.blob();
       if (!blob || blob.size === 0) {
-        alert('Export file generation failed. Please try again.');
+        setExportError('Export file generation failed. The generated file was empty.');
         return;
       }
       const blobUrl = window.URL.createObjectURL(blob);
@@ -156,9 +159,12 @@ export default function ExportMenu({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
+
+      setExportSuccess(`"${filename}" downloaded successfully!`);
+      setTimeout(() => setExportSuccess(null), 4000);
     } catch (err) {
       console.error('Export download error:', err);
-      alert('Could not export file. Try again.');
+      setExportError('Could not export file. Please check your network connection and try again.');
     } finally {
       setExportingFormat(null);
     }
@@ -390,96 +396,28 @@ export default function ExportMenu({
       {/* ── Top MNC Enterprise Alert Modal (Poka-Yoke Zero-Defect Quality Gate) ── */}
       {showAlertModal && (
         <div
-          className="modal-overlay animate-fade-in"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(6px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
+          className="app-dialog-overlay"
           onClick={() => setShowAlertModal(false)}
         >
           <div
-            className="modal-box animate-slide-up"
-            style={{
-              maxWidth: 480,
-              width: '100%',
-              background: 'var(--bg-elevated)',
-              border: '2px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--box-shadow-brutalist), 0 20px 40px -15px rgba(0,0,0,0.5)',
-              overflow: 'hidden',
-              padding: 0,
-            }}
+            className="app-dialog-box"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Amber Warning Strip */}
-            <div
-              style={{
-                height: 4,
-                width: '100%',
-                background: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 100%)',
-              }}
-            />
+            <div className="app-dialog-accent-bar app-dialog-accent-amber" />
 
             {/* Modal Header */}
-            <div
-              style={{
-                padding: '20px 24px 16px',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 'var(--radius-md)',
-                    background: 'rgba(245, 158, 11, 0.12)',
-                    border: '1.5px solid rgba(245, 158, 11, 0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#D97706',
-                    flexShrink: 0,
-                  }}
-                >
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-amber">
                   <AlertTriangle style={{ width: 22, height: 22 }} />
                 </div>
                 <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontSize: 10,
-                      fontWeight: 800,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      color: '#D97706',
-                      marginBottom: 2,
-                    }}
-                  >
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-amber">
                     <ShieldAlert style={{ width: 12, height: 12 }} />
                     Notice
                   </div>
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: 17,
-                      fontWeight: 800,
-                      color: 'var(--text-primary)',
-                      letterSpacing: '-0.01em',
-                    }}
-                  >
+                  <h3 className="app-dialog-title">
                     No Tasks Found
                   </h3>
                 </div>
@@ -487,15 +425,7 @@ export default function ExportMenu({
 
               <button
                 onClick={() => setShowAlertModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: 4,
-                  display: 'flex',
-                  borderRadius: 'var(--radius-sm)',
-                }}
+                className="app-dialog-close-btn"
                 aria-label="Close"
               >
                 <X style={{ width: 18, height: 18 }} />
@@ -503,59 +433,41 @@ export default function ExportMenu({
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '20px 24px' }}>
-              <p
-                style={{
-                  margin: '0 0 16px',
-                  fontSize: 13.5,
-                  lineHeight: 1.55,
-                  color: 'var(--text-primary)',
-                }}
-              >
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">
                 No tasks found for <strong>{scopeLabel}</strong>. Add at least one task to export.
               </p>
 
-              {/* Details */}
-              <div
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  fontSize: 12.5,
-                  marginBottom: 18,
-                }}
-              >
+              {/* Details Double-Bezel Card */}
+              <div className="app-dialog-card">
                 {selectedDayStr && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div className="app-dialog-row">
+                    <span className="app-dialog-label">
                       <Calendar style={{ width: 13, height: 13 }} /> Selected Date:
                     </span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{selectedDayStr}</strong>
+                    <strong className="app-dialog-value">{selectedDayStr}</strong>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">
                     <Clock style={{ width: 13, height: 13 }} /> Today's Date:
                   </span>
-                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{currentDateStr}</span>
+                  <span className="app-dialog-value">{currentDateStr}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">
                     <Layers style={{ width: 13, height: 13 }} /> Tasks Found:
                   </span>
                   <span
                     style={{
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      color: 'var(--high)',
+                      background: 'rgba(239, 68, 68, 0.14)',
+                      color: '#f87171',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
                       padding: '2px 8px',
-                      borderRadius: 'var(--radius-full)',
-                      fontWeight: 800,
+                      borderRadius: 9999,
+                      fontWeight: 700,
                       fontSize: 11,
                     }}
                   >
@@ -567,16 +479,16 @@ export default function ExportMenu({
               {isFutureDate && (
                 <div
                   style={{
-                    background: 'rgba(59, 130, 246, 0.08)',
-                    border: '1px solid rgba(59, 130, 246, 0.25)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '10px 12px',
-                    fontSize: 12,
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.28)',
+                    borderRadius: 'var(--radius-md, 8px)',
+                    padding: '10px 14px',
+                    fontSize: 12.5,
                     color: 'var(--text-secondary)',
-                    marginBottom: 18,
+                    marginBottom: 16,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 10,
                   }}
                 >
                   <span style={{ fontSize: 14 }}>ℹ️</span>
@@ -599,37 +511,19 @@ export default function ExportMenu({
             </div>
 
             {/* Modal Actions */}
-            <div
-              style={{
-                padding: '14px 24px 20px',
-                background: 'var(--bg-surface)',
-                borderTop: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: 10,
-              }}
-            >
+            <div className="app-dialog-footer">
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="app-dialog-btn-cancel"
                 onClick={() => setShowAlertModal(false)}
-                style={{ fontSize: 13 }}
               >
                 Cancel
               </button>
 
               <button
                 type="button"
-                className="btn btn-primary"
+                className="app-dialog-btn-action app-dialog-btn-success"
                 onClick={handleFirstAddTaskClick}
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
               >
                 <Plus style={{ width: 14, height: 14, strokeWidth: 3 }} />
                 Add a Task
@@ -649,6 +543,73 @@ export default function ExportMenu({
             window.dispatchEvent(new CustomEvent('task-created'));
           }}
         />
+      )}
+
+      {/* ── Export Error Modal ────────────────────────────────────────────── */}
+      {exportError && (
+        <div className="app-dialog-overlay" onClick={() => setExportError(null)}>
+          <div
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 430 }}
+          >
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <AlertTriangle style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    EXPORT FAILED
+                  </div>
+                  <h3 className="app-dialog-title">Export Error</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="app-dialog-close-btn"
+                onClick={() => setExportError(null)}
+                aria-label="Close dialog"
+              >
+                <X style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">{exportError}</p>
+            </div>
+
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-danger"
+                onClick={() => setExportError(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Export Success Toast Pop ──────────────────────────────────────── */}
+      {exportSuccess && (
+        <div className="app-toast app-toast-success" role="status">
+          <div className="app-toast-icon">
+            <CheckCircle2 style={{ width: 16, height: 16 }} />
+          </div>
+          <span className="app-toast-text">{exportSuccess}</span>
+          <button
+            type="button"
+            className="app-toast-dismiss"
+            onClick={() => setExportSuccess(null)}
+            aria-label="Dismiss toast"
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
       )}
     </div>
   );

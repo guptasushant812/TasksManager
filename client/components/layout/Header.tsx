@@ -58,17 +58,23 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
       try {
         const saved = localStorage.getItem('notificationPreferences');
         if (saved) {
-          setNotifPreferences(prev => ({ ...prev, ...JSON.parse(saved) }));
+          const parsed = JSON.parse(saved);
+          setNotifPreferences(prev => ({ ...prev, ...parsed }));
         }
       } catch {}
     };
 
     loadPreferences();
-    window.addEventListener('storage', loadPreferences);
-    window.addEventListener('notificationPreferencesChanged', loadPreferences);
+
+    const handleExternalChange = () => {
+      setTimeout(loadPreferences, 0);
+    };
+
+    window.addEventListener('storage', handleExternalChange);
+    window.addEventListener('notificationPreferencesChanged', handleExternalChange);
     return () => {
-      window.removeEventListener('storage', loadPreferences);
-      window.removeEventListener('notificationPreferencesChanged', loadPreferences);
+      window.removeEventListener('storage', handleExternalChange);
+      window.removeEventListener('notificationPreferencesChanged', handleExternalChange);
     };
   }, []);
 

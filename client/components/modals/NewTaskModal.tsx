@@ -50,28 +50,22 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div 
-        className="modal-box animate-slide-up" 
+        className="modal-box new-task-modal-box animate-slide-up" 
         style={{ 
-          maxWidth: mode ? 820 : 520, 
-          width: '100%',
-          maxHeight: '92vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          padding: 0 
+          maxWidth: mode ? 820 : 540, 
         }}
       >
 
         {/* Header */}
-        <div style={{ padding: '16px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
+        <div className="new-task-modal-header">
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2 className="new-task-modal-title">
               {mode === null && 'Create New Task'}
               {mode === 'manual' && <><PenLine style={{ width: 16, height: 16 }} /> Manual Entry</>}
               {mode === 'ai' && <><Sparkles style={{ width: 16, height: 16, color: 'var(--accent)' }} /> AI Assistant</>}
             </h2>
             {mode === null && (
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+              <p className="new-task-modal-subtitle">
                 How do you want to create this task?
               </p>
             )}
@@ -79,34 +73,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
               <button
                 type="button"
                 onClick={() => setMode(null)}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm, 6px)',
-                  cursor: 'pointer',
-                  padding: '5px 12px',
-                  marginTop: 8,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s ease',
-                  boxShadow: 'var(--box-shadow-brutalist-sm, 0 1px 2px rgba(0,0,0,0.05))',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-hover)';
-                  e.currentTarget.style.borderColor = 'var(--border-focus, var(--accent))';
-                  e.currentTarget.style.color = 'var(--accent)';
-                  e.currentTarget.style.transform = 'translateX(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-elevated)';
-                  e.currentTarget.style.borderColor = 'var(--border)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                  e.currentTarget.style.transform = 'translateX(0)';
-                }}
+                className="new-task-back-btn"
               >
                 <ArrowLeft style={{ width: 13, height: 13 }} />
                 <span>Back to selection</span>
@@ -115,10 +82,8 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
           </div>
           <button
             onClick={onClose}
-            style={{
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', display: 'flex', padding: 4
-            }}
+            className="new-task-close-btn"
+            aria-label="Close modal"
           >
             <X style={{ width: 18, height: 18 }} />
           </button>
@@ -132,107 +97,60 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             display: 'flex', 
             flexDirection: 'column', 
             overflow: mode ? 'hidden' : 'auto', 
-            padding: mode ? 0 : '24px' 
           }}
         >
 
           {/* Mode selection */}
           {mode === null && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="animate-fade-in">
-              {/* Manual */}
-              <button
-                onClick={() => setMode('manual')}
-                className="card"
-                style={{
-                  padding: '32px 24px', cursor: 'pointer', textAlign: 'center',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  border: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-surface)',
-                  boxShadow: 'var(--box-shadow-brutalist)',
-                  transition: 'all 0.1s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-hover)';
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-surface)';
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'var(--box-shadow-brutalist)';
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translate(4px, 4px)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--border)';
-                }}
-              >
-                <div style={{ background: 'var(--text-primary)', padding: 12, borderRadius: 0, border: 'var(--border-width-layout) solid var(--border)', color: 'var(--bg-base)' }}>
-                  <PenLine style={{ width: 32, height: 32 }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>Manual Form</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Fill in task details yourself.
+            <div className="new-task-selection-wrapper animate-fade-in">
+              <div className="new-task-selection-grid">
+                {/* Manual */}
+                <button
+                  type="button"
+                  onClick={() => setMode('manual')}
+                  className="new-task-card new-task-card-manual"
+                >
+                  <div className="new-task-card-icon-wrap manual">
+                    <PenLine className="new-task-card-icon" />
                   </div>
-                </div>
-              </button>
+                  <div className="new-task-card-content">
+                    <div className="new-task-card-top">
+                      <span className="new-task-card-title">Manual Form</span>
+                      <span className="new-task-card-chip manual">Standard</span>
+                    </div>
+                    <p className="new-task-card-desc">
+                      Fill in task details yourself with full field controls.
+                    </p>
+                  </div>
+                </button>
 
-              {/* AI */}
-              <button
-                onClick={() => setMode('ai')}
-                className="card"
-                style={{
-                  padding: '32px 24px', cursor: 'pointer', textAlign: 'center',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  border: '4px solid var(--accent)', background: 'var(--bg-surface)',
-                  boxShadow: '4px 4px 0px 0px var(--accent)',
-                  transition: 'all 0.1s ease', position: 'relative', overflow: 'hidden'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--accent-subtle)';
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-surface)';
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '4px 4px 0px 0px var(--accent)';
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translate(4px, 4px)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0px 0px var(--accent)';
-                }}
-              >
-                {hasAiDraft && (
-                  <div style={{
-                    position: 'absolute', top: 12, right: 12,
-                    background: 'var(--accent)', color: '#fff',
-                    fontSize: 10, fontWeight: 800, padding: '3px 8px',
-                    borderRadius: 9999, textTransform: 'uppercase', letterSpacing: '0.05em',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}>
-                    <Sparkles style={{ width: 10, height: 10 }} />
-                    {draftCount ? `${draftCount} Draft${draftCount !== 1 ? 's' : ''}` : 'Draft Saved'}
+                {/* AI */}
+                <button
+                  type="button"
+                  onClick={() => setMode('ai')}
+                  className="new-task-card new-task-card-ai"
+                >
+                  <div className="new-task-card-icon-wrap ai">
+                    <Sparkles className="new-task-card-icon" />
                   </div>
-                )}
-                <div style={{ background: 'var(--accent)', padding: 12, borderRadius: 0, border: 'var(--border-width-layout) solid var(--border)', color: '#fff' }}>
-                  <Sparkles style={{ width: 32, height: 32 }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>AI Assistant</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Type notes in plain language. AI organizes the fields.
+                  <div className="new-task-card-content">
+                    <div className="new-task-card-top">
+                      <span className="new-task-card-title">AI Assistant</span>
+                      {hasAiDraft ? (
+                        <span className="new-task-card-chip ai-saved">
+                          <Sparkles className="new-task-chip-sparkle" />
+                          {draftCount ? `${draftCount} Draft${draftCount !== 1 ? 's' : ''}` : 'Draft Saved'}
+                        </span>
+                      ) : (
+                        <span className="new-task-card-chip ai">Smart</span>
+                      )}
+                    </div>
+                    <p className="new-task-card-desc">
+                      Type notes in plain language. AI organizes the fields.
+                    </p>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
           )}
 

@@ -67,12 +67,19 @@
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Transitions — Mechanical & snappy */
-  --ease-out: linear;
-  --ease-smooth: linear;
-  --duration-fast: 0.1s;
-  --duration-normal: 0.2s;
-  --duration-slow: 0.3s;
+  /* Transitions — Taste Skill Physics (anti-slop spring curves) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 0.18s;
+  --duration-normal: 0.28s;
+  --duration-slow: 0.45s;
+
+  /* Taste Skill — Surface Sheen & Tinted Shadows */
+  --shadow-taste-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-taste-md: 0 6px 18px -6px rgba(15, 15, 15, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-taste-lg: 0 14px 30px -8px rgba(15, 15, 15, 0.18), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
   /* Sidebar */
   --sidebar-width: 240px;
@@ -165,6 +172,12 @@
   --radius-md: 0px;
   --radius-lg: 0px;
   --radius-xl: 0px;
+
+  /* Taste Skill — Surface Sheen & Tinted Shadows */
+  --shadow-taste-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-taste-md: 0 8px 24px -6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-taste-lg: 0 16px 36px -8px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -213,6 +226,12 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
+
+  /* Taste Skill — Surface Sheen & Tinted Shadows */
+  --shadow-taste-sm: 0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-taste-md: 0 8px 24px -6px rgba(2, 6, 23, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-taste-lg: 0 16px 36px -8px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 
@@ -281,23 +300,40 @@ html.dark body::after {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-base);
-  /* Neo-brutalist halftone dot pattern overlay */
-  background-image: radial-gradient(#000 1.5px, transparent 1.5px);
-  background-size: 20px 20px;
+  /* Refined subtle grain micro-pattern */
+  background-image: radial-gradient(rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
   overflow-x: hidden;
 }
 
-/* Base override for bold typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 900 !important;
-  text-transform: uppercase;
+/* Typography hierarchy — Taste Skill Anti-Slop */
+h1 {
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+
+h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  line-height: 1.25;
+}
+
+h3 {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  line-height: 1.3;
+}
+
+h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
@@ -370,33 +406,58 @@ html:not(.dark) .brutalist-hover:active {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
-/* ─── Nav Item — lightweight sidebar/settings navigation ─────────────────── */
+/* ─── Nav Item — Taste Skill Tactile Navigation Pill ─────────────────────── */
 .nav-item {
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
+  font-weight: 550;
   font-size: 13px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.22s var(--ease-out),
+              color 0.22s var(--ease-out),
+              transform 0.22s var(--ease-out),
+              box-shadow 0.22s var(--ease-out),
+              border-color 0.22s var(--ease-out);
   border: 1px solid transparent;
   background: transparent;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
 }
 
 .nav-item:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+  transform: translateX(3px);
+  box-shadow: var(--shadow-taste-sm);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
 }
 
 .nav-item.active {
   background: var(--accent-subtle);
   color: var(--accent);
-  border-color: var(--accent);
-  font-weight: 700;
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  font-weight: 650;
+  box-shadow: var(--shadow-taste-sm);
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--accent);
 }
 
 /* ─── Page Layout Utilities ──────────────────────────────────────────────── */
@@ -2038,62 +2099,62 @@ html:not(.dark) .label {
   color: var(--text-secondary);
 }
 
-/* ─── Badges ───────────────────────────────────────────────────────────────── */
-.badge {
-  padding: 4px 10px;
+/* ─── Badges — Taste Skill Refined Status & Priority Pills ───────────────── */
+.badge,
+.badge-high,
+.badge-medium,
+.badge-low,
+.badge-inprogress,
+.badge-pending,
+.badge-completed {
+  padding: 3px 9px;
   border-radius: var(--radius-full);
-  border: 4px solid var(--border);
-  box-shadow: 2px 2px 0px 0px var(--border);
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
-}
-
-html:not(.dark) .badge {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  border-radius: var(--radius-full);
-  padding: 2px 10px;
-  box-shadow: none;
-  text-transform: capitalize;
-  letter-spacing: normal;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: transform 0.2s var(--ease-out), filter 0.2s var(--ease-out);
 }
 
 .badge-high {
   color: var(--high);
   background: var(--high-bg);
+  border-color: color-mix(in srgb, var(--high) 25%, transparent);
 }
 
 .badge-medium {
   color: var(--medium);
   background: var(--medium-bg);
+  border-color: color-mix(in srgb, var(--medium) 25%, transparent);
 }
 
 .badge-low {
   color: var(--low);
   background: var(--low-bg);
+  border-color: color-mix(in srgb, var(--low) 25%, transparent);
 }
 
 .badge-inprogress {
   color: var(--inprogress);
   background: var(--inprogress-bg);
+  border-color: color-mix(in srgb, var(--inprogress) 25%, transparent);
 }
 
 .badge-pending {
   color: var(--pending);
   background: var(--pending-bg);
+  border-color: color-mix(in srgb, var(--pending) 25%, transparent);
 }
 
 .badge-completed {
   color: var(--completed);
   background: var(--completed-bg);
+  border-color: color-mix(in srgb, var(--completed) 25%, transparent);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -2162,18 +2223,20 @@ html:not(.dark) .badge {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 14px;
-  border: 4px solid var(--border);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  font-size: 13px;
+  border: var(--border-width-layout) solid var(--border);
+  box-shadow: var(--shadow-taste-md);
   background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .task-table th {
   background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 12px 16px;
   text-align: left;
@@ -2183,24 +2246,26 @@ html:not(.dark) .badge {
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 4px solid var(--border);
-  transition: background var(--duration-fast);
+  border-bottom: 2px solid var(--border);
+  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
 }
 
 .task-table th:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .task-table td {
   padding: 12px 16px;
   color: var(--text-primary);
   vertical-align: middle;
-  border-bottom: 2px solid var(--border);
-  font-weight: 500;
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: 450;
+  font-size: 13px;
 }
 
 .task-table tr {
-  transition: background var(--duration-fast);
+  transition: background-color 0.2s var(--ease-out);
 }
 
 .task-table tr:hover {
@@ -2216,8 +2281,8 @@ html:not(.dark) .badge {
 }
 
 .task-actions {
-  opacity: 0.6;
-  transition: opacity var(--duration-fast);
+  opacity: 0.65;
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
 }
 
 .task-table tr:hover .task-actions {
@@ -2314,20 +2379,33 @@ html:not(.dark) .badge {
 .summary-card {
   background: var(--bg-surface);
   border: var(--border-width-layout) solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: clamp(14px, 2.2cqi, 22px);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: transform var(--duration-fast) var(--ease-smooth),
-              box-shadow var(--duration-fast) var(--ease-smooth),
-              background var(--duration-fast) var(--ease-smooth);
+  transition: transform 0.25s var(--ease-out),
+              box-shadow 0.25s var(--ease-out),
+              background-color 0.25s var(--ease-out),
+              border-color 0.25s var(--ease-out);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--box-shadow-brutalist);
+  box-shadow: var(--shadow-taste-md);
   user-select: none;
   min-width: 0;
+}
+
+.summary-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .summary-card > * {
@@ -2338,15 +2416,15 @@ html:not(.dark) .badge {
 /* Hover & Pointer capability guards (MediaQueryPrompt.md Sec. 6) */
 @media (hover: hover) and (pointer: fine) {
   .summary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 8px 8px 0px 0px var(--border);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-taste-lg);
   }
 }
 
 @media (hover: none) and (pointer: coarse) {
   .summary-card:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
+    transform: scale(0.985);
+    box-shadow: var(--shadow-taste-sm);
   }
 }
 
@@ -2833,17 +2911,257 @@ html:not(.dark) .badge {
    RESPONSIVE
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ── Sidebar toggle visibility — pure CSS, no Tailwind dependency ────────── */
-/* The Sidebar component uses Tailwind classes (lg:hidden, lg:relative etc.)
-   which may not compile if Tailwind isn't fully configured. These rules serve
-   as a safety net and also add mobile-specific refinements. */
+/* ── Sidebar Responsive System (MediaQueryPrompt.md Sec. 1, 2, 3, 4, 6, 8, 12, 13) ── */
+/* Fix for Mobile Viewports: dvh dynamic height, safe-area-inset-bottom,
+   small phone widths (320px/375px), landscape phone heights, and touch targets */
+
+/* Mobile Toggle & Drawer Close Button — STRICTLY HIDDEN ON DESKTOP (≥ 1024px) */
+.sidebar-mobile-toggle,
+.sidebar-drawer-close {
+  display: none !important;
+}
 
 @media (max-width: 1023px) {
+  /* Mobile Toggle Button */
+  .sidebar-mobile-toggle {
+    display: flex !important;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 75;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--text-primary);
+  }
 
+  .dark .sidebar-mobile-toggle {
+    background: #141524;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Close button inside mobile drawer header */
+  .sidebar-drawer-close {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    border-radius: 9px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .sidebar-drawer-close {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+  }
+
+  .sidebar-drawer-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    transform: scale(1.05);
+  }
+
+  .sidebar-drawer-close:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Backdrop Overlay */
+.sidebar-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 68;
+  animation: fadeIn 0.18s ease-out;
+}
+
+/* Sidebar Shell */
+.app-sidebar {
+  width: var(--sidebar-width);
+  height: 100vh; /* Fallback for legacy browsers */
+  height: 100dvh; /* Modern dynamic viewport height (MediaQueryPrompt.md Sec. 12) */
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.dark .app-sidebar {
+  background: #0f101c;
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Brand Header */
+.app-sidebar-brand {
+  height: 64px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.dark .app-sidebar-brand {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Middle Navigation Area */
+.app-sidebar-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 12px;
+  scrollbar-width: thin;
+}
+
+.app-sidebar-eyebrow {
+  padding: 0 14px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Bottom Nav Container: Settings & Help */
+.app-sidebar-bottom {
+  padding: 14px 12px max(24px, env(safe-area-inset-bottom, 24px)) !important;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+}
+
+.dark .app-sidebar-bottom {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  background: #0f101c;
+}
+
+/* ── Mobile Breakpoint Refinements (MediaQueryPrompt.md Sec. 2, 3, 12) ── */
+@media (max-width: 1023px) {
   /* Ensure the main content area doesn't reserve space for sidebar */
   body>div>div:last-child,
   body>[data-nextjs-scroll-focus-boundary]>div>div:last-child {
     margin-left: 0 !important;
+  }
+
+  .app-sidebar {
+    width: min(280px, 85vw) !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
+  }
+
+  .app-sidebar .nav-item {
+    min-height: 44px; /* 44px Touch Target: MediaQueryPrompt.md Sec. 6 */
+    padding: 10px 14px;
+    font-size: 13.5px;
+  }
+}
+
+/* Mobile S: ≤ 340px (iPhone SE 1st gen, small Androids) */
+@media (max-width: 340px) {
+  .app-sidebar {
+    width: calc(100vw - 20px) !important;
+  }
+
+  .app-sidebar-brand {
+    padding-inline: 12px !important;
+  }
+
+  .app-sidebar-nav,
+  .app-sidebar-bottom {
+    padding-inline: 8px !important;
+  }
+
+  .app-sidebar .nav-item {
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    gap: 8px !important;
+  }
+}
+
+/* Landscape / Ultra-Short Viewport Protection: max-height: 520px */
+/* (MediaQueryPrompt.md Sec. 1, 3 - Viewport Dimensions) */
+@media (max-height: 520px) {
+  .app-sidebar {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-sidebar-brand {
+    height: 50px !important;
+  }
+
+  .app-sidebar-nav {
+    flex: 0 0 auto !important;
+    overflow-y: visible !important;
+    padding-block: 10px !important;
+  }
+
+  .app-sidebar-bottom {
+    flex-shrink: 0 !important;
+    padding-top: 10px !important;
+  }
+}
+
+/* Touch & Pointer Precision (MediaQueryPrompt.md Sec. 6) */
+@media (hover: none) or (pointer: coarse) {
+  .app-sidebar .nav-item:hover {
+    transform: none !important;
+  }
+
+  .app-sidebar .nav-item:active {
+    transform: scale(0.98) !important;
+  }
+}
+
+/* Reduced Motion (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .sidebar-mobile-toggle,
+  .sidebar-mobile-overlay {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* High Contrast (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-contrast: more) {
+  .app-sidebar {
+    border-right-width: 2px !important;
+    border-right-color: #ffffff !important;
+  }
+
+  .app-sidebar-bottom {
+    border-top-width: 2px !important;
+    border-top-color: #ffffff !important;
   }
 }
 
@@ -2912,64 +3230,84 @@ html:not(.dark) .badge {
   flex-shrink: 0;
 }
 
-/* Base header button shared styles — EXACT 38px height, matching brutalist borders & shadows */
+/* Base header button shared styles — EXACT 38px height, Taste Skill Tactile Micro-Sheen */
 .header-btn {
   height: 38px !important;
   box-sizing: border-box !important;
   border: var(--border-width-layout) solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  box-shadow: var(--box-shadow-brutalist) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-taste-sm) !important;
   cursor: pointer;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease !important;
+  transition: transform 0.22s var(--ease-out),
+              box-shadow 0.22s var(--ease-out),
+              background-color 0.22s var(--ease-out),
+              border-color 0.22s var(--ease-out),
+              filter 0.22s var(--ease-out) !important;
   line-height: 1 !important;
   user-select: none;
   font-family: inherit;
   outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .header-btn:hover {
-  transform: translate(-1px, -1px);
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-taste-md) !important;
 }
 
 .header-btn:active,
 .header-btn.is-open {
-  transform: translate(2px, 2px) !important;
-  box-shadow: none !important;
+  transform: scale(0.97) !important;
+  box-shadow: var(--shadow-taste-sm) !important;
 }
 
-/* 1. Share Button */
+.header-btn:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* 1. Share Button — Taste Skill Glass / Tactile surface */
 .header-btn-share {
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
   padding: 0 14px !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.05em !important;
-  text-transform: uppercase !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.01em !important;
   gap: 6px;
+  box-shadow: var(--shadow-taste-sm), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 .header-btn-share:hover {
   background: var(--bg-hover) !important;
+  border-color: color-mix(in srgb, var(--border) 80%, var(--accent)) !important;
 }
 
-/* 2. New Task Button */
+.header-btn-share:hover .header-share-icon {
+  transform: scale(1.08) rotate(-4deg);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+/* 2. New Task Button — Taste Skill Hero CTA */
 .header-btn-new-task {
-  background: var(--accent) !important;
+  background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 85%, black) 100%) !important;
   color: #000000 !important;
   padding: 0 16px !important;
   font-size: 13px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.05em !important;
-  text-transform: uppercase !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.01em !important;
   gap: 6px;
+  box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+  border-color: color-mix(in srgb, var(--accent) 80%, white) !important;
 }
 
 .header-btn-new-task:hover {
-  filter: brightness(1.08) !important;
+  filter: brightness(1.06) !important;
+  box-shadow: 0 6px 18px -2px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 /* 3. Notification Bell Button */
@@ -2980,28 +3318,55 @@ html:not(.dark) .badge {
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
   position: relative !important;
+  box-shadow: var(--shadow-taste-sm), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 .header-notif-btn:hover {
   background: var(--bg-hover) !important;
 }
 
+.header-notif-btn:hover svg {
+  transform: rotate(8deg);
+  transition: transform 0.35s var(--ease-spring);
+}
+
 .header-notif-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -3px;
+  right: -3px;
   background: var(--high);
   color: #ffffff;
   font-size: 10px;
-  font-weight: 800;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   border: 2px solid var(--bg-surface);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* 4. User Avatar Button */
+.header-user-btn {
+  width: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  font-weight: 750 !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-taste-sm), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -5018,4 +5383,1576 @@ table.task-table {
 
 .public-table tbody tr:hover {
   background: var(--bg-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MEDIAQUERYPROMPT.MD + TASTE SKILL UNIFIED ARCHITECTURE
+   Section 3 (Five-Tier Regional Breakpoints), Section 4 (Multilingual & RTL),
+   Section 5 (User Preferences & a11y), Section 6 (Hover & Pointer Precision),
+   Section 8 & 12 (Container Queries), Section 14 (Foldable Viewport Segments).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1. Accessibility & User Preferences (MediaQueryPrompt.md Sec. 5) ────── */
+
+/* 1.A Reduced Motion: collapse animations & transitions to safe instant states */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .header-notif-badge {
+    animation: none !important;
+  }
+
+  .loading-bar-inner,
+  .animate-spin,
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-fade-in {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* 1.B Reduced Transparency: fallback from frosted glass to solid opaque surfaces */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-effect,
+  .app-header,
+  .header-notif-dropdown,
+  .modal-overlay,
+  .modal-box,
+  .public-glass-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--bg-surface) !important;
+  }
+
+  .dark .app-header,
+  .dark .header-notif-dropdown,
+  .dark .modal-box,
+  .dark .public-glass-card {
+    background: #0e0e16 !important;
+  }
+}
+
+/* 1.C Contrast Preferences: accentuates borders, outlines & readability */
+@media (prefers-contrast: more) {
+  :root {
+    --border-width-layout: 2px !important;
+    --border: #111827 !important;
+    --border-subtle: #4b5563 !important;
+    --text-muted: #1f2937 !important;
+  }
+
+  .dark {
+    --border-width-layout: 2px !important;
+    --border: #ffffff !important;
+    --border-subtle: #d1d5db !important;
+    --text-muted: #e5e7eb !important;
+  }
+
+  [data-theme="slate"] {
+    --border-width-layout: 2px !important;
+    --border: #38bdf8 !important;
+    --border-subtle: #94a3b8 !important;
+  }
+
+  .header-btn,
+  .btn,
+  .summary-card,
+  .badge {
+    border-width: 2px !important;
+  }
+
+  :focus-visible {
+    outline-width: 3px !important;
+    outline-offset: 3px !important;
+  }
+}
+
+/* 1.D Reduced Data: strip heavy decorative shadows and grain patterns */
+@media (prefers-reduced-data: reduce) {
+  body {
+    background-image: none !important;
+  }
+
+  .header-btn-new-task,
+  .summary-card,
+  .public-glass-card {
+    box-shadow: none !important;
+  }
+}
+
+/* 1.E Forced Colors (Windows High Contrast Mode) */
+@media (forced-colors: active) {
+  .header-btn,
+  .btn,
+  .summary-card,
+  .badge,
+  .task-table,
+  .task-table th,
+  .task-table td,
+  .modal-box {
+    forced-color-adjust: auto;
+    border: 1px solid ButtonText !important;
+  }
+
+  .header-btn-new-task {
+    background: Highlight !important;
+    color: HighlightText !important;
+  }
+
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+  }
+}
+
+/* ── 2. Multilingual & Typography Safety (MediaQueryPrompt.md Sec. 4) ───── */
+
+/* Chinese & Japanese: strict kinsoku punctuation rules */
+:lang(ja),
+:lang(zh),
+:lang(zh-CN),
+:lang(zh-TW) {
+  line-break: strict;
+  line-height: 1.75;
+}
+
+/* Korean: word-level wrapping for readability */
+:lang(ko) {
+  word-break: keep-all;
+  line-height: 1.75;
+}
+
+/* German, English & general compound word / long string safety */
+:lang(de),
+:lang(en),
+body {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* RTL Automatic Flipping */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* ── 3. Pointer & Hover Precision (MediaQueryPrompt.md Sec. 6) ─────────── */
+
+/* Precise Pointer Devices (Mouse / Stylus): Taste Skill Micro-Interactions */
+@media (hover: hover) and (pointer: fine) {
+  .header-btn-share:hover,
+  .header-btn-new-task:hover,
+  .header-notif-btn:hover,
+  .header-user-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .task-table tr:hover {
+    background: var(--bg-hover);
+  }
+
+  .nav-item:hover {
+    transform: translateX(3px);
+  }
+}
+
+/* Coarse Pointer Devices (Touchscreens): No Sticky Hovers + 44px Touch Targets */
+@media (hover: none) or (pointer: coarse) {
+  /* Prevent sticky hovers on touch devices */
+  .header-btn:hover,
+  .summary-card:hover,
+  .nav-item:hover,
+  .task-table tr:hover {
+    transform: none !important;
+  }
+
+  /* Physical micro-push feedback on active press */
+  .header-btn:active,
+  .btn:active,
+  .nav-item:active {
+    transform: scale(0.97) !important;
+  }
+
+  .summary-card:active {
+    transform: scale(0.985) !important;
+  }
+
+  /* Ensure touch target safety (min 40-44px tap target height) */
+  .header-btn,
+  .btn {
+    min-height: 40px;
+  }
+
+  .nav-item {
+    padding-block: 11px;
+  }
+
+  .task-table td {
+    padding-block: 14px;
+  }
+}
+
+/* ── 4. Task Table Container Query & Responsive Scroll (Sec. 8 & 12) ────── */
+
+.task-table-wrapper {
+  container-type: inline-size;
+  container-name: task-table-container;
+  width: 100%;
+  position: relative;
+}
+
+.task-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Edge gradient hint on scrollable tables when overflowing */
+.task-table-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  background: linear-gradient(to left, var(--bg-surface), transparent);
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 5;
+  transition: opacity 0.2s var(--ease-out);
+}
+
+@container task-table-container (max-width: 760px) {
+  .task-table th,
+  .task-table td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  .task-table th {
+    font-size: 11px;
+  }
+}
+
+@container task-table-container (max-width: 520px) {
+  .task-table th,
+  .task-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .badge {
+    padding: 2px 7px;
+    font-size: 10.5px;
+  }
+}
+
+/* ── 5. Five-Tier Regional Breakpoints Safeguards (Sec. 3) ──────────────── */
+
+/* Ultra-small screens (budget Android / narrow viewports < 360px) */
+@media (max-width: 359px) {
+  .page-content {
+    padding-inline: 8px !important;
+  }
+
+  .app-header {
+    padding-inline: 8px !important;
+  }
+
+  .header-actions {
+    gap: 6px !important;
+  }
+
+  .header-btn-new-task {
+    padding-inline: 10px !important;
+  }
+
+  .summary-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── 6. Foldables & Dual-Screen Viewport Segments (Sec. 14) ─────────────── */
+
+@media (horizontal-viewport-segments: 2) {
+  .page-layout {
+    display: grid;
+    grid-template-columns: env(viewport-segment-width 0 0) env(viewport-segment-width 1 0);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7. NEW TASK MODAL — RESPONSIVE ARCHITECTURE & HIGH-CONTRAST SYSTEM
+   (MediaQueryPrompt.md Sec. 3, 5, 6, 12, 13)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Modal Dialog Box Overhaul for NewTaskModal */
+.new-task-modal-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl, 14px);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-subtle);
+  transition: max-width 0.25s var(--ease-out), transform 0.2s var(--ease-out);
+}
+
+.dark .new-task-modal-box {
+  background: #131422;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="slate"] .new-task-modal-box {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+/* Modal Header */
+.new-task-modal-header {
+  padding: clamp(14px, 2.5vw, 18px) clamp(16px, 3.5vw, 24px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.dark .new-task-modal-header {
+  background: #171828;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.new-task-modal-title {
+  font-size: clamp(15px, 1rem + 0.3vw, 17px);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.3;
+}
+
+.new-task-modal-subtitle {
+  font-size: clamp(12.5px, 0.8rem + 0.2vw, 13.5px);
+  color: var(--text-secondary);
+  margin: 4px 0 0 0;
+  line-height: 1.45;
+}
+
+.dark .new-task-modal-subtitle {
+  color: #94a3b8; /* High contrast Slate 400 (contrast > 7:1) */
+}
+
+.new-task-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: var(--radius-sm, 6px);
+  min-width: 36px;
+  min-height: 36px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.new-task-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.new-task-back-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  padding: 5px 12px;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.new-task-back-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-focus, var(--accent));
+  color: var(--accent);
+  transform: translateX(-2px);
+}
+
+/* Container Query Parent for Selection Mode */
+.new-task-selection-wrapper {
+  container-type: inline-size;
+  container-name: taskModalContainer;
+  width: 100%;
+  padding: clamp(14px, 3.5vw, 24px);
+}
+
+/* Selection Cards Grid */
+.new-task-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+/* Base Card Styling */
+.new-task-card {
+  width: 100%;
+  padding: 24px 20px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  border-radius: 14px;
+  position: relative;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), border-color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+  font-family: inherit;
+  user-select: none;
+  min-height: 170px;
+}
+
+/* Manual Card */
+.new-task-card-manual {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.dark .new-task-card-manual {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.new-task-card-manual:hover {
+  background: var(--bg-hover);
+  border-color: var(--text-secondary);
+  box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.dark .new-task-card-manual:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.55);
+}
+
+/* AI Assistant Card */
+.new-task-card-ai {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, var(--bg-surface) 100%);
+  border: 1.5px solid rgba(34, 197, 94, 0.45);
+  box-shadow: 0 4px 18px -2px rgba(34, 197, 94, 0.12);
+}
+
+.dark .new-task-card-ai {
+  background: linear-gradient(145deg, rgba(0, 255, 136, 0.08) 0%, rgba(20, 21, 34, 0.85) 100%), #141524;
+  border: 1.5px solid rgba(0, 255, 136, 0.4);
+  box-shadow: 0 4px 20px -2px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(0, 255, 136, 0.15);
+}
+
+.new-task-card-ai:hover {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, var(--bg-surface) 100%);
+  box-shadow: 0 10px 28px -4px rgba(34, 197, 94, 0.25);
+  transform: translateY(-2px);
+}
+
+.dark .new-task-card-ai:hover {
+  border-color: #00ff88;
+  background: linear-gradient(145deg, rgba(0, 255, 136, 0.14) 0%, rgba(20, 21, 34, 0.95) 100%), #141524;
+  box-shadow: 0 10px 32px -4px rgba(0, 255, 136, 0.28), inset 0 1px 0 rgba(0, 255, 136, 0.3);
+}
+
+/* Card Icons */
+.new-task-card-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.new-task-card:hover .new-task-card-icon-wrap {
+  transform: scale(1.05);
+}
+
+.new-task-card-icon-wrap.manual {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.dark .new-task-card-icon-wrap.manual {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.new-task-card-icon-wrap.ai {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.dark .new-task-card-icon-wrap.ai {
+  background: rgba(0, 255, 136, 0.16);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.35);
+}
+
+.new-task-card-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Card Content Area */
+.new-task-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.new-task-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.new-task-card-title {
+  font-size: clamp(15px, 0.95rem + 0.2vw, 16.5px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.dark .new-task-card-title {
+  color: #f8fafc;
+}
+
+.new-task-card-desc {
+  font-size: clamp(12.5px, 0.8rem + 0.15vw, 13.5px);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+  hyphens: none;
+  word-break: normal;
+}
+
+.dark .new-task-card-desc {
+  color: #94a3b8; /* Slate 400 for high-contrast crispness */
+}
+
+/* Chips & Badges */
+.new-task-card-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+.new-task-card-chip.manual {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.dark .new-task-card-chip.manual {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.new-task-card-chip.ai {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.dark .new-task-card-chip.ai {
+  background: rgba(0, 255, 136, 0.12);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.new-task-card-chip.ai-saved {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.15);
+}
+
+.dark .new-task-card-chip.ai-saved {
+  background: rgba(0, 255, 136, 0.18);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.45);
+  box-shadow: 0 0 10px -2px rgba(0, 255, 136, 0.3);
+}
+
+.new-task-chip-sparkle {
+  width: 11px;
+  height: 11px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CONTAINER QUERIES & RESPONSIVE BREAKPOINTS (MediaQueryPrompt.md Sec. 3 & 12)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* When container width is <= 480px, switch from 2 columns to 1 column horizontal card */
+@container taskModalContainer (max-width: 480px) {
+  .new-task-selection-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .new-task-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 14px;
+    min-height: auto;
+  }
+
+  .new-task-card-icon-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .new-task-card-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .new-task-card-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Viewport fallback for browsers or contexts before container query resolves */
+@media (max-width: 560px) {
+  .new-task-modal-box {
+    width: min(calc(100vw - 20px), 540px) !important;
+    margin: auto !important;
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+  }
+
+  .new-task-selection-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .new-task-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 14px;
+    min-height: auto;
+  }
+
+  .new-task-card-icon-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .new-task-card-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Mobile M & S: ≤ 375px (iPhone SE, budget Android 360px, small devices) */
+@media (max-width: 375px) {
+  .new-task-modal-box {
+    width: calc(100vw - 16px) !important;
+    border-radius: 12px !important;
+  }
+
+  .new-task-modal-header {
+    padding: 12px 14px !important;
+  }
+
+  .new-task-selection-wrapper {
+    padding: 12px !important;
+  }
+
+  .new-task-card {
+    padding: 14px 12px;
+    gap: 12px;
+    border-radius: 11px;
+  }
+
+  .new-task-card-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .new-task-card-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .new-task-card-title {
+    font-size: 14.5px;
+  }
+
+  .new-task-card-chip {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .new-task-card-desc {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+/* Mobile S: ≤ 320px (Emerging markets & budget devices) */
+@media (max-width: 320px) {
+  .new-task-modal-box {
+    width: calc(100vw - 12px) !important;
+    border-radius: 10px !important;
+  }
+
+  .modal-overlay {
+    padding: 6px !important;
+  }
+
+  .new-task-modal-header {
+    padding: 10px 12px !important;
+  }
+
+  .new-task-selection-wrapper {
+    padding: 10px !important;
+  }
+
+  .new-task-card {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .new-task-card-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+
+  .new-task-card-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .new-task-card-title {
+    font-size: 13.5px;
+  }
+
+  .new-task-card-desc {
+    font-size: 11.5px;
+  }
+}
+
+/* Touch & Pointer Precision (MediaQueryPrompt.md Sec. 6) */
+@media (hover: none), (pointer: coarse) {
+  .new-task-card:active {
+    transform: scale(0.985);
+  }
+
+  .new-task-card:hover {
+    transform: none;
+  }
+}
+
+/* Reduced Motion (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-reduced-motion: reduce) {
+  .new-task-modal-box,
+  .new-task-card,
+  .new-task-card-icon-wrap {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* High Contrast Mode (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-contrast: more) {
+  .new-task-modal-box {
+    border-width: 2px !important;
+    border-color: #ffffff !important;
+  }
+
+  .new-task-card {
+    border-width: 2px !important;
+  }
+
+  .new-task-modal-subtitle,
+  .new-task-card-desc {
+    color: #ffffff !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   8. UNIFIED APP DIALOG SYSTEM (Confirmation, Alert, Notice & Success Popups)
+   (Taste Skill Double-Bezel & MediaQueryPrompt.md Sec. 3, 5, 6, 12, 13)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Dialog Backdrop Overlay */
+.app-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 3vw, 24px);
+  animation: fadeIn 0.18s ease-out;
+}
+
+/* Dialog Box (Double-Bezel Outer Shell) */
+.app-dialog-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border-subtle);
+  animation: slideUp 0.22s var(--ease-out);
+}
+
+.dark .app-dialog-box {
+  background: #141524;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="slate"] .app-dialog-box {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+/* Accent Sheen Strips */
+.app-dialog-accent-bar {
+  height: 3px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.app-dialog-accent-amber {
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 60%, #ef4444 100%);
+}
+
+.app-dialog-accent-danger {
+  background: linear-gradient(90deg, #ef4444 0%, #f43f5e 60%, #fb7185 100%);
+}
+
+.app-dialog-accent-success {
+  background: linear-gradient(90deg, #10b981 0%, #34d399 60%, #059669 100%);
+}
+
+.app-dialog-accent-primary {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 60%, #00ff88 100%);
+}
+
+/* Dialog Header */
+.app-dialog-header {
+  padding: clamp(14px, 3vw, 20px) clamp(16px, 3.5vw, 24px) 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.dark .app-dialog-header {
+  background: #171828;
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.app-dialog-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-dialog-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.app-dialog-icon-amber {
+  background: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.app-dialog-icon-danger {
+  background: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.app-dialog-icon-success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.app-dialog-icon-primary {
+  background: rgba(59, 130, 246, 0.14);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.dark .app-dialog-icon-amber {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 12px -2px rgba(245, 158, 11, 0.25);
+}
+
+.dark .app-dialog-icon-danger {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 12px -2px rgba(239, 68, 68, 0.25);
+}
+
+.dark .app-dialog-icon-success {
+  background: rgba(0, 255, 136, 0.18);
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, 0.45);
+  box-shadow: 0 0 12px -2px rgba(0, 255, 136, 0.25);
+}
+
+.dark .app-dialog-icon-primary {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 12px -2px rgba(59, 130, 246, 0.25);
+}
+
+.app-dialog-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+
+.app-dialog-eyebrow-amber {
+  color: #fbbf24;
+}
+
+.app-dialog-eyebrow-danger {
+  color: #f87171;
+}
+
+.app-dialog-eyebrow-success {
+  color: #34d399;
+}
+
+.app-dialog-eyebrow-primary {
+  color: #60a5fa;
+}
+
+.app-dialog-title {
+  margin: 0;
+  font-size: clamp(15.5px, 1rem + 0.2vw, 17px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.dark .app-dialog-title {
+  color: #f8fafc;
+}
+
+.app-dialog-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm, 6px);
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.app-dialog-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Dialog Body */
+.app-dialog-body {
+  padding: clamp(16px, 3.5vw, 22px) clamp(16px, 3.5vw, 24px);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.app-dialog-desc {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.dark .app-dialog-desc {
+  color: #cbd5e1; /* High contrast Slate 300 (> 8:1) */
+}
+
+/* Double-Bezel Inner Card */
+.app-dialog-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.dark .app-dialog-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.app-dialog-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.app-dialog-label {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dark .app-dialog-label {
+  color: #94a3b8;
+}
+
+.app-dialog-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.dark .app-dialog-value {
+  color: #f8fafc;
+}
+
+/* Dialog Footer & Actions */
+.app-dialog-footer {
+  padding: clamp(12px, 3vw, 16px) clamp(16px, 3.5vw, 24px) clamp(14px, 3vw, 20px);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dark .app-dialog-footer {
+  background: #171828;
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+.app-dialog-btn-cancel {
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-dialog-btn-cancel:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.app-dialog-btn-action {
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.app-dialog-btn-action:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.app-dialog-btn-action:active {
+  transform: scale(0.98);
+}
+
+.app-dialog-btn-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.app-dialog-btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.app-dialog-btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.dark .app-dialog-btn-success {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #042f1a;
+  box-shadow: 0 4px 18px rgba(0, 255, 136, 0.35);
+}
+
+.app-dialog-btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE ADAPTATION (MediaQueryPrompt.md Sec. 3, 6 & 13)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Mobile viewports: ≤ 480px (Mobile L, Mobile M, Mobile S) */
+@media (max-width: 480px) {
+  .app-dialog-box {
+    width: min(calc(100vw - 20px), 480px) !important;
+    margin: auto !important;
+  }
+
+  .app-dialog-header {
+    padding: 14px 16px 12px !important;
+  }
+
+  .app-dialog-icon-wrap {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .app-dialog-body {
+    padding: 16px !important;
+  }
+
+  .app-dialog-card {
+    padding: 12px 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Vertical stacking for action buttons on mobile */
+  .app-dialog-footer {
+    padding: 12px 16px 16px !important;
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+
+  .app-dialog-btn-cancel,
+  .app-dialog-btn-action {
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+}
+
+/* Mobile S: ≤ 340px */
+@media (max-width: 340px) {
+  .app-dialog-overlay {
+    padding: 6px !important;
+  }
+
+  .app-dialog-box {
+    width: calc(100vw - 12px) !important;
+    border-radius: 12px !important;
+  }
+
+  .app-dialog-header {
+    padding: 12px 12px 10px !important;
+  }
+
+  .app-dialog-icon-wrap {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .app-dialog-body {
+    padding: 12px !important;
+  }
+
+  .app-dialog-card {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .app-dialog-footer {
+    padding: 10px 12px 12px !important;
+  }
+
+  .app-dialog-title {
+    font-size: 15px !important;
+  }
+}
+
+/* Touch & Pointer Precision (MediaQueryPrompt.md Sec. 6) */
+@media (hover: none), (pointer: coarse) {
+  .app-dialog-btn-action:active {
+    transform: scale(0.98);
+  }
+
+  .app-dialog-btn-action:hover {
+    transform: none;
+  }
+}
+
+/* Reduced Motion (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-reduced-motion: reduce) {
+  .app-dialog-overlay,
+  .app-dialog-box,
+  .app-dialog-btn-action,
+  .app-dialog-icon-wrap {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* High Contrast Mode (MediaQueryPrompt.md Sec. 5) */
+@media (prefers-contrast: more) {
+  .app-dialog-box {
+    border-width: 2px !important;
+    border-color: #ffffff !important;
+  }
+
+  .app-dialog-card {
+    border-width: 2px !important;
+  }
+
+  .app-dialog-desc,
+  .app-dialog-label {
+    color: #ffffff !important;
+  }
+}
+
+/* ── Toast Notifications System (Successful Pop & Floating Alerts) ── */
+.app-toast {
+  position: fixed;
+  bottom: clamp(16px, 3.5vh, 32px);
+  right: clamp(16px, 3.5vw, 32px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: appToastSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 440px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes appToastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Toast Variants */
+.app-toast-success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #047857;
+}
+
+.dark .app-toast-success {
+  background: rgba(10, 26, 20, 0.92);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: #34d399;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 0 24px -4px rgba(0, 255, 136, 0.25);
+}
+
+.app-toast-danger {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #b91c1c;
+}
+
+.dark .app-toast-danger {
+  background: rgba(30, 12, 16, 0.92);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 0 24px -4px rgba(239, 68, 68, 0.25);
+}
+
+.app-toast-amber {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #b45309;
+}
+
+.dark .app-toast-amber {
+  background: rgba(30, 22, 10, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 0 24px -4px rgba(245, 158, 11, 0.25);
+}
+
+.app-toast-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-toast-success .app-toast-icon {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.dark .app-toast-success .app-toast-icon {
+  background: rgba(0, 255, 136, 0.22);
+  color: #00ff88;
+}
+
+.app-toast-danger .app-toast-icon {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.dark .app-toast-danger .app-toast-icon {
+  background: rgba(239, 68, 68, 0.22);
+  color: #f87171;
+}
+
+.app-toast-amber .app-toast-icon {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.dark .app-toast-amber .app-toast-icon {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+}
+
+.app-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-toast-dismiss {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.75;
+  color: currentColor;
+  transition: opacity 0.15s ease;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 6px;
+}
+
+.app-toast-dismiss:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dark .app-toast-dismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Toast Mobile Responsiveness: MediaQueryPrompt.md Sec. 3, 6, 12 */
+@media (max-width: 600px) {
+  .app-toast {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    width: auto !important;
+    margin: 0 auto !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .app-toast {
+    left: 6px !important;
+    right: 6px !important;
+    max-width: calc(100vw - 12px) !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    gap: 8px !important;
+  }
+}
+
+/* ── Inline Alert System (High Contrast & Double-Bezel) ── */
+.app-inline-alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  transition: all 0.2s ease;
+}
+
+.app-inline-alert-success {
+  background: rgba(16, 185, 129, 0.09);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #047857;
+}
+
+.dark .app-inline-alert-success {
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.35);
+  color: #00ff88;
+}
+
+.app-inline-alert-danger {
+  background: rgba(239, 68, 68, 0.09);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+}
+
+.dark .app-inline-alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+@media (max-width: 480px) {
+  .app-inline-alert {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  .edit-task-modal-footer {
+    padding: 12px 16px 16px !important;
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+
+  .edit-task-modal-footer button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
 }

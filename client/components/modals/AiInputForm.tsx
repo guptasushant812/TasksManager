@@ -227,36 +227,59 @@ export default function AiInputForm({ onSaved, onCancel }: AiInputFormProps) {
 
   // ── Discard Confirmation Modal Overlay ───────────────────────────────────
   const renderDiscardModal = () => (
-    <div style={{
-      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
-      backdropFilter: 'blur(2px)', zIndex: 50, display: 'flex',
-      alignItems: 'center', justifyContent: 'center', padding: 20
-    }}>
-      <div className="card animate-scale-in" style={{
-        maxWidth: 400, width: '100%', background: 'var(--bg-elevated)',
-        border: '2px solid var(--high)', padding: 20, boxShadow: 'var(--box-shadow-brutalist)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--high)', marginBottom: 12 }}>
-          <AlertTriangle style={{ width: 22, height: 22 }} />
-          <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Discard this draft?</h4>
+    <div
+      className="app-dialog-overlay"
+      style={{ zIndex: 1000 }}
+      onClick={() => setShowDiscardConfirm(false)}
+    >
+      <div
+        className="app-dialog-box"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 420 }}
+      >
+        <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+        <div className="app-dialog-header">
+          <div className="app-dialog-header-left">
+            <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+              <AlertTriangle style={{ width: 22, height: 22 }} />
+            </div>
+            <div>
+              <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                Warning
+              </div>
+              <h3 className="app-dialog-title">Discard this draft?</h3>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDiscardConfirm(false)}
+            className="app-dialog-close-btn"
+            aria-label="Close"
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 18 }}>
-          {step === 'preview' 
-            ? `Any unsaved changes across ${drafts.length} generated task${drafts.length !== 1 ? 's' : ''} will be permanently removed.` 
-            : 'Your entered task description text will be permanently cleared.'}
-        </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+
+        <div className="app-dialog-body">
+          <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+            {step === 'preview' 
+              ? `Any unsaved changes across ${drafts.length} generated task${drafts.length !== 1 ? 's' : ''} will be permanently removed.` 
+              : 'Your entered task description text will be permanently cleared.'}
+          </p>
+        </div>
+
+        <div className="app-dialog-footer">
           <button 
             type="button" 
-            className="btn btn-ghost" 
+            className="app-dialog-btn-cancel" 
             onClick={() => setShowDiscardConfirm(false)}
           >
             Keep Draft
           </button>
           <button 
             type="button" 
-            className="btn" 
-            style={{ background: 'var(--high)', color: '#fff' }} 
+            className="app-dialog-btn-action app-dialog-btn-danger" 
             onClick={handleDiscard}
           >
             Yes, Discard

@@ -37,7 +37,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
   const fuOverdue = followUpSummary?.isOverdue || false;
 
   return (
-    <tr className={selected ? 'selected' : ''}>
+    <tr className={`task-row ${selected ? 'selected' : ''}`.trim()} data-task-id={task._id}>
       {/* Checkbox / Sr No */}
       <td style={{ width: '1%', whiteSpace: 'nowrap', textAlign: 'center' }}>
         {selectMode ? (
@@ -234,13 +234,15 @@ function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
       style={{
         background: 'var(--bg-surface)',
         border: 'var(--border-width-layout) solid var(--border)',
-        borderRadius: 'var(--radius-sm)',
-        padding: 4,
+        borderRadius: '6px',
+        padding: '5px',
         cursor: 'pointer',
         color: defaultColor || 'var(--text-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        boxShadow: 'var(--shadow-taste-sm)',
       }}
       onMouseEnter={(e) => {
         if (hoverColor) {
