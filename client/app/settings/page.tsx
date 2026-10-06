@@ -21,7 +21,12 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
-  LayoutGrid
+  LayoutGrid,
+  Sparkles,
+  Cpu,
+  Key,
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
 
 const TABS = [
@@ -70,6 +75,40 @@ export default function SettingsPage() {
   const navListRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // AI Assistant Preferences & Fallback Key
+  const [preferredAiModel, setPreferredAiModel] = useState('auto');
+  const [customAiKey, setCustomAiKey] = useState('');
+  const [aiKeySaved, setAiKeySaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const m = localStorage.getItem('tasksmanager_preferred_ai_model');
+      if (m) setPreferredAiModel(m);
+      const k = localStorage.getItem('tasksmanager_custom_ai_key');
+      if (k) setCustomAiKey(k);
+    } catch {}
+  }, []);
+
+  const handleSaveAiModel = (model: string) => {
+    setPreferredAiModel(model);
+    try {
+      localStorage.setItem('tasksmanager_preferred_ai_model', model);
+    } catch {}
+  };
+
+  const handleSaveCustomAiKey = (key: string) => {
+    setCustomAiKey(key);
+    try {
+      if (key.trim()) {
+        localStorage.setItem('tasksmanager_custom_ai_key', key.trim());
+      } else {
+        localStorage.removeItem('tasksmanager_custom_ai_key');
+      }
+      setAiKeySaved(true);
+      setTimeout(() => setAiKeySaved(false), 2500);
+    } catch {}
+  };
 
   // Check scroll boundary to reveal edge gradient masks & chevron buttons
   const checkNavScroll = useCallback(() => {
@@ -584,6 +623,141 @@ export default function SettingsPage() {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* ── AI Assistant & Multi-Engine Configuration Card ── */}
+                <div className="settings-card" style={{ marginTop: 20 }}>
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Sparkles size={18} style={{ color: 'var(--accent)' }} />
+                        <span>AI Assistant & Multi-Engine Configuration</span>
+                      </div>
+                      <p className="settings-row-desc">
+                        Manage default AI models, multi-provider auto-fallback chains, and optional personal API keys.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Engine Selection */}
+                  <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)' }}>
+                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, display: 'block' }}>
+                      Preferred AI Model
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                      {[
+                        { id: 'auto', name: 'Auto-Fallback (Recommended)', badge: 'Multi-AI', desc: 'Auto-switches model if free tier quota is hit' },
+                        { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'Active Tier', desc: 'Fast, structured daily timesheet extraction' },
+                        { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', badge: 'High Accuracy', desc: 'Superior multilingual Marathi reasoning' },
+                        { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Lite', badge: 'Ultra Fast', desc: 'Rapid timesheet summary generation' },
+                        { id: 'groq', name: 'Groq (Llama 3.3)', badge: 'Alt Provider', desc: 'Instant open-weight processing backup' },
+                      ].map((m) => {
+                        const isSelected = preferredAiModel === m.id;
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handleSaveAiModel(m.id)}
+                            style={{
+                              background: isSelected ? 'rgba(0, 255, 102, 0.08)' : 'var(--bg-elevated)',
+                              border: isSelected ? '1.5px solid var(--accent, #00ff66)' : '1px solid var(--border)',
+                              borderRadius: '8px',
+                              padding: '12px 14px',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 4,
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: isSelected ? 'var(--accent)' : 'var(--text-primary)' }}>
+                                {m.name}
+                              </span>
+                              <span style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
+                                color: isSelected ? '#000' : 'var(--text-muted)'
+                              }}>
+                                {m.badge}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                              {m.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Personal Free API Key */}
+                  <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.01)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Key size={15} style={{ color: '#38bdf8' }} />
+                        <span>Personal API Key (Optional — Never Hits Shared Quotas)</span>
+                      </label>
+                      {aiKeySaved && (
+                        <span style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <CheckCircle2 size={14} /> Key saved to browser
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                      Paste your own free Google Gemini API key to bypass shared limits. Stored safely only in your browser storage.
+                    </p>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="password"
+                        placeholder="AIzaSy... or AQ.Ab8..."
+                        value={customAiKey}
+                        onChange={(e) => setCustomAiKey(e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          padding: '8px 12px',
+                          fontSize: 12,
+                          color: 'var(--text-primary)',
+                          fontFamily: 'monospace',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveCustomAiKey(customAiKey)}
+                        style={{
+                          background: 'var(--accent, #00ff66)',
+                          color: '#000',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '8px 16px',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Save size={14} /> Save Key
+                      </button>
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 12, color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}
+                      >
+                        Get free Google Gemini API key (Google AI Studio) <ExternalLink size={12} />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

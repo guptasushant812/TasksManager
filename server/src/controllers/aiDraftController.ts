@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { GoogleGenAI } from '@google/genai';
+import { 
+  executeAiWithFallback, 
+  getAvailableAiProviders, 
+  AiTaskRequestOptions 
+} from '../services/aiService';
 
 const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
@@ -79,10 +83,38 @@ function sanitizeDraft(d: Record<string, any>, today: string): Record<string, st
   return d as Record<string, string>;
 }
 
+// Helper to strip markdown fence
+function cleanJsonOutput(raw: string): string {
+  let text = raw.trim();
+  if (text.startsWith('```json')) {
+    text = text.replace(/^```json/, '').replace(/```$/, '').trim();
+  } else if (text.startsWith('```')) {
+    text = text.replace(/^```/, '').replace(/```$/, '').trim();
+  }
+  return text;
+}
+
+// ── GET /api/ai-draft/providers ───────────────────────────────────────────────
+export function getAiProviders(_req: Request, res: Response) {
+  res.json(getAvailableAiProviders());
+}
+
 // ── POST /api/ai-draft ────────────────────────────────────────────────────────
 export async function createAiDraft(req: Request, res: Response, next: NextFunction) {
   try {
-    const { rawText } = req.body as { rawText: string };
+    const { 
+      rawText, 
+      preferredProvider, 
+      preferredModel, 
+      customApiKey, 
+      customProvider 
+    } = req.body as { 
+      rawText: string;
+      preferredProvider?: any;
+      preferredModel?: string;
+      customApiKey?: string;
+      customProvider?: string;
+    };
 
     if (!rawText || typeof rawText !== 'string' || rawText.trim().length === 0) {
       res.status(400).json({ error: 'rawText string is required' });
@@ -93,41 +125,30 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-      res.json({
-        drafts: [{
-          title: '',
-          description: rawText.trim(),
-          givenBy: '',
-          contactPerson: '',
-          priority: 'Medium',
-          workStatus: 'Pending',
-          reason: '',
-          remarks: '',
-          date: '',
-          dueDate: '',
-        }],
-        warning: 'Gemini API key not configured. Raw text preserved as description — please fill in other fields manually.',
+    const options: AiTaskRequestOptions = {
+      rawText: rawText.trim(),
+      preferredProvider,
+      preferredModel,
+      customApiKey: customApiKey || (req.headers['x-user-ai-key'] as string | undefined),
+      customProvider: customProvider || (req.headers['x-user-ai-provider'] as string | undefined),
+    };
+
+    const prompt = `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`;
+    const result = await executeAiWithFallback(prompt, options);
+
+    // If rate limit / quota exceeded on all available models
+    if ('rateLimitExceeded' in result) {
+      res.status(200).json({
+        rateLimitExceeded: true,
+        message: result.message,
+        exhaustedProviders: result.exhaustedProviders,
+        retryAfter: result.retryAfter,
       });
       return;
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
-    const interaction = await ai.interactions.create({
-      model: "gemini-3.8-flash",
-      input: `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`,
-    });
-
-    let raw = (interaction.output_text || '').trim();
-
-    // Strip markdown code block if present
-    if (raw.startsWith('```json')) {
-      raw = raw.replace(/^```json/, '').replace(/```$/, '').trim();
-    } else if (raw.startsWith('```')) {
-      raw = raw.replace(/^```/, '').replace(/```$/, '').trim();
-    }
+    // Success response
+    const raw = cleanJsonOutput(result.text);
 
     let drafts: Record<string, string>[];
     try {
@@ -140,11 +161,15 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
     }
 
     const today = new Date().toISOString().split('T')[0];
-
-    // Validate and sanitize each draft
     drafts = drafts.map(d => sanitizeDraft(d, today));
 
-    res.json({ drafts });
+    res.json({ 
+      drafts,
+      providerUsed: result.providerUsed,
+      modelUsed: result.modelUsed,
+      fallbackTriggered: result.fallbackTriggered,
+      fallbackReason: result.fallbackReason,
+    });
   } catch (err) {
     next(err);
   }
@@ -153,24 +178,28 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
 // ── POST /api/ai-draft/regenerate ──────────────────────────────────────────────
 export async function regenerateSingleAiDraft(req: Request, res: Response, next: NextFunction) {
   try {
-    const { task, instruction, context } = req.body as {
+    const { 
+      task, 
+      instruction, 
+      context,
+      preferredProvider,
+      preferredModel,
+      customApiKey,
+      customProvider,
+    } = req.body as {
       task: Record<string, string>;
       instruction?: string;
       context?: string;
+      preferredProvider?: any;
+      preferredModel?: string;
+      customApiKey?: string;
+      customProvider?: string;
     };
 
     if (!task || typeof task !== 'object') {
       res.status(400).json({ error: 'task object is required' });
       return;
     }
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-      res.json({ task, warning: 'Gemini API key not configured.' });
-      return;
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
 
     const REGEN_PROMPT = `You are an expert task extraction and refinement assistant for a professional daily timesheet task manager system.
 Your job is to regenerate and improve a SINGLE work task based on the user's instructions or by making it clean, professional, and high quality.
@@ -205,17 +234,27 @@ Return ONLY a single valid JSON object representing the improved task (no array,
   "dueDate": "string"
 }`;
 
-    const interaction = await ai.interactions.create({
-      model: "gemini-3.8-flash",
-      input: REGEN_PROMPT,
-    });
+    const options: AiTaskRequestOptions = {
+      rawText: instruction || context || task.title || '',
+      preferredProvider,
+      preferredModel,
+      customApiKey: customApiKey || (req.headers['x-user-ai-key'] as string | undefined),
+      customProvider: customProvider || (req.headers['x-user-ai-provider'] as string | undefined),
+    };
 
-    let raw = (interaction.output_text || '').trim();
-    if (raw.startsWith('```json')) {
-      raw = raw.replace(/^```json/, '').replace(/```$/, '').trim();
-    } else if (raw.startsWith('```')) {
-      raw = raw.replace(/^```/, '').replace(/```$/, '').trim();
+    const result = await executeAiWithFallback(REGEN_PROMPT, options);
+
+    if ('rateLimitExceeded' in result) {
+      res.status(200).json({
+        rateLimitExceeded: true,
+        message: result.message,
+        exhaustedProviders: result.exhaustedProviders,
+        retryAfter: result.retryAfter,
+      });
+      return;
     }
+
+    const raw = cleanJsonOutput(result.text);
 
     let parsedTask: Record<string, string>;
     try {
@@ -230,10 +269,14 @@ Return ONLY a single valid JSON object representing the improved task (no array,
     const today = new Date().toISOString().split('T')[0];
     const cleaned = sanitizeDraft({ ...task, ...parsedTask }, today);
 
-    res.json({ task: cleaned });
+    res.json({ 
+      task: cleaned,
+      providerUsed: result.providerUsed,
+      modelUsed: result.modelUsed,
+      fallbackTriggered: result.fallbackTriggered,
+      fallbackReason: result.fallbackReason,
+    });
   } catch (err) {
     next(err);
   }
 }
-
-

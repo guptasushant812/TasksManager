@@ -6955,4 +6955,30 @@ body {
     min-height: 44px !important;
     justify-content: center !important;
   }
-}
+}
+
+/* ── AI Assistant Bottom Actions Responsive Bar ────────────────────────────── */
+@media (max-width: 640px) {
+  .ai-modal-bottom-bar {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom, 14px)) !important;
+  }
+  .ai-modal-bottom-bar > div {
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+  .ai-modal-bottom-bar > div > button {
+    flex: 1 !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+  .ai-modal-bottom-bar > span {
+    text-align: center !important;
+    font-size: 11px !important;
+  }
+}
+
