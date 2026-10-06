@@ -15,8 +15,9 @@ interface AiQuotaModalProps {
 }
 
 const ALTERNATIVE_MODELS = [
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'Active Tier', desc: 'Fast, structured, reliable task parsing' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', badge: 'Default Flagship', desc: 'Primary next-gen model for structured task extraction' },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', badge: 'High Accuracy', desc: 'Superior multilingual & Marathi understanding' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'High Reliability', desc: 'Fast, structured, reliable task parsing' },
   { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Lite', badge: 'Ultra Fast', desc: 'Lightweight rapid extraction' },
   { id: 'groq', name: 'Groq (Llama 3.3)', badge: 'Alt Provider', desc: 'Instant open-weight processing fallback' },
 ];

@@ -647,9 +647,10 @@ export default function SettingsPage() {
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
                       {[
-                        { id: 'auto', name: 'Auto-Fallback (Recommended)', badge: 'Multi-AI', desc: 'Auto-switches model if free tier quota is hit' },
-                        { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'Active Tier', desc: 'Fast, structured daily timesheet extraction' },
+                        { id: 'auto', name: 'Auto-Optimized (Gemini 3.8 Flash)', badge: 'Default Flagship', desc: 'Auto-selects optimal model & silently falls back if quota is reached' },
+                        { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', badge: 'Primary', desc: 'Next-gen flagship model for timesheet structuring' },
                         { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', badge: 'High Accuracy', desc: 'Superior multilingual Marathi reasoning' },
+                        { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'High Reliability', desc: 'Fast, structured daily timesheet extraction' },
                         { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Lite', badge: 'Ultra Fast', desc: 'Rapid timesheet summary generation' },
                         { id: 'groq', name: 'Groq (Llama 3.3)', badge: 'Alt Provider', desc: 'Instant open-weight processing backup' },
                       ].map((m) => {
