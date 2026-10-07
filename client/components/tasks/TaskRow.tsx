@@ -98,7 +98,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
 
       {/* Description */}
       <td style={{ minWidth: 100, maxWidth: 160, whiteSpace: 'normal', wordWrap: 'break-word' }}>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, display: 'block', wordBreak: 'break-word' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, display: 'block', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
           {task.description || '—'}
         </span>
       </td>
@@ -145,21 +145,21 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
             {task.workStatus === 'Completed' && (task.completedRemarks || task.remarks) ? (
               <div>
                 <span style={{ fontSize: 10, color: 'var(--completed)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Remarks</span>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                   {task.completedRemarks || task.remarks}
                 </p>
               </div>
             ) : task.workStatus === 'InProgress' && (task.inProgressReason || task.reason) ? (
               <div>
                 <span style={{ fontSize: 10, color: 'var(--inprogress)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>InProgress Note</span>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                   {task.inProgressReason || task.reason}
                 </p>
               </div>
             ) : task.workStatus === 'Pending' && (task.pendingReason || task.reason) ? (
               <div>
                 <span style={{ fontSize: 10, color: 'var(--pending)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Pending Reason</span>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                   {task.pendingReason || task.reason}
                 </p>
               </div>
