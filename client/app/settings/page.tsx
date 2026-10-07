@@ -647,7 +647,7 @@ export default function SettingsPage() {
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
                       {[
-                        { id: 'auto', name: 'Gemini 3.5 Flash', badge: 'Default Flagship', desc: 'Standard next-gen model for structured task extraction' },
+                        { id: 'auto', name: 'Gemini 3.8 Flash', badge: 'Default Flagship', desc: 'Standard next-gen model for structured task extraction' },
                       ].map((m) => {
                         const isSelected = preferredAiModel === m.id || (m.id === 'auto' && preferredAiModel === 'auto');
                         return (

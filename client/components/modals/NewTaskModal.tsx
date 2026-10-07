@@ -48,7 +48,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
   }, [mode]);
 
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="modal-overlay">
       <div 
         className="modal-box new-task-modal-box animate-slide-up" 
         style={{ 
