@@ -4,7 +4,9 @@ import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
 import TaskFormFields from './TaskFormFields';
-import { X, Save } from 'lucide-react';
+import { X, Save, Sparkles, RefreshCw } from 'lucide-react';
+import { useAiDraft } from '@/hooks/useAiDraft';
+import AiQuotaModal from './AiQuotaModal';
 
 interface EditTaskModalProps {
   task: Task;
@@ -32,6 +34,24 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const [saving, setSaving] = useState(false);
   const { updateTask } = useTasks();
 
+  const [isRegenOpen, setIsRegenOpen] = useState(false);
+  const [regenInstruction, setRegenInstruction] = useState('');
+
+  const {
+    regeneratingIndex,
+    error: aiError,
+    rateLimitInfo,
+    selectedModel,
+    customApiKey,
+    updateSelectedModel,
+    updateCustomApiKey,
+    clearRateLimit,
+    regenerateSingleDraft,
+    setError: setAiError,
+  } = useAiDraft();
+
+  const isRegenerating = regeneratingIndex === 0;
+
   function handleChange(field: string, value: string) {
     setData((d) => ({ ...d, [field]: value }));
     if (errors[field]) setErrors((e) => { const n = { ...e }; delete n[field]; return n; });
@@ -43,6 +63,25 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     if (!data.date) errs.date = 'Task date is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
+  }
+
+  async function handleRegenerate() {
+    const result = await regenerateSingleDraft(
+      data,
+      0,
+      regenInstruction,
+      data.description
+    );
+    if (result) {
+      setData((prev) => ({
+        ...prev,
+        ...result,
+        date: result.date ? toIsoDate(result.date) : prev.date,
+        dueDate: result.dueDate ? toIsoDate(result.dueDate) : prev.dueDate,
+      }));
+      setIsRegenOpen(false);
+      setRegenInstruction('');
+    }
   }
 
   async function handleSave() {
@@ -80,10 +119,77 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       >
         {/* Header */}
         <div style={{ padding: '16px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
-          <div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
-            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
+              <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
+            </div>
+            
+            <div style={{ position: 'relative' }}>
+              {isRegenOpen ? (
+                <div 
+                  className="animate-slide-up"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 8, 
+                    background: 'var(--bg-surface)', 
+                    border: '1px solid var(--accent)', 
+                    padding: '6px 8px', 
+                    borderRadius: 'var(--radius-md)' 
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={regenInstruction}
+                    onChange={(e) => setRegenInstruction(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleRegenerate(); }}
+                    placeholder="Instructions (optional)..."
+                    className="input"
+                    style={{ minWidth: 220, height: 32, fontSize: 12, padding: '0 10px', margin: 0, border: 'none', background: 'transparent' }}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsRegenOpen(false)}
+                    className="btn btn-ghost"
+                    style={{ padding: '4px 8px', height: 28, fontSize: 11 }}
+                    disabled={isRegenerating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRegenerate}
+                    className="btn btn-primary"
+                    style={{ padding: '4px 12px', height: 28, fontSize: 11, background: 'var(--accent)', color: '#000' }}
+                    disabled={isRegenerating}
+                  >
+                    {isRegenerating ? <RefreshCw className="animate-spin" style={{ width: 12, height: 12 }} /> : <Sparkles style={{ width: 12, height: 12 }} />}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsRegenOpen(true)}
+                  className="btn btn-ghost"
+                  style={{ 
+                    fontSize: 12, 
+                    color: 'var(--accent)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 6,
+                    padding: '6px 12px',
+                    border: '1px dashed var(--accent)',
+                  }}
+                >
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  Regenerate with AI
+                </button>
+              )}
+            </div>
           </div>
+
           <button
             onClick={onClose}
             style={{
@@ -97,7 +203,30 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
         {/* Content */}
         <div style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          <TaskFormFields data={data} onChange={handleChange} errors={errors} />
+          {rateLimitInfo && (
+            <AiQuotaModal
+              rateLimitInfo={rateLimitInfo}
+              selectedModel={selectedModel}
+              onSelectModel={updateSelectedModel}
+              customApiKey={customApiKey}
+              onSaveCustomKey={updateCustomApiKey}
+              onRetry={() => {
+                clearRateLimit();
+                handleRegenerate();
+              }}
+              onClose={clearRateLimit}
+            />
+          )}
+
+          {aiError && (
+            <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--high-bg)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--high)' }}>
+              {aiError}
+            </div>
+          )}
+
+          <div style={{ opacity: isRegenerating ? 0.6 : 1, transition: 'opacity 0.2s', pointerEvents: isRegenerating ? 'none' : 'auto' }}>
+            <TaskFormFields data={data} onChange={handleChange} errors={errors} />
+          </div>
 
           {errors.submit && (
             <div style={{ marginTop: 16, padding: '10px 14px', background: 'var(--high-bg)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--high)' }}>
