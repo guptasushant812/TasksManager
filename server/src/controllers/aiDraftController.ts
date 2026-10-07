@@ -15,7 +15,7 @@ The user will give you free-form text describing one or more work tasks. The inp
 
 YOUR JOB:
 1. Identify EACH separate main task (usually numbered 1, 2, 3).
-2. If a main task has sub-tasks (like a, b, c or indented bullets), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field. CRITICAL: You MUST format each subtask on a new line (e.g., using explicit newline characters like `\na) ... \nb) ...` or `\n- `) so it renders clearly as a vertical list.
+2. If a main task has sub-tasks (like a, b, c or indented bullets), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field. CRITICAL: You MUST convert any sub-tasks into strict dash bullet points (e.g. starting with `- `) and ensure each bullet point is on a new line (using explicit `\n- `) so it renders clearly as a vertical bulleted list. Do NOT use a), b), c) or 1), 2), 3) inside the description for sub-tasks.
 3. Extract and structure everything into clean, professional English using simple words and sentences. Use layman terms and "simple sweet words" in a clean professional tone. Avoid being overly formal, verbose, or using jargon. Keep it natural and direct.
 4. Translate any Marathi, Roman Marathi (Marathi in English format), Hindi, or Hinglish content into this simple, fluent, professional English.
 5. Return a JSON array of task objects — one object per main task.
@@ -24,7 +24,7 @@ Return ONLY a valid JSON array (no markdown, no code blocks, no explanation):
 [
   {
     "title": "string - short clear task title in English (max 8 words)",
-    "description": "string - full details of what was done. If there are sub-tasks, ensure they are separated by explicit new lines (`\n`) so they appear as bullet points on separate lines.",
+    "description": "string - full details of what was done. If there are sub-tasks, convert them to a dash bullet list (`- `) separated by explicit new lines (`\n`) so they appear as a vertical bulleted list.",
     "givenBy": "string - person who assigned it (if mentioned, e.g., 'Sachin sir', 'HOD sir'), else empty string",
     "contactPerson": "string - person to follow up with or contact regarding this task (if mentioned), else empty string",
     "priority": "High | Medium | Low",
@@ -207,7 +207,7 @@ Your job is to regenerate and improve a SINGLE work task based on the user's ins
 The user instruction or context may be in Marathi (मराठी), Marathi in English format (Roman Marathi), Hindi, Hinglish, or English.
 Always extract, refine, and translate everything into clean, professional English using simple words and sentences. Use layman terms and "simple sweet words" in a clean professional tone. Avoid being overly formal, verbose, or using jargon. Keep it natural and direct:
 - title: short clear task title in English (max 8 words)
-- description: full details of what was done. CRITICAL: If there are sub-tasks (like a, b, c), you MUST format each subtask on a new line (using `\n`) so they render clearly as a vertical list.
+- description: full details of what was done. CRITICAL: If there are sub-tasks (like a, b, c), you MUST convert them into a strict dash bullet list (starting with `- `) and format each bullet on a new line (using `\n- `) so they render clearly as a vertical list. Do NOT use a), b), c) or 1), 2) for sub-tasks.
 - priority: High | Medium | Low
 - workStatus: InProgress | Pending | Completed
 - reason: why it is pending or delayed in simple English, empty if completed
