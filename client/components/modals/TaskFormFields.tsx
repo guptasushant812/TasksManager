@@ -120,9 +120,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           className="input"
           placeholder="Full task description — what needs to be done, references, etc."
           value={data.description}
-          onChange={(e) => onChange('description', e.target.value)}
-          rows={2}
-          style={{ resize: 'vertical', lineHeight: 1.4 }}
+          onChange={(e) => {
+            onChange('description', e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight + 2}px`;
+          }}
+          onFocus={(e) => {
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight + 2}px`;
+          }}
+          rows={1}
+          style={{ resize: 'none', lineHeight: 1.4, overflow: 'hidden', minHeight: '38px' }}
         />
       </div>
 
@@ -316,9 +324,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               className="input"
               placeholder="Why is this task pending or delayed?"
               value={currentPending}
-              onChange={(e) => handleReasonChange('Pending', e.target.value)}
-              rows={2}
-              style={{ resize: 'vertical', borderColor: 'var(--pending)' }}
+              onChange={(e) => {
+                handleReasonChange('Pending', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'none', borderColor: 'var(--pending)', overflow: 'hidden', minHeight: '38px' }}
             />
           </div>
         )}
@@ -334,9 +350,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               className="input"
               placeholder="Notes on current progress or blockers"
               value={currentInProgress}
-              onChange={(e) => handleReasonChange('InProgress', e.target.value)}
-              rows={2}
-              style={{ resize: 'vertical', borderColor: 'var(--inprogress)' }}
+              onChange={(e) => {
+                handleReasonChange('InProgress', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'none', borderColor: 'var(--inprogress)', overflow: 'hidden', minHeight: '38px' }}
             />
           </div>
         )}
@@ -352,9 +376,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               className="input"
               placeholder="What was completed or delivered"
               value={currentCompleted}
-              onChange={(e) => handleReasonChange('Completed', e.target.value)}
-              rows={2}
-              style={{ resize: 'vertical', borderColor: 'var(--completed)' }}
+              onChange={(e) => {
+                handleReasonChange('Completed', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'none', borderColor: 'var(--completed)', overflow: 'hidden', minHeight: '38px' }}
             />
           </div>
         )}

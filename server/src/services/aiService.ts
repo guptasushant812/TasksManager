@@ -52,7 +52,7 @@ export async function executeAiWithFallback(
     };
   }
 
-  const model = 'gemini-3.5-flash';
+  const model = 'gemini-3.8-flash';
 
   try {
     const text = await callGemini(apiKey, model, prompt);
@@ -87,8 +87,8 @@ export function getAvailableAiProviders() {
         id: 'gemini',
         name: 'Google Gemini',
         status: hasGemini ? 'active' : 'not_configured',
-        models: ['gemini-3.5-flash'],
-        defaultModel: 'gemini-3.5-flash',
+        models: ['gemini-3.8-flash'],
+        defaultModel: 'gemini-3.8-flash',
       }
     ],
     fallbackEnabled: false,

@@ -34,6 +34,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   const [saving, setSaving] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [showConfirmGenerate, setShowConfirmGenerate] = useState(false);
 
   // Single-task regeneration state
   const [activeRegenIndex, setActiveRegenIndex] = useState<number | null>(null);
@@ -113,6 +114,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
       return;
     }
     setErrors({});
+    setShowConfirmGenerate(true);
+  }
+
+  async function executeGeneration() {
+    setShowConfirmGenerate(false);
     const result = await generateDrafts(rawText);
     if (result && result.length > 0) {
       setDrafts(result.map(d => ({ ...d, id: d.id || generateId() })));
@@ -301,11 +307,75 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     </div>
   );
 
+  // ── Generate Confirmation Modal Overlay ──────────────────────────────────
+  const renderGenerateConfirmModal = () => (
+    <div
+      className="app-dialog-overlay"
+      style={{ zIndex: 1000 }}
+      onClick={() => setShowConfirmGenerate(false)}
+    >
+      <div
+        className="app-dialog-box"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 420 }}
+      >
+        <div className="app-dialog-accent-bar" style={{ background: 'var(--accent)' }} />
+
+        <div className="app-dialog-header">
+          <div className="app-dialog-header-left">
+            <div className="app-dialog-icon-wrap" style={{ background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)' }}>
+              <Sparkles style={{ width: 22, height: 22 }} />
+            </div>
+            <div>
+              <div className="app-dialog-eyebrow" style={{ color: 'var(--accent)' }}>
+                Confirm
+              </div>
+              <h3 className="app-dialog-title">Process text with AI?</h3>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowConfirmGenerate(false)}
+            className="app-dialog-close-btn"
+            aria-label="Close"
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
+        </div>
+
+        <div className="app-dialog-body">
+          <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+            Are you sure you want to structure this text into tasks using AI?
+          </p>
+        </div>
+
+        <div className="app-dialog-footer">
+          <button 
+            type="button" 
+            className="app-dialog-btn-cancel" 
+            onClick={() => setShowConfirmGenerate(false)}
+          >
+            No
+          </button>
+          <button 
+            type="button" 
+            className="app-dialog-btn-action" 
+            style={{ background: 'var(--accent)', color: '#000' }}
+            onClick={executeGeneration}
+          >
+            Yes, Process
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Step 1: Raw text input ───────────────────────────────────────────────
   if (step === 'input') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
         {showDiscardConfirm && renderDiscardModal()}
+        {showConfirmGenerate && renderGenerateConfirmModal()}
 
         {/* Friendly AI Limit / Quota Recovery Modal */}
         {rateLimitInfo && (
@@ -317,7 +387,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             onSaveCustomKey={updateCustomApiKey}
             onRetry={() => {
               clearRateLimit();
-              handleGenerate();
+              executeGeneration();
             }}
             onSwitchToManual={onSwitchToManual}
             onClose={clearRateLimit}
@@ -371,10 +441,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
 2. Follow up with IT floor router repair sathi. Pending aahe karan technician udya yenar.
 3. Attach 2 notices to Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026.`}
-              value={rawText}
+              value={aiLoading ? 'Please wait, structuring your tasks...' : rawText}
               onChange={(e) => setRawText(e.target.value)}
+              disabled={aiLoading}
               rows={8}
-              style={{ resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit' }}
+              style={{ resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit', opacity: aiLoading ? 0.6 : 1 }}
             />
             {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
             {aiError && (
