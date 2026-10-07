@@ -59,7 +59,7 @@ function sanitizeDraft(d: Record<string, any>, today: string): Record<string, st
 
   // WorkStatus normalization
   const validStatus = ['Completed', 'InProgress', 'Pending'];
-  if (!validStatus.includes(d.wor- kStatus)) {
+  if (!validStatus.includes(d.workStatus)) {
     const s = d.workStatus.toLowerCase();
     if (s.includes('comp') || s.includes('done') || s.includes('kela') || s.includes('jhala') || s.includes('kiya')) d.workStatus = 'Completed';
     else if (s.includes('prog') || s.includes('chalu') || s.includes('karat') || s.includes('work')) d.workStatus = 'InProgress';
