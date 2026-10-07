@@ -127,7 +127,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   // ── Confirmation & Success Modals ──────────────────────────────────────────
   const renderUpdateConfirmModal = () => (
     <div className="app-dialog-overlay" style={{ zIndex: 1100 }} onClick={() => setShowUpdateConfirm(false)}>
-      <div className="app-dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+      <div className="app-dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420, marginInline: 16 }}>
         <div className="app-dialog-accent-bar" style={{ background: 'var(--accent)' }} />
         <div className="app-dialog-header">
           <div className="app-dialog-header-left">
@@ -160,7 +160,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     if (!showSuccessPopup) return null;
     return (
       <div className="app-dialog-overlay" style={{ zIndex: 1200 }}>
-        <div className="app-dialog-box animate-slide-up" style={{ maxWidth: 380, textAlign: 'center', padding: '32px 24px' }}>
+        <div className="app-dialog-box animate-slide-up" style={{ maxWidth: 380, textAlign: 'center', paddingBlock: 32, paddingInline: 24, marginInline: 16 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)', marginBottom: 16 }}>
             <CheckCircle2 style={{ width: 32, height: 32 }} />
           </div>
@@ -181,7 +181,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         style={{ 
           maxWidth: 780, 
           width: '100%', 
-          maxHeight: '92vh', 
+          maxHeight: '92dvh', 
           display: 'flex', 
           flexDirection: 'column', 
           overflow: 'hidden', 
@@ -189,8 +189,8 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         }}
       >
         {/* Header */}
-        <div style={{ padding: '16px 24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 16 }}>
+        <div style={{ paddingBlock: 16, paddingInline: 24, borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingInlineEnd: 16, flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
               <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
@@ -217,7 +217,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
                     onKeyDown={(e) => { if (e.key === 'Enter') handleRegenerate(); }}
                     placeholder="Instructions (optional)..."
                     className="input"
-                    style={{ minWidth: 220, height: 32, fontSize: 12, padding: '0 10px', margin: 0, border: 'none', background: 'transparent' }}
+                    style={{ flex: 1, minWidth: 'min(220px, 100%)', height: 32, fontSize: 12, paddingInline: 10, margin: 0, border: 'none', background: 'transparent' }}
                     autoFocus
                   />
                   <button
