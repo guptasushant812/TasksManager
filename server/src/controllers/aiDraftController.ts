@@ -15,7 +15,7 @@ The user will give you free-form text describing one or more work tasks. The inp
 
 YOUR JOB:
 1. Identify EACH separate main task (usually numbered 1, 2, 3).
-2. If a main task has sub-tasks (like a, b, c or indented bullets, dots, dashes), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field. CRITICAL: Whenever the user separates points using -, dots, or a) b) c) or 1) 2) 3), you MUST break the line and convert them into a strict dash bullet list (e.g. starting with `- `) and ensure each bullet point is on a new line (using explicit `\n- `) so it renders clearly as a vertical bulleted list. Do NOT use a), b), c) or 1), 2), 3) inside the description for sub-tasks.
+2. If a main task has sub-tasks (like a, b, c or indented bullets, dots, dashes), DO NOT create separate task objects for them. Instead, merge all sub-tasks cleanly into the single main task's "description" field. CRITICAL: Whenever the user separates points using -, dots, or a) b) c), you MUST break the line and convert them into a strict dash bullet list (e.g. starting with `- `) and ensure each bullet point is on a new line (using explicit `\n- `) so it renders clearly as a vertical bulleted list. Do NOT use a), b), c) inside the description for sub-tasks. (Note: 1, 2, 3 usually denotes separate main tasks, not sub-tasks, so treat those as separate task objects).
 3. Extract and structure everything into clean, professional English using simple words and sentences. Use layman terms and "simple sweet words" in a clean professional tone. Avoid being overly formal, verbose, or using jargon. Keep it natural and direct.
 4. Translate any Marathi, Roman Marathi (Marathi in English format), Hindi, or Hinglish content into this simple, fluent, professional English.
 5. Return a JSON array of task objects — one object per main task.
@@ -207,7 +207,7 @@ Your job is to regenerate and improve a SINGLE work task based on the user's ins
 The user instruction or context may be in Marathi (मराठी), Marathi in English format (Roman Marathi), Hindi, Hinglish, or English.
 Always extract, refine, and translate everything into clean, professional English using simple words and sentences. Use layman terms and "simple sweet words" in a clean professional tone. Avoid being overly formal, verbose, or using jargon. Keep it natural and direct:
 - title: short clear task title in English (max 8 words)
-- description: full details of what was done. CRITICAL: Whenever the user separates points using -, dots, or a) b) c) or 1) 2) 3), you MUST break the line and convert them into a strict dash bullet list (starting with `- `) and format each bullet on a new line (using `\n- `) so they render clearly as a vertical list. Do NOT use a), b), c) or 1), 2) for sub-tasks.
+- description: full details of what was done. CRITICAL: Whenever the user separates points using -, dots, or a) b) c), you MUST break the line and convert them into a strict dash bullet list (starting with `- `) and format each bullet on a new line (using `\n- `) so they render clearly as a vertical list. Do NOT use a), b), c) for sub-tasks. (Note: 1, 2, 3 usually denotes separate tasks, not sub-tasks).
 - priority: High | Medium | Low
 - workStatus: InProgress | Pending | Completed
 - reason: why it is pending or delayed in simple English, empty if completed
