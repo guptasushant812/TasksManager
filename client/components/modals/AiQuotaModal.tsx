@@ -14,13 +14,7 @@ interface AiQuotaModalProps {
   onClose: () => void;
 }
 
-const ALTERNATIVE_MODELS = [
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', badge: 'Default Flagship', desc: 'Primary next-gen model for structured task extraction' },
-  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', badge: 'High Accuracy', desc: 'Superior multilingual & Marathi understanding' },
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'High Reliability', desc: 'Fast, structured, reliable task parsing' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Lite', badge: 'Ultra Fast', desc: 'Lightweight rapid extraction' },
-  { id: 'groq', name: 'Groq (Llama 3.3)', badge: 'Alt Provider', desc: 'Instant open-weight processing fallback' },
-];
+
 
 export default function AiQuotaModal({
   rateLimitInfo,
@@ -177,62 +171,7 @@ export default function AiQuotaModal({
             </p>
           </div>
 
-          {/* Option 1: Switch Model */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Cpu style={{ width: 15, height: 15, color: 'var(--accent)' }} />
-                1. Switch AI Engine / Model
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Click to retry</span>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-              {ALTERNATIVE_MODELS.map((m) => {
-                const isCurrent = selectedModel === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => handleChooseModel(m.id)}
-                    style={{
-                      background: isCurrent ? 'rgba(0, 255, 102, 0.08)' : 'var(--bg-elevated, #171720)',
-                      border: isCurrent ? '1.5px solid var(--accent, #00ff66)' : '1px solid var(--border, #2a2a38)',
-                      borderRadius: '8px',
-                      padding: '10px 12px',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 4,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: isCurrent ? 'var(--accent)' : 'var(--text-primary)' }}>
-                        {m.name}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: isCurrent ? 'var(--accent)' : 'var(--bg-surface)',
-                          color: isCurrent ? '#000' : 'var(--text-muted)',
-                        }}
-                      >
-                        {m.badge}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                      {m.desc}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Option 2: Add Own Free API Key */}
           <div
@@ -262,7 +201,7 @@ export default function AiQuotaModal({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Key style={{ width: 15, height: 15, color: '#38bdf8' }} />
-                <span>2. Add Your Own Free API Key (Unlimited)</span>
+                <span>1. Add Your Own Free API Key (Unlimited)</span>
               </div>
               <span style={{ fontSize: 11, color: '#38bdf8' }}>
                 {showKeyForm ? 'Hide' : 'Enter key →'}
@@ -339,7 +278,7 @@ export default function AiQuotaModal({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 8, border: '1px dashed var(--border)' }}>
               <div>
                 <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  3. Don't want to wait?
+                  2. Don't want to wait?
                 </span>
                 <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>
                   Transfer your draft directly into the manual form
@@ -401,7 +340,7 @@ export default function AiQuotaModal({
             }}
           >
             <RefreshCw style={{ width: 14, height: 14 }} />
-            Retry with {selectedModel === 'auto' ? 'Gemini 3.5' : selectedModel}
+            Retry with Gemini
           </button>
         </div>
       </div>

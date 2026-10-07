@@ -647,14 +647,9 @@ export default function SettingsPage() {
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
                       {[
-                        { id: 'auto', name: 'Auto-Optimized (Gemini 3.8 Flash)', badge: 'Default Flagship', desc: 'Auto-selects optimal model & silently falls back if quota is reached' },
-                        { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', badge: 'Primary', desc: 'Next-gen flagship model for timesheet structuring' },
-                        { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', badge: 'High Accuracy', desc: 'Superior multilingual Marathi reasoning' },
-                        { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'High Reliability', desc: 'Fast, structured daily timesheet extraction' },
-                        { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Lite', badge: 'Ultra Fast', desc: 'Rapid timesheet summary generation' },
-                        { id: 'groq', name: 'Groq (Llama 3.3)', badge: 'Alt Provider', desc: 'Instant open-weight processing backup' },
+                        { id: 'auto', name: 'Gemini 1.5 Flash', badge: 'Default Flagship', desc: 'Standard next-gen model for structured task extraction' },
                       ].map((m) => {
-                        const isSelected = preferredAiModel === m.id;
+                        const isSelected = preferredAiModel === m.id || (m.id === 'auto' && preferredAiModel === 'auto');
                         return (
                           <button
                             key={m.id}
