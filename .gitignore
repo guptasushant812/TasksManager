@@ -99,3 +99,7 @@ MediaQueryPrompt.md
 .agents/
 skills-lock.json
 
+
+# Generated AI Documentation
+TasksManager_AI_Architecture.pdf
+TasksManager_AI_Architecture.md
