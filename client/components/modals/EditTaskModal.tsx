@@ -1,12 +1,18 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
 import TaskFormFields from './TaskFormFields';
-import { X, Save, Sparkles, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { X, Save, Sparkles, RefreshCw, Check } from 'lucide-react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import AiQuotaModal from './AiQuotaModal';
+
+const STATUS_BADGE: Record<string, string> = {
+  InProgress: 'badge-inprogress',
+  Pending: 'badge-pending',
+  Completed: 'badge-completed',
+};
 
 interface EditTaskModalProps {
   task: Task;
@@ -73,12 +79,24 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = null;
     }
-    const isAiModal = showSuccessPopup?.title?.includes('AI');
+    const isAiModal = showSuccessPopup?.title?.includes('AI') || showSuccessPopup?.message?.includes('AI');
     setShowSuccessPopup(null);
     if (!isAiModal) {
       onSaved();
     }
   };
+
+  useEffect(() => {
+    if (!showSuccessPopup) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        e.preventDefault();
+        handleCloseSuccess();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSuccessPopup]);
 
   async function handleRegenerate() {
     const result = await regenerateSingleDraft(
@@ -98,13 +116,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       setRegenInstruction('');
       
       setShowSuccessPopup({ 
-        title: 'AI Generation Successful', 
-        message: 'Task fields updated beautifully with AI suggestions.' 
+        title: 'Task updated successfully', 
+        message: 'AI suggestions have been applied.', 
       });
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = setTimeout(() => {
         setShowSuccessPopup(null);
-      }, 2600);
+      }, 3500);
     }
   }
 
@@ -126,14 +144,14 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       });
       
       setShowSuccessPopup({
-        title: 'Task Updated Successfully',
-        message: 'Your modifications have been applied and synced with the workspace.',
+        title: 'Task updated successfully',
+        message: 'Your changes have been saved.',
       });
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = setTimeout(() => {
         setShowSuccessPopup(null);
         onSaved();
-      }, 2400);
+      }, 3500);
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to update task' });
     } finally {
@@ -234,77 +252,69 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
   const renderSuccessModal = () => {
     if (!showSuccessPopup) return null;
-    const isAi = showSuccessPopup.title.includes('AI');
+    const currentStatus = data.workStatus || task.workStatus || 'Pending';
     return (
-      <div className="app-dialog-overlay" style={{ zIndex: 1200 }} onClick={handleCloseSuccess}>
+      <div 
+        className="app-dialog-overlay" 
+        style={{ zIndex: 1200 }} 
+        onClick={handleCloseSuccess}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saas-success-title"
+      >
         <div 
-          className="task-success-box" 
+          className="saas-success-modal" 
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="app-dialog-accent-bar app-dialog-accent-success" />
-          
+          {/* Close button */}
           <button 
             type="button"
-            className="app-dialog-close-btn"
-            style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}
+            className="saas-modal-close-btn"
             onClick={handleCloseSuccess}
-            aria-label="Dismiss success popup"
+            aria-label="Close dialog"
           >
-            <X style={{ width: 18, height: 18 }} />
+            <X style={{ width: 16, height: 16 }} />
           </button>
 
-          <div className="task-success-inner" style={{ paddingInline: 'clamp(18px, 4.5vw, 28px)', paddingBlock: 'clamp(24px, 4vw, 32px)', textAlign: 'center' }}>
-            <div className="task-success-glow-halo">
-              <div className="task-success-icon-disc">
-                <CheckCircle2 style={{ width: 28, height: 28, strokeWidth: 2.4 }} />
-              </div>
+          {/* Icon & Heading */}
+          <div className="saas-success-header">
+            <div className="saas-success-icon-wrap">
+              <Check style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
             </div>
 
-            <div className="task-success-eyebrow">
-              <span className="status-dot-active" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', boxShadow: '0 0 8px var(--accent)' }} />
-              {isAi ? 'AI REFINEMENT APPLIED' : 'TASK UPDATED & SYNCED'}
-            </div>
-
-            <h3 className="task-success-title">{showSuccessPopup.title}</h3>
-            <p className="task-success-desc">{showSuccessPopup.message}</p>
-
-            <div className="task-success-chip">
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: 'var(--accent)', background: 'rgba(0, 255, 136, 0.08)', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(0, 255, 136, 0.25)', fontSize: 12 }}>
-                {task.taskId}
-              </span>
-              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>
-                {data.title}
-              </span>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                {data.workStatus || task.workStatus}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="btn btn-primary task-success-btn"
-              style={{
-                width: '100%',
-                minHeight: 44,
-                borderRadius: 10,
-                background: 'var(--accent)',
-                color: '#000',
-                fontWeight: 700,
-                fontSize: 13,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6
-              }}
-              onClick={handleCloseSuccess}
-            >
-              <CheckCircle2 style={{ width: 16, height: 16 }} />
-              Done & Continue
-            </button>
+            <h3 id="saas-success-title" className="saas-success-title">
+              {showSuccessPopup.title}
+            </h3>
+            <p className="saas-success-subtitle">
+              {showSuccessPopup.message}
+            </p>
           </div>
 
-          <div className="task-success-timer-track">
-            <div className="task-success-timer-bar" />
+          {/* Task Summary Card */}
+          <div className="saas-task-summary">
+            <div className="saas-task-summary-main">
+              <span className="saas-task-id">{task.taskId}</span>
+              <span className="saas-task-title" title={data.title}>
+                {data.title}
+              </span>
+            </div>
+            <div className="saas-task-summary-meta">
+              <span className={`badge ${STATUS_BADGE[currentStatus] || 'badge-pending'}`}>
+                {currentStatus}
+              </span>
+            </div>
+          </div>
+
+          {/* Footer Action */}
+          <div className="saas-success-footer">
+            <button
+              type="button"
+              className="saas-btn-done"
+              onClick={handleCloseSuccess}
+              autoFocus
+            >
+              Done
+            </button>
           </div>
         </div>
       </div>
