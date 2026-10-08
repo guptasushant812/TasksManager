@@ -74,7 +74,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-box animate-slide-up" style={{ maxWidth: 560, padding: 0, overflow: 'hidden' }}>
+      <div className="modal-box animate-slide-up" style={{ maxWidth: 640, width: '94vw', padding: 0, overflow: 'hidden' }}>
         {/* Header */}
         <div
           style={{
@@ -218,13 +218,14 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
               Escalation Recipients
             </span>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
               <div>
                 <label className="label" htmlFor="manager-email">Manager Email</label>
                 <input
                   id="manager-email"
                   type="email"
                   className="input"
+                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
                   placeholder="manager@example.com"
                   value={managerEmail}
                   onChange={(e) => setManagerEmail(e.target.value)}
@@ -238,6 +239,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
                   id="hod-email"
                   type="email"
                   className="input"
+                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
                   placeholder="hod@example.com"
                   value={hodEmail}
                   onChange={(e) => setHodEmail(e.target.value)}
@@ -251,6 +253,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
                   id="dyhod-email"
                   type="email"
                   className="input"
+                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
                   placeholder="dyhod@example.com"
                   value={dyhodEmail}
                   onChange={(e) => setDyhodEmail(e.target.value)}
@@ -264,6 +267,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
                   id="cc-email"
                   type="email"
                   className="input"
+                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
                   placeholder="alerts@example.com"
                   value={ccEmail}
                   onChange={(e) => setCcEmail(e.target.value)}
