@@ -121,47 +121,19 @@ export default function DashboardScopeBar({
       <div className="dashboard-scope-bar">
         {/* ── Left Side: TIME SCOPE controls ── */}
         <div className="scope-bar-left">
-          <div className="scope-bar-label" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
-            <Calendar style={{ width: 14, height: 14 }} />
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
+          <div className="scope-bar-label">
+            <Calendar className="scope-bar-icon" />
+            <span className="scope-bar-label-text">
               TIME SCOPE:
             </span>
           </div>
 
           {/* Toggle buttons: This Month / All Time */}
-          <div
-            style={{
-              display: 'inline-flex',
-              background: 'var(--bg-hover)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: 2,
-              gap: 2,
-            }}
-          >
+          <div className="scope-toggle-group" role="group" aria-label="Time scope preset">
             <button
               type="button"
               onClick={handleSelectThisMonth}
-              className="brutalist-hover"
-              style={{
-                padding: '4px 10px',
-                fontSize: 12,
-                fontWeight: 800,
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                background: isCurrentMonth ? 'var(--text-primary)' : 'transparent',
-                color: isCurrentMonth ? 'var(--bg-base)' : 'var(--text-secondary)',
-                transition: 'all 0.15s ease',
-              }}
+              className={`scope-toggle-btn brutalist-hover ${isCurrentMonth ? 'active' : ''}`}
             >
               This Month
             </button>
@@ -169,78 +141,46 @@ export default function DashboardScopeBar({
             <button
               type="button"
               onClick={handleSelectAllTime}
-              className="brutalist-hover"
-              style={{
-                padding: '4px 10px',
-                fontSize: 12,
-                fontWeight: 800,
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                background: isAllTime ? 'var(--text-primary)' : 'transparent',
-                color: isAllTime ? 'var(--bg-base)' : 'var(--text-secondary)',
-                transition: 'all 0.15s ease',
-              }}
+              className={`scope-toggle-btn brutalist-hover ${isAllTime ? 'active' : ''}`}
             >
               All Time
             </button>
           </div>
 
-          {/* Month Selector Dropdown */}
-          <select
-            value={filters.month || ''}
-            onChange={handleMonthChange}
-            aria-label="Filter by month"
-            className="brutalist-hover"
-            style={{
-              padding: '4px 10px',
-              fontSize: 12,
-              fontWeight: 800,
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: 76,
-            }}
-          >
-            <option value="">Month</option>
-            {SHORT_MONTHS.map((name, idx) => (
-              <option key={name} value={String(idx + 1)}>
-                {name}
-              </option>
-            ))}
-          </select>
-
-          {/* Year Selector Dropdown */}
-          <select
-            value={filters.year || ''}
-            onChange={handleYearChange}
-            aria-label="Filter by year"
-            className="brutalist-hover"
-            style={{
-              padding: '4px 10px',
-              fontSize: 12,
-              fontWeight: 800,
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: 72,
-            }}
-          >
-            <option value="">Year</option>
-            {[...availableYears]
-              .sort((a, b) => b - a)
-              .map((y) => (
-                <option key={y} value={String(y)}>
-                  {y}
+          {/* Grouped Month & Year Selectors (prevents Year from dropping alone) */}
+          <div className="scope-selects-group">
+            {/* Month Selector Dropdown */}
+            <select
+              value={filters.month || ''}
+              onChange={handleMonthChange}
+              aria-label="Filter by month"
+              className="scope-select scope-select-month brutalist-hover"
+            >
+              <option value="">Month</option>
+              {SHORT_MONTHS.map((name, idx) => (
+                <option key={name} value={String(idx + 1)}>
+                  {name}
                 </option>
               ))}
-          </select>
+            </select>
+
+            {/* Year Selector Dropdown */}
+            <select
+              value={filters.year || ''}
+              onChange={handleYearChange}
+              aria-label="Filter by year"
+              className="scope-select scope-select-year brutalist-hover"
+            >
+              <option value="">Year</option>
+              {[...availableYears]
+                .sort((a, b) => b - a)
+                .map((y) => (
+                  <option key={y} value={String(y)}>
+                    {y}
+                  </option>
+                ))}
+            </select>
+          </div>
         </div>
 
         {/* ── Right Side: Reset & Sync ── */}
@@ -248,22 +188,7 @@ export default function DashboardScopeBar({
           <button
             type="button"
             onClick={handleReset}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              padding: '4px 8px',
-              transition: 'color 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
+            className="scope-btn-reset"
           >
             Reset
           </button>
@@ -272,28 +197,11 @@ export default function DashboardScopeBar({
             type="button"
             onClick={handleSyncClick}
             disabled={isSpinning}
-            className="brutalist-hover"
-            style={{
-              background: 'var(--bg-hover)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: isSpinning ? 'wait' : 'pointer',
-              padding: '5px 12px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              color: 'var(--text-primary)',
-              fontSize: 12,
-              fontWeight: 800,
-            }}
+            className="scope-btn-sync brutalist-hover"
             title="Refresh task metrics"
           >
             <RotateCw
-              className={isSpinning ? 'animate-spin' : ''}
-              style={{
-                width: 13,
-                height: 13,
-              }}
+              className={`scope-sync-icon ${isSpinning ? 'animate-spin' : ''}`}
             />
             <span>Sync</span>
           </button>

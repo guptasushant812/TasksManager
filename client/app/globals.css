@@ -2553,7 +2553,7 @@ html:not(.dark) .label {
   }
 }
 
-/* ─── Dashboard Scope Bar Responsive System (MediaQueryPrompt.md Sec. 4, 8) ─── */
+/* ─── Dashboard Scope Bar Responsive System (MediaQueryPrompt.md Sec. 1, 2, 3, 6, 8, 9) ─── */
 .dashboard-scope-container {
   container-type: inline-size;
   container-name: scope-bar;
@@ -2564,7 +2564,6 @@ html:not(.dark) .label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: clamp(8px, 1.5cqi, 14px);
   padding: clamp(8px, 1.2cqi, 12px) clamp(10px, 1.8cqi, 16px);
   background: var(--bg-surface);
@@ -2573,17 +2572,106 @@ html:not(.dark) .label {
   box-shadow: var(--box-shadow-brutalist-sm);
   width: 100%;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .scope-bar-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   flex: 1 1 auto;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
+.scope-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.scope-bar-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.scope-bar-label-text {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: JetBrains Mono, monospace;
+  white-space: nowrap;
+}
+
+/* Segmented Toggle: This Month / All Time */
+.scope-toggle-group {
+  display: inline-flex;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.scope-toggle-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.scope-toggle-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-base);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Grouped Selectors: Month & Year always stay together */
+.scope-selects-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.scope-select {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.scope-select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.scope-select-month {
+  min-width: 82px;
+}
+
+.scope-select-year {
+  min-width: 76px;
+}
+
+/* Right-side actions: Reset & Sync */
 .scope-bar-right {
   display: flex;
   align-items: center;
@@ -2591,29 +2679,205 @@ html:not(.dark) .label {
   flex-shrink: 0;
 }
 
-@container scope-bar (max-width: 620px) {
+.scope-btn-reset {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.scope-btn-reset:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.scope-btn-sync {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 5px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.scope-btn-sync:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.scope-sync-icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Container Query: Tablet / Narrow Desktop (MediaQueryPrompt.md Sec. 8, 12) ── */
+@container scope-bar (max-width: 780px) {
   .dashboard-scope-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
   .scope-bar-left {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .scope-bar-right {
     width: 100%;
     justify-content: flex-end;
-    padding-block-start: 6px;
+    padding-block-start: 8px;
     border-block-start: 1px dashed var(--border-subtle);
   }
 }
 
-@container scope-bar (max-width: 420px) {
+/* ── Container Query: Standard Mobile Screens (MediaQueryPrompt.md Sec. 3: 380px - 560px) ── */
+@container scope-bar (max-width: 560px) {
+  .dashboard-scope-bar {
+    padding: 12px 14px;
+    gap: 12px;
+  }
   .scope-bar-left {
-    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+  /* Full-width segmented toggle */
+  .scope-toggle-group {
+    display: flex;
+    width: 100%;
+  }
+  .scope-toggle-btn {
+    flex: 1 1 0;
+    text-align: center;
+    justify-content: center;
+    padding: 7px 10px;
+  }
+  /* Full-width paired selects (50% Month / 50% Year side-by-side) */
+  .scope-selects-group {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+  .scope-select {
+    flex: 1 1 0;
+    width: 50%;
+    min-width: 0;
+    padding: 7px 10px;
+    text-align: center;
+  }
+  /* Bottom row: Reset and Sync nicely balanced */
+  .scope-bar-right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-block-start: 10px;
+    border-block-start: 1px dashed var(--border-subtle);
+  }
+  .scope-btn-sync {
+    padding: 7px 18px;
+  }
+}
+
+/* ── Container Query: Ultra-Small Mobile (MediaQueryPrompt.md Sec. 3: < 380px) ── */
+@container scope-bar (max-width: 380px) {
+  .dashboard-scope-bar {
+    padding: 10px;
+    gap: 10px;
   }
   .scope-bar-label {
-    display: none;
+    gap: 4px;
+  }
+  .scope-bar-label-text {
+    font-size: 10px;
+  }
+  .scope-toggle-btn {
+    font-size: 11px;
+    padding: 6px 4px;
+  }
+  .scope-select {
+    font-size: 11px;
+    padding: 6px 4px;
+  }
+  .scope-btn-reset {
+    font-size: 11px;
+  }
+  .scope-btn-sync {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}
+
+/* ── Touch Ergonomics (MediaQueryPrompt.md Sec. 6) ───────────────────────── */
+@media (pointer: coarse) {
+  .scope-toggle-btn,
+  .scope-select,
+  .scope-btn-sync {
+    min-height: 40px;
+  }
+  .scope-btn-reset {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* ── Viewport Fallback for Small Devices (MediaQueryPrompt.md Sec. 2 & 3) ── */
+@media (max-width: 640px) {
+  .dashboard-scope-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .scope-bar-left {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+  .scope-toggle-group {
+    display: flex;
+    width: 100%;
+  }
+  .scope-toggle-btn {
+    flex: 1 1 0;
+    text-align: center;
+    justify-content: center;
+    padding: 7px 10px;
+  }
+  .scope-selects-group {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+  .scope-select {
+    flex: 1 1 0;
+    width: 50%;
+    min-width: 0;
+    padding: 7px 10px;
+  }
+  .scope-bar-right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-block-start: 10px;
+    border-block-start: 1px dashed var(--border-subtle);
   }
 }
 
