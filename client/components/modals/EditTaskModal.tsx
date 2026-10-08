@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
@@ -38,6 +38,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const [regenInstruction, setRegenInstruction] = useState('');
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState<{ title: string; message: string } | null>(null);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     regeneratingIndex,
@@ -67,6 +68,18 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     return Object.keys(errs).length === 0;
   }
 
+  const handleCloseSuccess = () => {
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = null;
+    }
+    const isAiModal = showSuccessPopup?.title?.includes('AI');
+    setShowSuccessPopup(null);
+    if (!isAiModal) {
+      onSaved();
+    }
+  };
+
   async function handleRegenerate() {
     const result = await regenerateSingleDraft(
       data,
@@ -88,7 +101,10 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         title: 'AI Generation Successful', 
         message: 'Task fields updated beautifully with AI suggestions.' 
       });
-      setTimeout(() => setShowSuccessPopup(null), 3500);
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = setTimeout(() => {
+        setShowSuccessPopup(null);
+      }, 2600);
     }
   }
 
@@ -110,13 +126,14 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       });
       
       setShowSuccessPopup({
-        title: 'Task Updated',
-        message: 'Your task has been successfully updated.',
+        title: 'Task Updated Successfully',
+        message: 'Your modifications have been applied and synced with the workspace.',
       });
-      setTimeout(() => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = setTimeout(() => {
         setShowSuccessPopup(null);
         onSaved();
-      }, 2000);
+      }, 2400);
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to update task' });
     } finally {
@@ -127,29 +144,88 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   // ── Confirmation & Success Modals ──────────────────────────────────────────
   const renderUpdateConfirmModal = () => (
     <div className="app-dialog-overlay" style={{ zIndex: 1100 }} onClick={() => setShowUpdateConfirm(false)}>
-      <div className="app-dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420, marginInline: 16 }}>
-        <div className="app-dialog-accent-bar" style={{ background: 'var(--accent)' }} />
+      <div 
+        className="app-dialog-box animate-slide-up" 
+        onClick={(e) => e.stopPropagation()} 
+        style={{ maxWidth: 450, marginInline: 'clamp(12px, 3vw, 16px)', width: 'min(450px, calc(100vw - 24px))' }}
+      >
+        <div className="app-dialog-accent-bar app-dialog-accent-success" />
         <div className="app-dialog-header">
           <div className="app-dialog-header-left">
-            <div className="app-dialog-icon-wrap" style={{ background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)' }}>
-              <Save style={{ width: 22, height: 22 }} />
+            <div className="app-dialog-icon-wrap app-dialog-icon-success">
+              <Save style={{ width: 20, height: 20 }} />
             </div>
             <div>
-              <div className="app-dialog-eyebrow" style={{ color: 'var(--accent)' }}>Confirm Action</div>
+              <div className="app-dialog-eyebrow app-dialog-eyebrow-success">CONFIRM UPDATE</div>
               <h3 className="app-dialog-title">Update Task?</h3>
             </div>
           </div>
-          <button type="button" onClick={() => setShowUpdateConfirm(false)} className="app-dialog-close-btn">
+          <button 
+            type="button" 
+            onClick={() => setShowUpdateConfirm(false)} 
+            className="app-dialog-close-btn"
+            aria-label="Close confirmation dialog"
+          >
             <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
+
         <div className="app-dialog-body">
-          <p className="app-dialog-desc" style={{ marginBottom: 0 }}>Are you sure you want to save these changes to the task?</p>
+          <p className="app-dialog-desc">
+            Please review the updated details before saving changes to this task.
+          </p>
+
+          <div className="app-dialog-card">
+            <div className="app-dialog-row">
+              <span className="app-dialog-label">Task ID</span>
+              <span className="app-dialog-value" style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent)' }}>
+                {task.taskId}
+              </span>
+            </div>
+            <div className="app-dialog-row">
+              <span className="app-dialog-label">Title</span>
+              <span className="app-dialog-value" style={{ maxWidth: 'min(240px, 60vw)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                {data.title}
+              </span>
+            </div>
+            <div className="app-dialog-row">
+              <span className="app-dialog-label">Status</span>
+              <span className="app-dialog-value" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: data.workStatus === 'Completed' ? '#34d399' : data.workStatus === 'InProgress' ? '#60a5fa' : '#fbbf24' }} />
+                {data.workStatus || 'Pending'}
+              </span>
+            </div>
+            <div className="app-dialog-row">
+              <span className="app-dialog-label">Priority</span>
+              <span className="app-dialog-value">{data.priority || 'Medium'}</span>
+            </div>
+            {data.dueDate && (
+              <div className="app-dialog-row">
+                <span className="app-dialog-label">Due Date</span>
+                <span className="app-dialog-value">{data.dueDate}</span>
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="app-dialog-footer">
-          <button type="button" className="app-dialog-btn-cancel" onClick={() => setShowUpdateConfirm(false)}>No, Cancel</button>
-          <button type="button" className="app-dialog-btn-action" style={{ background: 'var(--accent)', color: '#000' }} onClick={handleSave}>
-            Yes, Update
+          <button 
+            type="button" 
+            className="app-dialog-btn-cancel" 
+            onClick={() => setShowUpdateConfirm(false)}
+            style={{ minHeight: 44 }}
+          >
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            className="app-dialog-btn-action" 
+            style={{ background: 'var(--accent)', color: '#000', fontWeight: 700, minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6 }} 
+            onClick={handleSave}
+            disabled={saving}
+          >
+            <Save style={{ width: 16, height: 16 }} />
+            {saving ? 'Updating…' : 'Yes, Save Changes'}
           </button>
         </div>
       </div>
@@ -158,14 +234,78 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
   const renderSuccessModal = () => {
     if (!showSuccessPopup) return null;
+    const isAi = showSuccessPopup.title.includes('AI');
     return (
-      <div className="app-dialog-overlay" style={{ zIndex: 1200 }}>
-        <div className="app-dialog-box animate-slide-up" style={{ maxWidth: 380, textAlign: 'center', paddingBlock: 32, paddingInline: 24, marginInline: 16 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)', marginBottom: 16 }}>
-            <CheckCircle2 style={{ width: 32, height: 32 }} />
+      <div className="app-dialog-overlay" style={{ zIndex: 1200 }} onClick={handleCloseSuccess}>
+        <div 
+          className="task-success-box" 
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="app-dialog-accent-bar app-dialog-accent-success" />
+          
+          <button 
+            type="button"
+            className="app-dialog-close-btn"
+            style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}
+            onClick={handleCloseSuccess}
+            aria-label="Dismiss success popup"
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
+
+          <div className="task-success-inner" style={{ paddingInline: 'clamp(18px, 4.5vw, 28px)', paddingBlock: 'clamp(24px, 4vw, 32px)', textAlign: 'center' }}>
+            <div className="task-success-glow-halo">
+              <div className="task-success-icon-disc">
+                <CheckCircle2 style={{ width: 28, height: 28, strokeWidth: 2.4 }} />
+              </div>
+            </div>
+
+            <div className="task-success-eyebrow">
+              <span className="status-dot-active" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', boxShadow: '0 0 8px var(--accent)' }} />
+              {isAi ? 'AI REFINEMENT APPLIED' : 'TASK UPDATED & SYNCED'}
+            </div>
+
+            <h3 className="task-success-title">{showSuccessPopup.title}</h3>
+            <p className="task-success-desc">{showSuccessPopup.message}</p>
+
+            <div className="task-success-chip">
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: 'var(--accent)', background: 'rgba(0, 255, 136, 0.08)', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(0, 255, 136, 0.25)', fontSize: 12 }}>
+                {task.taskId}
+              </span>
+              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>
+                {data.title}
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                {data.workStatus || task.workStatus}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary task-success-btn"
+              style={{
+                width: '100%',
+                minHeight: 44,
+                borderRadius: 10,
+                background: 'var(--accent)',
+                color: '#000',
+                fontWeight: 700,
+                fontSize: 13,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6
+              }}
+              onClick={handleCloseSuccess}
+            >
+              <CheckCircle2 style={{ width: 16, height: 16 }} />
+              Done & Continue
+            </button>
           </div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>{showSuccessPopup.title}</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>{showSuccessPopup.message}</p>
+
+          <div className="task-success-timer-track">
+            <div className="task-success-timer-bar" />
+          </div>
         </div>
       </div>
     );
