@@ -25,10 +25,17 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
   }
 
   const { managerEmail, hodEmail, dyhodEmail, ccEmail, threshold } = settings;
-  const toEmails = [managerEmail, hodEmail, dyhodEmail].filter(Boolean).join(', ');
+  let toEmails = [managerEmail, hodEmail, dyhodEmail].filter(Boolean).join(', ');
+  let resolvedCc = ccEmail ? ccEmail : undefined;
+
+  // Fallback: If no primary recipients (Manager, HOD, DyHOD) are filled, but CC is provided, use CC as recipient
+  if (!toEmails && ccEmail) {
+    toEmails = ccEmail;
+    resolvedCc = undefined;
+  }
   
   if (!toEmails) {
-    console.warn('⚠️ No recipients (Manager, HOD, DyHOD) configured for escalation emails.');
+    console.warn('⚠️ No recipients (Manager, HOD, DyHOD, or CC) configured for escalation emails.');
     return;
   }
 
@@ -145,7 +152,7 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
     const info = await transporter.sendMail({
       from: `"TasksManager Automated Escalation" <${FROM_EMAIL}>`,
       to: toEmails,
-      cc: ccEmail ? ccEmail : undefined,
+      cc: resolvedCc,
       subject,
       html,
       attachments: mailAttachments,
