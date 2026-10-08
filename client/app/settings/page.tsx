@@ -41,32 +41,90 @@ const TABS = [
 interface ThemeOption {
   id: string;
   name: string;
+  subtitle: string;
   description: string;
+  font: string;
   primaryColor: string;
   bgColor: string;
+  palette: string[];
+  gradient: string;
+  isLight?: boolean;
 }
+
+const LIGHT_THEMES = ['light', 'aurora', 'prism', 'frost'];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: 'dark',
-    name: 'Cyberpunk (Dark & Neon)',
-    description: 'Deep void background with high-contrast electric green and neon accents.',
-    primaryColor: '#00ff88',
-    bgColor: '#0a0a0f',
+    id: 'aurora',
+    name: 'Aurora Glass',
+    subtitle: 'Frosted Acrylic Glass',
+    description: 'Translucent clean frosted surfaces infused with electric indigo, cyan, rose, and emerald gradient mesh.',
+    font: 'Plus Jakarta Sans',
+    primaryColor: '#6366f1',
+    bgColor: '#f4f6fb',
+    palette: ['#ffffff', '#6366f1', '#06b6d4', '#f43f5e', '#10b981'],
+    gradient: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 35%, #f43f5e 70%, #10b981 100%)',
+    isLight: true,
+  },
+  {
+    id: 'prism',
+    name: 'Prism Sunset',
+    subtitle: 'Velvet Sunset Glass',
+    description: 'Warm airy translucent pearl surface with rose, vibrant peach, warm amber, and electric violet gradients.',
+    font: 'Plus Jakarta Sans',
+    primaryColor: '#f43f5e',
+    bgColor: '#faf6f5',
+    palette: ['#ffffff', '#f43f5e', '#fb923c', '#f59e0b', '#8b5cf6'],
+    gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 35%, #f59e0b 65%, #8b5cf6 100%)',
+    isLight: true,
+  },
+  {
+    id: 'frost',
+    name: 'Nordic Frost',
+    subtitle: 'Glacial Ice Glass',
+    description: 'Crisp arctic clarity with glacial teal, cerulean blue, mint accents, and frosted glass cards.',
+    font: 'Outfit',
+    primaryColor: '#0284c7',
+    bgColor: '#f0f6fa',
+    palette: ['#ffffff', '#0284c7', '#06b6d4', '#14b8a6', '#3b82f6'],
+    gradient: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 30%, #14b8a6 65%, #3b82f6 100%)',
+    isLight: true,
   },
   {
     id: 'light',
-    name: 'Neo-Brutalist (Clean White)',
-    description: 'Minimalist white surface with crisp borders and purple accents.',
+    name: 'Neo-Brutalist',
+    subtitle: 'Clean White Minimalist',
+    description: 'High-contrast minimalist white surface with crisp borders, deep ink typography, and purple accents.',
+    font: 'Inter',
     primaryColor: '#8b5cf6',
     bgColor: '#ffffff',
+    palette: ['#ffffff', '#8b5cf6', '#6366f1', '#3b82f6', '#0f172a'],
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%)',
+    isLight: true,
+  },
+  {
+    id: 'dark',
+    name: 'Cyberpunk',
+    subtitle: 'Deep Void & Neon',
+    description: 'Deep void background with high-contrast electric green, neon cyan, and purple accents.',
+    font: 'Inter',
+    primaryColor: '#00ff88',
+    bgColor: '#0a0a0f',
+    palette: ['#0a0a0f', '#00ff88', '#00e5ff', '#a855f7', '#1f293d'],
+    gradient: 'linear-gradient(135deg, #00ff88 0%, #00e5ff 50%, #a855f7 100%)',
+    isLight: false,
   },
   {
     id: 'slate',
-    name: 'Midnight Slate (Deep Blue)',
-    description: 'Deep oceanic navy slate with sky blue highlights and subtle borders.',
+    name: 'Midnight Slate',
+    subtitle: 'Oceanic Navy & Sky',
+    description: 'Deep oceanic navy slate with sky blue highlights, cobalt undertones, and subtle borders.',
+    font: 'Inter',
     primaryColor: '#38bdf8',
     bgColor: '#0b1120',
+    palette: ['#0b1120', '#38bdf8', '#60a5fa', '#818cf8', '#1e293b'],
+    gradient: 'linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #818cf8 100%)',
+    isLight: false,
   },
 ];
 
@@ -243,12 +301,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'aurora');
       if (saved === 'botanical' || saved === 'warm' || saved === 'emerald') {
         saved = 'dark';
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.classList.add('dark');
+      } else if (LIGHT_THEMES.includes(saved)) {
+        document.documentElement.classList.remove('dark');
       }
       setCurrentTheme(saved);
     } catch {}
@@ -270,7 +330,7 @@ export default function SettingsPage() {
     if (!pendingTheme) return;
     const themeId = pendingTheme;
     document.documentElement.setAttribute('data-theme', themeId);
-    if (themeId === 'light') {
+    if (LIGHT_THEMES.includes(themeId)) {
       document.documentElement.classList.remove('dark');
     } else {
       document.documentElement.classList.add('dark');
@@ -623,9 +683,18 @@ export default function SettingsPage() {
                           type="button"
                           onClick={() => handleSelectTheme(theme.id)}
                           className={`settings-theme-card ${isSelected ? 'active' : ''}`}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 10,
+                            padding: '16px',
+                            textAlign: 'left',
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                          }}
                         >
-                          <div className="settings-theme-card-header">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div className="settings-theme-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                               <span
                                 style={{
                                   width: 14,
@@ -633,13 +702,18 @@ export default function SettingsPage() {
                                   borderRadius: '50%',
                                   backgroundColor: theme.primaryColor,
                                   display: 'inline-block',
-                                  boxShadow: `0 0 8px ${theme.primaryColor}80`,
+                                  boxShadow: `0 0 10px ${theme.primaryColor}80`,
                                   flexShrink: 0,
                                 }}
                               />
-                              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                                {theme.name.split('(')[0].trim()}
-                              </span>
+                              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {theme.name}
+                                </span>
+                                <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+                                  {theme.subtitle}
+                                </span>
+                              </div>
                             </div>
                             <span
                               className="settings-theme-badge"
@@ -647,38 +721,66 @@ export default function SettingsPage() {
                                 background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-hover)',
                                 color: isSelected ? 'var(--accent)' : 'var(--text-muted)',
                                 border: `1px solid ${isSelected ? 'var(--accent)' : 'transparent'}`,
+                                flexShrink: 0,
+                                padding: '2px 8px',
+                                borderRadius: 12,
+                                fontSize: 11,
+                                fontWeight: 700,
                               }}
                             >
                               {isSelected ? 'Active' : 'Select'}
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBlock: '4px' }}>
+                          {/* Gradient Mixer Bar */}
+                          <div
+                            title={`${theme.name} Gradient Mixer`}
+                            style={{
+                              width: '100%',
+                              height: 10,
+                              borderRadius: 6,
+                              background: theme.gradient,
+                              border: '1px solid rgba(255,255,255,0.12)',
+                              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
+                            }}
+                          />
+
+                          {/* 5-Color Chromatic Palette Swatches */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                              {theme.palette.map((color, idx) => (
+                                <span
+                                  key={idx}
+                                  title={`Tone #${idx + 1}: ${color}`}
+                                  style={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: '50%',
+                                    backgroundColor: color,
+                                    border: '1px solid var(--border)',
+                                    display: 'inline-block',
+                                    boxShadow: idx === 1 ? `0 0 6px ${color}60` : undefined,
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              ))}
+                            </div>
                             <span
-                              title="Base Surface Color"
                               style={{
-                                width: 24,
-                                height: 24,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                padding: '2px 6px',
                                 borderRadius: 4,
-                                backgroundColor: theme.bgColor,
-                                border: '1px solid var(--border)',
-                                display: 'inline-block',
+                                background: theme.isLight ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255, 255, 255, 0.08)',
+                                color: theme.isLight ? '#6366f1' : 'var(--text-muted)',
+                                border: `1px solid ${theme.isLight ? 'rgba(99, 102, 241, 0.25)' : 'var(--border)'}`,
                               }}
-                            />
-                            <span
-                              title="Primary Brand Accent"
-                              style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: 4,
-                                backgroundColor: theme.primaryColor,
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                display: 'inline-block',
-                              }}
-                            />
+                            >
+                              {theme.font}
+                            </span>
                           </div>
 
-                          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
                             {theme.description}
                           </p>
                         </button>
@@ -1491,57 +1593,70 @@ export default function SettingsPage() {
               {targetTheme && (
                 <div
                   style={{
-                    padding: '14px 16px',
-                    borderRadius: 'var(--radius-md, 6px)',
+                    padding: '16px',
+                    borderRadius: 'var(--radius-md, 8px)',
                     border: '1px solid var(--border)',
                     backgroundColor: 'var(--bg-elevated)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 8,
+                    gap: 12,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span
                         style={{
-                          width: 14,
-                          height: 14,
+                          width: 16,
+                          height: 16,
                           borderRadius: '50%',
                           backgroundColor: targetTheme.primaryColor,
-                          border: '2px solid rgba(255,255,255,0.2)',
+                          border: '2px solid rgba(255,255,255,0.25)',
                           display: 'inline-block',
-                          boxShadow: `0 0 8px ${targetTheme.primaryColor}80`,
+                          boxShadow: `0 0 10px ${targetTheme.primaryColor}80`,
+                          flexShrink: 0,
                         }}
                       />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {targetTheme.name}
-                      </span>
+                      <div>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', display: 'block' }}>
+                          {targetTheme.name}
+                        </span>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {targetTheme.subtitle} • Font: <strong>{targetTheme.font}</strong>
+                        </span>
+                      </div>
                     </div>
+
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span
-                        title="Background base color"
-                        style={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: 3,
-                          backgroundColor: targetTheme.bgColor,
-                          border: '1px solid var(--border)',
-                          display: 'inline-block',
-                        }}
-                      />
-                      <span
-                        title="Accent color"
-                        style={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: 3,
-                          backgroundColor: targetTheme.primaryColor,
-                          display: 'inline-block',
-                        }}
-                      />
+                      {targetTheme.palette.map((color, idx) => (
+                        <span
+                          key={idx}
+                          title={`Color #${idx + 1}: ${color}`}
+                          style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            border: '1px solid var(--border)',
+                            display: 'inline-block',
+                          }}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+
+                  {/* Gradient mixer bar */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: 12,
+                      borderRadius: 6,
+                      background: targetTheme.gradient,
+                      border: '1px solid var(--border)',
+                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
+                    }}
+                  />
+
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
                     {targetTheme.description}
                   </p>
                 </div>
