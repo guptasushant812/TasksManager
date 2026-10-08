@@ -24,18 +24,42 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
     return;
   }
 
-  const { managerEmail, hodEmail, dyhodEmail, ccEmail, threshold } = settings;
-  let toEmails = [managerEmail, hodEmail, dyhodEmail].filter(Boolean).join(', ');
-  let resolvedCc = ccEmail ? ccEmail : undefined;
-
-  // Fallback: If no primary recipients (Manager, HOD, DyHOD) are filled, but CC is provided, use CC as recipient
-  if (!toEmails && ccEmail) {
-    toEmails = ccEmail;
-    resolvedCc = undefined;
+  const toList: string[] = [];
+  if (Array.isArray(settings.toRecipients) && settings.toRecipients.length > 0) {
+    settings.toRecipients.forEach((r: any) => {
+      if (r?.email) toList.push(r.email.trim());
+    });
+  } else {
+    // Legacy fallback
+    if (settings.managerEmail) toList.push(settings.managerEmail.trim());
+    if (settings.hodEmail) toList.push(settings.hodEmail.trim());
+    if (settings.dyhodEmail) toList.push(settings.dyhodEmail.trim());
   }
+
+  const ccList: string[] = [];
+  if (Array.isArray(settings.ccRecipients) && settings.ccRecipients.length > 0) {
+    settings.ccRecipients.forEach((r: any) => {
+      if (r?.email) ccList.push(r.email.trim());
+    });
+  } else if (settings.ccEmail) {
+    settings.ccEmail.split(',').forEach((c: string) => {
+      if (c.trim()) ccList.push(c.trim());
+    });
+  }
+
+  const bccList: string[] = [];
+  if (Array.isArray(settings.bccRecipients) && settings.bccRecipients.length > 0) {
+    settings.bccRecipients.forEach((r: any) => {
+      if (r?.email) bccList.push(r.email.trim());
+    });
+  }
+
+  const toEmails = toList.filter(Boolean).join(', ');
+  const ccEmails = ccList.filter(Boolean).join(', ');
+  const bccEmails = bccList.filter(Boolean).join(', ');
   
   if (!toEmails) {
-    console.warn('⚠️ No recipients (Manager, HOD, DyHOD, or CC) configured for escalation emails.');
+    console.warn('⚠️ No recipients configured for escalation emails in TO.');
     return;
   }
 
@@ -152,7 +176,8 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
     const info = await transporter.sendMail({
       from: `"TasksManager Automated Escalation" <${FROM_EMAIL}>`,
       to: toEmails,
-      cc: resolvedCc,
+      cc: ccEmails || undefined,
+      bcc: bccEmails || undefined,
       subject,
       html,
       attachments: mailAttachments,

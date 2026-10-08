@@ -1,7 +1,24 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useEscalation } from '@/hooks/useEscalation';
-import { ShieldAlert, X, Save, CheckCircle2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { RecipientItem } from '@/types/escalation';
+import {
+  ShieldAlert,
+  X,
+  Save,
+  CheckCircle2,
+  AlertTriangle,
+  ExternalLink,
+  Plus,
+  Mail,
+  Tag as TagIcon,
+  Edit2,
+  Trash2,
+  AlignLeft,
+  ChevronDown,
+  ChevronUp,
+  Info,
+} from 'lucide-react';
 import Link from 'next/link';
 
 interface EscalationConfigModalProps {
@@ -9,29 +26,249 @@ interface EscalationConfigModalProps {
   onSaved?: () => void;
 }
 
+type RecipientCategory = 'TO' | 'CC' | 'BCC';
+
+const TO_PRESET_TAGS = ['Manager', 'HOD', 'Dy.HOD', 'Client', 'Principal', 'Admin'];
+const CC_PRESET_TAGS = ['Team', 'Admin', 'Support', 'Client', 'Manager', 'Auditor'];
+const BCC_PRESET_TAGS = ['Archive', 'Admin', 'Audit', 'Security', 'Management'];
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function getTagBadgeStyle(tag: string) {
+  const lower = tag.toLowerCase();
+  if (lower.includes('manager')) {
+    return {
+      bg: 'rgba(234, 179, 8, 0.12)',
+      color: '#eab308',
+      border: 'rgba(234, 179, 8, 0.3)',
+    };
+  }
+  if (lower === 'hod' || (lower.includes('hod') && !lower.includes('dy') && !lower.includes('deputy'))) {
+    return {
+      bg: 'rgba(139, 92, 246, 0.14)',
+      color: '#a78bfa',
+      border: 'rgba(139, 92, 246, 0.3)',
+    };
+  }
+  if (lower.includes('dy') || lower.includes('deputy')) {
+    return {
+      bg: 'rgba(37, 99, 235, 0.14)',
+      color: '#60a5fa',
+      border: 'rgba(37, 99, 235, 0.3)',
+    };
+  }
+  if (lower.includes('client')) {
+    return {
+      bg: 'rgba(34, 197, 94, 0.12)',
+      color: '#4ade80',
+      border: 'rgba(34, 197, 94, 0.3)',
+    };
+  }
+  return {
+    bg: 'var(--bg-elevated)',
+    color: 'var(--text-primary)',
+    border: 'var(--border-subtle)',
+  };
+}
+
 export default function EscalationConfigModal({ onClose, onSaved }: EscalationConfigModalProps) {
   const { settings, updateSettings, loading, error } = useEscalation();
   const [enabled, setEnabled] = useState(false);
   const [threshold, setThreshold] = useState<number | ''>(3);
-  const [managerEmail, setManagerEmail] = useState('');
-  const [hodEmail, setHodEmail] = useState('');
-  const [dyhodEmail, setDyhodEmail] = useState('');
-  const [ccEmail, setCcEmail] = useState('');
+
+  // Structured recipient lists
+  const [toRecipients, setToRecipients] = useState<RecipientItem[]>([]);
+  const [ccRecipients, setCcRecipients] = useState<RecipientItem[]>([]);
+  const [bccRecipients, setBccRecipients] = useState<RecipientItem[]>([]);
+
+  // Sub-modal state for Add / Edit email
+  const [modalCategory, setModalCategory] = useState<RecipientCategory | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [subEmail, setSubEmail] = useState('');
+  const [subTag, setSubTag] = useState('');
+  const [subError, setSubError] = useState('');
+
+  // Multi-line paste state
+  const [pasteCategory, setPasteCategory] = useState<RecipientCategory | null>(null);
+  const [pasteText, setPasteText] = useState('');
+  const [pasteTag, setPasteTag] = useState('');
+  const [pasteError, setPasteError] = useState('');
+
+  // Active hover tooltip for desktop/touch
+  const [activeTooltip, setActiveTooltip] = useState<{
+    id: string;
+    tag: string;
+    email: string;
+  } | null>(null);
+
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [validationError, setValidationError] = useState('');
 
+  // Initialize from settings
   useEffect(() => {
     if (settings) {
       setEnabled(settings.enabled ?? false);
       setThreshold(settings.threshold ?? 3);
-      setManagerEmail(settings.managerEmail || '');
-      setHodEmail(settings.hodEmail || '');
-      setDyhodEmail(settings.dyhodEmail || '');
-      setCcEmail(settings.ccEmail || '');
+
+      // Initialize TO recipients
+      if (Array.isArray(settings.toRecipients) && settings.toRecipients.length > 0) {
+        setToRecipients(settings.toRecipients);
+      } else {
+        const legacyTo: RecipientItem[] = [];
+        if (settings.managerEmail) legacyTo.push({ email: settings.managerEmail, tag: 'Manager' });
+        if (settings.hodEmail) legacyTo.push({ email: settings.hodEmail, tag: 'HOD' });
+        if (settings.dyhodEmail) legacyTo.push({ email: settings.dyhodEmail, tag: 'Dy.HOD' });
+        setToRecipients(legacyTo);
+      }
+
+      // Initialize CC recipients
+      if (Array.isArray(settings.ccRecipients) && settings.ccRecipients.length > 0) {
+        setCcRecipients(settings.ccRecipients);
+      } else if (settings.ccEmail) {
+        const legacyCc = settings.ccEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
+          .map((email) => ({ email, tag: 'CC' }));
+        setCcRecipients(legacyCc);
+      } else {
+        setCcRecipients([]);
+      }
+
+      // Initialize BCC recipients
+      if (Array.isArray(settings.bccRecipients) && settings.bccRecipients.length > 0) {
+        setBccRecipients(settings.bccRecipients);
+      } else {
+        setBccRecipients([]);
+      }
     }
   }, [settings]);
 
+  // Open Add modal for a category
+  const handleOpenAdd = (category: RecipientCategory) => {
+    setModalCategory(category);
+    setEditingIndex(null);
+    setSubEmail('');
+    setSubTag(category === 'TO' ? 'Manager' : category === 'CC' ? 'Team' : 'Admin');
+    setSubError('');
+  };
+
+  // Open Edit modal for an existing recipient
+  const handleOpenEdit = (category: RecipientCategory, index: number) => {
+    const list = category === 'TO' ? toRecipients : category === 'CC' ? ccRecipients : bccRecipients;
+    const item = list[index];
+    if (!item) return;
+    setModalCategory(category);
+    setEditingIndex(index);
+    setSubEmail(item.email);
+    setSubTag(item.tag);
+    setSubError('');
+  };
+
+  // Save recipient from sub-modal
+  const handleSaveSubRecipient = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subEmail.trim()) {
+      setSubError('Please enter an email address.');
+      return;
+    }
+    if (!isValidEmail(subEmail)) {
+      setSubError('Please enter a valid email address (e.g. name@company.com).');
+      return;
+    }
+    if (!subTag.trim()) {
+      setSubError('Please provide a tag/role for this email.');
+      return;
+    }
+
+    const newItem: RecipientItem = {
+      email: subEmail.trim(),
+      tag: subTag.trim(),
+    };
+
+    if (modalCategory === 'TO') {
+      setToRecipients((prev) =>
+        editingIndex !== null ? prev.map((it, idx) => (idx === editingIndex ? newItem : it)) : [...prev, newItem]
+      );
+    } else if (modalCategory === 'CC') {
+      setCcRecipients((prev) =>
+        editingIndex !== null ? prev.map((it, idx) => (idx === editingIndex ? newItem : it)) : [...prev, newItem]
+      );
+    } else if (modalCategory === 'BCC') {
+      setBccRecipients((prev) =>
+        editingIndex !== null ? prev.map((it, idx) => (idx === editingIndex ? newItem : it)) : [...prev, newItem]
+      );
+    }
+
+    setModalCategory(null);
+    setEditingIndex(null);
+    setSubEmail('');
+    setSubTag('');
+  };
+
+  // Remove recipient from list
+  const handleRemoveRecipient = (category: RecipientCategory, index: number) => {
+    if (category === 'TO') {
+      setToRecipients((prev) => prev.filter((_, i) => i !== index));
+    } else if (category === 'CC') {
+      setCcRecipients((prev) => prev.filter((_, i) => i !== index));
+    } else if (category === 'BCC') {
+      setBccRecipients((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  // Handle Multi-line Paste
+  const handleApplyPaste = (category: RecipientCategory) => {
+    setPasteError('');
+    if (!pasteText.trim()) {
+      setPasteError('Please enter or paste at least one email address.');
+      return;
+    }
+
+    const lines = pasteText
+      .split(/[\n,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const validItems: RecipientItem[] = [];
+    const invalidList: string[] = [];
+    const defaultTag = pasteTag.trim() || (category === 'TO' ? 'Manager' : category === 'CC' ? 'CC' : 'BCC');
+
+    for (const email of lines) {
+      if (isValidEmail(email)) {
+        validItems.push({ email, tag: defaultTag });
+      } else {
+        invalidList.push(email);
+      }
+    }
+
+    if (invalidList.length > 0) {
+      setPasteError(`Invalid email address format: ${invalidList.slice(0, 3).join(', ')}`);
+      return;
+    }
+
+    if (validItems.length === 0) {
+      setPasteError('No valid email addresses found.');
+      return;
+    }
+
+    if (category === 'TO') {
+      setToRecipients((prev) => [...prev, ...validItems]);
+    } else if (category === 'CC') {
+      setCcRecipients((prev) => [...prev, ...validItems]);
+    } else if (category === 'BCC') {
+      setBccRecipients((prev) => [...prev, ...validItems]);
+    }
+
+    setPasteCategory(null);
+    setPasteText('');
+    setPasteTag('');
+  };
+
+  // Save full configuration
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError('');
@@ -41,6 +278,25 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
         setValidationError('Threshold must be at least 1 follow-up.');
         return;
       }
+
+      // Requirement: User needs to fill manager/dyhod/hod from these 3 at least 1 filled in TO
+      if (toRecipients.length === 0) {
+        setValidationError(
+          'At least one primary recipient (Manager, HOD, or Dy.HOD) is required in TO when escalation is enabled.'
+        );
+        return;
+      }
+
+      const hasPrimaryRole = toRecipients.some((r) =>
+        /manager|hod|dy.*hod|deputy/i.test(r.tag)
+      );
+
+      if (!hasPrimaryRole) {
+        setValidationError(
+          'Please ensure at least one recipient in TO is assigned the role of Manager, HOD, or Dy.HOD.'
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -48,10 +304,9 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
       await updateSettings({
         enabled,
         threshold: typeof threshold === 'number' ? threshold : 3,
-        managerEmail: managerEmail.trim(),
-        hodEmail: hodEmail.trim(),
-        dyhodEmail: dyhodEmail.trim(),
-        ccEmail: ccEmail.trim(),
+        toRecipients,
+        ccRecipients,
+        bccRecipients,
       });
       setSaveSuccess(true);
       onSaved?.();
@@ -66,24 +321,341 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
     }
   };
 
+  // Helper to render a category's recipient list box
+  const renderRecipientSection = (
+    category: RecipientCategory,
+    title: string,
+    badgeText: string,
+    isRequired: boolean,
+    recipients: RecipientItem[]
+  ) => {
+    const isPasteOpen = pasteCategory === category;
+
+    return (
+      <div
+        style={{
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--bg-elevated)',
+          padding: '14px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        {/* Section Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+              {title}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-full)',
+                background: isRequired ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface)',
+                color: isRequired ? 'var(--high)' : 'var(--text-muted)',
+                border: isRequired ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid var(--border-subtle)',
+              }}
+            >
+              {badgeText}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* Toggle Multi-line Paste */}
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                if (isPasteOpen) {
+                  setPasteCategory(null);
+                } else {
+                  setPasteCategory(category);
+                  setPasteTag(category === 'TO' ? 'Manager' : category === 'CC' ? 'CC' : 'BCC');
+                  setPasteText('');
+                  setPasteError('');
+                }
+              }}
+              style={{
+                padding: '4px 8px',
+                fontSize: 11,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                color: isPasteOpen ? 'var(--accent)' : 'var(--text-secondary)',
+              }}
+              title="Paste multiple emails or type multi-line list"
+            >
+              <AlignLeft style={{ width: 12, height: 12 }} />
+              {isPasteOpen ? 'Hide Multi-Line' : 'Multi-Line Paste'}
+              {isPasteOpen ? <ChevronUp style={{ width: 11, height: 11 }} /> : <ChevronDown style={{ width: 11, height: 11 }} />}
+            </button>
+
+            {/* Add Email Button */}
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => handleOpenAdd(category)}
+              style={{
+                padding: '5px 10px',
+                fontSize: 11,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              <Plus style={{ width: 13, height: 13, strokeWidth: 2.5 }} />
+              Add Email
+            </button>
+          </div>
+        </div>
+
+        {/* Multi-line Paste Accordion Box */}
+        {isPasteOpen && (
+          <div
+            className="animate-slide-up"
+            style={{
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                Paste or type multiple emails (one per line or separated by commas):
+              </span>
+              <button
+                type="button"
+                onClick={() => setPasteCategory(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2 }}
+              >
+                <X style={{ width: 13, height: 13 }} />
+              </button>
+            </div>
+
+            <textarea
+              className="input"
+              rows={3}
+              placeholder={`e.g.\nhod.dept@example.com\nmanager@example.com\ndyhod@example.com`}
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              style={{ fontSize: 12, fontFamily: 'monospace' }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Assign Tag:</span>
+                <input
+                  type="text"
+                  className="input"
+                  value={pasteTag}
+                  onChange={(e) => setPasteTag(e.target.value)}
+                  placeholder="e.g. Member, HOD"
+                  style={{ width: 130, padding: '4px 8px', fontSize: 11 }}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleApplyPaste(category)}
+                style={{ padding: '5px 12px', fontSize: 12 }}
+              >
+                Import All
+              </button>
+            </div>
+
+            {pasteError && (
+              <span style={{ fontSize: 11, color: 'var(--high)', fontWeight: 600 }}>
+                {pasteError}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Recipients Display: Tags / Chips List */}
+        <div style={{ minHeight: 38 }}>
+          {recipients.length === 0 ? (
+            <div
+              style={{
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px dashed var(--border-subtle)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-muted)',
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Info style={{ width: 13, height: 13, flexShrink: 0 }} />
+              <span>
+                {isRequired
+                  ? 'No recipients in TO yet. Click "+ Add Email" to add Manager, HOD, or Dy.HOD.'
+                  : `No ${category} recipients added (optional).`}
+              </span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {recipients.map((item, idx) => {
+                const badgeStyle = getTagBadgeStyle(item.tag);
+                const tagId = `${category}-${idx}-${item.email}`;
+
+                return (
+                  <div
+                    key={tagId}
+                    style={{ position: 'relative', display: 'inline-flex' }}
+                    onMouseEnter={() =>
+                      setActiveTooltip({ id: tagId, tag: item.tag, email: item.email })
+                    }
+                    onMouseLeave={() => setActiveTooltip(null)}
+                  >
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '4px 10px',
+                        borderRadius: 'var(--radius-md)',
+                        background: badgeStyle.bg,
+                        color: badgeStyle.color,
+                        border: `1px solid ${badgeStyle.border}`,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      title={`${item.tag}: ${item.email}`}
+                      onClick={() => handleOpenEdit(category, idx)}
+                    >
+                      {/* Tag Label */}
+                      <span style={{ letterSpacing: '0.02em' }}>{item.tag}</span>
+
+                      {/* Edit icon */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(category, idx);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: badgeStyle.color,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          padding: 2,
+                          opacity: 0.7,
+                        }}
+                        title="Edit email"
+                      >
+                        <Edit2 style={{ width: 11, height: 11 }} />
+                      </button>
+
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveRecipient(category, idx);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: badgeStyle.color,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          padding: 2,
+                          opacity: 0.7,
+                        }}
+                        title="Remove recipient"
+                      >
+                        <X style={{ width: 12, height: 12 }} />
+                      </button>
+                    </div>
+
+                    {/* Hover Floating Tooltip */}
+                    {activeTooltip?.id === tagId && (
+                      <div
+                        className="animate-slide-up"
+                        style={{
+                          position: 'absolute',
+                          bottom: 'calc(100% + 6px)',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: '#090d16',
+                          border: '1px solid rgba(255, 255, 255, 0.16)',
+                          borderRadius: 6,
+                          padding: '6px 10px',
+                          color: '#f8fafc',
+                          boxShadow: '0 8px 20px rgba(0, 0, 0, 0.55)',
+                          zIndex: 100,
+                          pointerEvents: 'none',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 2,
+                        }}
+                      >
+                        <div style={{ fontSize: 10, color: badgeStyle.color, fontWeight: 700, textTransform: 'uppercase' }}>
+                          {item.tag}
+                        </div>
+                        <div style={{ fontSize: 12, fontFamily: 'monospace', color: '#e2e8f0' }}>
+                          {item.email}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className="modal-overlay"
       style={{ zIndex: 120 }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !modalCategory) onClose();
       }}
     >
-      <div className="modal-box animate-slide-up" style={{ maxWidth: 640, width: '94vw', padding: 0, overflow: 'hidden' }}>
+      <div
+        className="modal-box animate-slide-up"
+        style={{
+          maxWidth: 640,
+          maxHeight: '92vh',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+      >
         {/* Header */}
         <div
           style={{
-            padding: '20px 24px',
+            padding: '18px 22px',
             borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             background: 'var(--bg-elevated)',
+            flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -120,8 +692,18 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
           </button>
         </div>
 
-        {/* Content */}
-        <form onSubmit={handleSave} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {/* Scrollable Form Content */}
+        <form
+          onSubmit={handleSave}
+          style={{
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            overflowY: 'auto',
+            flex: 1,
+          }}
+        >
           {error && (
             <div
               style={{
@@ -173,7 +755,10 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             }}
           >
             <div>
-              <label htmlFor="escalation-toggle" style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', cursor: 'pointer' }}>
+              <label
+                htmlFor="escalation-toggle"
+                style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', cursor: 'pointer' }}
+              >
                 Enable Automatic Escalation
               </label>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
@@ -199,7 +784,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
                 id="threshold-input"
                 type="number"
                 min="1"
-                max="20"
+                max="50"
                 className="input"
                 style={{ width: 90, textAlign: 'center', fontWeight: 700 }}
                 value={threshold}
@@ -212,69 +797,45 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             </div>
           </div>
 
-          {/* Recipient Emails Grid */}
-          <div style={{ opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? 'auto' : 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
-              Escalation Recipients
-            </span>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
-              <div>
-                <label className="label" htmlFor="manager-email">Manager Email</label>
-                <input
-                  id="manager-email"
-                  type="email"
-                  className="input"
-                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
-                  placeholder="manager@example.com"
-                  value={managerEmail}
-                  onChange={(e) => setManagerEmail(e.target.value)}
-                  disabled={!enabled || loading}
-                />
-              </div>
-
-              <div>
-                <label className="label" htmlFor="hod-email">HOD Email</label>
-                <input
-                  id="hod-email"
-                  type="email"
-                  className="input"
-                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
-                  placeholder="hod@example.com"
-                  value={hodEmail}
-                  onChange={(e) => setHodEmail(e.target.value)}
-                  disabled={!enabled || loading}
-                />
-              </div>
-
-              <div>
-                <label className="label" htmlFor="dyhod-email">Deputy HOD Email</label>
-                <input
-                  id="dyhod-email"
-                  type="email"
-                  className="input"
-                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
-                  placeholder="dyhod@example.com"
-                  value={dyhodEmail}
-                  onChange={(e) => setDyhodEmail(e.target.value)}
-                  disabled={!enabled || loading}
-                />
-              </div>
-
-              <div>
-                <label className="label" htmlFor="cc-email">CC Email</label>
-                <input
-                  id="cc-email"
-                  type="email"
-                  className="input"
-                  style={{ fontSize: 13.5, padding: '10px 14px', width: '100%' }}
-                  placeholder="alerts@example.com"
-                  value={ccEmail}
-                  onChange={(e) => setCcEmail(e.target.value)}
-                  disabled={!enabled || loading}
-                />
-              </div>
+          {/* Recipient Sections (TO, CC, BCC) */}
+          <div
+            style={{
+              opacity: enabled ? 1 : 0.5,
+              pointerEvents: enabled ? 'auto' : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                Escalation Recipients (Tags & Email Lists)
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Hover tags to view full email addresses</span>
             </div>
+
+            {/* 1. TO Recipients */}
+            {renderRecipientSection(
+              'TO',
+              'TO Recipients',
+              'At least 1 required (Manager / HOD / Dy.HOD)',
+              true,
+              toRecipients
+            )}
+
+            {/* 2. CC Recipients */}
+            {renderRecipientSection('CC', 'CC (Carbon Copy)', 'Optional', false, ccRecipients)}
+
+            {/* 3. BCC Recipients */}
+            {renderRecipientSection('BCC', 'BCC (Blind Carbon Copy)', 'Optional', false, bccRecipients)}
           </div>
 
           {/* Footer Info & Full Settings link */}
@@ -292,9 +853,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
               flexWrap: 'wrap',
             }}
           >
-            <span>
-              These settings apply to all tasks and communication logs system-wide.
-            </span>
+            <span>These settings apply to all tasks and communication logs system-wide.</span>
             <Link
               href="/settings"
               onClick={onClose}
@@ -311,17 +870,12 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             </Link>
           </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={saving || loading}
-              style={{ minWidth: 120 }}
-            >
+            <button type="submit" className="btn btn-primary" disabled={saving || loading} style={{ minWidth: 140 }}>
               {saving ? (
                 <>Saving…</>
               ) : saveSuccess ? (
@@ -337,6 +891,161 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
           </div>
         </form>
       </div>
+
+      {/* ── Sub-Modal: Add / Edit Email with Tag ──────────────────────────────── */}
+      {modalCategory && (
+        <div
+          className="modal-overlay"
+          style={{ zIndex: 140, background: 'rgba(0, 0, 0, 0.72)' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalCategory(null);
+          }}
+        >
+          <div
+            className="modal-box animate-slide-up"
+            style={{ maxWidth: 440, padding: 0, overflow: 'hidden' }}
+          >
+            {/* Sub-modal Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'var(--bg-elevated)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Mail style={{ width: 16, height: 16, color: 'var(--accent)' }} />
+                <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  {editingIndex !== null ? 'Edit Recipient' : `Add Recipient to ${modalCategory}`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalCategory(null)}
+                className="btn btn-ghost"
+                style={{ padding: 4 }}
+              >
+                <X style={{ width: 15, height: 15 }} />
+              </button>
+            </div>
+
+            {/* Sub-modal Form */}
+            <form onSubmit={handleSaveSubRecipient} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {subError && (
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    background: 'var(--high-bg)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--high)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  {subError}
+                </div>
+              )}
+
+              {/* Email Input */}
+              <div>
+                <label className="label" htmlFor="sub-email" style={{ fontSize: 12, fontWeight: 600 }}>
+                  Email Address <span style={{ color: 'var(--high)' }}>*</span>
+                </label>
+                <input
+                  id="sub-email"
+                  type="email"
+                  className="input"
+                  placeholder="e.g. hod.department@institution.edu"
+                  value={subEmail}
+                  onChange={(e) => {
+                    setSubEmail(e.target.value);
+                    if (subError) setSubError('');
+                  }}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {/* Tag / Role Input & Quick Presets */}
+              <div>
+                <label className="label" htmlFor="sub-tag" style={{ fontSize: 12, fontWeight: 600 }}>
+                  Role Tag / Display Label <span style={{ color: 'var(--high)' }}>*</span>
+                </label>
+
+                {/* Quick Presets */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {(modalCategory === 'TO'
+                    ? TO_PRESET_TAGS
+                    : modalCategory === 'CC'
+                    ? CC_PRESET_TAGS
+                    : BCC_PRESET_TAGS
+                  ).map((preset) => {
+                    const isSelected = subTag.toLowerCase() === preset.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setSubTag(preset);
+                          if (subError) setSubError('');
+                        }}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: isSelected ? 'var(--accent)' : 'var(--bg-elevated)',
+                          color: isSelected ? '#fff' : 'var(--text-secondary)',
+                          border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border-subtle)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="sub-tag"
+                    type="text"
+                    className="input"
+                    placeholder="or type custom tag (e.g. Dean, Admin, Lead)"
+                    value={subTag}
+                    onChange={(e) => {
+                      setSubTag(e.target.value);
+                      if (subError) setSubError('');
+                    }}
+                    required
+                  />
+                </div>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block', marginTop: 4 }}>
+                  This tag will appear as the button/chip. Hovering over it will reveal the actual email.
+                </span>
+              </div>
+
+              {/* Sub-modal Action Buttons */}
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setModalCategory(null)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editingIndex !== null ? 'Update Recipient' : 'Add Recipient'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
