@@ -13,7 +13,8 @@ interface FollowUpCardProps {
   escalationEnabled?: boolean;
   onSelect: (id: string) => void;
   onOpenHistory: (task: Task) => void;
-  onQuickAdd: (task: Task) => void;
+  onAddFollowUp?: (task: Task) => void;
+  onQuickAdd?: (task: Task) => void;
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
@@ -30,8 +31,10 @@ export default function FollowUpCard({
   escalationEnabled = false,
   onSelect,
   onOpenHistory,
+  onAddFollowUp,
   onQuickAdd,
 }: FollowUpCardProps) {
+  const handleAdd = onAddFollowUp || onQuickAdd;
   const summary: FollowUpSummary | undefined = task.followUpSummary;
   const count = summary?.count ?? 0;
   const isOverdue = summary?.isOverdue ?? false;
@@ -276,7 +279,7 @@ export default function FollowUpCard({
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => onQuickAdd(task)}
+          onClick={() => handleAdd?.(task)}
           style={{
             minHeight: 40,
             display: 'flex',
@@ -288,7 +291,7 @@ export default function FollowUpCard({
           }}
         >
           <Plus style={{ width: 15, height: 15, strokeWidth: 2.5 }} />
-          Follow-Up
+          Add Follow-Up
         </button>
       </div>
     </div>
