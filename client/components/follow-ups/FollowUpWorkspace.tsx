@@ -9,7 +9,7 @@ import SearchBar from '../tasks/SearchBar';
 import FilterSortPanel from '../tasks/FilterSortPanel';
 import ExportMenu from '../tasks/ExportMenu';
 import FollowUpPanel from './FollowUpPanel';
-import FollowUpQuickAdd from './FollowUpQuickAdd';
+import FollowUpAddModal from './FollowUpAddModal';
 import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, Sparkles, Plus, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { SHORT_MONTHS } from '@/lib/dates';
 
@@ -47,7 +47,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
   const [showFilter, setShowFilter] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.search || '');
   const [activeHistoryTask, setActiveHistoryTask] = useState<Task | null>(null);
-  const [quickAddTask, setQuickAddTask] = useState<Task | null>(null);
+  const [addFollowUpTask, setAddFollowUpTask] = useState<Task | null>(null);
 
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -459,7 +459,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                           escalationEnabled={settings?.enabled ?? false}
                           onSelect={toggleSelect}
                           onOpenHistory={setActiveHistoryTask}
-                          onQuickAdd={setQuickAddTask}
+                          onAddFollowUp={setAddFollowUpTask}
                         />
                       ))}
                 </tbody>
@@ -478,7 +478,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                   escalationEnabled={settings?.enabled ?? false}
                   onSelect={toggleSelect}
                   onOpenHistory={setActiveHistoryTask}
-                  onQuickAdd={setQuickAddTask}
+                  onAddFollowUp={setAddFollowUpTask}
                 />
               ))}
             </div>
@@ -572,12 +572,12 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         />
       )}
 
-      {/* ── Quick Add Follow-Up Modal ────────────────────────────────────────── */}
-      {quickAddTask && (
-        <FollowUpQuickAdd
-          task={quickAddTask}
-          onClose={() => setQuickAddTask(null)}
-          onAdded={() => {
+      {/* ── Add Follow-Up Modal (Full FollowUpForm) ────────────────────────── */}
+      {addFollowUpTask && (
+        <FollowUpAddModal
+          task={addFollowUpTask}
+          onClose={() => setAddFollowUpTask(null)}
+          onSaved={() => {
             fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 }, true);
           }}
         />

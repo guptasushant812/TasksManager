@@ -14,7 +14,8 @@ interface FollowUpRowProps {
   escalationEnabled?: boolean;
   onSelect: (id: string) => void;
   onOpenHistory: (task: Task) => void;
-  onQuickAdd: (task: Task) => void;
+  onAddFollowUp?: (task: Task) => void;
+  onQuickAdd?: (task: Task) => void;
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
@@ -32,8 +33,10 @@ export default function FollowUpRow({
   escalationEnabled = false,
   onSelect,
   onOpenHistory,
+  onAddFollowUp,
   onQuickAdd,
 }: FollowUpRowProps) {
+  const handleAdd = onAddFollowUp || onQuickAdd;
   const summary: FollowUpSummary | undefined = task.followUpSummary;
   const count = summary?.count ?? 0;
   const isOverdue = summary?.isOverdue ?? false;
@@ -334,19 +337,20 @@ export default function FollowUpRow({
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => onQuickAdd(task)}
+            onClick={() => handleAdd?.(task)}
             style={{
-              padding: '6px 10px',
+              padding: '6px 12px',
               fontSize: 12,
               fontWeight: 600,
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 4,
+              gap: 6,
+              whiteSpace: 'nowrap',
             }}
-            title="Log new communication follow-up"
+            title="Add Follow-Up"
           >
             <Plus style={{ width: 13, height: 13, strokeWidth: 2.5 }} />
-            Follow-Up
+            Add Follow-Up
           </button>
         </div>
       </td>
