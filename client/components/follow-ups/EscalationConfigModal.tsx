@@ -73,8 +73,8 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
   }, [settings]);
 
   // Save full configuration
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e && 'preventDefault' in e) e.preventDefault();
     setValidationError('');
 
     if (enabled) {
@@ -190,9 +190,8 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
           </button>
         </div>
 
-        {/* Scrollable Form Content */}
-        <form
-          onSubmit={handleSave}
+        {/* Scrollable Content */}
+        <div
           style={{
             padding: '20px 22px',
             display: 'flex',
@@ -350,7 +349,13 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={saving || loading} style={{ minWidth: 140 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+              disabled={saving || loading}
+              style={{ minWidth: 140 }}
+            >
               {saving ? (
                 <>Saving…</>
               ) : saveSuccess ? (
@@ -364,7 +369,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
               )}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
