@@ -3,6 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
+import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
+import { RecipientItem } from '@/types/escalation';
 import { 
   Settings as SettingsIcon, 
   AlertTriangle, 
@@ -198,13 +200,18 @@ export default function SettingsPage() {
   const [themeSuccess, setThemeSuccess] = useState(false);
 
   // Local settings for escalation
-  const [localSettings, setLocalSettings] = useState({ 
+  const [localSettings, setLocalSettings] = useState<{
+    enabled: boolean;
+    threshold: number;
+    toRecipients: RecipientItem[];
+    ccRecipients: RecipientItem[];
+    bccRecipients: RecipientItem[];
+  }>({ 
     enabled: false, 
     threshold: 3,
-    managerEmail: '',
-    hodEmail: '',
-    dyhodEmail: '',
-    ccEmail: ''
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: []
   });
 
   // Security password state
@@ -341,18 +348,67 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings) {
+      let toList: RecipientItem[] = [];
+      if (Array.isArray(settings.toRecipients) && settings.toRecipients.length > 0) {
+        toList = settings.toRecipients;
+      } else {
+        if (settings.managerEmail) toList.push({ email: settings.managerEmail, tag: 'Manager' });
+        if (settings.hodEmail) toList.push({ email: settings.hodEmail, tag: 'HOD' });
+        if (settings.dyhodEmail) toList.push({ email: settings.dyhodEmail, tag: 'Dy.HOD' });
+      }
+
+      let ccList: RecipientItem[] = [];
+      if (Array.isArray(settings.ccRecipients) && settings.ccRecipients.length > 0) {
+        ccList = settings.ccRecipients;
+      } else if (settings.ccEmail) {
+        ccList = settings.ccEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
+          .map((email) => ({ email, tag: 'CC' }));
+      }
+
+      let bccList: RecipientItem[] = [];
+      if (Array.isArray(settings.bccRecipients) && settings.bccRecipients.length > 0) {
+        bccList = settings.bccRecipients;
+      }
+
       setLocalSettings({ 
-        enabled: settings.enabled, 
-        threshold: settings.threshold,
-        managerEmail: settings.managerEmail || '',
-        hodEmail: settings.hodEmail || '',
-        dyhodEmail: settings.dyhodEmail || '',
-        ccEmail: settings.ccEmail || ''
+        enabled: settings.enabled ?? false, 
+        threshold: settings.threshold ?? 3,
+        toRecipients: toList,
+        ccRecipients: ccList,
+        bccRecipients: bccList
       });
     }
   }, [settings]);
 
   const handleInitiateEscalationSave = () => {
+    setEscalationSaveError(null);
+    if (localSettings.enabled) {
+      if (typeof localSettings.threshold !== 'number' || localSettings.threshold < 1) {
+        setEscalationSaveError('Threshold must be at least 1 follow-up.');
+        return;
+      }
+
+      if (localSettings.toRecipients.length === 0) {
+        setEscalationSaveError(
+          'At least one primary recipient (Manager, HOD, or Dy.HOD) is required in TO when escalation is enabled.'
+        );
+        return;
+      }
+
+      const hasPrimaryRole = localSettings.toRecipients.some((r) =>
+        /manager|hod|dy.*hod|deputy/i.test(r.tag)
+      );
+
+      if (!hasPrimaryRole) {
+        setEscalationSaveError(
+          'Please ensure at least one recipient in TO is assigned the role of Manager, HOD, or Dy.HOD.'
+        );
+        return;
+      }
+    }
     setShowEscalationConfirmModal(true);
   };
 
@@ -361,7 +417,13 @@ export default function SettingsPage() {
     setShowEscalationConfirmModal(false);
     setEscalationSaveError(null);
     try {
-      await updateSettings(localSettings);
+      await updateSettings({
+        enabled: localSettings.enabled,
+        threshold: localSettings.threshold,
+        toRecipients: localSettings.toRecipients,
+        ccRecipients: localSettings.ccRecipients,
+        bccRecipients: localSettings.bccRecipients,
+      });
       setEscalationSaved(true);
       setTimeout(() => setEscalationSaved(false), 5000);
     } catch (err: any) {
@@ -374,10 +436,9 @@ export default function SettingsPage() {
   const hasChanges = 
     localSettings.enabled !== settings?.enabled || 
     localSettings.threshold !== settings?.threshold ||
-    localSettings.managerEmail !== (settings?.managerEmail || '') ||
-    localSettings.hodEmail !== (settings?.hodEmail || '') ||
-    localSettings.dyhodEmail !== (settings?.dyhodEmail || '') ||
-    localSettings.ccEmail !== (settings?.ccEmail || '');
+    JSON.stringify(localSettings.toRecipients) !== JSON.stringify(settings?.toRecipients || []) ||
+    JSON.stringify(localSettings.ccRecipients) !== JSON.stringify(settings?.ccRecipients || []) ||
+    JSON.stringify(localSettings.bccRecipients) !== JSON.stringify(settings?.bccRecipients || []);
 
   return (
     <div className="page-layout">
@@ -882,71 +943,36 @@ export default function SettingsPage() {
 
                     <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
-                    {/* Intrinsic Email Recipients Grid */}
+                    {/* Recipient Sections via EscalationRecipientsManager */}
                     <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 14,
                       opacity: localSettings.enabled ? 1 : 0.4,
                       transition: 'opacity 0.2s',
                       pointerEvents: localSettings.enabled ? 'auto' : 'none',
                     }}>
-                      <div>
-                        <div className="settings-row-title">Escalation Recipients</div>
-                        <p className="settings-row-desc">
-                          Authorized leadership email addresses to notify when a task crosses the threshold.
-                        </p>
-                      </div>
-
-                      <div className="settings-recipients-grid">
-                        <div className="settings-field-group">
-                          <label className="settings-field-label">Manager Email</label>
-                          <input
-                            type="email"
-                            placeholder="manager@example.com"
-                            value={localSettings.managerEmail}
-                            onChange={e => setLocalSettings(s => ({ ...s, managerEmail: e.target.value }))}
-                            className="input"
-                            style={{ width: '100%', fontSize: 14, padding: '9px 12px' }}
-                          />
-                        </div>
-
-                        <div className="settings-field-group">
-                          <label className="settings-field-label">HOD Email</label>
-                          <input
-                            type="email"
-                            placeholder="hod@example.com"
-                            value={localSettings.hodEmail}
-                            onChange={e => setLocalSettings(s => ({ ...s, hodEmail: e.target.value }))}
-                            className="input"
-                            style={{ width: '100%', fontSize: 14, padding: '9px 12px' }}
-                          />
-                        </div>
-
-                        <div className="settings-field-group">
-                          <label className="settings-field-label">DyHOD Email</label>
-                          <input
-                            type="email"
-                            placeholder="dyhod@example.com"
-                            value={localSettings.dyhodEmail}
-                            onChange={e => setLocalSettings(s => ({ ...s, dyhodEmail: e.target.value }))}
-                            className="input"
-                            style={{ width: '100%', fontSize: 14, padding: '9px 12px' }}
-                          />
-                        </div>
-
-                        <div className="settings-field-group">
-                          <label className="settings-field-label">CC Email (Your Email)</label>
-                          <input
-                            type="email"
-                            placeholder="you@example.com"
-                            value={localSettings.ccEmail}
-                            onChange={e => setLocalSettings(s => ({ ...s, ccEmail: e.target.value }))}
-                            className="input"
-                            style={{ width: '100%', fontSize: 14, padding: '9px 12px' }}
-                          />
-                        </div>
-                      </div>
+                      <EscalationRecipientsManager
+                        toRecipients={localSettings.toRecipients}
+                        setToRecipients={(updater) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            toRecipients: typeof updater === 'function' ? updater(prev.toRecipients) : updater,
+                          }))
+                        }
+                        ccRecipients={localSettings.ccRecipients}
+                        setCcRecipients={(updater) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            ccRecipients: typeof updater === 'function' ? updater(prev.ccRecipients) : updater,
+                          }))
+                        }
+                        bccRecipients={localSettings.bccRecipients}
+                        setBccRecipients={(updater) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            bccRecipients: typeof updater === 'function' ? updater(prev.bccRecipients) : updater,
+                          }))
+                        }
+                        disabled={!localSettings.enabled || isSaving}
+                      />
                     </div>
 
                     {/* Save Button */}
@@ -1700,10 +1726,24 @@ export default function SettingsPage() {
                     {localSettings.threshold} follow-ups
                   </span>
                 </div>
-                {localSettings.managerEmail && (
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">Primary Recipients (TO):</span>
+                  <span className="app-dialog-value">
+                    {localSettings.toRecipients.length > 0
+                      ? localSettings.toRecipients.map((r) => r.tag).join(', ')
+                      : 'None'}
+                  </span>
+                </div>
+                {localSettings.ccRecipients.length > 0 && (
                   <div className="app-dialog-row">
-                    <span className="app-dialog-label">Manager Email:</span>
-                    <span className="app-dialog-value">{localSettings.managerEmail}</span>
+                    <span className="app-dialog-label">CC Recipients:</span>
+                    <span className="app-dialog-value">{localSettings.ccRecipients.length} configured</span>
+                  </div>
+                )}
+                {localSettings.bccRecipients.length > 0 && (
+                  <div className="app-dialog-row">
+                    <span className="app-dialog-label">BCC Recipients:</span>
+                    <span className="app-dialog-value">{localSettings.bccRecipients.length} configured</span>
                   </div>
                 )}
               </div>
