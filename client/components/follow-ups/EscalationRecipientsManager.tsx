@@ -122,8 +122,8 @@ export default function EscalationRecipientsManager({
   };
 
   // Save recipient from sub-modal
-  const handleSaveSubRecipient = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSubRecipient = (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
+    if (e && 'preventDefault' in e) e.preventDefault();
     if (!subEmail.trim()) {
       setSubError('Please enter an email address.');
       return;
@@ -605,8 +605,16 @@ export default function EscalationRecipientsManager({
               </button>
             </div>
 
-            {/* Sub-modal Form */}
-            <form onSubmit={handleSaveSubRecipient} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Sub-modal Content */}
+            <div
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveSubRecipient(e);
+                }
+              }}
+              style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
               {subError && (
                 <div
                   style={{
@@ -711,11 +719,15 @@ export default function EscalationRecipientsManager({
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSaveSubRecipient}
+                >
                   {editingIndex !== null ? 'Update Recipient' : 'Add Recipient'}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
