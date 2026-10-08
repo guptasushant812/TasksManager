@@ -4,6 +4,7 @@
    DESIGN SYSTEM — Neo-brutalism
    ───────────────────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   /* Spatial scale (8pt grid) */
   --space-1: 4px;
   --space-2: 8px;
@@ -139,6 +140,7 @@ html[data-theme="light"] .card {
    DESIGN SYSTEM — Dark Mode (Obsidian Frosted Glass & Gradient Mixer)
    ───────────────────────────────────────────────────────────────────────────── */
 .dark, [data-theme="dark"] {
+  color-scheme: dark;
   /* Typography */
   --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: "Plus Jakarta Sans", sans-serif;
@@ -237,6 +239,7 @@ html[data-theme="dark"] .card {
    THEME: Midnight Slate (Deep Navy & Sky Blue)
    ───────────────────────────────────────────────────────────────────────────── */
 [data-theme="slate"] {
+  color-scheme: dark;
   --bg-base: #0b1120;
   --bg-surface: #0f172a;
   --bg-elevated: #1e293b;
@@ -295,6 +298,14 @@ html[data-theme="dark"] .card {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+select,
+option,
+optgroup {
+  color-scheme: inherit;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
 html {
@@ -2645,6 +2656,111 @@ html:not(.dark) .label {
   flex-shrink: 0;
 }
 
+/* Custom Themed Scope Dropdown (eliminates native OS pop-up white background artifact) */
+.scope-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.scope-dropdown-month {
+  min-width: 88px;
+}
+
+.scope-dropdown-year {
+  min-width: 84px;
+}
+
+.scope-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scope-dropdown-trigger:hover,
+.scope-dropdown-trigger.active {
+  border-color: var(--border-focus);
+}
+
+.scope-dropdown-trigger:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.scope-dropdown-selected-text {
+  white-space: nowrap;
+}
+
+.scope-dropdown-chevron {
+  width: 12px;
+  height: 12px;
+  color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.scope-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 60;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scope-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.scope-dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.scope-dropdown-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* Fallback for legacy native selects */
 .scope-select {
   padding: 5px 10px;
   font-size: 12px;
@@ -2766,11 +2882,20 @@ html:not(.dark) .label {
     justify-content: center;
     padding: 7px 10px;
   }
-  /* Full-width paired selects (50% Month / 50% Year side-by-side) */
+  /* Full-width paired custom dropdowns (50% Month / 50% Year side-by-side) */
   .scope-selects-group {
     display: flex;
     width: 100%;
     gap: 8px;
+  }
+  .scope-dropdown-wrapper {
+    flex: 1 1 0;
+    width: 50%;
+    min-width: 0;
+  }
+  .scope-dropdown-trigger {
+    width: 100%;
+    padding: 7px 10px;
   }
   .scope-select {
     flex: 1 1 0;
@@ -2809,6 +2934,14 @@ html:not(.dark) .label {
     font-size: 11px;
     padding: 6px 4px;
   }
+  .scope-dropdown-trigger {
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+  .scope-dropdown-item {
+    font-size: 11px;
+    padding: 6px 6px;
+  }
   .scope-select {
     font-size: 11px;
     padding: 6px 4px;
@@ -2825,6 +2958,8 @@ html:not(.dark) .label {
 /* ── Touch Ergonomics (MediaQueryPrompt.md Sec. 6) ───────────────────────── */
 @media (pointer: coarse) {
   .scope-toggle-btn,
+  .scope-dropdown-trigger,
+  .scope-dropdown-item,
   .scope-select,
   .scope-btn-sync {
     min-height: 40px;
@@ -2864,6 +2999,15 @@ html:not(.dark) .label {
     display: flex;
     width: 100%;
     gap: 8px;
+  }
+  .scope-dropdown-wrapper {
+    flex: 1 1 0;
+    width: 50%;
+    min-width: 0;
+  }
+  .scope-dropdown-trigger {
+    width: 100%;
+    padding: 7px 10px;
   }
   .scope-select {
     flex: 1 1 0;
