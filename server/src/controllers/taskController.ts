@@ -314,17 +314,57 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
 }
 
 // ── Helper to resequence Task IDs ──────────────────────────────────────────────
-async function resequenceTaskIds() {
+export async function resequenceTaskIds() {
+  // 1. Ensure any soft-deleted task has a non-conflicting taskId (prefixed with DEL-)
+  const deletedTasksWithActiveIds = await Task.find({
+    isDeleted: true,
+    taskId: { $not: /^DEL-/ },
+  });
+  for (const dt of deletedTasksWithActiveIds) {
+    const originalId = dt.taskId || 'TK';
+    await Task.updateOne(
+      { _id: dt._id },
+      { $set: { taskId: `DEL-${originalId}-${dt._id}` } }
+    );
+  }
+
+  // 2. Fetch all active tasks ordered by createdAt
   const tasks = await Task.find({ isDeleted: { $ne: true } }).sort({ createdAt: 1 });
+
+  // 3. Identify tasks requiring taskId changes
+  const toUpdate: { id: mongoose.Types.ObjectId; newTaskId: string }[] = [];
   for (let i = 0; i < tasks.length; i++) {
     const num = String(i + 1).padStart(4, '0');
     const newTaskId = `TK-${num}`;
     if (tasks[i].taskId !== newTaskId) {
-      await Task.updateOne({ _id: tasks[i]._id }, { $set: { taskId: newTaskId } });
+      toUpdate.push({ id: tasks[i]._id as mongoose.Types.ObjectId, newTaskId });
     }
   }
-  
-  // Update the counter to match the new total length
+
+  // 4. Two-phase update to guarantee zero unique key collisions in MongoDB
+  if (toUpdate.length > 0) {
+    // Phase 1: assign temporary unique IDs
+    await Task.bulkWrite(
+      toUpdate.map(({ id }) => ({
+        updateOne: {
+          filter: { _id: id },
+          update: { $set: { taskId: `TEMP-${id}` } },
+        },
+      }))
+    );
+
+    // Phase 2: assign sequential task IDs
+    await Task.bulkWrite(
+      toUpdate.map(({ id, newTaskId }) => ({
+        updateOne: {
+          filter: { _id: id },
+          update: { $set: { taskId: newTaskId } },
+        },
+      }))
+    );
+  }
+
+  // 5. Update the counter to match current active task count
   const Counter = mongoose.models.Counter;
   if (Counter) {
     await Counter.updateOne(
@@ -344,15 +384,27 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
       return;
     }
 
-    const task = await Task.findByIdAndUpdate(
-      id,
-      { isDeleted: true, deletedAt: new Date(), deletedReason: 'User deleted task' },
-      { new: true }
-    );
-    if (!task) {
+    const existingTask = await Task.findById(id);
+    if (!existingTask) {
       res.status(404).json({ error: 'Task not found' });
       return;
     }
+
+    const delTaskId = existingTask.taskId.startsWith('DEL-')
+      ? existingTask.taskId
+      : `DEL-${existingTask.taskId}-${existingTask._id}`;
+
+    const task = await Task.findByIdAndUpdate(
+      id,
+      {
+        isDeleted: true,
+        deletedAt: new Date(),
+        deletedReason: 'User deleted task',
+        taskId: delTaskId,
+      },
+      { new: true }
+    );
+
     await FollowUp.updateMany({ taskId: id }, { isDeleted: true, deletedReason: 'Parent task deleted' });
     
     // Resequence tasks after deletion
@@ -383,15 +435,34 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
       return;
     }
 
-    const [result] = await Promise.all([
-      Task.updateMany({ _id: { $in: validIds } }, { isDeleted: true, deletedAt: new Date(), deletedReason: 'Bulk deleted by user' }),
-      FollowUp.updateMany({ taskId: { $in: validIds } }, { isDeleted: true, deletedReason: 'Parent task deleted' }),
-    ]);
+    const tasksToDel = await Task.find({ _id: { $in: validIds } });
+    if (tasksToDel.length === 0) {
+      res.status(404).json({ error: 'No matching tasks found' });
+      return;
+    }
+
+    await Task.bulkWrite(
+      tasksToDel.map((t) => ({
+        updateOne: {
+          filter: { _id: t._id },
+          update: {
+            $set: {
+              isDeleted: true,
+              deletedAt: new Date(),
+              deletedReason: 'Bulk deleted by user',
+              taskId: t.taskId.startsWith('DEL-') ? t.taskId : `DEL-${t.taskId}-${t._id}`,
+            },
+          },
+        },
+      }))
+    );
+
+    await FollowUp.updateMany({ taskId: { $in: validIds } }, { isDeleted: true, deletedReason: 'Parent task deleted' });
     
     // Resequence tasks once after bulk deletion
     await resequenceTaskIds();
     
-    res.json({ message: 'Tasks deleted', count: result.modifiedCount });
+    res.json({ message: 'Tasks deleted', count: tasksToDel.length });
   } catch (err) {
     next(err);
   }
@@ -408,7 +479,12 @@ export async function restoreTask(req: Request, res: Response, next: NextFunctio
 
     const task = await Task.findByIdAndUpdate(
       id,
-      { isDeleted: false, deletedAt: null, deletedReason: '' },
+      {
+        isDeleted: false,
+        deletedAt: null,
+        deletedReason: '',
+        taskId: `TEMP-RESTORE-${id}`,
+      },
       { new: true }
     );
     if (!task) {
@@ -418,7 +494,8 @@ export async function restoreTask(req: Request, res: Response, next: NextFunctio
     await FollowUp.updateMany({ taskId: id, deletedReason: 'Parent task deleted' }, { isDeleted: false, deletedReason: '' });
     
     await resequenceTaskIds();
-    res.json({ message: 'Task restored', task });
+    const updated = await Task.findById(id);
+    res.json({ message: 'Task restored', task: updated });
   } catch (err) {
     next(err);
   }
