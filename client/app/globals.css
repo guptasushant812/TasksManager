@@ -232,6 +232,8 @@
   --shadow-taste-md: 0 8px 24px -6px rgba(2, 6, 23, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-taste-lg: 0 16px 36px -8px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    THEME: Aurora Glass (Luminous Frosted Acrylic — Multi-Color Gradient Mixer)
    ───────────────────────────────────────────────────────────────────────────── */
