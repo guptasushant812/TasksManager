@@ -278,7 +278,7 @@ export default function EscalationBanner({
                   <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Latest response & outstanding next action
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 12.5 }}>
-                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Designated Manager, HOD, and DyHOD recipients
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span> Configured TO, CC, and BCC escalation recipients
                 </div>
               </div>
             </div>
