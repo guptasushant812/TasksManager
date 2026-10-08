@@ -1,8 +1,115 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
 import { SHORT_MONTHS } from '@/lib/dates';
-import { Calendar, RotateCw } from 'lucide-react';
+import { Calendar, RotateCw, ChevronDown, Check } from 'lucide-react';
+
+interface ScopeDropdownOption {
+  value: string;
+  label: string;
+}
+
+interface ScopeDropdownProps {
+  value: string;
+  placeholder: string;
+  options: ScopeDropdownOption[];
+  onChange: (value: string) => void;
+  ariaLabel: string;
+  className?: string;
+}
+
+function ScopeDropdown({
+  value,
+  placeholder,
+  options,
+  onChange,
+  ariaLabel,
+  className = '',
+}: ScopeDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+  const displayText = selectedOption ? selectedOption.label : placeholder;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className={`scope-dropdown-wrapper ${className}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`scope-dropdown-trigger brutalist-hover ${isOpen ? 'active' : ''}`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={ariaLabel}
+      >
+        <span className="scope-dropdown-selected-text">{displayText}</span>
+        <ChevronDown
+          className="scope-dropdown-chevron"
+          style={{
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="scope-dropdown-menu" role="listbox" aria-label={ariaLabel}>
+          <button
+            type="button"
+            role="option"
+            aria-selected={!value}
+            onClick={() => {
+              onChange('');
+              setIsOpen(false);
+            }}
+            className={`scope-dropdown-item ${!value ? 'active' : ''}`}
+          >
+            <span>{placeholder}</span>
+            {!value && <Check style={{ width: 12, height: 12 }} />}
+          </button>
+          {options.map((opt) => {
+            const isSelected = value === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={`scope-dropdown-item ${isSelected ? 'active' : ''}`}
+              >
+                <span>{opt.label}</span>
+                {isSelected && <Check style={{ width: 12, height: 12 }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface DashboardScopeBarProps {
   filters: TaskFilters;
@@ -61,8 +168,7 @@ export default function DashboardScopeBar({
     });
   };
 
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleMonthChange = (val: string) => {
     onFiltersChange({
       month: val,
       year: filters.year || currentYearStr,
@@ -75,8 +181,7 @@ export default function DashboardScopeBar({
     });
   };
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleYearChange = (val: string) => {
     onFiltersChange({
       year: val,
       weekIndex: undefined,
@@ -116,6 +221,18 @@ export default function DashboardScopeBar({
 
   const isSpinning = isRefreshing || internalRefreshing;
 
+  const monthOptions: ScopeDropdownOption[] = SHORT_MONTHS.map((name, idx) => ({
+    value: String(idx + 1),
+    label: name,
+  }));
+
+  const yearOptions: ScopeDropdownOption[] = [...availableYears]
+    .sort((a, b) => b - a)
+    .map((y) => ({
+      value: String(y),
+      label: String(y),
+    }));
+
   return (
     <div className="dashboard-scope-container">
       <div className="dashboard-scope-bar">
@@ -147,39 +264,25 @@ export default function DashboardScopeBar({
             </button>
           </div>
 
-          {/* Grouped Month & Year Selectors (prevents Year from dropping alone) */}
+          {/* Grouped Month & Year Custom Dropdowns (clean themed popovers, eliminates white OS box) */}
           <div className="scope-selects-group">
-            {/* Month Selector Dropdown */}
-            <select
+            <ScopeDropdown
               value={filters.month || ''}
+              placeholder="Month"
+              options={monthOptions}
               onChange={handleMonthChange}
-              aria-label="Filter by month"
-              className="scope-select scope-select-month brutalist-hover"
-            >
-              <option value="">Month</option>
-              {SHORT_MONTHS.map((name, idx) => (
-                <option key={name} value={String(idx + 1)}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              ariaLabel="Filter by month"
+              className="scope-dropdown-month"
+            />
 
-            {/* Year Selector Dropdown */}
-            <select
+            <ScopeDropdown
               value={filters.year || ''}
+              placeholder="Year"
+              options={yearOptions}
               onChange={handleYearChange}
-              aria-label="Filter by year"
-              className="scope-select scope-select-year brutalist-hover"
-            >
-              <option value="">Year</option>
-              {[...availableYears]
-                .sort((a, b) => b - a)
-                .map((y) => (
-                  <option key={y} value={String(y)}>
-                    {y}
-                  </option>
-                ))}
-            </select>
+              ariaLabel="Filter by year"
+              className="scope-dropdown-year"
+            />
           </div>
         </div>
 
