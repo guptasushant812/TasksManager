@@ -35,13 +35,19 @@ const CounterSchema = new Schema({
 const Counter = mongoose.models.Counter || mongoose.model('Counter', CounterSchema);
 
 export async function getNextTaskId(): Promise<string> {
-  const counter = await Counter.findByIdAndUpdate(
-    'taskId',
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true }
-  );
-  const num = String(counter.seq).padStart(4, '0');
-  return `TK-${num}`;
+  while (true) {
+    const counter = await Counter.findByIdAndUpdate(
+      'taskId',
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const num = String(counter.seq).padStart(4, '0');
+    const candidate = `TK-${num}`;
+    const exists = await mongoose.models.Task?.findOne({ taskId: candidate });
+    if (!exists) {
+      return candidate;
+    }
+  }
 }
 
 // ── Schema ───────────────────────────────────────────────────────────────────
