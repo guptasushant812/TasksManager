@@ -51,67 +51,31 @@ interface ThemeOption {
   isLight?: boolean;
 }
 
-const LIGHT_THEMES = ['light', 'aurora', 'prism', 'frost'];
+const LIGHT_THEMES = ['light'];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: 'aurora',
-    name: 'Aurora Glass',
-    subtitle: 'Frosted Acrylic Glass',
-    description: 'Translucent clean frosted surfaces infused with electric indigo, cyan, rose, and emerald gradient mesh.',
-    font: 'Plus Jakarta Sans',
-    primaryColor: '#6366f1',
-    bgColor: '#f4f6fb',
-    palette: ['#ffffff', '#6366f1', '#06b6d4', '#f43f5e', '#10b981'],
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 35%, #f43f5e 70%, #10b981 100%)',
-    isLight: true,
-  },
-  {
-    id: 'prism',
-    name: 'Prism Sunset',
-    subtitle: 'Velvet Sunset Glass',
-    description: 'Warm airy translucent pearl surface with rose, vibrant peach, warm amber, and electric violet gradients.',
-    font: 'Plus Jakarta Sans',
-    primaryColor: '#f43f5e',
-    bgColor: '#faf6f5',
-    palette: ['#ffffff', '#f43f5e', '#fb923c', '#f59e0b', '#8b5cf6'],
-    gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 35%, #f59e0b 65%, #8b5cf6 100%)',
-    isLight: true,
-  },
-  {
-    id: 'frost',
-    name: 'Nordic Frost',
-    subtitle: 'Glacial Ice Glass',
-    description: 'Crisp arctic clarity with glacial teal, cerulean blue, mint accents, and frosted glass cards.',
-    font: 'Outfit',
-    primaryColor: '#0284c7',
-    bgColor: '#f0f6fa',
-    palette: ['#ffffff', '#0284c7', '#06b6d4', '#14b8a6', '#3b82f6'],
-    gradient: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 30%, #14b8a6 65%, #3b82f6 100%)',
-    isLight: true,
-  },
-  {
     id: 'light',
-    name: 'Neo-Brutalist',
-    subtitle: 'Clean White Minimalist',
-    description: 'High-contrast minimalist white surface with crisp borders, deep ink typography, and purple accents.',
-    font: 'Inter',
-    primaryColor: '#8b5cf6',
+    name: 'Light Mode',
+    subtitle: 'Translucent Frosted Glass',
+    description: 'Ultra-clean frosted glass surfaces with an electric violet, magenta, rose, and emerald gradient mixer.',
+    font: 'Plus Jakarta Sans',
+    primaryColor: '#7c3aed',
     bgColor: '#ffffff',
-    palette: ['#ffffff', '#8b5cf6', '#6366f1', '#3b82f6', '#0f172a'],
-    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%)',
+    palette: ['#ffffff', '#7c3aed', '#d946ef', '#f43f5e', '#10b981'],
+    gradient: 'linear-gradient(135deg, #7c3aed 0%, #d946ef 35%, #f43f5e 70%, #10b981 100%)',
     isLight: true,
   },
   {
     id: 'dark',
-    name: 'Cyberpunk',
-    subtitle: 'Deep Void & Neon',
-    description: 'Deep void background with high-contrast electric green, neon cyan, and purple accents.',
-    font: 'Inter',
-    primaryColor: '#00ff88',
-    bgColor: '#0a0a0f',
-    palette: ['#0a0a0f', '#00ff88', '#00e5ff', '#a855f7', '#1f293d'],
-    gradient: 'linear-gradient(135deg, #00ff88 0%, #00e5ff 50%, #a855f7 100%)',
+    name: 'Dark Mode',
+    subtitle: 'Obsidian Frosted Glass',
+    description: 'Deep obsidian translucent glass surfaces with cyber emerald, electric violet, and neon fuchsia gradient mixer.',
+    font: 'Plus Jakarta Sans',
+    primaryColor: '#00ff9d',
+    bgColor: '#090a10',
+    palette: ['#090a10', '#00ff9d', '#a855f7', '#ec4899', '#6366f1'],
+    gradient: 'linear-gradient(135deg, #00ff9d 0%, #a855f7 50%, #ec4899 100%)',
     isLight: false,
   },
   {
@@ -301,13 +265,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'aurora');
-      if (saved === 'botanical' || saved === 'warm' || saved === 'emerald') {
+      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      if (saved === 'botanical' || saved === 'warm' || saved === 'emerald' || saved === 'aurora' || saved === 'prism' || saved === 'frost') {
         saved = 'dark';
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.classList.add('dark');
-      } else if (LIGHT_THEMES.includes(saved)) {
+      } else if (saved === 'light') {
         document.documentElement.classList.remove('dark');
       }
       setCurrentTheme(saved);
@@ -694,7 +658,7 @@ export default function SettingsPage() {
                           }}
                         >
                           <div className="settings-theme-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                               <span
                                 style={{
                                   width: 14,
@@ -707,10 +671,10 @@ export default function SettingsPage() {
                                 }}
                               />
                               <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                                   {theme.name}
                                 </span>
-                                <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                                   {theme.subtitle}
                                 </span>
                               </div>
@@ -722,7 +686,7 @@ export default function SettingsPage() {
                                 color: isSelected ? 'var(--accent)' : 'var(--text-muted)',
                                 border: `1px solid ${isSelected ? 'var(--accent)' : 'transparent'}`,
                                 flexShrink: 0,
-                                padding: '2px 8px',
+                                padding: '3px 10px',
                                 borderRadius: 12,
                                 fontSize: 11,
                                 fontWeight: 700,
@@ -745,9 +709,9 @@ export default function SettingsPage() {
                             }}
                           />
 
-                          {/* 5-Color Chromatic Palette Swatches */}
+                          {/* 5-Color Chromatic Palette Swatches & Typography Badge */}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                               {theme.palette.map((color, idx) => (
                                 <span
                                   key={idx}
@@ -767,13 +731,15 @@ export default function SettingsPage() {
                             </div>
                             <span
                               style={{
-                                fontSize: 10,
+                                fontSize: 10.5,
                                 fontWeight: 600,
-                                padding: '2px 6px',
-                                borderRadius: 4,
-                                background: theme.isLight ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255, 255, 255, 0.08)',
-                                color: theme.isLight ? '#6366f1' : 'var(--text-muted)',
-                                border: `1px solid ${theme.isLight ? 'rgba(99, 102, 241, 0.25)' : 'var(--border)'}`,
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                background: 'var(--bg-hover)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--border)',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
                               }}
                             >
                               {theme.font}
