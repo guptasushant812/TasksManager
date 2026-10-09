@@ -6744,6 +6744,78 @@ body {
   gap: 10px;
 }
 
+/* ─── Task Status Reasons Navigation (MediaQueryPrompt.md Sec. 2, 3, 6, 8) ─── */
+.task-reasons-box {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.status-tabs-nav-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.status-tabs-list {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.status-tab-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.status-tab-full-label {
+  display: inline;
+}
+
+.status-tab-short-label {
+  display: none;
+}
+
+.status-tab-current-badge {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.status-tabs-hide-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.status-tabs-hide-btn:hover {
+  color: var(--text-primary);
+}
+
 /* Mobile: ≤ 480px (Standard Smartphones) */
 @media (max-width: 480px) {
   .manual-task-form-body {
@@ -6926,6 +6998,77 @@ body {
   .edit-task-modal-footer button {
     width: 100% !important;
     justify-content: center !important;
+  }
+
+  /* Mobile S (320px only) Reason Tabs Grid & Layout Fix per MediaQueryPrompt.md Sec. 2 & 3 */
+  .modal-body-content {
+    padding: 10px 8px !important;
+  }
+
+  .task-reasons-box {
+    padding: 8px 6px !important;
+    overflow: hidden !important;
+  }
+
+  .status-tabs-nav-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: stretch !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+  }
+
+  .status-tabs-list {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .status-tab-btn {
+    padding: 4px 1px !important;
+    min-height: 38px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2px !important;
+    text-align: center !important;
+    border-radius: var(--radius-sm) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .status-tab-full-label {
+    display: none !important;
+  }
+
+  .status-tab-short-label {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .status-tab-current-badge {
+    font-size: 7.5px !important;
+    padding: 0.5px 3px !important;
+    border-radius: 3px !important;
+    line-height: 1 !important;
+    font-weight: 700 !important;
+  }
+
+  .status-tabs-hide-btn {
+    align-self: flex-end !important;
+    font-size: 10px !important;
+    padding: 1px 4px !important;
   }
 }
 

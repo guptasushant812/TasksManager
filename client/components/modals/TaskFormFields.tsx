@@ -239,7 +239,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </button>
         </div>
       ) : (
-        <div className="animate-fade-in" style={{
+        <div className="animate-fade-in task-reasons-box" style={{
           marginTop: 4,
           padding: '12px 14px',
           border: '1px solid var(--border)',
@@ -247,8 +247,8 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           background: 'var(--bg-surface)'
         }}>
           {/* Status Tab Navigation */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ display: 'flex', gap: 6 }}>
+          <div className="status-tabs-nav-wrap">
+            <div className="status-tabs-list">
               {STATUSES.map((status) => {
                 const isActiveTab = activeReasonTab === status;
                 const isTaskStatus = data.workStatus === status;
@@ -261,29 +261,30 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                     key={status}
                     type="button"
                     onClick={() => setActiveReasonTab(status)}
+                    className={`status-tab-btn ${isActiveTab ? 'active' : ''}`}
                     style={{
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: 12,
-                      fontWeight: isActiveTab ? 700 : 500,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
                       border: isActiveTab ? `1px solid ${statusColor}` : '1px solid var(--border)',
                       background: isActiveTab ? statusBg : 'var(--bg-elevated)',
                       color: isActiveTab ? statusColor : 'var(--text-muted)',
-                      transition: 'all 0.15s ease'
+                      fontWeight: isActiveTab ? 700 : 500,
                     }}
                   >
-                    {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
+                    <span className="status-tab-full-label">
+                      {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
+                    </span>
+                    <span className="status-tab-short-label">
+                      {status === 'Completed' ? 'Remarks' : status}
+                    </span>
                     {isTaskStatus && (
-                      <span style={{ fontSize: 9, background: statusColor, color: '#000', padding: '1px 4px', borderRadius: 4, fontWeight: 700 }}>
+                      <span
+                        className="status-tab-current-badge"
+                        style={{ background: statusColor, color: '#000' }}
+                      >
                         Current
                       </span>
                     )}
                     {hasData && !isTaskStatus && (
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor }} title="Saved note exists" />
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0 }} title="Saved note exists" />
                     )}
                   </button>
                 );
@@ -293,12 +294,15 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               <button
                 type="button"
                 onClick={() => setIsReasonsOpen(false)}
+                className="status-tabs-hide-btn"
                 style={{
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-muted)',
                   fontSize: 11,
                   cursor: 'pointer',
+                  padding: '2px 4px',
+                  flexShrink: 0,
                 }}
               >
                 Hide
