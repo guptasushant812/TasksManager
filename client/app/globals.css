@@ -6681,47 +6681,251 @@ body {
   }
 }
 
-/* Mobile S: ≤ 320px (Emerging markets & budget devices) */
-@media (max-width: 320px) {
-  .new-task-modal-box {
-    width: calc(100vw - 12px) !important;
-    border-radius: 10px !important;
+/* ── Task Form & Modal Responsive Rules (MediaQueryPrompt.md Sec. 2, 3, 6, 8) ── */
+.manual-task-form-body {
+  padding: 16px 20px;
+}
+
+.manual-task-card {
+  padding: 16px 18px;
+}
+
+.manual-task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manual-task-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.manual-task-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-subtle);
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.manual-task-footer-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.manual-task-footer-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-form-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.task-form-grid-dates-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 10px;
+}
+
+/* Mobile: ≤ 480px (Standard Smartphones) */
+@media (max-width: 480px) {
+  .manual-task-form-body {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .manual-task-card {
+    padding: 12px 12px;
+  }
+
+  .manual-task-footer {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .manual-task-footer-secondary {
+    gap: 6px;
+  }
+
+  .manual-task-footer-secondary .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .manual-task-footer-primary .btn {
+    padding: 7px 14px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .task-form-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .task-form-grid-dates-status {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .edit-task-modal-footer {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+}
+
+/* Mobile S: ≤ 360px & ≤ 320px (Emerging markets & budget devices) */
+@media (max-width: 360px) {
+  .new-task-modal-box,
+  .modal-box {
+    width: calc(100vw - 8px) !important;
+    max-width: calc(100vw - 8px) !important;
+    border-radius: 8px !important;
+    margin: 4px auto !important;
   }
 
   .modal-overlay {
-    padding: 6px !important;
+    padding: 4px !important;
   }
 
   .new-task-modal-header {
-    padding: 10px 12px !important;
+    padding: 10px 10px !important;
+    gap: 8px !important;
+  }
+
+  .new-task-modal-title {
+    font-size: 14px !important;
+  }
+
+  .new-task-back-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    margin-top: 6px !important;
   }
 
   .new-task-selection-wrapper {
-    padding: 10px !important;
+    padding: 8px !important;
   }
 
   .new-task-card {
-    padding: 12px 10px;
-    gap: 10px;
+    padding: 10px 8px !important;
+    gap: 8px !important;
   }
 
   .new-task-card-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
   }
 
   .new-task-card-icon {
-    width: 18px;
-    height: 18px;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .new-task-card-title {
-    font-size: 13.5px;
+    font-size: 13px !important;
   }
 
   .new-task-card-desc {
-    font-size: 11.5px;
+    font-size: 11px !important;
+  }
+
+  .manual-task-form-body {
+    padding: 8px 6px !important;
+    gap: 10px !important;
+  }
+
+  .manual-task-card {
+    padding: 10px 8px !important;
+  }
+
+  .manual-task-card-header {
+    margin-bottom: 8px !important;
+    padding-bottom: 6px !important;
+    gap: 6px !important;
+  }
+
+  .manual-task-card-header h3 {
+    font-size: 12px !important;
+  }
+
+  .manual-task-card-actions {
+    gap: 4px !important;
+  }
+
+  .manual-task-card-actions button {
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+  }
+
+  .task-form-grid-dates-status {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Full responsive stacked actions bar to prevent ANY button clipping */
+  .manual-task-footer {
+    padding: 8px 8px !important;
+    gap: 6px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .manual-task-footer-secondary {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  .manual-task-footer-secondary .btn {
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .manual-task-footer-primary {
+    width: 100% !important;
+  }
+
+  .manual-task-footer-primary .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  .edit-task-modal-footer {
+    padding: 8px 8px !important;
+    gap: 6px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .edit-task-modal-footer button {
+    width: 100% !important;
+    justify-content: center !important;
   }
 }
 
