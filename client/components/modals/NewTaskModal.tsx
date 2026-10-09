@@ -119,6 +119,9 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             display: 'flex', 
             flexDirection: 'column', 
             overflow: mode ? 'hidden' : 'auto', 
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
           }}
         >
 
@@ -178,13 +181,13 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
           {/* Forms */}
           {mode === 'manual' && (
-            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
               <ManualTaskForm defaultFilters={defaultFilters} onSaved={onSaved} onCancel={() => setMode(null)} />
             </div>
           )}
 
           {mode === 'ai' && (
-            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
               <AiInputForm onSaved={onSaved} onCancel={() => setMode(null)} onSwitchToManual={() => setMode('manual')} />
             </div>
           )}

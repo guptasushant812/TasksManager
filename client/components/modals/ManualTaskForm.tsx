@@ -209,7 +209,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
       {/* ── Discard Confirmation Modal Overlay ─────────────────────────────────── */}
       {showDiscardConfirm && (
         <div
@@ -274,7 +274,20 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
       )}
 
       {/* ── Scrollable Form Body (The ONLY scrollable element) ───────────────── */}
-      <div className="manual-task-form-body" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div 
+        className="manual-task-form-body" 
+        style={{ 
+          flex: 1, 
+          minHeight: 0, 
+          overflowY: 'auto', 
+          overflowX: 'hidden', 
+          display: 'flex', 
+          flexDirection: 'column',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
         {/* Global AI Error Banner */}
         {aiError && (
           <div
@@ -314,6 +327,10 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustImproved ? '2px solid var(--completed)' : undefined,
                 transition: 'border 0.2s ease',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                overflowX: 'hidden',
               }}
             >
               {/* Card Header matching Image 2 */}
@@ -528,6 +545,10 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                   opacity: isThisRegenerating ? 0.45 : 1,
                   pointerEvents: isThisRegenerating ? 'none' : 'auto',
                   transition: 'opacity 0.2s ease',
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  boxSizing: 'border-box',
                 }}
               >
                 <TaskFormFields
@@ -550,6 +571,8 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           onClick={handleAddAnotherTask}
           style={{
             width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
             padding: '14px 20px',
             background: 'var(--bg-surface)',
             border: '2px dashed var(--border)',

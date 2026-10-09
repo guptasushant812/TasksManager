@@ -97,7 +97,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       {/* Title */}
       <div>
         <label className="label" htmlFor="field-title" style={{ marginBottom: 4 }}>Task Title *</label>
