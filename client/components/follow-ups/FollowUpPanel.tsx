@@ -9,6 +9,7 @@ import FollowUpForm from './FollowUpForm';
 import EscalationBanner from './EscalationBanner';
 import ExportMenu from '../tasks/ExportMenu';
 import { ArrowLeft, Plus, Trash2, X, ChevronDown, ChevronUp, User, Calendar, AlertCircle } from 'lucide-react';
+import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 interface FollowUpPanelProps {
   task: Task;
@@ -347,13 +348,14 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
               <label className="label" htmlFor="delete-reason">
                 Deletion Reason <span style={{ color: 'var(--high)' }}>*</span>
               </label>
-              <textarea
+              <AutoResizeTextarea
                 id="delete-reason"
-                className="input"
                 placeholder="e.g. Duplicate communication entry, logged under wrong task..."
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
-                rows={3}
+                minHeight={64}
+                maxHeight={220}
+                allowManualResize={true}
                 autoFocus
               />
             </div>

@@ -2076,9 +2076,66 @@ select option {
   color: var(--text-primary);
 }
 
-textarea.input {
+/* ─── Auto-Grow Textarea & Multi-line Controls (MediaQueryPrompt.md Sec. 4, 6, 8, 9, 13) ─── */
+textarea.input,
+.auto-grow-textarea {
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Restored Custom Themed Scrollbar for Multi-line Textboxes */
+.auto-grow-textarea::-webkit-scrollbar,
+textarea.input::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auto-grow-textarea::-webkit-scrollbar-track,
+textarea.input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.auto-grow-textarea::-webkit-scrollbar-thumb,
+textarea.input::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+.auto-grow-textarea::-webkit-scrollbar-thumb:hover,
+textarea.input::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* Fluid Typography and Touch Ergonomics (MediaQueryPrompt.md Sec. 6 & 9) */
+@media (pointer: coarse) {
+  textarea.input,
+  .auto-grow-textarea {
+    font-size: 14.5px;
+    padding: 11px 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile Screen Breakpoints (MediaQueryPrompt.md Sec. 2 & 3: < 480px) */
+@media (max-width: 480px) {
+  textarea.input,
+  .auto-grow-textarea {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
 }
 
 /* ─── Card ─────────────────────────────────────────────────────────────────── */
