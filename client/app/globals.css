@@ -2076,47 +2076,79 @@ select option {
   color: var(--text-primary);
 }
 
-/* ─── Multi-line Textbox & Textarea Horizontal (X-Axis) Scrollbar Restoration ─── */
+/* ─── Multi-line Textbox & Textarea Horizontal (X-Axis) Scrollbar Restoration (MediaQueryPrompt.md Sec. 4, 6, 8, 9, 13) ─── */
 textarea,
 textarea.input,
+.auto-grow-textarea,
 .textarea {
   resize: vertical;
   line-height: 1.5;
   overflow-x: auto !important;
-  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
   white-space: pre-wrap;
   word-break: normal;
   overflow-wrap: normal;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Horizontal & Vertical Scrollbar Styling for WebKit / Chromium / Edge */
 textarea::-webkit-scrollbar,
-textarea.input::-webkit-scrollbar {
+textarea.input::-webkit-scrollbar,
+.auto-grow-textarea::-webkit-scrollbar {
   width: 6px;
   height: 6px; /* Explicit horizontal scrollbar track height so it is fully visible and scrollable */
 }
 
 textarea::-webkit-scrollbar-track,
-textarea.input::-webkit-scrollbar-track {
+textarea.input::-webkit-scrollbar-track,
+.auto-grow-textarea::-webkit-scrollbar-track {
   background: transparent;
 }
 
 textarea::-webkit-scrollbar-thumb,
-textarea.input::-webkit-scrollbar-thumb {
+textarea.input::-webkit-scrollbar-thumb,
+.auto-grow-textarea::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 9999px;
 }
 
 textarea::-webkit-scrollbar-thumb:hover,
-textarea.input::-webkit-scrollbar-thumb:hover {
+textarea.input::-webkit-scrollbar-thumb:hover,
+.auto-grow-textarea::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-muted);
 }
 
 textarea::-webkit-scrollbar-corner,
-textarea.input::-webkit-scrollbar-corner {
+textarea.input::-webkit-scrollbar-corner,
+.auto-grow-textarea::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Mobile Screen Breakpoints (MediaQueryPrompt.md Sec. 2 & 3: < 480px) */
+@media (max-width: 480px) {
+  textarea,
+  textarea.input,
+  .auto-grow-textarea {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Touch Ergonomics (MediaQueryPrompt.md Sec. 6) */
+@media (pointer: coarse) {
+  textarea,
+  textarea.input,
+  .auto-grow-textarea {
+    min-height: 48px;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ─── Card ─────────────────────────────────────────────────────────────────── */

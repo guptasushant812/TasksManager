@@ -4,6 +4,7 @@ import { FollowUpMethod, FOLLOW_UP_METHODS } from '@/types/followUp';
 import { Task } from '@/types/task';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { X, Save } from 'lucide-react';
+import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 interface FollowUpQuickAddProps {
   task: Task;
@@ -105,24 +106,26 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
           {/* Communicated */}
           <div>
             <label className="label">What was communicated? <span style={{ color: 'var(--high)' }}>*</span></label>
-            <textarea 
-              className="input" 
+            <AutoResizeTextarea 
               value={communicated} 
               onChange={e => setCommunicated(e.target.value)} 
               placeholder="e.g., Sent a reminder email regarding the Q3 report..." 
-              rows={2}
+              minHeight={60}
+              maxHeight={200}
+              allowManualResize={true}
             />
           </div>
 
           {/* Response */}
           <div>
             <label className="label">Response received <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
-            <textarea 
-              className="input" 
+            <AutoResizeTextarea 
               value={response} 
               onChange={e => setResponse(e.target.value)} 
               placeholder="e.g., They said they will complete it by tomorrow" 
-              rows={1}
+              minHeight={50}
+              maxHeight={180}
+              allowManualResize={true}
             />
           </div>
 
