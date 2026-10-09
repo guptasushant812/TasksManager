@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { TaskFilters } from '@/types/task';
 import ManualTaskForm from './ManualTaskForm';
 import AiInputForm from './AiInputForm';
@@ -19,6 +20,25 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
   const [mode, setMode] = useState<Mode>(null);
   const [hasAiDraft, setHasAiDraft] = useState(false);
   const [draftCount, setDraftCount] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   useEffect(() => {
     try {
@@ -47,8 +67,10 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
     }
   }, [mode]);
 
-  return (
-    <div className="modal-overlay">
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div 
         className="modal-box new-task-modal-box animate-slide-up" 
         style={{ 
@@ -168,6 +190,7 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
