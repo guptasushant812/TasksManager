@@ -92,14 +92,12 @@ export default function EscalationRecipientsManager({
   const [pasteTag, setPasteTag] = useState('');
   const [pasteError, setPasteError] = useState('');
 
-  // Active hover tooltip for desktop/touch
   const [activeTooltip, setActiveTooltip] = useState<{
     id: string;
     tag: string;
     email: string;
   } | null>(null);
 
-  // Open Add modal for a category
   const handleOpenAdd = (category: RecipientCategory) => {
     if (disabled) return;
     setModalCategory(category);
@@ -109,7 +107,6 @@ export default function EscalationRecipientsManager({
     setSubError('');
   };
 
-  // Open Edit modal for an existing recipient
   const handleOpenEdit = (category: RecipientCategory, index: number) => {
     if (disabled) return;
     const list = category === 'TO' ? toRecipients : category === 'CC' ? ccRecipients : bccRecipients;
@@ -122,7 +119,6 @@ export default function EscalationRecipientsManager({
     setSubError('');
   };
 
-  // Save recipient from sub-modal
   const handleSaveSubRecipient = (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
     if (e && 'preventDefault' in e) e.preventDefault();
     if (!subEmail.trim()) {
@@ -163,7 +159,6 @@ export default function EscalationRecipientsManager({
     setSubTag('');
   };
 
-  // Remove recipient from list
   const handleRemoveRecipient = (category: RecipientCategory, index: number) => {
     if (disabled) return;
     if (category === 'TO') {
@@ -175,7 +170,6 @@ export default function EscalationRecipientsManager({
     }
   };
 
-  // Handle Multi-line Paste
   const handleApplyPaste = (category: RecipientCategory) => {
     setPasteError('');
     if (!pasteText.trim()) {
@@ -244,7 +238,6 @@ export default function EscalationRecipientsManager({
           gap: 12,
         }}
       >
-        {/* Section Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
@@ -268,7 +261,6 @@ export default function EscalationRecipientsManager({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {/* Toggle Multi-line Paste */}
             <button
               type="button"
               className="btn btn-ghost"
@@ -299,7 +291,6 @@ export default function EscalationRecipientsManager({
               {isPasteOpen ? <ChevronUp style={{ width: 11, height: 11 }} /> : <ChevronDown style={{ width: 11, height: 11 }} />}
             </button>
 
-            {/* Add Email Button */}
             <button
               type="button"
               className="btn btn-primary"
@@ -320,7 +311,6 @@ export default function EscalationRecipientsManager({
           </div>
         </div>
 
-        {/* Multi-line Paste Accordion Box */}
         {isPasteOpen && (
           <div
             className="animate-slide-up"
@@ -388,7 +378,6 @@ export default function EscalationRecipientsManager({
           </div>
         )}
 
-        {/* Recipients Display: Tags / Chips List */}
         <div style={{ minHeight: 38 }}>
           {recipients.length === 0 ? (
             <div
@@ -444,10 +433,8 @@ export default function EscalationRecipientsManager({
                       title={`${item.tag}: ${item.email}`}
                       onClick={() => !disabled && handleOpenEdit(category, idx)}
                     >
-                      {/* Tag Label */}
                       <span style={{ letterSpacing: '0.02em' }}>{item.tag}</span>
 
-                      {/* Edit icon */}
                       {!disabled && (
                         <button
                           type="button"
@@ -470,7 +457,6 @@ export default function EscalationRecipientsManager({
                         </button>
                       )}
 
-                      {/* Remove button */}
                       {!disabled && (
                         <button
                           type="button"
@@ -494,7 +480,6 @@ export default function EscalationRecipientsManager({
                       )}
                     </div>
 
-                    {/* Hover Floating Tooltip */}
                     {activeTooltip?.id === tagId && (
                       <div
                         className="animate-slide-up"
@@ -552,7 +537,6 @@ export default function EscalationRecipientsManager({
         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Hover tags to view full email addresses</span>
       </div>
 
-      {/* 1. TO Recipients */}
       {renderSection(
         'TO',
         'TO Recipients',
@@ -561,13 +545,10 @@ export default function EscalationRecipientsManager({
         toRecipients
       )}
 
-      {/* 2. CC Recipients */}
       {renderSection('CC', 'CC (Carbon Copy)', 'Optional', false, ccRecipients)}
 
-      {/* 3. BCC Recipients */}
       {renderSection('BCC', 'BCC (Blind Carbon Copy)', 'Optional', false, bccRecipients)}
 
-      {/* ── Sub-Modal: Add / Edit Email with Tag ──────────────────────────────── */}
       {modalCategory && (
         <div
           className="modal-overlay"
@@ -580,7 +561,6 @@ export default function EscalationRecipientsManager({
             className="modal-box animate-slide-up"
             style={{ maxWidth: 440, padding: 0, overflow: 'hidden' }}
           >
-            {/* Sub-modal Header */}
             <div
               style={{
                 padding: '16px 20px',
@@ -607,7 +587,6 @@ export default function EscalationRecipientsManager({
               </button>
             </div>
 
-            {/* Sub-modal Content */}
             <div
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -632,7 +611,6 @@ export default function EscalationRecipientsManager({
                 </div>
               )}
 
-              {/* Email Input */}
               <div>
                 <label className="label" htmlFor="sub-mgr-email" style={{ fontSize: 12, fontWeight: 600 }}>
                   Email Address <span style={{ color: 'var(--high)' }}>*</span>
@@ -652,13 +630,11 @@ export default function EscalationRecipientsManager({
                 />
               </div>
 
-              {/* Tag / Role Input & Quick Presets */}
               <div>
                 <label className="label" htmlFor="sub-mgr-tag" style={{ fontSize: 12, fontWeight: 600 }}>
                   Role Tag / Display Label <span style={{ color: 'var(--high)' }}>*</span>
                 </label>
 
-                {/* Quick Presets */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                   {(modalCategory === 'TO'
                     ? TO_PRESET_TAGS
@@ -712,7 +688,6 @@ export default function EscalationRecipientsManager({
                 </span>
               </div>
 
-              {/* Sub-modal Action Buttons */}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
                 <button
                   type="button"

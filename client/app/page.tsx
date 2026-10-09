@@ -22,8 +22,6 @@ export default function DashboardPage() {
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
       <main className="page-content">
-
-        {/* Page header — clear hierarchy, purposeful */}
         <div className="page-header">
           <div>
             <h1>Dashboard</h1>
@@ -31,7 +29,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Time Scope Bar */}
         <section>
           <DashboardScopeBar
             filters={filters}
@@ -42,7 +39,6 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* Summary metrics */}
         <section>
           <SummaryCards
             summary={summary}
@@ -52,7 +48,6 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* Tasks Overview */}
         <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBlockEnd: 16 }}>
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
@@ -60,7 +55,6 @@ export default function DashboardPage() {
             </h2>
           </div>
 
-          {/* We reuse the TaskTable component which automatically syncs with the context filters */}
           <TaskTable
             filters={filters}
             onFiltersChange={handleFiltersChange}

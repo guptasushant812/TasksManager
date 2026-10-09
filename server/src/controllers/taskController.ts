@@ -7,7 +7,6 @@ import { buildQuery } from '../utils/buildQuery';
 const ALLOWED_TASK_PRIORITIES = ['High', 'Medium', 'Low'];
 const ALLOWED_TASK_STATUSES = ['InProgress', 'Pending', 'Completed'];
 
-// ── GET /api/tasks ────────────────────────────────────────────────────────────
 export async function listTasks(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort, page, limit, skip } = buildQuery(req.query);
@@ -113,7 +112,6 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
   }
 }
 
-// ── POST /api/tasks ───────────────────────────────────────────────────────────
 export async function createTask(req: Request, res: Response, next: NextFunction) {
   try {
     const {
@@ -201,7 +199,6 @@ export async function createTask(req: Request, res: Response, next: NextFunction
   }
 }
 
-// ── PUT /api/tasks/:id ────────────────────────────────────────────────────────
 export async function updateTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -313,7 +310,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
   }
 }
 
-// ── Helper to resequence Task IDs ──────────────────────────────────────────────
+// Resequence task IDs sequentially
 export async function resequenceTaskIds() {
   // 1. Ensure any soft-deleted task has a non-conflicting taskId (prefixed with DEL-)
   const deletedTasksWithActiveIds = await Task.find({
@@ -375,7 +372,6 @@ export async function resequenceTaskIds() {
   }
 }
 
-// ── DELETE /api/tasks/:id (Soft-Delete) ────────────────────────────────────────
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -416,7 +412,6 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
   }
 }
 
-// ── DELETE /api/tasks (bulk Soft-Delete) ───────────────────────────────────────
 export async function deleteManyTasks(req: Request, res: Response, next: NextFunction) {
   try {
     const { ids } = req.body as { ids: string[] };
@@ -468,7 +463,6 @@ export async function deleteManyTasks(req: Request, res: Response, next: NextFun
   }
 }
 
-// ── POST /api/tasks/:id/restore ───────────────────────────────────────────────
 export async function restoreTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -501,7 +495,6 @@ export async function restoreTask(req: Request, res: Response, next: NextFunctio
   }
 }
 
-// ── POST /api/tasks/:id/escalate ───────────────────────────────────────────────
 export async function escalateTask(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;

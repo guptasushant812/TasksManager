@@ -3,12 +3,10 @@ import mongoose from 'mongoose';
 import Task from '../models/Task';
 import { buildQuery } from '../utils/buildQuery';
 
-// ── GET /api/summary ──────────────────────────────────────────────────────────
 export async function getSummary(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter } = buildQuery(req.query);
 
-    // 1. Get task status counts in one aggregation
     const statusCounts = await Task.aggregate([
       { $match: filter },
       { $group: { _id: '$workStatus', count: { $sum: 1 } } }
@@ -22,7 +20,7 @@ export async function getSummary(req: Request, res: Response, next: NextFunction
       total += s.count;
     });
 
-    // 2. Follow-up metrics (only for non-completed tasks)
+    // Follow-up metrics for active tasks
     let overdueFollowUps = 0;
     let escalatedTasks = 0;
 

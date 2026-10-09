@@ -64,7 +64,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
   const { createTask } = useTasks();
 
-  // ── 1. Restore draft from localStorage on mount ────────────────────────────
+  // Restore draft from local storage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -89,7 +89,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
   }, []);
 
-  // ── 2. Persist draft to localStorage on any state change ──────────────────
+  // Persist draft changes to local storage
   useEffect(() => {
     if (!isHydrated) return;
     try {
@@ -108,7 +108,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
   }, [step, rawText, drafts, isHydrated]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   async function handleGenerate() {
     if (!rawText.trim()) {
       setErrors({ rawText: 'Describe your task first.' });
@@ -165,7 +164,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           userId: null,
         });
       }
-      // Successfully saved: clean up draft storage
+      // Clear saved draft once created
       localStorage.removeItem(STORAGE_KEY);
       onSaved();
     } catch (err) {
@@ -223,7 +222,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     setRegenInstruction('');
   }
 
-  // ── Single Task Regeneration ──────────────────────────────────────────────
   async function handleConfirmRegen(index: number) {
     const task = drafts[index];
     if (!task) return;
@@ -244,7 +242,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
   }
 
-  // ── Discard Confirmation Modal Overlay ───────────────────────────────────
+  // Discard confirmation dialog
   const renderDiscardModal = () => (
     <div
       className="app-dialog-overlay"
@@ -308,7 +306,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     </div>
   );
 
-  // ── Generate Confirmation Modal Overlay ──────────────────────────────────
+  // Generation confirmation dialog
   const renderGenerateConfirmModal = () => (
     <div
       className="app-dialog-overlay"
@@ -371,14 +369,12 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     </div>
   );
 
-  // ── Step 1: Raw text input ───────────────────────────────────────────────
   if (step === 'input') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
         {showDiscardConfirm && renderDiscardModal()}
         {showConfirmGenerate && renderGenerateConfirmModal()}
 
-        {/* Friendly AI Limit / Quota Recovery Modal */}
         {rateLimitInfo && (
           <AiQuotaModal
             rateLimitInfo={rateLimitInfo}
@@ -458,7 +454,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           </div>
         </div>
 
-        {/* Pinned Bottom Actions Bar (Fully Responsive) */}
         <div 
           className="ai-modal-bottom-bar"
           style={{ 
@@ -507,12 +502,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     );
   }
 
-  // ── Step 2: Editable preview ─────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {showDiscardConfirm && renderDiscardModal()}
 
-      {/* Friendly AI Limit / Quota Recovery Modal */}
       {rateLimitInfo && (
         <AiQuotaModal
           rateLimitInfo={rateLimitInfo}
@@ -531,10 +524,8 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
         />
       )}
 
-      {/* Scrollable Form Body (The ONLY scrollable element) */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Top Banner */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '16px', marginBottom: 20,
@@ -606,7 +597,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
         </div>
       )}
 
-      {/* Task List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
         {drafts.map((draft, i) => {
           const draftErrors: Record<string, string> = {};
@@ -624,12 +614,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               style={{ 
                 padding: 20, 
                 position: 'relative',
-                borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
+                borderTop: '1px solid var(--accent)',
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustRegenerated ? '2px solid var(--completed)' : undefined,
                 transition: 'border 0.2s ease'
               }}
             >
-              {/* Card Header matching Image 2 */}
               <div 
                 style={{ 
                   display: 'flex', 
@@ -673,7 +662,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {/* Single-Task Regenerate Button matching Image 2 */}
                   <button
                     type="button"
                     onClick={() => {
@@ -706,7 +694,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                     <span>{isThisRegenerating ? 'Regenerating…' : 'Regenerate'}</span>
                   </button>
 
-                  {/* Remove Task Button (ONLY shown when drafts.length > 1) */}
                   {drafts.length > 1 && (
                     <button 
                       type="button"
@@ -735,7 +722,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                 </div>
               </div>
 
-              {/* Inline Single-Task Refinement Box */}
               {isRegenBoxOpen && (
                 <div style={{
                   padding: 14, marginBottom: 18,
@@ -793,7 +779,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                 </div>
               )}
 
-              {/* Form Fields for this Draft */}
               <div style={{ opacity: isThisRegenerating ? 0.4 : 1, pointerEvents: isThisRegenerating ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
                 <TaskFormFields
                   data={{ ...draft, priority: draft.priority as Priority | '', workStatus: draft.workStatus as WorkStatus | '' }}
@@ -805,7 +790,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           );
         })}
 
-        {/* Add Another Task Button matching Image 1 */}
         <button
           type="button"
           onClick={handleAddNewTaskManually}
@@ -849,7 +833,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
       </div>
 
-      {/* Pinned Bottom Actions Bar */}
       <div style={{
         display: 'flex', gap: 10,
         padding: '14px 24px',

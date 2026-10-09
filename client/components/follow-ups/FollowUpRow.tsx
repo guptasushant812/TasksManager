@@ -54,7 +54,6 @@ export default function FollowUpRow({
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
-      {/* 1. Selection / Index */}
       <td style={{ width: '1%', whiteSpace: 'nowrap', textAlign: 'center', padding: '12px 14px' }}>
         {selectMode ? (
           <input
@@ -71,7 +70,6 @@ export default function FollowUpRow({
         )}
       </td>
 
-      {/* 2. Task & Context */}
       <td style={{ minWidth: 200, maxWidth: 280, padding: '12px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
           <span
@@ -135,7 +133,6 @@ export default function FollowUpRow({
         )}
       </td>
 
-      {/* 3. Follow-Up Count & Status */}
       <td style={{ width: '1%', whiteSpace: 'nowrap', padding: '12px 14px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
           <span
@@ -178,7 +175,6 @@ export default function FollowUpRow({
         </div>
       </td>
 
-      {/* 4. Latest Communication */}
       <td style={{ minWidth: 200, maxWidth: 300, padding: '12px 14px' }}>
         {count > 0 && (summary?.lastCommunicated || summary?.lastDate) ? (
           <div>
@@ -238,7 +234,6 @@ export default function FollowUpRow({
         )}
       </td>
 
-      {/* 5. Next Action & Follow-Up Date */}
       <td style={{ minWidth: 160, maxWidth: 240, padding: '12px 14px' }}>
         {nextAction || nextDate ? (
           <div>
@@ -311,7 +306,6 @@ export default function FollowUpRow({
         )}
       </td>
 
-      {/* 6. Dedicated Actions */}
       <td style={{ width: '1%', whiteSpace: 'nowrap', textAlign: 'right', padding: '12px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
           <button

@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import FollowUp, { getNextFollowUpNumber } from '../models/FollowUp';
 import Task from '../models/Task';
 
-// ── GET /api/tasks/:taskId/follow-ups ─────────────────────────────────────────
 export async function listFollowUps(req: Request, res: Response, next: NextFunction) {
   try {
     const { taskId } = req.params;
@@ -41,7 +40,6 @@ export async function listFollowUps(req: Request, res: Response, next: NextFunct
   }
 }
 
-// ── POST /api/tasks/:taskId/follow-ups ────────────────────────────────────────
 export async function createFollowUp(req: Request, res: Response, next: NextFunction) {
   try {
     const { taskId } = req.params;
@@ -111,7 +109,6 @@ export async function createFollowUp(req: Request, res: Response, next: NextFunc
   }
 }
 
-// ── GET /api/tasks/:taskId/follow-ups/:id ─────────────────────────────────────
 export async function getFollowUp(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -132,7 +129,6 @@ export async function getFollowUp(req: Request, res: Response, next: NextFunctio
   }
 }
 
-// ── PUT /api/tasks/:taskId/follow-ups/:id ─────────────────────────────────────
 export async function updateFollowUp(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -179,7 +175,6 @@ export async function updateFollowUp(req: Request, res: Response, next: NextFunc
   }
 }
 
-// ── DELETE /api/tasks/:taskId/follow-ups/:id (soft delete) ────────────────────
 export async function deleteFollowUp(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -214,7 +209,6 @@ export async function deleteFollowUp(req: Request, res: Response, next: NextFunc
   }
 }
 
-// ── POST /api/tasks/:taskId/follow-ups/:id/attachments ────────────────────────
 export async function uploadAttachments(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -246,7 +240,6 @@ export async function uploadAttachments(req: Request, res: Response, next: NextF
   }
 }
 
-// ── DELETE /api/tasks/:taskId/follow-ups/:id/attachments/:attachmentId ────────
 export async function deleteAttachment(req: Request, res: Response, next: NextFunction) {
   try {
     const { id, attachmentId } = req.params;

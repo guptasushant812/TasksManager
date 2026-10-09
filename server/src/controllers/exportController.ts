@@ -20,7 +20,7 @@ function createZipArchive(options: any = { zlib: { level: 9 } }) {
   throw new Error('Unsupported archiver format');
 }
 
-// ── Color Palettes for Professional Business Reports ────────────────────────
+// Priority and status color definitions
 const PRIORITY_COLORS_HEX: Record<string, string> = {
   High: '#DC2626',   // Crimson Red
   Medium: '#D97706', // Warm Amber
@@ -45,7 +45,7 @@ const STATUS_COLORS_ARGB: Record<string, string> = {
   Completed: 'FF16A34A',
 };
 
-// ── Date Formatting Helpers ──────────────────────────────────────────────────
+// Date formatting helpers
 const TIMEZONE = process.env.TIMEZONE || 'Asia/Kolkata';
 
 function formatDateStr(dateVal: Date | string | null | undefined): string {
@@ -88,7 +88,7 @@ function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
   return `${day}-${month}-${year}, ${hour}:${minute} ${dayPeriod}`;
 }
 
-// ── Multi-Status Reason / Remarks Formatter for Comparison ───────────────────
+// Formats reasons and remarks across statuses
 function formatTaskReasonAndRemarks(task: any): string {
   const pending = (task.pendingReason || (task.workStatus === 'Pending' ? task.reason : '') || '').trim();
   const inProgress = (task.inProgressReason || (task.workStatus === 'InProgress' ? task.reason : '') || '').trim();
@@ -227,7 +227,7 @@ function getReportFileName(title: string, extension: 'pdf' | 'xlsx' | 'zip'): st
   return `${cleanTitle || 'Tasks_Export'}.${extension}`;
 }
 
-// ── Universal Standard PDF Report Generator (Landscape A4) ──────────────────
+// Generates landscape A4 PDF report
 function generatePdfBuffer(
   tasks: any[],
   allFollowUps: any[] = [],
@@ -581,7 +581,7 @@ function generatePdfBuffer(
   });
 }
 
-// ── Universal Standard Excel Report Generator (Multi-Sheet) ──────────────────
+// Generates multi-sheet Excel report
 async function generateExcelBuffer(
   tasks: any[],
   allFollowUps: any[] = [],
@@ -869,7 +869,6 @@ async function generateExcelBuffer(
   return Buffer.from(buffer as ArrayBuffer);
 }
 
-// ── GET /api/export/pdf ───────────────────────────────────────────────────────
 export async function exportPdf(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort } = buildQuery(req.query);
@@ -935,7 +934,6 @@ export async function exportPdf(req: Request, res: Response, next: NextFunction)
   }
 }
 
-// ── GET /api/export/excel ─────────────────────────────────────────────────────
 export async function exportExcel(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort } = buildQuery(req.query);
@@ -1047,7 +1045,6 @@ function sanitizeZipEntryName(name: string): string {
     .trim();
 }
 
-// ── GET /api/export/zip ───────────────────────────────────────────────────────
 export async function exportZip(req: Request, res: Response, next: NextFunction) {
   try {
     const { filter, sort } = buildQuery(req.query);
@@ -1122,7 +1119,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
     archive.append(rootPdfBuffer, { name: pdfInsideZip });
 
     if (isPanelExport) {
-      // ── RESTORED OLD HISTORY EXPORT LOGIC: Direct Attachments Folder for Task History ──
+      // Attachments folder structure for task history export
       for (let tIdx = 0; tIdx < tasks.length; tIdx++) {
         const task = tasks[tIdx];
         const taskFUs = allFollowUps.filter(fu => fu.taskId.toString() === task._id.toString());
@@ -1173,7 +1170,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
         }
       }
     } else {
-      // ── MAIN WORKSPACE EXPORT: ORGANIZED CALENDAR HIERARCHY (Month -> Week -> Date -> Follow-ups) ──
+      // Calendar export structure: Month -> Week -> Date -> Follow-ups
       // Month [Folder] -> Week [Folder] -> Date [Folder]
       //   |- Date Folder contains:
       //      - Consolidated PDF (all follow-ups)
@@ -1212,7 +1209,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
         ? `${monthFolderName}/${weekFolderName}/${dateFolderName}/Task_${task.taskId}`
         : `${monthFolderName}/${weekFolderName}/${dateFolderName}`;
 
-      // ── Date-Level Consolidated PDF & Excel (Contains ALL follow-ups for this task/date) ──
+      // Date-level consolidated PDF and Excel (contains all follow-ups for this task/date)
       try {
         const taskFuIds = taskFUs.map(f => f._id);
         const taskLegacyAtts = allLegacyAttachments.filter((la: any) =>
@@ -1236,7 +1233,7 @@ export async function exportZip(req: Request, res: Response, next: NextFunction)
         console.error(`Failed to generate date-level consolidated files for task ${task.taskId}:`, err);
       }
 
-      // ── Individual Follow-Up Folders ──
+      // Individual follow-up folders
       for (const fu of taskFUs) {
         const fuFolderName = `${taskPrefix}/Follow-up ${fu.followUpNumber}`;
         const fuLegacyAtts = allLegacyAttachments.filter((la: any) => la.followUpId.toString() === fu._id.toString());

@@ -203,14 +203,8 @@ export default function HelpPage() {
   }, []);
 
   const toggleItem = (id: string) => {
-    setOpenItems(prev => {
-      // If the clicked accordion is already open, close it
-      if (prev[id]) {
-        return {};
-      }
-      // If opening a new accordion, automatically close any previously open accordion
-      return { [id]: true };
-    });
+    // Single-open accordion behavior
+    setOpenItems(prev => (prev[id] ? {} : { [id]: true }));
   };
 
   const areAllOpen = useMemo(() => {
@@ -247,8 +241,6 @@ export default function HelpPage() {
 
       <main className="page-content" style={{ maxWidth: 940 }}>
         <div className="faq-hub-wrap">
-
-          {/* ── 1. Hero & Instant Search ── */}
           <header className="faq-hero">
             <span className="faq-hero-badge">
               <HelpCircle size={13} />
@@ -259,7 +251,6 @@ export default function HelpPage() {
               Quick answers about task workflows, AI features, follow-ups, and security.
             </p>
 
-            {/* Search Input Bar */}
             <div className="faq-search-wrapper">
               <Search size={16} className="faq-search-icon" />
               <input
@@ -289,7 +280,6 @@ export default function HelpPage() {
             </div>
           </header>
 
-          {/* ── 2. Category Hub Grid ── */}
           <section className="faq-grid-section" aria-label="Browse by Category">
             <div className="faq-grid-header">
               <h2 className="faq-grid-title">Browse by Category</h2>
@@ -330,7 +320,6 @@ export default function HelpPage() {
             </div>
           </section>
 
-          {/* ── 3. Accordion List Section ── */}
           <section className="faq-list-section" ref={listRef} aria-label="Questions and Answers">
             <div className="faq-section-header">
               <div className="faq-section-title-wrap">
@@ -357,7 +346,6 @@ export default function HelpPage() {
               )}
             </div>
 
-            {/* Accordion Questions */}
             {filteredFaqs.length > 0 ? (
               <div className="faq-accordion-list" role="region">
                 {filteredFaqs.map(faq => {
@@ -417,7 +405,6 @@ export default function HelpPage() {
             )}
           </section>
 
-          {/* ── 4. Contact & Support Section ── */}
           <footer className="faq-contact-card">
             <div className="faq-contact-text">
               <h3 className="faq-contact-title">Still have questions?</h3>

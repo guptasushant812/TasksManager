@@ -59,7 +59,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
           )}
         </div>
 
-        {/* Deleted banner */}
         {isDeleted && (
           <div className="fu-deleted-banner">
             <span>Deleted</span>
@@ -70,7 +69,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
         )}
 
         <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Contact */}
           {followUp.contactPerson && (
             <div className="fu-field">
               <span className="fu-field-label">To</span>
@@ -78,13 +76,11 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
             </div>
           )}
 
-          {/* Communicated */}
           <div className="fu-field">
             <span className="fu-field-label">Communicated</span>
             <p className="fu-field-value" style={{ color: 'var(--text-primary)' }}>{followUp.communicated}</p>
           </div>
 
-          {/* Response */}
           {followUp.responseReceived && (
             <div className="fu-field">
               <span className="fu-field-label">Response</span>
@@ -92,7 +88,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
             </div>
           )}
 
-          {/* Additional details hidden by default but shown cleanly */}
           {followUp.notes && (
             <div className="fu-field">
               <span className="fu-field-label">Notes</span>
@@ -100,7 +95,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
             </div>
           )}
 
-          {/* Attachments */}
           {followUp.attachments && followUp.attachments.length > 0 && (
             <div className="fu-field">
               <span className="fu-field-label">Attachments</span>
@@ -150,7 +144,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
             </div>
           )}
 
-          {/* Next Action */}
           {followUp.nextAction && (
             <div className="fu-field">
               <span className="fu-field-label">Next Action</span>
@@ -158,7 +151,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
             </div>
           )}
 
-          {/* Next Follow-Up Date */}
           {followUp.nextFollowUpDate && (
             <div className="fu-next-date">
               Next follow-up: <strong style={{ color: 'var(--text-secondary)' }}>{formatDate(followUp.nextFollowUpDate)}</strong>

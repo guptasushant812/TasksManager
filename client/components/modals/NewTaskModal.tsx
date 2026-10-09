@@ -78,7 +78,6 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
         }}
       >
 
-        {/* Header */}
         <div className="new-task-modal-header">
           <div>
             <h2 className="new-task-modal-title">
@@ -111,7 +110,6 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
           </button>
         </div>
 
-        {/* Content Area */}
         <div 
           style={{ 
             flex: 1, 
@@ -125,11 +123,9 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
           }}
         >
 
-          {/* Mode selection */}
           {mode === null && (
             <div className="new-task-selection-wrapper animate-fade-in">
               <div className="new-task-selection-grid">
-                {/* Manual */}
                 <button
                   type="button"
                   onClick={() => setMode('manual')}
@@ -149,7 +145,6 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   </div>
                 </button>
 
-                {/* AI */}
                 <button
                   type="button"
                   onClick={() => setMode('ai')}
@@ -179,7 +174,6 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             </div>
           )}
 
-          {/* Forms */}
           {mode === 'manual' && (
             <div className="animate-fade-in" style={{ height: '100%', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
               <ManualTaskForm defaultFilters={defaultFilters} onSaved={onSaved} onCancel={() => setMode(null)} />

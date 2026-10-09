@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// ── Types ────────────────────────────────────────────────────────────────────
 export type Priority = 'High' | 'Medium' | 'Low';
 export type WorkStatus = 'InProgress' | 'Pending' | 'Completed';
 
@@ -27,7 +26,7 @@ export interface ITask extends Document {
   updatedAt: Date;
 }
 
-// ── Counter helper (auto-increment taskId) ───────────────────────────────────
+// Auto-increment taskId counter
 const CounterSchema = new Schema({
   _id: { type: String, required: true },
   seq: { type: Number, default: 0 },
@@ -50,7 +49,6 @@ export async function getNextTaskId(): Promise<string> {
   }
 }
 
-// ── Schema ───────────────────────────────────────────────────────────────────
 const TaskSchema = new Schema<ITask>(
   {
     userId: { type: String, default: null },
@@ -87,14 +85,12 @@ const TaskSchema = new Schema<ITask>(
   }
 );
 
-// ── Indexes ──────────────────────────────────────────────────────────────────
 TaskSchema.index({ date: -1, workStatus: 1 });
 TaskSchema.index({ workStatus: 1 });
 TaskSchema.index({ priority: 1 });
 TaskSchema.index({ userId: 1 });
 TaskSchema.index({ title: 'text', description: 'text', givenBy: 'text' });
 
-// ── Model ────────────────────────────────────────────────────────────────────
 const Task: Model<ITask> =
   mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
 

@@ -65,7 +65,7 @@ export async function sendEscalationEmail(task: any, followUpCount: number, sett
 
   const subject = `Action Required: Task Escalation - ${task.title}`;
   
-  // Format the follow-ups timeline: strictly newest-first (latest follow-up at top)
+  // Sort follow-ups newest first
   const sortedFollowUps = [...followUps].sort((a, b) => {
     const timeA = new Date(a.followUpDate || a.createdAt || 0).getTime();
     const timeB = new Date(b.followUpDate || b.createdAt || 0).getTime();

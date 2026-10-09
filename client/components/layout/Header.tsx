@@ -52,7 +52,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   const overdueCount = summary?.overdueFollowUps || 0;
   const escalatedCount = summary?.escalatedTasks || 0;
 
-  // Sync Notification Preferences from Settings module in real-time
+  // Sync notification preferences from settings
   useEffect(() => {
     const loadPreferences = () => {
       try {
@@ -78,14 +78,14 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     };
   }, []);
 
-  // Settings-aware display: respect switches from Settings -> Notifications tab
+  // Only show alerts enabled in settings
   const showOverdue = notifPreferences.overdueAlerts && overdueCount > 0;
   const showEscalated = notifPreferences.escalationAlerts && escalatedCount > 0;
   const activeAlertsCount = (showOverdue ? overdueCount : 0) + (showEscalated ? escalatedCount : 0);
   const isAnyAlertMuted = !notifPreferences.overdueAlerts || !notifPreferences.escalationAlerts;
   const activeTasksCount = (summary?.inProgress || 0) + (summary?.pending || 0);
 
-  // Play subtle audio cue if enabled in Settings
+  // Play audio cue if enabled in settings
   const playChime = useCallback((type: 'alert' | 'clear') => {
     if (!notifPreferences.soundAlerts || typeof window === 'undefined') return;
     try {
@@ -125,7 +125,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     }
   };
 
-  // Close dropdowns on outside click, touch, or Escape key
+  // Close dropdowns on outside click or Escape
   useEffect(() => {
     function handleClick(e: MouseEvent | TouchEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -156,9 +156,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
   return (
     <>
       <header className="app-header">
-        {/* Actions */}
         <div className="header-actions">
-          {/* Workspace Action Group */}
           <div className="header-actions-group">
             <button
               type="button"
@@ -185,12 +183,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             </button>
           </div>
 
-          {/* Visual Divider between workspace actions and personal utilities */}
           <div className="header-divider" role="separator" aria-orientation="vertical" />
 
-          {/* Personal Utility Group */}
           <div className="header-utility-group">
-            {/* Notification bell & popover */}
             <div ref={notifRef} className="header-notif-wrapper">
               <button
                 type="button"
@@ -245,7 +240,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   </div>
 
                   <div className="header-notif-list">
-                    {/* 1. Overdue Follow-ups Alert (configured via Settings -> Overdue Warnings) */}
                     {showOverdue && (
                       <Link
                         href="/follow-ups"
@@ -265,7 +259,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </Link>
                     )}
 
-                    {/* 2. Escalated Tasks Alert (configured via Settings -> Escalation Banner) */}
                     {showEscalated && (
                       <Link
                         href="/tasks"
@@ -285,7 +278,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </Link>
                     )}
 
-                    {/* 3. Daily Morning Digest (configured via Settings -> Daily Morning Digest) */}
                     {notifPreferences.dailyDigest && (
                       <div className="header-notif-digest">
                         <div className="header-notif-digest-header">
@@ -327,7 +319,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </div>
                     )}
 
-                    {/* 4. When no alerts and digest is disabled, show pristine all-clear card */}
                     {activeAlertsCount === 0 && !notifPreferences.dailyDigest && (
                       <div className="header-notif-empty">
                         <CheckCircle2 className="header-notif-empty-icon" />
@@ -340,7 +331,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </div>
                     )}
 
-                    {/* 5. Muted notice if user silenced alerts in Settings */}
                     {isAnyAlertMuted && (
                       <div className="header-notif-muted-notice">
                         <Info size={12} className="header-notif-muted-icon" />
@@ -355,7 +345,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                       </div>
                     )}
 
-                    {/* 6. Footer with Direct Link to Settings Module */}
                     <div className="header-notif-footer">
                       <Link
                         href="/settings?tab=notifications"
@@ -375,7 +364,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               )}
             </div>
 
-            {/* Profile avatar */}
             <div ref={profileRef} style={{ position: 'relative' }}>
             <button
               type="button"
@@ -404,7 +392,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   padding: '12px',
                 }}
               >
-                {/* User info */}
                 <div style={{ padding: '12px 12px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: 4 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Sushant Gupta</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Workspace Admin</div>
@@ -451,7 +438,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
       </div>
     </header>
 
-      {/* Share Modal */}
       {showShareModal && (
         <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
           <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
@@ -470,7 +456,6 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
         </div>
       )}
 
-      {/* New Task Modal */}
       {showModal && (
         <NewTaskModal
           defaultFilters={filters}

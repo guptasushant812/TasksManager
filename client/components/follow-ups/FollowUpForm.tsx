@@ -46,8 +46,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  // Ensure state is perfectly synced if editingFollowUp changes while form is open
-  // (or during local dev Fast Refresh)
+  // Resync state when editing target changes
   useEffect(() => {
     setExistingAttachments(editingFollowUp?.attachments || []);
     setRemovedAttachmentIds([]);
@@ -101,7 +100,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }} style={{ zIndex: 100 }}>
       <div className="modal-box animate-slide-up" style={{ padding: 0, width: '100%', maxWidth: 520 }}>
         
-        {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
             {isEditing ? `Edit Follow-Up #${editingFollowUp.followUpNumber}` : 'New Follow-Up'}
@@ -111,10 +109,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           </button>
         </div>
 
-        {/* Scrollable Body */}
         <div style={{ padding: '20px 24px', maxHeight: 'calc(95vh - 130px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {/* Row 1: Date/Time + Method */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label className="label" htmlFor="fu-date">Date & Time</label>
@@ -144,7 +139,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             </div>
           </div>
 
-          {/* Method Other */}
           {data.method === 'Other' && (
             <div className="animate-fade-in">
               <label className="label" htmlFor="fu-method-other">Specify Method</label>
@@ -159,7 +153,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             </div>
           )}
 
-          {/* Contact Person */}
           <div>
             <label className="label" htmlFor="fu-contact">Person Contacted</label>
             <input
@@ -172,7 +165,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             />
           </div>
 
-          {/* Communicated */}
           <div>
             <label className="label" htmlFor="fu-communicated">What I Communicated <span style={{ color: 'var(--high)' }}>*</span></label>
             <AutoResizeTextarea
@@ -188,7 +180,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             {errors.communicated && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.communicated}</span>}
           </div>
 
-          {/* Response Received */}
           <div>
             <label className="label" htmlFor="fu-response">Response Received</label>
             <AutoResizeTextarea
@@ -202,11 +193,9 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             />
           </div>
 
-          {/* File Attachments */}
           <div>
             <label className="label">Attachments (Max 5)</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                {/* Existing Attachments */}
                 {existingAttachments.map((att: any, i) => {
                   const filename = att?.filename || att?.originalName || 'File';
                   const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
@@ -249,7 +238,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                   );
                 })}
 
-                {/* New Files */}
                 {files.map((file, i) => {
                   const isImage = file.type.startsWith('image/');
                   const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(file.name);
@@ -292,7 +280,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                   );
                 })}
 
-                {/* Add File Button */}
                 {(existingAttachments.length + files.length) < 5 && (
                   <label style={{
                     display: 'flex', alignItems: 'center', gap: 6,
@@ -319,7 +306,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             {errors.files && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.files}</span>}
           </div>
 
-          {/* Show more toggle */}
           <button
             type="button"
             onClick={() => setShowMore(!showMore)}
@@ -335,7 +321,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
 
           {showMore && (
             <div className="animate-slide-down" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Notes */}
               <div>
                 <label className="label" htmlFor="fu-notes">Notes</label>
                 <textarea
@@ -348,7 +333,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 />
               </div>
 
-              {/* Next Action + Next Follow-Up Date */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label className="label" htmlFor="fu-next-action">Next Action</label>
@@ -376,7 +360,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             </div>
           )}
 
-          {/* Error */}
           {errors.submit && (
             <div style={{ padding: '10px 14px', background: 'var(--high-bg)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--high)' }}>
               {errors.submit}
@@ -385,7 +368,6 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
 
         </div>
 
-        {/* Footer Actions */}
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn btn-ghost" onClick={onCancel} disabled={saving}>
             Cancel

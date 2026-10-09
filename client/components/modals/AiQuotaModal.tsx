@@ -80,7 +80,6 @@ export default function AiQuotaModal({
           maxHeight: '90dvh',
         }}
       >
-        {/* Header */}
         <div
           style={{
             padding: '18px 22px',
@@ -135,7 +134,6 @@ export default function AiQuotaModal({
           </button>
         </div>
 
-        {/* Scrollable Body */}
         <div
           style={{
             padding: '20px 22px',
@@ -145,7 +143,6 @@ export default function AiQuotaModal({
             gap: 18,
           }}
         >
-          {/* Friendly Status Alert (Warm Amber, not harsh red) */}
           <div
             style={{
               padding: '14px 16px',
@@ -173,7 +170,6 @@ export default function AiQuotaModal({
 
 
 
-          {/* Option 2: Add Own Free API Key */}
           <div
             style={{
               border: '1px solid var(--border-subtle, #1e1e28)',
@@ -273,7 +269,6 @@ export default function AiQuotaModal({
             )}
           </div>
 
-          {/* Option 3: Continue Manually */}
           {onSwitchToManual && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 8, border: '1px dashed var(--border)' }}>
               <div>
@@ -304,7 +299,6 @@ export default function AiQuotaModal({
           )}
         </div>
 
-        {/* Footer */}
         <div
           style={{
             padding: '14px 22px',

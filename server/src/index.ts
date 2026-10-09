@@ -17,7 +17,6 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ── Middleware & Security Headers ──────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -60,8 +59,7 @@ app.use((_req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ── Routes ──────────────────────────────────────────────────────────────────
-// IMPORTANT: ai-draft must be mounted BEFORE the tasks router
+// ai-draft must be mounted before tasks router to avoid route conflicts
 app.use('/api/ai-draft', aiDraftRoutes);
 app.use('/api/tasks/:taskId/follow-ups/:followUpId/attachments', attachmentRoutes);
 app.use('/api/tasks/:taskId/follow-ups', followUpRoutes);
@@ -78,7 +76,6 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ── Error Handler ───────────────────────────────────────────────────────────
 app.use(errorHandler);
 
 app.listen(PORT, () => {

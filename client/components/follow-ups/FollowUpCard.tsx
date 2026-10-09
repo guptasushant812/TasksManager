@@ -58,7 +58,6 @@ export default function FollowUpCard({
         position: 'relative',
       }}
     >
-      {/* Top Metadata Row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {selectMode && (
@@ -125,7 +124,6 @@ export default function FollowUpCard({
         </div>
       </div>
 
-      {/* Task Title & Contact Person */}
       <div>
         <button
           type="button"
@@ -155,7 +153,6 @@ export default function FollowUpCard({
         )}
       </div>
 
-      {/* Latest Communication Block */}
       {count > 0 && (summary?.lastCommunicated || summary?.lastDate) ? (
         <div
           style={{
@@ -204,7 +201,6 @@ export default function FollowUpCard({
         </div>
       )}
 
-      {/* Next Action & Date */}
       {(nextAction || nextDate) && (
         <div
           style={{
@@ -254,7 +250,6 @@ export default function FollowUpCard({
         </div>
       )}
 
-      {/* Action Buttons (Touch friendly >= 44px) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
         <button
           type="button"
