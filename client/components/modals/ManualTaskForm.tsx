@@ -274,7 +274,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
       )}
 
       {/* ── Scrollable Form Body (The ONLY scrollable element) ───────────────── */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="manual-task-form-body" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {/* Global AI Error Banner */}
         {aiError && (
           <div
@@ -308,9 +308,8 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           return (
             <div
               key={draft.id}
-              className="card animate-fade-in"
+              className="card manual-task-card animate-fade-in"
               style={{
-                padding: '16px 18px',
                 position: 'relative',
                 borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustImproved ? '2px solid var(--completed)' : undefined,
@@ -318,25 +317,18 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
               }}
             >
               {/* Card Header matching Image 2 */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                  borderBottom: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="manual-task-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   <h3
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 13.5,
+                      fontSize: 13,
                       fontWeight: 900,
-                      letterSpacing: '0.06em',
+                      letterSpacing: '0.04em',
                       textTransform: 'uppercase',
                       color: 'var(--text-primary)',
                       margin: 0,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     TASK {i + 1}
@@ -362,7 +354,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                   )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="manual-task-card-actions">
                   {/* Single-Task Regenerate / Improve with AI Button */}
                   <button
                     type="button"
@@ -606,19 +598,8 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
       </div>
 
       {/* ── Fixed Bottom Actions Bar ────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 10,
-          padding: '14px 24px',
-          borderTop: '1px solid var(--border-subtle)',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: 'var(--bg-elevated)',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="manual-task-footer">
+        <div className="manual-task-footer-secondary">
           <button
             type="button"
             className="btn btn-ghost"
@@ -627,9 +608,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           >
             Cancel
           </button>
-        </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
           {(drafts.length > 1 || hasDirtyContent) && (
             <button
               type="button"
@@ -641,7 +620,9 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
               Discard All
             </button>
           )}
+        </div>
 
+        <div className="manual-task-footer-primary">
           <button
             type="button"
             className="btn btn-primary"
