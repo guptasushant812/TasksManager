@@ -75,7 +75,7 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
 
       <div className="fu-timeline">
         {(() => {
-          // Strictly sort newest-first: highest followUpNumber first (#2, then #1)
+          // Newest follow-up first
           const sorted = [...visibleFollowUps].sort((a, b) => {
             if ((b.followUpNumber || 0) !== (a.followUpNumber || 0)) {
               return (b.followUpNumber || 0) - (a.followUpNumber || 0);

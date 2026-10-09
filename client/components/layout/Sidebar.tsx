@@ -24,7 +24,7 @@ export default function Sidebar() {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when mobile drawer is open (MediaQueryPrompt.md Sec. 8 Overflow)
+  // Prevent background scroll when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -41,7 +41,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle button (only on screens < 1024px when drawer is closed) */}
       {!mobileOpen && (
         <button
           type="button"
@@ -54,7 +53,6 @@ export default function Sidebar() {
         </button>
       )}
 
-      {/* Mobile backdrop overlay */}
       {mobileOpen && (
         <div
           className="sidebar-mobile-overlay lg:hidden"
@@ -63,13 +61,11 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar Drawer */}
       <aside
         className={`app-sidebar fixed inset-y-0 left-0 z-[70] transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Brand — Taste Skill Tactile Brand Header */}
         <div className="app-sidebar-brand">
           <Link
             href="/"
@@ -114,7 +110,6 @@ export default function Sidebar() {
             </div>
           </Link>
 
-          {/* Close button inside mobile drawer header */}
           <button
             type="button"
             className="sidebar-drawer-close lg:hidden"
@@ -125,7 +120,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Navigation Section */}
         <div className="app-sidebar-nav">
           <div className="app-sidebar-eyebrow">
             Navigation
@@ -145,7 +139,6 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom nav: Settings & Help */}
         <div className="app-sidebar-bottom">
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {BOTTOM_ITEMS.map((item) => {

@@ -23,7 +23,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
   const [enabled, setEnabled] = useState(false);
   const [threshold, setThreshold] = useState<number | ''>(3);
 
-  // Structured recipient lists
   const [toRecipients, setToRecipients] = useState<RecipientItem[]>([]);
   const [ccRecipients, setCcRecipients] = useState<RecipientItem[]>([]);
   const [bccRecipients, setBccRecipients] = useState<RecipientItem[]>([]);
@@ -32,13 +31,11 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Initialize from settings
   useEffect(() => {
     if (settings) {
       setEnabled(settings.enabled ?? false);
       setThreshold(settings.threshold ?? 3);
 
-      // Initialize TO recipients
       if (Array.isArray(settings.toRecipients) && settings.toRecipients.length > 0) {
         setToRecipients(settings.toRecipients);
       } else {
@@ -49,7 +46,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
         setToRecipients(legacyTo);
       }
 
-      // Initialize CC recipients
       if (Array.isArray(settings.ccRecipients) && settings.ccRecipients.length > 0) {
         setCcRecipients(settings.ccRecipients);
       } else if (settings.ccEmail) {
@@ -63,7 +59,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
         setCcRecipients([]);
       }
 
-      // Initialize BCC recipients
       if (Array.isArray(settings.bccRecipients) && settings.bccRecipients.length > 0) {
         setBccRecipients(settings.bccRecipients);
       } else {
@@ -72,7 +67,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
     }
   }, [settings]);
 
-  // Save full configuration
   const handleSave = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e && 'preventDefault' in e) e.preventDefault();
     setValidationError('');
@@ -83,7 +77,7 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
         return;
       }
 
-      // Requirement: User needs to fill manager/dyhod/hod from these 3 at least 1 filled in TO
+      // Require at least one leadership role in TO when enabled
       if (toRecipients.length === 0) {
         setValidationError(
           'At least one primary recipient (Manager, HOD, or Dy.HOD) is required in TO when escalation is enabled.'
@@ -144,7 +138,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
           overflow: 'hidden',
         }}
       >
-        {/* Header */}
         <div
           style={{
             padding: '18px 22px',
@@ -190,7 +183,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div
           style={{
             padding: '20px 22px',
@@ -239,7 +231,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             </div>
           )}
 
-          {/* Master Toggle */}
           <div
             style={{
               display: 'flex',
@@ -271,7 +262,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             />
           </div>
 
-          {/* Threshold Setting */}
           <div style={{ opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? 'auto' : 'none' }}>
             <label className="label" htmlFor="modal-threshold-input" style={{ fontWeight: 600 }}>
               Escalation Threshold (Number of Follow-Ups)
@@ -294,7 +284,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             </div>
           </div>
 
-          {/* Recipient Sections via EscalationRecipientsManager */}
           <div
             style={{
               opacity: enabled ? 1 : 0.5,
@@ -312,7 +301,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             />
           </div>
 
-          {/* Footer Info & Full Settings link */}
           <div
             style={{
               padding: '12px 14px',
@@ -344,7 +332,6 @@ export default function EscalationConfigModal({ onClose, onSaved }: EscalationCo
             </Link>
           </div>
 
-          {/* Action Buttons */}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
               Cancel

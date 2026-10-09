@@ -236,7 +236,6 @@ export default function DashboardScopeBar({
   return (
     <div className="dashboard-scope-container">
       <div className="dashboard-scope-bar">
-        {/* ── Left Side: TIME SCOPE controls ── */}
         <div className="scope-bar-left">
           <div className="scope-bar-label">
             <Calendar className="scope-bar-icon" />
@@ -245,7 +244,6 @@ export default function DashboardScopeBar({
             </span>
           </div>
 
-          {/* Toggle buttons: This Month / All Time */}
           <div className="scope-toggle-group" role="group" aria-label="Time scope preset">
             <button
               type="button"
@@ -264,7 +262,6 @@ export default function DashboardScopeBar({
             </button>
           </div>
 
-          {/* Grouped Month & Year Custom Dropdowns (clean themed popovers, eliminates white OS box) */}
           <div className="scope-selects-group">
             <ScopeDropdown
               value={filters.month || ''}
@@ -286,7 +283,6 @@ export default function DashboardScopeBar({
           </div>
         </div>
 
-        {/* ── Right Side: Reset & Sync ── */}
         <div className="scope-bar-right">
           <button
             type="button"

@@ -22,7 +22,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
   };
 
   const handleMonthSelect = (monthStr: string) => {
-    // If clicking the currently selected month, do nothing, just keep it selected
+    // Keep current selection if clicked again
     if (filters.month === monthStr) return;
     onFiltersChange({ month: monthStr, weekIndex: undefined, dateFrom: '', dateTo: '', day: '', page: 1 });
   };
@@ -44,8 +44,6 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-
-      {/* ── Year + Months Unified Navigation ─────────────────────────── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -54,7 +52,6 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         gap: 12,
         flexWrap: 'wrap',
       }}>
-        {/* Year Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <label htmlFor="filter-year-select" style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             Year
@@ -83,10 +80,8 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
           </select>
         </div>
 
-        {/* Subtle divider */}
         <div style={{ width: 1, height: 28, background: 'var(--border)', margin: '0 4px', display: 'none' }} className="sm:block" />
 
-        {/* Month Pills */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', flex: 1, alignItems: 'center' }}>
           <button
             className={`brutalist-hover ${!filters.month ? 'active' : ''}`}
@@ -139,7 +134,6 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         </div>
       </div>
 
-      {/* ── Active Scope Information Banner ──────────────────────────── */}
       {filters.month && (
         <div style={{
           display: 'flex',
@@ -193,7 +187,6 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         </div>
       )}
 
-      {/* ── Weeks (Progressive disclosure) ─────────────────────────── */}
       {filters.month && (
         <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)' }}>
           <div style={{ padding: '12px 20px 0' }}>
@@ -237,7 +230,6 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
         </div>
       )}
 
-      {/* ── Days (deepest drill-down) ──────────────────────────────── */}
       {selectedWeek && (
         <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)', padding: '16px 20px', background: 'var(--bg-hover)' }}>
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>

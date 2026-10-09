@@ -1,6 +1,6 @@
 'use client';
 
-// Shared form field component used by ManualTaskForm, EditTaskModal, and AiPreviewForm
+// Shared form fields for manual, edit, and AI preview forms.
 import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
 import { Plus } from 'lucide-react';
@@ -32,20 +32,18 @@ interface TaskFormFieldsProps {
 }
 
 export default function TaskFormFields({ data, onChange, errors = {} }: TaskFormFieldsProps) {
-  // Active tab for viewing/editing reason notes: default to current workStatus
   const initialStatus = data.workStatus === 'Completed' || data.workStatus === 'InProgress' || data.workStatus === 'Pending' 
     ? data.workStatus 
     : 'Pending';
   const [activeReasonTab, setActiveReasonTab] = useState<WorkStatus>(initialStatus);
 
-  // When workStatus changes, automatically sync active reason tab to match
+  // Sync active reason tab with current work status
   useEffect(() => {
     if (data.workStatus === 'InProgress' || data.workStatus === 'Pending' || data.workStatus === 'Completed') {
       setActiveReasonTab(data.workStatus);
     }
   }, [data.workStatus]);
 
-  // Current values for each status
   const currentPending = data.pendingReason !== undefined 
     ? data.pendingReason 
     : (data.workStatus === 'Pending' ? data.reason : '');
@@ -56,7 +54,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     ? data.completedRemarks 
     : (data.workStatus === 'Completed' ? data.remarks : '');
 
-  // Determine if any notes exist
   const hasExistingNotes = Boolean(
     (currentPending && currentPending.trim().length > 0) ||
     (currentInProgress && currentInProgress.trim().length > 0) ||
@@ -73,7 +70,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     }
   }, [hasExistingNotes, data.workStatus]);
 
-  // Handle updates to specific status reasons without erasing other statuses
+  // Keep notes for other statuses when switching between them
   function handleReasonChange(status: WorkStatus, val: string) {
     if (status === 'Pending') {
       onChange('pendingReason', val);
@@ -93,12 +90,11 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     }
   }
 
-  // Count non-empty reason notes across statuses for comparison strip
+  // Show history strip only when multiple status notes exist
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-      {/* Title */}
       <div>
         <label className="label" htmlFor="field-title" style={{ marginBottom: 4 }}>Task Title *</label>
         <input
@@ -113,7 +109,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {errors.title && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.title}</span>}
       </div>
 
-      {/* Description */}
       <div>
         <label className="label" htmlFor="field-description" style={{ marginBottom: 4 }}>Description</label>
         <AutoResizeTextarea
@@ -127,7 +122,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         />
       </div>
 
-      {/* Given By & Contact Person */}
       <div className="task-form-grid-2col">
         <div>
           <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By</label>
@@ -153,7 +147,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
       </div>
 
-      {/* Date, Due Date, Priority & Status row */}
       <div className="task-form-grid-dates-status">
         <div>
           <label className="label" htmlFor="field-date" style={{ marginBottom: 4 }}>Task Date *</label>
@@ -205,7 +198,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
       </div>
 
-      {/* ── Status Reasons / Remarks (Preserved across status changes) ────────── */}
       {!isReasonsOpen ? (
         <div style={{ marginTop: 2 }}>
           <button
@@ -246,7 +238,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           borderRadius: 'var(--radius-md)',
           background: 'var(--bg-surface)'
         }}>
-          {/* Status Tab Navigation */}
           <div className="status-tabs-nav-wrap">
             <div className="status-tabs-list">
               {STATUSES.map((status) => {
@@ -310,7 +301,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             )}
           </div>
 
-        {/* Reason for Pending */}
         {activeReasonTab === 'Pending' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-reason-pending">
@@ -329,7 +319,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
 
-        {/* Reason for InProgress */}
         {activeReasonTab === 'InProgress' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-reason-inprogress">
@@ -348,7 +337,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
 
-        {/* Remarks */}
         {activeReasonTab === 'Completed' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-remarks-completed">
@@ -367,7 +355,6 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         )}
 
-        {/* Status History & Notes Strip */}
         {hasMultipleNotes && (
           <div style={{
             marginTop: 12,

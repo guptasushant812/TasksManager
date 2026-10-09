@@ -25,7 +25,6 @@ export interface AiRateLimitResult {
 
 export type AiGenerateResult = AiSuccessResult | AiRateLimitResult;
 
-// ── Call Google Gemini ───────────────────────────────────────────────────────
 async function callGemini(apiKey: string, model: string, prompt: string): Promise<string> {
   const ai = new GoogleGenAI({ apiKey });
   const interaction = await ai.interactions.create({

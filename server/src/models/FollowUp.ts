@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// ── Types ────────────────────────────────────────────────────────────────────
 export type FollowUpMethod = 'Phone' | 'WhatsApp' | 'Email' | 'InPerson' | 'Teams' | 'GoogleMeet' | 'Other';
 
 export const FOLLOW_UP_METHODS: FollowUpMethod[] = [
@@ -26,7 +25,6 @@ export interface IFollowUp extends Document {
   updatedAt: Date;
 }
 
-// ── Schema ───────────────────────────────────────────────────────────────────
 const FollowUpSchema = new Schema<IFollowUp>(
   {
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
@@ -61,18 +59,15 @@ const FollowUpSchema = new Schema<IFollowUp>(
   }
 );
 
-// ── Indexes ──────────────────────────────────────────────────────────────────
 FollowUpSchema.index({ taskId: 1, followUpNumber: 1 });
 FollowUpSchema.index({ taskId: 1, isDeleted: 1, followUpDate: -1 });
 FollowUpSchema.index({ nextFollowUpDate: 1, isDeleted: 1 });
 
-// ── Helper: get next follow-up number for a task ─────────────────────────────
 export async function getNextFollowUpNumber(taskId: mongoose.Types.ObjectId): Promise<number> {
   const last = await FollowUp.findOne({ taskId }).sort({ followUpNumber: -1 }).lean();
   return last ? last.followUpNumber + 1 : 1;
 }
 
-// ── Model ────────────────────────────────────────────────────────────────────
 const FollowUp: Model<IFollowUp> =
   mongoose.models.FollowUp || mongoose.model<IFollowUp>('FollowUp', FollowUpSchema);
 

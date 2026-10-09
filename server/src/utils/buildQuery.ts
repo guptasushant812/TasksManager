@@ -24,12 +24,12 @@ const ALLOWED_PRIORITIES = ['High', 'Medium', 'Low'];
 export function buildQuery(query: ParsedQs): TaskQuery {
   const filter: Record<string, unknown> = {};
 
-  // ── Soft-delete filter (only show active unless explicitly requesting deleted) ──
+  // Only return active tasks unless explicitly requested
   if (query.showDeleted !== 'true') {
     filter.isDeleted = { $ne: true };
   }
 
-  // ── Search (supports Task ID, title, description, givenBy, remarks) ───────
+  // Text search across task fields
   if (query.search && typeof query.search === 'string' && query.search.trim()) {
     const term = query.search.trim();
     const regex = new RegExp(escapeRegex(term), 'i');
@@ -44,22 +44,19 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     ];
   }
 
-  // ── Work status filter ────────────────────────────────────────────────────
   if (query.status && typeof query.status === 'string' && ALLOWED_STATUSES.includes(query.status)) {
     filter.workStatus = query.status;
   }
 
-  // ── Priority filter ───────────────────────────────────────────────────────
   if (query.priority && typeof query.priority === 'string' && ALLOWED_PRIORITIES.includes(query.priority)) {
     filter.priority = query.priority;
   }
 
-  // ── Given By filter (properly regex-escaped to prevent ReDoS / injection) ──
+  // Escape regex to prevent injection
   if (query.givenBy && typeof query.givenBy === 'string' && query.givenBy.trim()) {
     filter.givenBy = { $regex: escapeRegex(query.givenBy.trim()), $options: 'i' };
   }
 
-  // ── Date range ────────────────────────────────────────────────────────────
   const dateFrom = toDate(query.dateFrom);
   const dateTo = toDate(query.dateTo);
   if (dateFrom || dateTo) {
@@ -73,7 +70,6 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     filter.date = dateFilter;
   }
 
-  // ── Year filter ───────────────────────────────────────────────────────────
   if (query.year && typeof query.year === 'string' && !dateFrom && !dateTo) {
     const yr = parseInt(query.year, 10);
     if (!isNaN(yr)) {
@@ -84,7 +80,7 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     }
   }
 
-  // ── Month filter (must be combined with year) ─────────────────────────────
+  // Month filter (requires year)
   if (
     query.month && typeof query.month === 'string' &&
     query.year && typeof query.year === 'string' &&
@@ -99,18 +95,17 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     }
   }
 
-  // ── Week filter: weekStart (Monday) ──────────────────────────────────────
+  // Week filter: Monday to Saturday (6 days)
   if (query.weekStart && typeof query.weekStart === 'string' && !dateFrom && !dateTo) {
     const weekStartDate = toDate(query.weekStart);
     if (weekStartDate) {
       const weekEnd = new Date(weekStartDate);
-      weekEnd.setUTCDate(weekEnd.getUTCDate() + 5); // Mon→Sat (6 days)
+      weekEnd.setUTCDate(weekEnd.getUTCDate() + 5);
       weekEnd.setUTCHours(23, 59, 59, 999);
       filter.date = { $gte: weekStartDate, $lte: weekEnd };
     }
   }
 
-  // ── Day filter ────────────────────────────────────────────────────────────
   if (query.day && typeof query.day === 'string' && !dateFrom && !dateTo) {
     const dayDate = toDate(query.day);
     if (dayDate) {
@@ -120,7 +115,6 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     }
   }
 
-  // ── Sort ──────────────────────────────────────────────────────────────────
   const sortableFields = ['taskId', 'date', 'dueDate', 'title', 'priority', 'workStatus', 'createdAt'];
   const sortField = typeof query.sort === 'string' && sortableFields.includes(query.sort)
     ? query.sort
@@ -131,7 +125,6 @@ export function buildQuery(query: ParsedQs): TaskQuery {
     sort.taskId = -1;
   }
 
-  // ── Pagination ────────────────────────────────────────────────────────────
   const page = Math.max(1, parseInt((query.page as string) || '1', 10));
   const limit = Math.min(100, Math.max(1, parseInt((query.limit as string) || '50', 10)));
   const skip = (page - 1) * limit;

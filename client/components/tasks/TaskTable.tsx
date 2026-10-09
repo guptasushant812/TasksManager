@@ -169,7 +169,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   return (
     <div>
-      {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
         <SearchBar value={searchInput} onChange={setSearchInput} />
 
@@ -234,7 +233,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         />
       </div>
 
-      {/* ── Active Filters Chips Bar ───────────────────────────────── */}
       {activeFiltersCount > 0 && (
         <div style={{
           display: 'flex',
@@ -346,7 +344,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         </div>
       )}
 
-      {/* ── Table (Container Query & Responsive Scroll Surface) ───────── */}
       <div className="glass task-table-wrapper" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
         {loading && (
           <div className="loading-bar">
@@ -537,7 +534,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           </div>
         )}
 
-        {/* ── Dashboard Footer / Pagination ────────────────────────────── */}
         {!loading && (isDashboard ? tasks.slice(0, 5).length > 0 : tasks.length > 0) && (
           isDashboard ? (
             <div style={{
@@ -620,7 +616,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         )}
       </div>
 
-      {/* Edit modal */}
       {editTask && (
         <EditTaskModal
           task={editTask}
@@ -629,7 +624,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         />
       )}
 
-      {/* New task modal (triggered from Zero-Defect export validation or toolbar) */}
       {showNewTaskModal && (
         <NewTaskModal
           defaultFilters={filters}
@@ -641,7 +635,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         />
       )}
 
-      {/* Follow-up panel */}
       {followUpTask && (
         <FollowUpPanel
           task={followUpTask}
@@ -650,7 +643,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         />
       )}
 
-      {/* Quick Add modal */}
       {quickFollowUpTask && (
         <FollowUpQuickAdd
           task={quickFollowUpTask}
@@ -659,7 +651,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         />
       )}
 
-      {/* ── Single Task Delete Modal ─────────────────────────────────────── */}
       {taskToDelete && (
         <div className="app-dialog-overlay" onClick={() => !isDeleting && setTaskToDelete(null)}>
           <div
@@ -750,7 +741,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         </div>
       )}
 
-      {/* ── Bulk Delete Modal ────────────────────────────────────────────── */}
       {showBulkDeleteConfirm && (
         <div className="app-dialog-overlay" onClick={() => !isDeleting && setShowBulkDeleteConfirm(false)}>
           <div
@@ -831,7 +821,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         </div>
       )}
 
-      {/* ── Error Modal ──────────────────────────────────────────────────── */}
       {deleteErrorMsg && (
         <div className="app-dialog-overlay" onClick={() => setDeleteErrorMsg(null)}>
           <div
@@ -880,7 +869,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         </div>
       )}
 
-      {/* ── Success Toast Pop ────────────────────────────────────────────── */}
       {deleteSuccessMsg && (
         <div className="app-toast app-toast-success" role="status">
           <div className="app-toast-icon">
@@ -901,7 +889,6 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   );
 }
 
-/* Pagination button — extracted for consistency */
 function PaginationBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {
   return (
     <button

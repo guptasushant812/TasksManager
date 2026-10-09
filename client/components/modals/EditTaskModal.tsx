@@ -191,7 +191,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     }
   }
 
-  // ── Confirmation & Success Modals ──────────────────────────────────────────
+  // Confirmation and success dialogs
   const renderUpdateConfirmModal = () => (
     <div className="app-dialog-overlay" style={{ zIndex: 1100 }} onClick={() => setShowUpdateConfirm(false)}>
       <div 
@@ -298,7 +298,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           className="saas-success-modal" 
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button */}
           <button 
             type="button"
             className="saas-modal-close-btn"
@@ -308,7 +307,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             <X style={{ width: 16, height: 16 }} />
           </button>
 
-          {/* Icon & Heading */}
           <div className="saas-success-header">
             <div className="saas-success-icon-wrap">
               <Check style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
@@ -322,7 +320,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             </p>
           </div>
 
-          {/* Task Summary Card */}
           <div className="saas-task-summary">
             <div className="saas-task-summary-main">
               <span className="saas-task-id">{task.taskId}</span>
@@ -337,7 +334,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             </div>
           </div>
 
-          {/* Footer Action */}
           <div className="saas-success-footer">
             <button
               type="button"
@@ -373,7 +369,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           margin: 'auto',
         }}
       >
-        {/* Header */}
         <div style={{ paddingBlock: 16, paddingInline: 24, borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingInlineEnd: 16, flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -457,7 +452,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           </button>
         </div>
 
-        {/* Content */}
         <div ref={contentScrollRef} className="modal-body-content" style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {rateLimitInfo && (
             <AiQuotaModal
@@ -491,7 +485,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           )}
         </div>
 
-        {/* Footer */}
         <div className="edit-task-modal-footer" style={{ padding: '14px 24px', borderTop: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0 }}>
           <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
           <button className="btn btn-primary" onClick={handleTriggerUpdate} disabled={saving}>

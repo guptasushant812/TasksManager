@@ -68,7 +68,6 @@ export default function EscalationBanner({
 
   return (
     <div style={{ marginBottom: 16 }}>
-      {/* Alert Banner for escalated tasks */}
       {isEscalated ? (
         <div
           className="animate-slide-up"
@@ -160,7 +159,6 @@ export default function EscalationBanner({
           )}
         </div>
       ) : (
-        /* Non-escalated progress indicator when enabled */
         <div
           style={{
             display: 'flex',
@@ -195,7 +193,6 @@ export default function EscalationBanner({
         </div>
       )}
 
-      {/* Success Notification Pop */}
       {successMessage && (
         <div className="app-toast app-toast-success" role="status">
           <div className="app-toast-icon">
@@ -213,7 +210,6 @@ export default function EscalationBanner({
         </div>
       )}
 
-      {/* Error Notification Pop */}
       {errorMessage && (
         <div className="app-toast app-toast-danger" role="alert">
           <div className="app-toast-icon">
@@ -231,7 +227,6 @@ export default function EscalationBanner({
         </div>
       )}
 
-      {/* Escalation Confirm Modal */}
       {showConfirmModal && (
         <div
           className="app-dialog-overlay"
@@ -304,7 +299,6 @@ export default function EscalationBanner({
         </div>
       )}
 
-      {/* Centralized config modal opened from rules link */}
       {showConfigModal && (
         <EscalationConfigModal onClose={() => setShowConfigModal(false)} />
       )}

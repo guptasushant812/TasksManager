@@ -47,7 +47,6 @@ STRICT RULES:
 - SUB-TASKS: Remember, sub-tasks (a, b, c) MUST be inside the parent task's description. Do NOT create separate objects for sub-tasks.
 - The response must be a valid parseable JSON array ONLY — nothing else.`;
 
-// ── Sanitization and Validation Helper ─────────────────────────────────────────
 function sanitizeDraft(d: Record<string, any>, today: string): Record<string, string> {
   const fields = ['title', 'description', 'givenBy', 'contactPerson', 'priority', 'workStatus', 'reason', 'remarks', 'date', 'dueDate'];
   for (const f of fields) {
@@ -94,12 +93,10 @@ function cleanJsonOutput(raw: string): string {
   return text;
 }
 
-// ── GET /api/ai-draft/providers ───────────────────────────────────────────────
 export function getAiProviders(_req: Request, res: Response) {
   res.json(getAvailableAiProviders());
 }
 
-// ── POST /api/ai-draft ────────────────────────────────────────────────────────
 export async function createAiDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const { 
@@ -175,7 +172,6 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
   }
 }
 
-// ── POST /api/ai-draft/regenerate ──────────────────────────────────────────────
 export async function regenerateSingleAiDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const { 

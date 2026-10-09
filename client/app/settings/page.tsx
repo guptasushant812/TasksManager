@@ -613,8 +613,6 @@ export default function SettingsPage() {
 
           {/* Settings Content & Container Query Context */}
           <section className="settings-content">
-            
-            {/* ── GENERAL PREFERENCES TAB ─────────────────────────────────── */}
             {activeTab === 'general' && (
               <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
@@ -755,7 +753,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* ── AI Assistant & Multi-Engine Configuration Card ── */}
                 <div className="settings-card" style={{ marginTop: 20 }}>
                   <div className="settings-row">
                     <div className="settings-row-text">
@@ -888,7 +885,6 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* ── ESCALATION POLICIES TAB ─────────────────────────────────── */}
             {activeTab === 'escalation' && (
               <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
@@ -1070,7 +1066,6 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* ── NOTIFICATIONS PREFERENCES TAB ───────────────────────────── */}
             {activeTab === 'notifications' && (
               <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">
@@ -1269,7 +1264,6 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* ── SECURITY CONFIGURATION TAB ──────────────────────────────── */}
             {activeTab === 'security' && (
               <div className="animate-fade-in" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="settings-header">

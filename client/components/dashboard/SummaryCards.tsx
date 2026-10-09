@@ -20,7 +20,6 @@ const CARDS: { key: WorkStatus; label: string; varName: string; activeClass: str
 export default function SummaryCards({ summary, loading, activeStatus, onStatusClick }: SummaryCardsProps) {
   return (
     <div className="summary-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Primary metrics */}
       <div className="summary-cards-grid">
         {CARDS.map(({ key, label, varName, activeClass }) => {
           const isActive = activeStatus === key;
@@ -52,7 +51,6 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
                 }}>
                   {label}
                 </span>
-                {/* Status indicator dot with subtle ring */}
                 <div style={{
                   width: 10,
                   height: 10,
@@ -81,7 +79,6 @@ export default function SummaryCards({ summary, loading, activeStatus, onStatusC
         })}
       </div>
 
-      {/* Secondary metrics row — Information-rich and directly actionable */}
       {(summary.overdueFollowUps !== undefined || summary.escalatedTasks !== undefined) && (
         <div className="summary-secondary-grid">
           <Link

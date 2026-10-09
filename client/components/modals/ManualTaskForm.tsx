@@ -72,7 +72,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     setError: setAiError,
   } = useAiDraft();
 
-  // ── Draft field change handler ─────────────────────────────────────────────
   function handleDraftChange(id: string, field: string, value: string) {
     setDrafts((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
@@ -86,14 +85,11 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     }
   }
 
-  // ── Add another task draft ─────────────────────────────────────────────────
   function handleAddAnotherTask() {
     setDrafts((prev) => [...prev, createEmptyDraft(defaultFilters)]);
   }
 
-  // ── Remove individual task draft ───────────────────────────────────────────
   function handleRemoveDraft(id: string) {
-    // Only allow remove when more than 1 task exists
     if (drafts.length <= 1) return;
 
     setDrafts((prev) => prev.filter((d) => d.id !== id));
@@ -103,7 +99,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     }
   }
 
-  // ── Discard all unsaved drafts ─────────────────────────────────────────────
   function handleConfirmDiscard() {
     setDrafts([createEmptyDraft(defaultFilters)]);
     setErrors({});
@@ -114,9 +109,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     onCancel();
   }
 
-  // ── Single-task AI improvement ─────────────────────────────────────────────
   async function handleImproveWithAi(draft: DraftTask, index: number) {
-    // Check if task has meaningful user content
     if (!draft.title.trim() && !draft.description.trim()) {
       setErrors((prev) => ({
         ...prev,
@@ -163,7 +156,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     }
   }
 
-  // ── Validation ─────────────────────────────────────────────────────────────
   function validateDrafts(): boolean {
     const errs: Record<string, string> = {};
     drafts.forEach((d, i) => {
@@ -178,7 +170,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     return Object.keys(errs).length === 0;
   }
 
-  // ── Save all tasks ─────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (drafts.length === 0 || !validateDrafts()) return;
     setSaving(true);
@@ -210,7 +201,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
-      {/* ── Discard Confirmation Modal Overlay ─────────────────────────────────── */}
       {showDiscardConfirm && (
         <div
           className="app-dialog-overlay"
@@ -273,7 +263,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
         </div>
       )}
 
-      {/* ── Scrollable Form Body (The ONLY scrollable element) ───────────────── */}
       <div 
         className="manual-task-form-body" 
         style={{ 
@@ -288,7 +277,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           boxSizing: 'border-box',
         }}
       >
-        {/* Global AI Error Banner */}
         {aiError && (
           <div
             style={{
@@ -308,7 +296,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           </div>
         )}
 
-        {/* ── Task Drafts List ─────────────────────────────────────────────────── */}
         {drafts.map((draft, i) => {
           const draftErrors: Record<string, string> = {};
           if (errors[`${draft.id}-title`]) draftErrors.title = errors[`${draft.id}-title`];
@@ -324,7 +311,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
               className="card manual-task-card animate-fade-in"
               style={{
                 position: 'relative',
-                borderTop: '1px solid var(--accent)', // Clean green divider line matching Image 2
+                borderTop: '1px solid var(--accent)',
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustImproved ? '2px solid var(--completed)' : undefined,
                 transition: 'border 0.2s ease',
                 width: '100%',
@@ -333,7 +320,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 overflowX: 'hidden',
               }}
             >
-              {/* Card Header matching Image 2 */}
               <div className="manual-task-card-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   <h3
@@ -372,7 +358,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 </div>
 
                 <div className="manual-task-card-actions">
-                  {/* Single-Task Regenerate / Improve with AI Button */}
                   <button
                     type="button"
                     onClick={() => {
@@ -411,7 +396,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                     <span>{isThisRegenerating ? 'Improving…' : 'Regenerate'}</span>
                   </button>
 
-                  {/* Remove Task Button (ONLY shown when drafts.length > 1) */}
                   {drafts.length > 1 && (
                     <button
                       type="button"
@@ -440,7 +424,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 </div>
               </div>
 
-              {/* Inline AI Guidance Error */}
               {errors[`${draft.id}-ai`] && (
                 <div
                   style={{
@@ -461,7 +444,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 </div>
               )}
 
-              {/* Inline Single-Task Refinement Box */}
               {isRegenBoxOpen && (
                 <div
                   style={{
@@ -539,7 +521,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 </div>
               )}
 
-              {/* Form Fields for this Draft */}
               <div
                 style={{
                   opacity: isThisRegenerating ? 0.45 : 1,
@@ -565,7 +546,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           );
         })}
 
-        {/* ── Add Another Task Button matching Image 1 ────────────────────────── */}
         <button
           type="button"
           onClick={handleAddAnotherTask}
@@ -620,7 +600,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
 
       </div>
 
-      {/* ── Fixed Bottom Actions Bar ────────────────────────────────────────── */}
       <div className="manual-task-footer">
         <div className="manual-task-footer-secondary">
           <button

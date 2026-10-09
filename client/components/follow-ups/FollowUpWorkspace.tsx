@@ -140,7 +140,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
 
   return (
     <div className="follow-up-workspace">
-      {/* ── Toolbar ────────────────────────────────────────────────────────── */}
       <div
         className="fu-toolbar"
         style={{
@@ -155,7 +154,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', flex: 1, minWidth: 260 }}>
           <SearchBar value={searchInput} onChange={setSearchInput} />
 
-          {/* Filter button */}
           <div ref={filterRef} style={{ position: 'relative' }}>
             <button
               id="btn-filter-sort"
@@ -197,7 +195,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
             )}
           </div>
 
-          {/* Selection mode */}
           <button
             id="btn-select-mode"
             className={`btn ${selectMode ? 'btn-primary' : 'btn-ghost'}`}
@@ -219,7 +216,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           )}
         </div>
 
-        {/* Right Actions: Export Menu */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <ExportMenu
             filters={{ ...filters, hasFollowUps: 'true' }}
@@ -229,7 +225,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         </div>
       </div>
 
-      {/* ── Active Filters Chips Bar ───────────────────────────────── */}
       {activeFiltersCount > 0 && (
         <div style={{
           display: 'flex',
@@ -341,7 +336,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         </div>
       )}
 
-      {/* ── Main Follow-Up Container ────────────────────────────────────────── */}
       <div className="glass" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative' }}>
         {loading && (
           <div className="loading-bar">
@@ -397,7 +391,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           </div>
         ) : (
           <>
-            {/* Desktop & Tablet Table (Hidden on small mobile screens via CSS) */}
             <div className="fu-desktop-table" style={{ overflowX: 'auto' }}>
               <table className="task-table fu-table">
                 <thead>
@@ -466,7 +459,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
               </table>
             </div>
 
-            {/* Mobile Card View (Visible only on <= 768px via CSS) */}
             <div className="fu-mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 12 }}>
               {tasks.map((task) => (
                 <FollowUpCard
@@ -485,7 +477,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
           </>
         )}
 
-        {/* ── Pagination ──────────────────────────────────────────────────────── */}
         {!loading && tasks.length > 0 && (
           <div
             style={{
@@ -561,7 +552,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         )}
       </div>
 
-      {/* ── Follow-Up Detail History (Slide-over drawer / modal) ─────────────── */}
       {activeHistoryTask && (
         <FollowUpPanel
           task={activeHistoryTask}
@@ -572,7 +562,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         />
       )}
 
-      {/* ── Add Follow-Up Modal (Full FollowUpForm) ────────────────────────── */}
       {addFollowUpTask && (
         <FollowUpAddModal
           task={addFollowUpTask}
@@ -583,7 +572,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         />
       )}
 
-      {/* ── Bulk Delete Confirmation Modal ─────────────────────────────────── */}
       {showBulkDeleteConfirm && (
         <div className="app-dialog-overlay" onClick={() => !isDeleting && setShowBulkDeleteConfirm(false)}>
           <div
@@ -664,7 +652,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         </div>
       )}
 
-      {/* ── Delete Error Modal ─────────────────────────────────────────────── */}
       {deleteError && (
         <div className="app-dialog-overlay" onClick={() => setDeleteError(null)}>
           <div
@@ -715,7 +702,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         </div>
       )}
 
-      {/* ── Success Toast Pop ──────────────────────────────────────────────── */}
       {deleteSuccess && (
         <div className="app-toast app-toast-success" role="status">
           <div className="app-toast-icon">

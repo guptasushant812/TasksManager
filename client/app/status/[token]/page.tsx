@@ -54,7 +54,7 @@ export default function PublicStatusPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Default goal: show only today's tasks first
+  // Default to today's tasks
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [page, setPage] = useState(1);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -65,7 +65,6 @@ export default function PublicStatusPage() {
     setExpandedTaskId((prev) => (prev === taskId ? null : taskId));
   };
 
-  // Smooth scroll page and main container to top
   const scrollToTop = () => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -76,7 +75,7 @@ export default function PublicStatusPage() {
     }
   };
 
-  // Tab change with top scroll & MNC-grade reload animation
+  // Tab change with smooth scroll to top
   const handleTabChange = (newTab: TabType) => {
     if (newTab === activeTab) return;
     scrollToTop();
@@ -90,7 +89,7 @@ export default function PublicStatusPage() {
     }, 320);
   };
 
-  // Page change with top scroll & reload animation
+  // Page change with smooth scroll to top
   const handlePageChange = (newPage: number) => {
     if (newPage === currentPage) return;
     scrollToTop();
@@ -102,8 +101,7 @@ export default function PublicStatusPage() {
     }, 260);
   };
 
-  // Theme synchronization: defaults to neo-dark theme ('dark') on first load,
-  // or automatically applies whatever theme the user selected in settings (localStorage.theme).
+  // Sync theme with user settings or default to dark
   useEffect(() => {
     try {
       const applyTheme = () => {
@@ -202,7 +200,7 @@ export default function PublicStatusPage() {
       );
     }
 
-    // Sort by taskId descending: higher/latest task ID number first (e.g. TK-005 before TK-004)
+    // Sort newest task ID first (e.g. TK-005 before TK-004)
     list.sort((a, b) => {
       const idA = a.taskId || '';
       const idB = b.taskId || '';
@@ -212,7 +210,6 @@ export default function PublicStatusPage() {
     return list;
   }, [rawTabTasks, search]);
 
-  // Pagination calculations: show only top 5 data per page
   const totalTasks = sortedAndFilteredTasks.length;
   const totalPages = Math.max(1, Math.ceil(totalTasks / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -221,7 +218,7 @@ export default function PublicStatusPage() {
     return sortedAndFilteredTasks.slice(start, start + ITEMS_PER_PAGE);
   }, [sortedAndFilteredTasks, currentPage]);
 
-  // Compute 5-page window: < 1 2 3 4 5 > without ellipsis jumps
+  // Compute 5-page window without jumps
   const visiblePages = useMemo(() => {
     const MAX_PAGES = 5;
     if (totalPages <= MAX_PAGES) {
@@ -374,14 +371,12 @@ export default function PublicStatusPage() {
 
   return (
     <div className="public-layout">
-      {/* MNC-grade Top Loading Bar */}
       {isTabSwitching && (
         <div className="loading-bar">
           <div className="loading-bar-inner" />
         </div>
       )}
 
-      {/* ── Mobile / Tablet Top Header: Always visible on load with brand logo & project status ── */}
       <header className="public-mobile-header animate-fade-in">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -422,7 +417,6 @@ export default function PublicStatusPage() {
         </div>
       </header>
 
-      {/* ── Desktop Sidebar Navigation (Hidden on Tablet / Mobile) ────────────────── */}
       <aside className="public-sidebar">
         {/* Brand Header matching main module style */}
         <div style={{
@@ -523,7 +517,6 @@ export default function PublicStatusPage() {
         </div>
       </aside>
 
-      {/* ── Main Content Area ────────────────────────────────────────── */}
       <main className="public-main">
         {/* Content Header with clean search and sync */}
         <header className="public-page-header animate-fade-in">
@@ -600,7 +593,6 @@ export default function PublicStatusPage() {
           </div>
         </header>
 
-        {/* ── Mobile / Tablet Card Filter Buttons (2x2 Grid with counts) ── */}
         <div className="public-mobile-filter-chips" role="group" aria-label="Task categories">
           {categoryTabs.map((cat) => {
             const isActive = activeTab === cat.id;
@@ -622,7 +614,6 @@ export default function PublicStatusPage() {
           })}
         </div>
 
-        {/* ── Task Cards Feed ─────────────────────────────────────────── */}
         <section className="public-feed animate-slide-up" key={`${activeTab}-${page}`} aria-busy={isTabSwitching}>
           {isTabSwitching ? (
             <div className="public-task-list">
@@ -795,7 +786,6 @@ export default function PublicStatusPage() {
             </div>
           )}
 
-          {/* ── Pagination (Only shown when there are more than 5 tasks / > 1 page) ──────── */}
           {totalTasks > ITEMS_PER_PAGE && (
             <nav className="public-pagination" aria-label="Task pages">
               <span className="public-pagination-range">
@@ -836,7 +826,6 @@ export default function PublicStatusPage() {
           )}
         </section>
 
-        {/* ── Clean & Professional Minimal Footer ─── */}
         <footer className="public-footer">
           <div className="public-footer-inner">
             <span style={{ color: 'var(--text-muted, #94a3b8)' }}>

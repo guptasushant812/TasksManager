@@ -59,7 +59,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} style={{ zIndex: 100 }}>
       <div className="modal-box animate-slide-up" style={{ padding: 0, width: '100%', maxWidth: 520 }}>
         
-        {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Quick Follow-Up</h2>
@@ -72,11 +71,9 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
           </button>
         </div>
 
-        {/* Scrollable Body */}
         <div style={{ padding: '20px 24px', maxHeight: 'calc(95vh - 130px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {/* Date & Time */}
             <div>
               <label className="label">Date & Time</label>
               <input 
@@ -88,7 +85,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
               />
             </div>
             
-            {/* Method */}
             <div>
               <label className="label">Contact Method</label>
               <select 
@@ -103,7 +99,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
             </div>
           </div>
           
-          {/* Communicated */}
           <div>
             <label className="label">What was communicated? <span style={{ color: 'var(--high)' }}>*</span></label>
             <AutoResizeTextarea 
@@ -116,7 +111,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
             />
           </div>
 
-          {/* Response */}
           <div>
             <label className="label">Response received <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
             <AutoResizeTextarea 
@@ -129,7 +123,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <div style={{ padding: '10px 14px', background: 'var(--high-bg)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--high)' }}>
               {error}
@@ -137,7 +130,6 @@ export default function FollowUpQuickAdd({ task, onClose, onAdded }: FollowUpQui
           )}
         </div>
 
-        {/* Footer Actions */}
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn btn-ghost" onClick={onClose} disabled={loading}>
             Cancel

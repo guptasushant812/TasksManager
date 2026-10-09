@@ -121,7 +121,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
       <div className="fu-panel-backdrop" onClick={onClose} />
 
       <div className="fu-panel fu-panel-redesign" role="dialog" aria-modal="true" aria-label={`Follow-Up History for ${task.taskId}`}>
-        {/* Navigation Toolbar */}
         <div className="fu-panel-header" style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
           <button
             onClick={onClose}
@@ -149,7 +148,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         </div>
 
-        {/* Compact Task Context Banner */}
         <div className="fu-panel-task-info" style={{ padding: '16px 20px', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -209,7 +207,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
             {task.title}
           </h3>
 
-          {/* Collapsible description */}
           {showFullDesc && task.description && (
             <div
               className="animate-slide-down"
@@ -228,7 +225,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
             </div>
           )}
 
-          {/* Compact Metadata Row */}
           <div
             style={{
               display: 'flex',
@@ -259,7 +255,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         </div>
 
-        {/* Overdue Alert banner if scheduled date passed */}
         {isOverdue && (
           <div className="fu-overdue-banner animate-slide-down" style={{ margin: '12px 20px 0' }}>
             <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
@@ -267,7 +262,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         )}
 
-        {/* Task-Specific Escalation Status */}
         <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
           <EscalationBanner
             taskId={task._id}
@@ -292,7 +286,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         )}
 
-        {/* Follow-Up Form modal */}
         {showForm && (
           <FollowUpForm
             key={editingFollowUp ? editingFollowUp._id : 'new'}
@@ -306,7 +299,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           />
         )}
 
-        {/* Timeline body */}
         <div style={{ padding: '16px 20px 32px', flex: 1, overflowY: 'auto' }}>
           <FollowUpTimeline
             followUps={followUps}
@@ -318,7 +310,6 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div
           className="modal-overlay"

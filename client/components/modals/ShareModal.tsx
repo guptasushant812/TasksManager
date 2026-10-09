@@ -122,7 +122,6 @@ export default function ShareModal({ onClose }: ShareModalProps) {
         <button type="button" className="btn btn-ghost" onClick={onClose}>Close Panel</button>
       </div>
 
-      {/* Copied Toast Pop */}
       {copied && (
         <div className="app-toast app-toast-success" role="status">
           <div className="app-toast-icon">
@@ -140,7 +139,6 @@ export default function ShareModal({ onClose }: ShareModalProps) {
         </div>
       )}
 
-      {/* Confirmation Dialog Pop for Link Regeneration */}
       {showRegenerateConfirm && (
         <div className="app-dialog-overlay" onClick={() => setShowRegenerateConfirm(false)}>
           <div 

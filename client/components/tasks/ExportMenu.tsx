@@ -105,7 +105,7 @@ export default function ExportMenu({
         return;
       }
 
-      // Secure in-memory AJAX Blob fetch: Never exposes backend URL or redirects the browser
+      // Fetch file as blob to trigger direct browser download
       const downloadUrl = buildExportUrl(format);
       const res = await fetch(downloadUrl);
 
@@ -119,7 +119,7 @@ export default function ExportMenu({
         return;
       }
 
-      // Extract filename from Content-Disposition header if available
+      // Extract filename from content-disposition header if present
       const disposition = res.headers.get('content-disposition');
       let filename = '';
       if (disposition && disposition.includes('filename=')) {
@@ -145,7 +145,7 @@ export default function ExportMenu({
         }
       }
 
-      // Create isolated in-memory Blob URL and trigger native browser file save
+      // Trigger file download via temporary anchor
       const blob = await res.blob();
       if (!blob || blob.size === 0) {
         setExportError('Export file generation failed. The generated file was empty.');
@@ -179,7 +179,6 @@ export default function ExportMenu({
     }
   }
 
-  // Contextual date information
   const currentDateStr = formatDate(new Date());
   const selectedDayStr = filters.day ? formatDate(filters.day) : null;
   const isFutureDate = filters.day ? new Date(filters.day).setHours(0,0,0,0) > new Date().setHours(0,0,0,0) : false;
@@ -393,7 +392,6 @@ export default function ExportMenu({
         </>
       )}
 
-      {/* ── Top MNC Enterprise Alert Modal (Poka-Yoke Zero-Defect Quality Gate) ── */}
       {showAlertModal && (
         <div
           className="app-dialog-overlay"
@@ -403,10 +401,8 @@ export default function ExportMenu({
             className="app-dialog-box"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Amber Warning Strip */}
             <div className="app-dialog-accent-bar app-dialog-accent-amber" />
 
-            {/* Modal Header */}
             <div className="app-dialog-header">
               <div className="app-dialog-header-left">
                 <div className="app-dialog-icon-wrap app-dialog-icon-amber">
@@ -432,13 +428,11 @@ export default function ExportMenu({
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="app-dialog-body">
               <p className="app-dialog-desc">
                 No tasks found for <strong>{scopeLabel}</strong>. Add at least one task to export.
               </p>
 
-              {/* Details Double-Bezel Card */}
               <div className="app-dialog-card">
                 {selectedDayStr && (
                   <div className="app-dialog-row">
@@ -510,7 +504,6 @@ export default function ExportMenu({
               </p>
             </div>
 
-            {/* Modal Actions */}
             <div className="app-dialog-footer">
               <button
                 type="button"
@@ -545,7 +538,6 @@ export default function ExportMenu({
         />
       )}
 
-      {/* ── Export Error Modal ────────────────────────────────────────────── */}
       {exportError && (
         <div className="app-dialog-overlay" onClick={() => setExportError(null)}>
           <div
@@ -594,7 +586,6 @@ export default function ExportMenu({
         </div>
       )}
 
-      {/* ── Export Success Toast Pop ──────────────────────────────────────── */}
       {exportSuccess && (
         <div className="app-toast app-toast-success" role="status">
           <div className="app-toast-icon">

@@ -16,13 +16,7 @@ export interface AutoResizeTextareaProps
   allowManualResize?: boolean;
 }
 
-/**
- * AutoResizeTextarea - Universal responsive multi-line textbox component
- * - Auto-grows by default based on content on initial render/mount and whenever content changes (no click required).
- * - Implements strict minHeight and maxHeight bounds to prevent popups/modals from becoming messy or unresponsive.
- * - Restores fluid horizontal (X-axis) scrollbar for wide text, tables, URLs, or non-breaking lines.
- * - Adheres to MediaQueryPrompt.md responsive breakpoints, touch ergonomics, and fluid layout scaling.
- */
+// Textarea that auto-sizes to its content within optional min and max bounds.
 export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaProps>(
   (
     {
@@ -42,7 +36,7 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     useImperativeHandle(ref, () => textareaRef.current!);
 
-    // Flag to detect when user manually drags the resize corner handle
+    // Track manual resizing by the user
     const userResizedRef = useRef(false);
     const lastManualHeightRef = useRef<number>(0);
 
@@ -62,32 +56,30 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
       const textarea = textareaRef.current;
       if (!textarea) return;
 
-      // If user has manually dragged/resized the textarea, respect their manual height choice
+      // Respect height set manually by the user
       if (userResizedRef.current && textarea.offsetHeight !== lastManualHeightRef.current) {
         lastManualHeightRef.current = textarea.offsetHeight;
         return;
       }
 
-      // Temporarily set height to auto to compute exact scrollHeight
+      // Reset to auto to measure scrollHeight accurately
       textarea.style.height = 'auto';
       const scrollH = textarea.scrollHeight;
 
-      // Calculate bounded target height
       const targetHeight = Math.min(Math.max(scrollH + 2, minPx), maxPx);
       textarea.style.height = `${targetHeight}px`;
 
-      // Manage Y-axis scrollbar: only show vertical scrollbar when content strictly exceeds maxPx
+      // Show vertical scrollbar only if content exceeds max bounds
       if (scrollH > maxPx) {
         textarea.style.overflowY = 'auto';
       } else {
         textarea.style.overflowY = 'hidden';
       }
 
-      // Ensure X-axis scrollbar is always active for horizontal overflow
       textarea.style.overflowX = 'auto';
     }, [minPx, maxPx]);
 
-    // Auto-grow immediately on mount, on value update, and across animated modal transitions
+    // Adjust height on mount and value changes
     useEffect(() => {
       adjustHeight();
       const raf = requestAnimationFrame(() => {
@@ -96,7 +88,7 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
       return () => cancelAnimationFrame(raf);
     }, [value, defaultValue, adjustHeight]);
 
-    // Track window resize (MediaQueryPrompt.md Sec. 8 & 9)
+    // Recalculate on window resize unless manually sized
     useEffect(() => {
       const handleResize = () => {
         if (!userResizedRef.current) {
@@ -107,7 +99,7 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
       return () => window.removeEventListener('resize', handleResize);
     }, [adjustHeight]);
 
-    // Track user manual drag resize
+    // Detect manual resize drag
     useEffect(() => {
       const textarea = textareaRef.current;
       if (!textarea || !allowManualResize) return;

@@ -38,7 +38,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
 
   return (
     <tr className={`task-row ${selected ? 'selected' : ''}`.trim()} data-task-id={task._id}>
-      {/* Checkbox / Sr No */}
       <td style={{ width: '1%', whiteSpace: 'nowrap', textAlign: 'center' }}>
         {selectMode ? (
           <input
@@ -52,7 +51,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
         )}
       </td>
 
-      {/* Task */}
       <td style={{ minWidth: 140, maxWidth: 200, whiteSpace: 'normal', wordWrap: 'break-word' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
           <span style={{
@@ -96,38 +94,32 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
         </span>
       </td>
 
-      {/* Description */}
       <td style={{ minWidth: 100, maxWidth: 160, whiteSpace: 'normal', wordWrap: 'break-word' }}>
         <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, display: 'block', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
           {task.description || '—'}
         </span>
       </td>
 
-      {/* Given By */}
       <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
         <span style={{ fontSize: 12 }}>{task.givenBy || '—'}</span>
       </td>
 
-      {/* Priority */}
       <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
         <span className={PRIORITY_BADGE[task.priority]}>
           {task.priority}
         </span>
       </td>
 
-      {/* Work Status */}
       <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
         <span className={STATUS_BADGE[task.workStatus]}>
           {task.workStatus}
         </span>
       </td>
 
-      {/* Date */}
       <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
         <span style={{ fontSize: 12 }}>{formatDate(task.date)}</span>
       </td>
 
-      {/* Reason / Remarks / Follow-up */}
       <td style={{ minWidth: 100, maxWidth: 140, whiteSpace: 'normal', wordWrap: 'break-word' }}>
         {mode === 'follow-ups' && fuCount > 0 && followUpSummary?.lastCommunicated ? (
           <div>
@@ -141,7 +133,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
           </div>
         ) : (
           <div>
-            {/* Primary Status Note */}
             {task.workStatus === 'Completed' && (task.completedRemarks || task.remarks) ? (
               <div>
                 <span style={{ fontSize: 10, color: 'var(--completed)', fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Remarks</span>
@@ -167,7 +158,7 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
               <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
             )}
 
-            {/* Previous Stage Delays for comparison if they exist */}
+            {/* Previous stage notes if different from current */}
             {task.workStatus !== 'Pending' && task.pendingReason && task.pendingReason !== task.reason && (
               <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-subtle)' }}>
                 <span style={{ fontSize: 9, color: 'var(--pending)', fontWeight: 600, textTransform: 'uppercase' }}>Pending Reason</span>
@@ -184,7 +175,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
         )}
       </td>
 
-      {/* Actions */}
       <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
         <div className="task-actions" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <ActionBtn title="Edit" icon={<Pencil style={{ width: 14, height: 14 }} />} onClick={() => onEdit(task)} />
@@ -217,7 +207,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
   );
 }
 
-/* Reusable inline action button — consistent hit target, clean */
 function ActionBtn({ title, icon, onClick, hoverColor, defaultColor }: {
   title: string;
   icon: React.ReactNode;
