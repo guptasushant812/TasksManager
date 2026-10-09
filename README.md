@@ -40,6 +40,37 @@ We recently underwent a massive UI/UX and architectural overhaul to solve severa
 
 ## ⚙️ Getting Started
 
+### 1. Environment Configuration & Security
+
+> 🔒 **Security Notice**: Never commit `.env` files or real database credentials to Git. All secrets must remain in local, uncommitted `.env` files which are protected by `.gitignore`.
+
+1. **Configure Server Environment**:
+   Copy the example environment template into `server/.env`:
+   ```bash
+   cp server/.env.example server/.env
+   # Or copy root .env.example
+   ```
+   Open `server/.env` and configure your MongoDB connection:
+   ```env
+   # Local MongoDB
+   MONGODB_URI=mongodb://localhost:27017/taskmanager
+
+   # Or MongoDB Atlas Cluster
+   # MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+
+   PORT=4000
+   CLIENT_URL=http://localhost:3000
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+2. **Configure Client Environment (Optional)**:
+   ```bash
+   # In client/.env.local (if customized)
+   NEXT_PUBLIC_API_URL=http://localhost:4000
+   ```
+
+### 2. Running the Application
+
 1. **Start the Backend server**:
    ```bash
    cd server
