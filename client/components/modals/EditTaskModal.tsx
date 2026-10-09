@@ -458,7 +458,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         </div>
 
         {/* Content */}
-        <div ref={contentScrollRef} style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div ref={contentScrollRef} className="modal-body-content" style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {rateLimitInfo && (
             <AiQuotaModal
               rateLimitInfo={rateLimitInfo}
