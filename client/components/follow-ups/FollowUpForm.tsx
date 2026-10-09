@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { FollowUp, FollowUpFormData, FollowUpMethod, FOLLOW_UP_METHODS } from '@/types/followUp';
 import { toIsoDate } from '@/lib/dates';
 import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3, Volume2, Video } from 'lucide-react';
+import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 interface FollowUpFormProps {
   defaultContactPerson: string;
@@ -174,13 +175,14 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           {/* Communicated */}
           <div>
             <label className="label" htmlFor="fu-communicated">What I Communicated <span style={{ color: 'var(--high)' }}>*</span></label>
-            <textarea
+            <AutoResizeTextarea
               id="fu-communicated"
-              className="input"
               placeholder="What did you say or write?"
               value={data.communicated}
               onChange={(e) => handleChange('communicated', e.target.value)}
-              rows={2}
+              minHeight={64}
+              maxHeight={260}
+              allowManualResize={true}
               style={{ borderColor: errors.communicated ? 'var(--high)' : undefined }}
             />
             {errors.communicated && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.communicated}</span>}
@@ -189,13 +191,14 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           {/* Response Received */}
           <div>
             <label className="label" htmlFor="fu-response">Response Received</label>
-            <textarea
+            <AutoResizeTextarea
               id="fu-response"
-              className="input"
               placeholder='What was the response?'
               value={data.responseReceived}
               onChange={(e) => handleChange('responseReceived', e.target.value)}
-              rows={1}
+              minHeight={56}
+              maxHeight={220}
+              allowManualResize={true}
             />
           </div>
 
