@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
@@ -45,6 +46,37 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState<{ title: string; message: string } | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    // Ensure modal content starts at top
+    if (contentScrollRef.current) {
+      contentScrollRef.current.scrollTop = 0;
+    }
+    const timer = setTimeout(() => {
+      if (contentScrollRef.current) {
+        contentScrollRef.current.scrollTop = 0;
+      }
+    }, 50);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving && !showUpdateConfirm) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [saving, showUpdateConfirm, onClose]);
 
   const {
     regeneratingIndex,
@@ -321,7 +353,9 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     );
   };
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}>
       {showUpdateConfirm && renderUpdateConfirmModal()}
       {renderSuccessModal()}
@@ -330,12 +364,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         className="modal-box animate-slide-up" 
         style={{ 
           maxWidth: 780, 
-          width: '100%', 
-          maxHeight: '92dvh', 
+          width: 'min(780px, 96vw)', 
+          maxHeight: 'min(92dvh, 880px)', 
           display: 'flex', 
           flexDirection: 'column', 
           overflow: 'hidden', 
-          padding: 0 
+          padding: 0,
+          margin: 'auto',
         }}
       >
         {/* Header */}
@@ -423,7 +458,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         </div>
 
         {/* Content */}
-        <div style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div ref={contentScrollRef} style={{ padding: '16px 24px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {rateLimitInfo && (
             <AiQuotaModal
               rateLimitInfo={rateLimitInfo}
@@ -468,6 +503,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
