@@ -9,6 +9,7 @@ import {
   Sparkles, AlertCircle, CheckCircle2, Trash2, ArrowLeft, 
   Save, RefreshCw, X, AlertTriangle, Plus, Zap, ChevronDown, Check
 } from 'lucide-react';
+import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
 
@@ -433,9 +434,8 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               )}
             </div>
 
-            <textarea
+            <AutoResizeTextarea
               id="ai-raw-input"
-              className="input"
               placeholder={`Examples (English, Marathi, or Hinglish):
 
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
@@ -444,8 +444,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               value={aiLoading ? 'Please wait, structuring your tasks...' : rawText}
               onChange={(e) => setRawText(e.target.value)}
               disabled={aiLoading}
-              rows={8}
-              style={{ resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit', opacity: aiLoading ? 0.6 : 1 }}
+              minHeight={120}
+              maxHeight={320}
+              allowManualResize={true}
+              style={{ lineHeight: 1.6, opacity: aiLoading ? 0.6 : 1 }}
             />
             {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
             {aiError && (

@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Info,
 } from 'lucide-react';
+import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 export type RecipientCategory = 'TO' | 'CC' | 'BCC';
 
@@ -346,13 +347,14 @@ export default function EscalationRecipientsManager({
               </button>
             </div>
 
-            <textarea
-              className="input"
-              rows={3}
+            <AutoResizeTextarea
               placeholder={`e.g.\nhod.dept@example.com\nmanager@example.com\ndyhod@example.com`}
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              style={{ fontSize: 12, fontFamily: 'monospace' }}
+              minHeight={72}
+              maxHeight={220}
+              allowManualResize={true}
+              style={{ fontSize: 12, fontFamily: 'monospace', whiteSpace: 'pre' }}
             />
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
