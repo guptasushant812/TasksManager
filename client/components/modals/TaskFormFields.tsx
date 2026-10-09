@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
 import { Plus } from 'lucide-react';
-import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
@@ -116,14 +115,22 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       {/* Description */}
       <div>
         <label className="label" htmlFor="field-description" style={{ marginBottom: 4 }}>Description</label>
-        <AutoResizeTextarea
+        <textarea
           id="field-description"
+          className="input"
           placeholder="Full task description — what needs to be done, references, etc."
           value={data.description}
-          onChange={(e) => onChange('description', e.target.value)}
-          minHeight={64}
-          maxHeight={320}
-          allowManualResize={true}
+          onChange={(e) => {
+            onChange('description', e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight + 2}px`;
+          }}
+          onFocus={(e) => {
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight + 2}px`;
+          }}
+          rows={1}
+          style={{ resize: 'vertical', lineHeight: 1.4, overflowX: 'auto', overflowY: 'auto', minHeight: '38px' }}
         />
       </div>
 
@@ -312,15 +319,22 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             <label className="label" htmlFor="field-reason-pending">
               Reason for Pending {data.workStatus !== 'Pending' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Pending)</span>}
             </label>
-            <AutoResizeTextarea
+            <textarea
               id="field-reason-pending"
+              className="input"
               placeholder="Why is this task pending or delayed?"
               value={currentPending}
-              onChange={(e) => handleReasonChange('Pending', e.target.value)}
-              minHeight={58}
-              maxHeight={260}
-              allowManualResize={true}
-              style={{ borderColor: 'var(--pending)' }}
+              onChange={(e) => {
+                handleReasonChange('Pending', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'vertical', borderColor: 'var(--pending)', overflowX: 'auto', overflowY: 'auto', minHeight: '38px' }}
             />
           </div>
         )}
@@ -331,15 +345,22 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             <label className="label" htmlFor="field-reason-inprogress">
               Reason for InProgress {data.workStatus !== 'InProgress' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when InProgress)</span>}
             </label>
-            <AutoResizeTextarea
+            <textarea
               id="field-reason-inprogress"
+              className="input"
               placeholder="Notes on current progress or blockers"
               value={currentInProgress}
-              onChange={(e) => handleReasonChange('InProgress', e.target.value)}
-              minHeight={58}
-              maxHeight={260}
-              allowManualResize={true}
-              style={{ borderColor: 'var(--inprogress)' }}
+              onChange={(e) => {
+                handleReasonChange('InProgress', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'vertical', borderColor: 'var(--inprogress)', overflowX: 'auto', overflowY: 'auto', minHeight: '38px' }}
             />
           </div>
         )}
@@ -350,15 +371,22 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             <label className="label" htmlFor="field-remarks-completed">
               Remarks {data.workStatus !== 'Completed' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Completed)</span>}
             </label>
-            <AutoResizeTextarea
+            <textarea
               id="field-remarks-completed"
+              className="input"
               placeholder="What was completed or delivered"
               value={currentCompleted}
-              onChange={(e) => handleReasonChange('Completed', e.target.value)}
-              minHeight={58}
-              maxHeight={260}
-              allowManualResize={true}
-              style={{ borderColor: 'var(--completed)' }}
+              onChange={(e) => {
+                handleReasonChange('Completed', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
+              }}
+              rows={1}
+              style={{ resize: 'vertical', borderColor: 'var(--completed)', overflowX: 'auto', overflowY: 'auto', minHeight: '38px' }}
             />
           </div>
         )}
