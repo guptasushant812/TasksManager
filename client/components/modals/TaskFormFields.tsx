@@ -261,10 +261,10 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                     }}
                   >
                     <span className="status-tab-full-label">
-                      {status === 'Completed' ? 'Remarks' : `Reason (${status})`}
+                      {status === 'Completed' ? 'Reason (Completed)' : `Reason (${status})`}
                     </span>
                     <span className="status-tab-short-label">
-                      {status === 'Completed' ? 'Remarks' : status}
+                      {status === 'Completed' ? 'Completed' : status}
                     </span>
                     {isTaskStatus && (
                       <span
@@ -304,7 +304,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {activeReasonTab === 'Pending' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-reason-pending">
-              Reason for Pending {data.workStatus !== 'Pending' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Pending)</span>}
+              Reason for Pending
             </label>
             <AutoResizeTextarea
               id="field-reason-pending"
@@ -322,7 +322,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {activeReasonTab === 'InProgress' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-reason-inprogress">
-              Reason for InProgress {data.workStatus !== 'InProgress' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when InProgress)</span>}
+              Reason for InProgress
             </label>
             <AutoResizeTextarea
               id="field-reason-inprogress"
@@ -340,7 +340,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {activeReasonTab === 'Completed' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-remarks-completed">
-              Remarks {data.workStatus !== 'Completed' && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Recorded when Completed)</span>}
+              Reason for Completed
             </label>
             <AutoResizeTextarea
               id="field-remarks-completed"
