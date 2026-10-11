@@ -20,29 +20,41 @@ function createZipArchive(options: any = { zlib: { level: 9 } }) {
   throw new Error('Unsupported archiver format');
 }
 
-// Priority and status color definitions
+// Priority and status color definitions aligned with application theme
+const PRIORITY_THEME: Record<string, { text: string; bg: string; border: string }> = {
+  High: { text: '#E11D48', bg: '#FFF1F2', border: '#FECDD3' },    // Rose / Coral Crimson
+  Medium: { text: '#9333EA', bg: '#FAF5FF', border: '#E9D5FF' },  // Vivid Magenta / Purple
+  Low: { text: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },     // Electric Blue
+};
+
+const STATUS_THEME: Record<string, { text: string; bg: string; border: string }> = {
+  InProgress: { text: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' }, // Electric Violet
+  Pending: { text: '#DB2777', bg: '#FDF2F8', border: '#FBCFE8' },    // Radiant Fuchsia / Rose Pink
+  Completed: { text: '#059669', bg: '#ECFDF5', border: '#A7F3D0' },  // Emerald Jade Green
+};
+
 const PRIORITY_COLORS_HEX: Record<string, string> = {
-  High: '#DC2626',   // Crimson Red
-  Medium: '#D97706', // Warm Amber
-  Low: '#16A34A',    // Forest Green
+  High: '#E11D48',
+  Medium: '#9333EA',
+  Low: '#2563EB',
 };
 
 const STATUS_COLORS_HEX: Record<string, string> = {
-  InProgress: '#2563EB', // Vibrant Blue
-  Pending: '#D97706',    // Amber
-  Completed: '#16A34A',  // Emerald Green
+  InProgress: '#7C3AED',
+  Pending: '#DB2777',
+  Completed: '#059669',
 };
 
 const PRIORITY_COLORS_ARGB: Record<string, string> = {
-  High: 'FFDC2626',
-  Medium: 'FFD97706',
-  Low: 'FF16A34A',
+  High: 'FFE11D48',
+  Medium: 'FF9333EA',
+  Low: 'FF2563EB',
 };
 
 const STATUS_COLORS_ARGB: Record<string, string> = {
-  InProgress: 'FF2563EB',
-  Pending: 'FFD97706',
-  Completed: 'FF16A34A',
+  InProgress: 'FF7C3AED',
+  Pending: 'FFDB2777',
+  Completed: 'FF059669',
 };
 
 // Date formatting helpers
@@ -177,6 +189,9 @@ function getReportTitle(query: any, tasks: any[]): string {
     const fromStr = query.dateFrom ? formatDateStr(query.dateFrom) : '';
     const toStr = query.dateTo ? formatDateStr(query.dateTo) : '';
     if (fromStr && toStr) {
+      if (fromStr === toStr) {
+        return `Daily ${prefix} Report — Date ${fromStr}`;
+      }
       return `${reportPrefix} — ${fromStr} to ${toStr}`;
     }
     if (fromStr) return `${reportPrefix} — From ${fromStr}`;
@@ -259,10 +274,85 @@ function generatePdfBuffer(
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', (err: any) => reject(err));
 
-      const colWidths = [26, 112, 178, 78, 48, 60, 34, 58, 58, 124];
-      const headers = ['Sr.', 'Title', 'Description', 'Given By', 'Priority', 'Status', 'F-Ups', 'Date', 'Due Date', 'Reason / Remarks'];
-      const colAligns: ('left' | 'center')[] = ['center', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center', 'left'];
-      const totalW = colWidths.reduce((a, b) => a + b, 0); // 776 pt
+      const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
+      const hasDueDates = tasks.some(t => Boolean(t.dueDate));
+      const isSingleDateReport = reportTitle.includes('Daily ') || reportTitle.includes(' — Date ');
+      const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
+      const showDateCol = !isSingleDateReport && uniqueDates.size > 0;
+
+      interface ColDef {
+        key: string;
+        header: string;
+        baseWidth: number;
+        align: 'left' | 'center';
+        getValue: (task: any, idx: number) => string;
+      }
+
+      const allColDefs: ColDef[] = [
+        { key: 'sr', header: 'Sr.', baseWidth: 26, align: 'center', getValue: (_, idx) => String(idx + 1) },
+        { key: 'title', header: 'Title', baseWidth: 112, align: 'left', getValue: (t) => t.title || '—' },
+        { key: 'description', header: 'Description', baseWidth: 178, align: 'left', getValue: (t) => t.description || '—' },
+        { key: 'givenBy', header: 'Given By', baseWidth: 78, align: 'left', getValue: (t) => t.givenBy || '—' },
+        { key: 'priority', header: 'Priority', baseWidth: 48, align: 'center', getValue: (t) => t.priority || '—' },
+        { key: 'status', header: 'Status', baseWidth: 60, align: 'center', getValue: (t) => t.workStatus || '—' },
+      ];
+
+      if (hasFollowUps) {
+        allColDefs.push({
+          key: 'fUps',
+          header: 'F-Ups',
+          baseWidth: 34,
+          align: 'center',
+          getValue: (t) => String(summaryMap.get(t._id.toString()) || 0)
+        });
+      }
+
+      if (showDateCol) {
+        allColDefs.push({
+          key: 'date',
+          header: 'Date',
+          baseWidth: 58,
+          align: 'center',
+          getValue: (t) => formatDateStr(t.date)
+        });
+      }
+
+      if (hasDueDates) {
+        allColDefs.push({
+          key: 'dueDate',
+          header: 'Due Date',
+          baseWidth: 58,
+          align: 'center',
+          getValue: (t) => (t.dueDate ? formatDateStr(t.dueDate) : '—')
+        });
+      }
+
+      allColDefs.push({
+        key: 'reasonRemarks',
+        header: 'Reason / Remarks',
+        baseWidth: 124,
+        align: 'left',
+        getValue: (t) => formatTaskReasonAndRemarks(t) || '—'
+      });
+
+      const targetTotalW = 776;
+      const baseSum = allColDefs.reduce((acc, c) => acc + c.baseWidth, 0);
+      const extraWidth = targetTotalW - baseSum;
+
+      const descBonus = Math.round(extraWidth * 0.45);
+      const remBonus = Math.round(extraWidth * 0.35);
+      const titleBonus = extraWidth - descBonus - remBonus;
+
+      const colWidths = allColDefs.map(c => {
+        if (c.key === 'description') return c.baseWidth + descBonus;
+        if (c.key === 'reasonRemarks') return c.baseWidth + remBonus;
+        if (c.key === 'title') return c.baseWidth + titleBonus;
+        return c.baseWidth;
+      });
+
+      const headers = allColDefs.map(c => c.header);
+      const colAligns = allColDefs.map(c => c.align);
+      const totalW = targetTotalW;
       const startX = 33;
       const maxPageY = 545;
 
@@ -304,10 +394,22 @@ function generatePdfBuffer(
           const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
           const pending = tasks.filter(t => t.workStatus === 'Pending').length;
 
-          doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
-             .text(`Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`, startX, 44, {
-               lineBreak: false,
-             });
+          doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#334155')
+             .text('Generated: ', startX, 44, { continued: true, lineBreak: false });
+          doc.font('Helvetica').fillColor('#475569')
+             .text(formatDateTimeStr(new Date()), { continued: true, lineBreak: false });
+          doc.font('Helvetica').fillColor('#94A3B8')
+             .text('   |   ', { continued: true, lineBreak: false });
+          doc.font('Helvetica-Bold').fillColor('#334155')
+             .text('Total Tasks: ', { continued: true, lineBreak: false });
+          doc.font('Helvetica').fillColor('#475569')
+             .text(String(tasks.length), { continued: true, lineBreak: false });
+          doc.font('Helvetica').fillColor('#94A3B8')
+             .text('   |   ', { continued: true, lineBreak: false });
+          doc.font('Helvetica-Bold').fillColor('#334155')
+             .text('Name: ', { continued: true, lineBreak: false });
+          doc.font('Helvetica').fillColor('#1E293B')
+             .text('Sushant Gupta', { continued: false, lineBreak: false });
 
           doc.fontSize(8.5).font('Helvetica-Bold');
           const sCompleted = `Completed: ${completed}`;
@@ -323,15 +425,15 @@ function generatePdfBuffer(
           const totalStatsW = wComp + wDiv + wProg + wDiv + wPend;
           let statsX = startX + totalW - totalStatsW;
 
-          doc.font('Helvetica-Bold').fillColor('#16A34A').text(sCompleted, statsX, 44, { lineBreak: false });
+          doc.font('Helvetica-Bold').fillColor('#059669').text(sCompleted, statsX, 44, { lineBreak: false });
           statsX += wComp;
           doc.font('Helvetica').fillColor('#94A3B8').text(sDivider, statsX, 44, { lineBreak: false });
           statsX += wDiv;
-          doc.font('Helvetica-Bold').fillColor('#2563EB').text(sInProg, statsX, 44, { lineBreak: false });
+          doc.font('Helvetica-Bold').fillColor('#7C3AED').text(sInProg, statsX, 44, { lineBreak: false });
           statsX += wProg;
           doc.font('Helvetica').fillColor('#94A3B8').text(sDivider, statsX, 44, { lineBreak: false });
           statsX += wDiv;
-          doc.font('Helvetica-Bold').fillColor('#D97706').text(sPending, statsX, 44, { lineBreak: false });
+          doc.font('Helvetica-Bold').fillColor('#DB2777').text(sPending, statsX, 44, { lineBreak: false });
 
           doc.moveTo(startX, 58).lineTo(startX + totalW, 58).strokeColor('#CBD5E1').lineWidth(0.75).stroke();
 
@@ -344,12 +446,24 @@ function generatePdfBuffer(
                lineBreak: false,
              });
 
-          doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
-             .text(`Name: Sushant Gupta   |   ${formatDateTimeStr(new Date())}`, startX + totalW - 250, 26, {
-               width: 250,
-               align: 'right',
-               lineBreak: false,
-             });
+          const namePart = 'Name: ';
+          const authorName = 'Sushant Gupta';
+          const datePart = `   |   ${formatDateTimeStr(new Date())}`;
+
+          doc.fontSize(8.5).font('Helvetica-Bold');
+          const wNamePrefix = doc.widthOfString(namePart);
+          doc.font('Helvetica');
+          const wAuthor = doc.widthOfString(authorName);
+          const wDate = doc.widthOfString(datePart);
+          const totalSubMetaW = wNamePrefix + wAuthor + wDate;
+          const subMetaX = startX + totalW - totalSubMetaW;
+
+          doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#334155')
+             .text(namePart, subMetaX, 26, { lineBreak: false, continued: true });
+          doc.font('Helvetica').fillColor('#1E293B')
+             .text(authorName, { lineBreak: false, continued: true });
+          doc.font('Helvetica').fillColor('#64748B')
+             .text(datePart, { lineBreak: false, continued: false });
 
           doc.moveTo(startX, 42).lineTo(startX + totalW, 42).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
 
@@ -360,25 +474,14 @@ function generatePdfBuffer(
       let rowY = drawReportHeader(true);
 
       tasks.forEach((task: any, idx: number) => {
-        const remarkOrReason = formatTaskReasonAndRemarks(task);
-        const cells = [
-          String(idx + 1),
-          task.title || '—',
-          task.description || '—',
-          task.givenBy || '—',
-          task.priority || '—',
-          task.workStatus || '—',
-          String(summaryMap.get(task._id.toString()) || 0),
-          formatDateStr(task.date),
-          task.dueDate ? formatDateStr(task.dueDate) : '—',
-          remarkOrReason || '—',
-        ];
+        const cells = allColDefs.map(col => col.getValue(task, idx));
 
         let maxContentH = 11;
         cells.forEach((text, i) => {
           if (!text || text === '—') return;
           const colW = colWidths[i];
-          const isBold = i === 1 || i === 4 || i === 5;
+          const colKey = allColDefs[i].key;
+          const isBold = colKey === 'title' || colKey === 'priority' || colKey === 'status';
           doc.fontSize(8.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica');
           const h = doc.heightOfString(text, { width: colW - 8, lineGap: 1.8 });
           if (h > maxContentH) maxContentH = h;
@@ -407,32 +510,72 @@ function generatePdfBuffer(
         let cellX = startX;
         cells.forEach((text, i) => {
           const colW = colWidths[i];
-          let cellColor = '#1E293B';
-          let isBold = false;
+          const colKey = allColDefs[i].key;
 
-          if (i === 4) {
-            cellColor = PRIORITY_COLORS_HEX[task.priority] || '#1E293B';
-            isBold = true;
-          } else if (i === 5) {
-            cellColor = STATUS_COLORS_HEX[task.workStatus] || '#1E293B';
-            isBold = true;
+          if (colKey === 'priority' && task.priority && PRIORITY_THEME[task.priority]) {
+            const theme = PRIORITY_THEME[task.priority];
+            doc.fontSize(7.5).font('Helvetica-Bold');
+            const badgeTextW = doc.widthOfString(text);
+            const badgeW = Math.min(colW - 6, Math.max(30, badgeTextW + 10));
+            const badgeH = 14;
+            const badgeX = cellX + Math.round((colW - badgeW) / 2);
+            const badgeY = rowY + Math.round((rowH - badgeH) / 2);
+
+            doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3)
+               .fillColor(theme.bg)
+               .strokeColor(theme.border)
+               .lineWidth(0.5)
+               .fillAndStroke();
+
+            doc.fillColor(theme.text)
+               .fontSize(7.5)
+               .font('Helvetica-Bold')
+               .text(text, badgeX, badgeY + 3, {
+                 width: badgeW,
+                 align: 'center',
+                 lineBreak: false,
+               });
+          } else if (colKey === 'status' && task.workStatus && STATUS_THEME[task.workStatus]) {
+            const theme = STATUS_THEME[task.workStatus];
+            const displayStatus = task.workStatus === 'InProgress' ? 'In Progress' : task.workStatus;
+            doc.fontSize(7.5).font('Helvetica-Bold');
+            const badgeTextW = doc.widthOfString(displayStatus);
+            const badgeW = Math.min(colW - 4, Math.max(38, badgeTextW + 8));
+            const badgeH = 14;
+            const badgeX = cellX + Math.round((colW - badgeW) / 2);
+            const badgeY = rowY + Math.round((rowH - badgeH) / 2);
+
+            doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3)
+               .fillColor(theme.bg)
+               .strokeColor(theme.border)
+               .lineWidth(0.5)
+               .fillAndStroke();
+
+            doc.fillColor(theme.text)
+               .fontSize(7.5)
+               .font('Helvetica-Bold')
+               .text(displayStatus, badgeX, badgeY + 3, {
+                 width: badgeW,
+                 align: 'center',
+                 lineBreak: false,
+               });
           } else {
-            cellColor = '#334155';
+            const isBold = colKey === 'title';
+            const cellColor = (colKey === 'title') ? '#0F172A' : (text === '—' ? '#94A3B8' : '#334155');
+            const textH = text && text !== '—'
+              ? doc.fontSize(8.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica').heightOfString(text, { width: colW - 8, lineGap: 1.8 })
+              : 10;
+            const cellY = rowY + Math.max(4, Math.floor((rowH - textH) / 2));
+
+            doc.fillColor(cellColor)
+               .fontSize(8.5)
+               .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
+               .text(text, cellX + 4, cellY, {
+                 width: colW - 8,
+                 align: colAligns[i],
+                 lineGap: 1.8,
+               });
           }
-
-          const textH = text && text !== '—'
-            ? doc.fontSize(8.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica').heightOfString(text, { width: colW - 8, lineGap: 1.8 })
-            : 10;
-          const cellY = rowY + Math.max(4, Math.floor((rowH - textH) / 2));
-
-          doc.fillColor(cellColor)
-             .fontSize(8.5)
-             .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
-             .text(text, cellX + 4, cellY, {
-               width: colW - 8,
-               align: colAligns[i],
-               lineGap: 1.8,
-             });
 
           cellX += colW;
         });
@@ -549,22 +692,16 @@ function generatePdfBuffer(
 
         doc.moveTo(startX, 558)
            .lineTo(startX + totalW, 558)
-           .strokeColor('#CBD5E1')
-           .lineWidth(0.75)
+           .strokeColor('#E2E8F0')
+           .lineWidth(0.5)
            .stroke();
 
-        doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
-           .text(`© ${new Date().getFullYear()} `, startX, 566, { continued: true });
-        doc.font('Helvetica-Bold').fillColor('#2563EB')
-           .text('TasksManager', { continued: true });
-        doc.font('Helvetica').fillColor('#64748B')
-           .text(' by ', { continued: true });
-        doc.font('Helvetica-Bold').fillColor('#0F172A')
-           .text('Sushant Gupta', { continued: true });
-        doc.font('Helvetica').fillColor('#94A3B8')
-           .text('  •  All Rights Reserved.', { continued: false });
+        doc.fontSize(8.5).font('Helvetica').fillColor('#475569')
+           .text(`© ${new Date().getFullYear()} TasksManager. All rights reserved.`, startX, 566, {
+             lineBreak: false,
+           });
 
-        doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#475569')
+        doc.fontSize(8.5).font('Helvetica').fillColor('#64748B')
            .text(`Page ${p + 1} of ${totalPages}`, startX + totalW - 150, 566, {
              width: 150,
              align: 'right',
@@ -608,20 +745,73 @@ async function generateExcelBuffer(
     views: [{ state: 'frozen', xSplit: 0, ySplit: 4, topLeftCell: 'A5', activeCell: 'A5' }],
   });
 
-  sheet.columns = [
-    { header: 'Sr No', key: 'sr', width: 8 },
-    { header: 'Title', key: 'title', width: 28 },
-    { header: 'Description', key: 'description', width: 48 },
-    { header: 'Given By', key: 'givenBy', width: 20 },
-    { header: 'Priority', key: 'priority', width: 14 },
-    { header: 'Work Status', key: 'workStatus', width: 16 },
-    { header: 'Follow-ups', key: 'fUps', width: 13 },
-    { header: 'Date', key: 'date', width: 14 },
-    { header: 'Due Date', key: 'dueDate', width: 14 },
-    { header: 'Reason / Remarks', key: 'reasonRemarks', width: 42 },
+  const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
+  const hasDueDates = tasks.some(t => Boolean(t.dueDate));
+  const isSingleDateReport = reportTitle.includes('Daily ') || reportTitle.includes(' — Date ');
+  const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
+  const showDateCol = !isSingleDateReport && uniqueDates.size > 0;
+
+  interface ExcelColDef {
+    header: string;
+    key: string;
+    width: number;
+    getValue: (task: any, idx: number) => any;
+    isLeft?: boolean;
+    isPriority?: boolean;
+    isStatus?: boolean;
+  }
+
+  const excelCols: ExcelColDef[] = [
+    { header: 'Sr No', key: 'sr', width: 8, getValue: (_, idx) => idx + 1 },
+    { header: 'Title', key: 'title', width: 28, getValue: (t) => t.title || '', isLeft: true },
+    { header: 'Description', key: 'description', width: 48, getValue: (t) => t.description || '', isLeft: true },
+    { header: 'Given By', key: 'givenBy', width: 20, getValue: (t) => t.givenBy || '', isLeft: true },
+    { header: 'Priority', key: 'priority', width: 14, getValue: (t) => t.priority || '', isPriority: true },
+    { header: 'Work Status', key: 'workStatus', width: 16, getValue: (t) => t.workStatus || '', isStatus: true },
   ];
 
-  sheet.mergeCells('A1:J1');
+  if (hasFollowUps) {
+    excelCols.push({
+      header: 'Follow-ups',
+      key: 'fUps',
+      width: 13,
+      getValue: (t) => summaryMap.get(t._id.toString()) || 0,
+    });
+  }
+
+  if (showDateCol) {
+    excelCols.push({
+      header: 'Date',
+      key: 'date',
+      width: 14,
+      getValue: (t) => formatDateStr(t.date),
+    });
+  }
+
+  if (hasDueDates) {
+    excelCols.push({
+      header: 'Due Date',
+      key: 'dueDate',
+      width: 14,
+      getValue: (t) => (t.dueDate ? formatDateStr(t.dueDate) : '—'),
+    });
+  }
+
+  excelCols.push({
+    header: 'Reason / Remarks',
+    key: 'reasonRemarks',
+    width: 42,
+    getValue: (t) => formatTaskReasonAndRemarks(t) || '—',
+    isLeft: true,
+  });
+
+  sheet.columns = excelCols.map(c => ({ header: c.header, key: c.key, width: c.width }));
+  const lastColLetter = String.fromCharCode(64 + excelCols.length);
+  const midSplit = Math.max(3, Math.floor(excelCols.length * 0.6));
+  const midLeft = String.fromCharCode(64 + midSplit);
+  const midRight = String.fromCharCode(65 + midSplit);
+
+  sheet.mergeCells(`A1:${lastColLetter}1`);
   const titleCell = sheet.getCell('A1');
   titleCell.value = reportTitle;
   titleCell.font = { bold: true, color: { argb: 'FF0F172A' }, size: 14, name: 'Calibri' };
@@ -633,22 +823,31 @@ async function generateExcelBuffer(
   const inProg = tasks.filter(t => t.workStatus === 'InProgress').length;
   const pending = tasks.filter(t => t.workStatus === 'Pending').length;
 
-  sheet.mergeCells('A2:F2');
+  sheet.mergeCells(`A2:${midLeft}2`);
   const metaCell = sheet.getCell('A2');
-  metaCell.value = `Generated: ${formatDateTimeStr(new Date())}   |   Total Tasks: ${tasks.length}   |   Name: Sushant Gupta`;
+  metaCell.value = {
+    richText: [
+      { text: 'Generated: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+      { text: `${formatDateTimeStr(new Date())}   |   `, font: { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' } },
+      { text: 'Total Tasks: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+      { text: `${tasks.length}   |   `, font: { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' } },
+      { text: 'Name: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+      { text: 'Sushant Gupta', font: { color: { argb: 'FF1E293B' }, size: 9.5, name: 'Calibri' } },
+    ],
+  };
   metaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
   metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
   metaCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-  sheet.mergeCells('G2:J2');
-  const statsCell = sheet.getCell('G2');
+  sheet.mergeCells(`${midRight}2:${lastColLetter}2`);
+  const statsCell = sheet.getCell(`${midRight}2`);
   statsCell.value = {
     richText: [
-      { text: `Completed: ${completed}`, font: { bold: true, color: { argb: 'FF16A34A' }, size: 9.5, name: 'Calibri' } },
+      { text: `Completed: ${completed}`, font: { bold: true, color: { argb: 'FF059669' }, size: 9.5, name: 'Calibri' } },
       { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
-      { text: `In Progress: ${inProg}`, font: { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' } },
+      { text: `In Progress: ${inProg}`, font: { bold: true, color: { argb: 'FF7C3AED' }, size: 9.5, name: 'Calibri' } },
       { text: '   |   ', font: { color: { argb: 'FF94A3B8' }, size: 9.5, name: 'Calibri' } },
-      { text: `Pending: ${pending}`, font: { bold: true, color: { argb: 'FFD97706' }, size: 9.5, name: 'Calibri' } },
+      { text: `Pending: ${pending}`, font: { bold: true, color: { argb: 'FFDB2777' }, size: 9.5, name: 'Calibri' } },
     ],
   };
   statsCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
@@ -658,7 +857,7 @@ async function generateExcelBuffer(
   sheet.getRow(3).height = 8;
 
   const headerRow = sheet.getRow(4);
-  headerRow.values = ['Sr No', 'Title', 'Description', 'Given By', 'Priority', 'Work Status', 'Follow-ups', 'Date', 'Due Date', 'Reason / Remarks'];
+  headerRow.values = excelCols.map(c => c.header);
   headerRow.height = 26;
   headerRow.eachCell((cell) => {
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
@@ -673,29 +872,23 @@ async function generateExcelBuffer(
   });
 
   tasks.forEach((task: any, idx: number) => {
-    const remarkOrReason = formatTaskReasonAndRemarks(task);
     const rowBg = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
-
-    const row = sheet.addRow({
-      sr: idx + 1,
-      title: task.title || '',
-      description: task.description || '',
-      givenBy: task.givenBy || '',
-      priority: task.priority || '',
-      workStatus: task.workStatus || '',
-      fUps: summaryMap.get(task._id.toString()) || 0,
-      date: formatDateStr(task.date),
-      dueDate: task.dueDate ? formatDateStr(task.dueDate) : '—',
-      reasonRemarks: remarkOrReason || '—',
+    const rowObj: Record<string, any> = {};
+    excelCols.forEach(col => {
+      rowObj[col.key] = col.getValue(task, idx);
     });
 
+    const row = sheet.addRow(rowObj);
+
     const descLines = Math.max(1, Math.ceil((task.description || '').length / 44));
-    const remarksLines = Math.max(1, Math.ceil((remarkOrReason || '').length / 38));
+    const remarks = formatTaskReasonAndRemarks(task);
+    const remarksLines = Math.max(1, Math.ceil((remarks || '').length / 38));
     const titleLines = Math.max(1, Math.ceil((task.title || '').length / 26));
     const maxLines = Math.max(descLines, remarksLines, titleLines);
     row.height = maxLines === 1 ? 22 : Math.min(160, Math.max(26, maxLines * 16));
 
     row.eachCell((cell, colNumber) => {
+      const colDef = excelCols[colNumber - 1];
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
       cell.font = { color: { argb: 'FF1E293B' }, size: 10, name: 'Calibri' };
       cell.border = {
@@ -705,28 +898,27 @@ async function generateExcelBuffer(
         right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
       };
 
-      const isLeft = [2, 3, 4, 10].includes(colNumber);
-      cell.alignment = { vertical: 'middle', horizontal: isLeft ? 'left' : 'center', wrapText: true };
+      cell.alignment = { vertical: 'middle', horizontal: colDef?.isLeft ? 'left' : 'center', wrapText: true };
 
-      if (colNumber === 5 && PRIORITY_COLORS_ARGB[task.priority]) {
+      if (colDef?.isPriority && PRIORITY_COLORS_ARGB[task.priority]) {
         cell.font = { color: { argb: PRIORITY_COLORS_ARGB[task.priority] }, bold: true, size: 10, name: 'Calibri' };
       }
-      if (colNumber === 6 && STATUS_COLORS_ARGB[task.workStatus]) {
+      if (colDef?.isStatus && STATUS_COLORS_ARGB[task.workStatus]) {
         cell.font = { color: { argb: STATUS_COLORS_ARGB[task.workStatus] }, bold: true, size: 10, name: 'Calibri' };
       }
     });
   });
 
   const lastRowIdx = sheet.rowCount + 2;
-  sheet.mergeCells(`A${lastRowIdx}:J${lastRowIdx}`);
+  sheet.mergeCells(`A${lastRowIdx}:${lastColLetter}${lastRowIdx}`);
   const sheetFooter = sheet.getCell(`A${lastRowIdx}`);
-  sheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
-  sheetFooter.font = { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' };
-  sheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+  sheetFooter.value = `© ${new Date().getFullYear()} TasksManager. All rights reserved.`;
+  sheetFooter.font = { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' };
+  sheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
   sheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getRow(lastRowIdx).height = 22;
 
-  sheet.autoFilter = { from: 'A4', to: 'J4' };
+  sheet.autoFilter = { from: 'A4', to: `${lastColLetter}4` };
 
   // SHEET 2: Follow-Ups Log
   if (allFollowUps.length > 0) {
@@ -758,7 +950,16 @@ async function generateExcelBuffer(
 
     fuSheet.mergeCells('A2:J2');
     const fuMetaCell = fuSheet.getCell('A2');
-    fuMetaCell.value = `Generated on: ${formatDateTimeStr(new Date())}   |   Total Follow-Up Records: ${allFollowUps.length}   |   Name: Sushant Gupta`;
+    fuMetaCell.value = {
+      richText: [
+        { text: 'Generated: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+        { text: `${formatDateTimeStr(new Date())}   |   `, font: { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' } },
+        { text: 'Total Records: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+        { text: `${allFollowUps.length}   |   `, font: { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' } },
+        { text: 'Name: ', font: { bold: true, color: { argb: 'FF334155' }, size: 9.5, name: 'Calibri' } },
+        { text: 'Sushant Gupta', font: { color: { argb: 'FF1E293B' }, size: 9.5, name: 'Calibri' } },
+      ],
+    };
     fuMetaCell.font = { italic: true, color: { argb: 'FF64748B' }, size: 9.5, name: 'Calibri' };
     fuMetaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
     fuMetaCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -856,9 +1057,9 @@ async function generateExcelBuffer(
     const fuLastRowIdx = fuSheet.rowCount + 2;
     fuSheet.mergeCells(`A${fuLastRowIdx}:J${fuLastRowIdx}`);
     const fuSheetFooter = fuSheet.getCell(`A${fuLastRowIdx}`);
-    fuSheetFooter.value = `© ${new Date().getFullYear()} TasksManager by Sushant Gupta. All Rights Reserved.`;
-    fuSheetFooter.font = { bold: true, color: { argb: 'FF2563EB' }, size: 9.5, name: 'Calibri' };
-    fuSheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    fuSheetFooter.value = `© ${new Date().getFullYear()} TasksManager. All rights reserved.`;
+    fuSheetFooter.font = { color: { argb: 'FF475569' }, size: 9.5, name: 'Calibri' };
+    fuSheetFooter.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
     fuSheetFooter.alignment = { horizontal: 'center', vertical: 'middle' };
     fuSheet.getRow(fuLastRowIdx).height = 22;
 

@@ -272,6 +272,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           overflowX: 'hidden', 
           display: 'flex', 
           flexDirection: 'column',
+          gap: '1rem',
           width: '100%',
           maxWidth: '100%',
           boxSizing: 'border-box',
