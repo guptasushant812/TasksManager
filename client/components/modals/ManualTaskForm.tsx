@@ -272,7 +272,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
           overflowX: 'hidden', 
           display: 'flex', 
           flexDirection: 'column',
-          gap: '1rem',
+          gap: '1.25rem',
           width: '100%',
           maxWidth: '100%',
           boxSizing: 'border-box',
@@ -318,7 +318,11 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 width: '100%',
                 maxWidth: '100%',
                 boxSizing: 'border-box',
-                overflowX: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                height: 510,
+                minHeight: 510,
+                overflow: 'hidden',
               }}
             >
               <div className="manual-task-card-header">
@@ -425,123 +429,137 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 </div>
               </div>
 
-              {errors[`${draft.id}-ai`] && (
-                <div
-                  style={{
-                    marginBottom: 14,
-                    padding: '8px 12px',
-                    background: 'var(--high-bg)',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: 12,
-                    color: 'var(--high)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <AlertCircle style={{ width: 13, height: 13 }} />
-                  <span>{errors[`${draft.id}-ai`]}</span>
-                </div>
-              )}
-
-              {isRegenBoxOpen && (
-                <div
-                  style={{
-                    padding: 14,
-                    marginBottom: 18,
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--accent)',
-                    borderRadius: 'var(--radius-md)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: 'var(--accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                      }}
-                    >
-                      <Sparkles style={{ width: 13, height: 13 }} /> Improve Task {i + 1} with AI
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setActiveRegenId(null)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}
-                    >
-                      <X style={{ width: 14, height: 14 }} />
-                    </button>
-                  </div>
-
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Optional instruction: e.g., 'Make title punchier', 'Add action items'..."
-                    value={regenInstruction}
-                    onChange={(e) => setRegenInstruction(e.target.value)}
-                    style={{ fontSize: 12, padding: '8px 10px' }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleImproveWithAi(draft, i);
-                      }
-                    }}
-                  />
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      style={{ padding: '4px 10px', fontSize: 12 }}
-                      onClick={() => setActiveRegenId(null)}
-                      disabled={isThisRegenerating}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      style={{ padding: '4px 14px', fontSize: 12, background: 'var(--accent)' }}
-                      onClick={() => handleImproveWithAi(draft, i)}
-                      disabled={isThisRegenerating}
-                    >
-                      {isThisRegenerating ? (
-                        <><div className="animate-spin" style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} /> Improving…</>
-                      ) : (
-                        <><Sparkles style={{ width: 12, height: 12 }} /> Improve This Task</>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
               <div
+                className="manual-task-card-body"
                 style={{
-                  opacity: isThisRegenerating ? 0.45 : 1,
-                  pointerEvents: isThisRegenerating ? 'none' : 'auto',
-                  transition: 'opacity 0.2s ease',
-                  width: '100%',
-                  maxWidth: '100%',
-                  minWidth: 0,
-                  boxSizing: 'border-box',
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  paddingRight: 4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
                 }}
               >
-                <TaskFormFields
-                  data={{
-                    ...draft,
-                    priority: draft.priority as Priority | '',
-                    workStatus: draft.workStatus as WorkStatus | '',
+                {errors[`${draft.id}-ai`] && (
+                  <div
+                    style={{
+                      marginBottom: 14,
+                      padding: '8px 12px',
+                      background: 'var(--high-bg)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: 12,
+                      color: 'var(--high)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <AlertCircle style={{ width: 13, height: 13 }} />
+                    <span>{errors[`${draft.id}-ai`]}</span>
+                  </div>
+                )}
+
+                {isRegenBoxOpen && (
+                  <div
+                    style={{
+                      padding: 14,
+                      marginBottom: 18,
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--accent)',
+                      borderRadius: 'var(--radius-md)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: 'var(--accent)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Sparkles style={{ width: 13, height: 13 }} /> Improve Task {i + 1} with AI
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveRegenId(null)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}
+                      >
+                        <X style={{ width: 14, height: 14 }} />
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Optional instruction: e.g., 'Make title punchier', 'Add action items'..."
+                      value={regenInstruction}
+                      onChange={(e) => setRegenInstruction(e.target.value)}
+                      style={{ fontSize: 12, padding: '8px 10px' }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleImproveWithAi(draft, i);
+                        }
+                      }}
+                    />
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        style={{ padding: '4px 10px', fontSize: 12 }}
+                        onClick={() => setActiveRegenId(null)}
+                        disabled={isThisRegenerating}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ padding: '4px 14px', fontSize: 12, background: 'var(--accent)' }}
+                        onClick={() => handleImproveWithAi(draft, i)}
+                        disabled={isThisRegenerating}
+                      >
+                        {isThisRegenerating ? (
+                          <><div className="animate-spin" style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} /> Improving…</>
+                        ) : (
+                          <><Sparkles style={{ width: 12, height: 12 }} /> Improve This Task</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    opacity: isThisRegenerating ? 0.45 : 1,
+                    pointerEvents: isThisRegenerating ? 'none' : 'auto',
+                    transition: 'opacity 0.2s ease',
+                    width: '100%',
+                    maxWidth: '100%',
+                    minWidth: 0,
+                    boxSizing: 'border-box',
                   }}
-                  onChange={(field, val) => handleDraftChange(draft.id, field, val)}
-                  errors={draftErrors}
-                />
+                >
+                  <TaskFormFields
+                    data={{
+                      ...draft,
+                      priority: draft.priority as Priority | '',
+                      workStatus: draft.workStatus as WorkStatus | '',
+                    }}
+                    onChange={(field, val) => handleDraftChange(draft.id, field, val)}
+                    errors={draftErrors}
+                  />
+                </div>
               </div>
             </div>
           );
