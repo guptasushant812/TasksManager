@@ -8,6 +8,39 @@ import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
+const PRIORITY_CONFIG: Record<Priority, {
+  color: string;
+  bgActive: string;
+  borderActive: string;
+  bgInactive: string;
+  borderInactive: string;
+  textInactive: string;
+}> = {
+  High: {
+    color: '#ff4d6d',
+    bgActive: 'rgba(255, 77, 109, 0.16)',
+    borderActive: 'rgba(255, 77, 109, 0.55)',
+    bgInactive: 'rgba(255, 77, 109, 0.04)',
+    borderInactive: 'rgba(255, 77, 109, 0.2)',
+    textInactive: 'rgba(255, 77, 109, 0.65)',
+  },
+  Medium: {
+    color: '#a78bfa',
+    bgActive: 'rgba(167, 139, 250, 0.16)',
+    borderActive: 'rgba(167, 139, 250, 0.55)',
+    bgInactive: 'rgba(167, 139, 250, 0.04)',
+    borderInactive: 'rgba(167, 139, 250, 0.2)',
+    textInactive: 'rgba(167, 139, 250, 0.65)',
+  },
+  Low: {
+    color: '#38bdf8',
+    bgActive: 'rgba(56, 189, 248, 0.16)',
+    borderActive: 'rgba(56, 189, 248, 0.55)',
+    bgInactive: 'rgba(56, 189, 248, 0.04)',
+    borderInactive: 'rgba(56, 189, 248, 0.2)',
+    textInactive: 'rgba(56, 189, 248, 0.65)',
+  },
+};
 
 interface FormData {
   title: string;
@@ -172,16 +205,44 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
         <div>
           <label className="label" style={{ marginBottom: 4 }}>Priority</label>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {PRIORITIES.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => onChange('priority', data.priority === p ? '' : p)}
-                className={`pill ${data.priority === p ? 'active' : ''}`}
-                style={{ flex: 1, fontSize: 11, padding: '4px 6px', textAlign: 'center' }}
-              >{p}</button>
-            ))}
+          <div className="priority-button-group" style={{ display: 'flex', gap: 6, width: '100%', minWidth: 0, height: 42, alignItems: 'stretch' }}>
+            {PRIORITIES.map((p) => {
+              const isSelected = data.priority === p;
+              const cfg = PRIORITY_CONFIG[p];
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => onChange('priority', isSelected ? '' : p)}
+                  className={`pill priority-pill-btn ${isSelected ? 'active' : ''}`}
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    height: '100%',
+                    minHeight: 42,
+                    padding: '8px 10px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    textTransform: 'capitalize',
+                    borderRadius: 9999,
+                    border: isSelected ? `1.5px solid ${cfg.borderActive}` : `1px solid ${cfg.borderInactive}`,
+                    background: isSelected ? cfg.bgActive : cfg.bgInactive,
+                    color: isSelected ? cfg.color : cfg.textInactive,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? `0 0 10px ${cfg.bgActive}` : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                    userSelect: 'none',
+                  }}
+                >
+                  {p}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div>
