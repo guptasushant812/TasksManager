@@ -6939,6 +6939,63 @@ body {
     padding: 10px 12px !important;
     gap: 8px !important;
   }
+
+  .status-tabs-nav-wrap {
+    margin-bottom: 8px !important;
+    width: 100% !important;
+  }
+
+  .status-tabs-list {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .status-tab-btn {
+    padding: 5px 2px !important;
+    min-height: 38px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2px !important;
+    text-align: center !important;
+    border-radius: var(--radius-sm) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .status-tab-full-label {
+    display: none !important;
+  }
+
+  .status-tab-short-label {
+    display: block !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .status-tab-current-badge {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    line-height: 1 !important;
+    font-weight: 700 !important;
+  }
+
+  .status-tabs-hide-btn {
+    align-self: flex-end !important;
+    font-size: 11px !important;
+    padding: 1px 4px !important;
+  }
 }
 
 /* Mobile S: ≤ 360px & ≤ 320px (Emerging markets & budget devices) */
