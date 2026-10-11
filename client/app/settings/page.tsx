@@ -28,7 +28,10 @@ import {
   Cpu,
   Key,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Trash2,
+  ArrowRight
 } from 'lucide-react';
 
 const TABS = [
@@ -103,7 +106,10 @@ export default function SettingsPage() {
   // AI Assistant Preferences & Fallback Key
   const [preferredAiModel, setPreferredAiModel] = useState('auto');
   const [customAiKey, setCustomAiKey] = useState('');
+  const [customAiProvider, setCustomAiProvider] = useState<'gemini' | 'grok'>('gemini');
+  const [showAiKey, setShowAiKey] = useState(false);
   const [aiKeySaved, setAiKeySaved] = useState(false);
+  const [aiKeyCleared, setAiKeyCleared] = useState(false);
 
   useEffect(() => {
     try {
@@ -111,6 +117,12 @@ export default function SettingsPage() {
       if (m) setPreferredAiModel(m);
       const k = localStorage.getItem('tasksmanager_custom_ai_key');
       if (k) setCustomAiKey(k);
+      const p = localStorage.getItem('tasksmanager_custom_ai_provider');
+      if (p === 'grok' || p === 'gemini') {
+        setCustomAiProvider(p);
+      } else if (k?.startsWith('xai-')) {
+        setCustomAiProvider('grok');
+      }
     } catch {}
   }, []);
 
@@ -121,16 +133,33 @@ export default function SettingsPage() {
     } catch {}
   };
 
-  const handleSaveCustomAiKey = (key: string) => {
-    setCustomAiKey(key);
+  const handleSaveCustomAiKey = (key: string, providerOverride?: 'gemini' | 'grok') => {
+    const trimmed = key.trim();
+    setCustomAiKey(trimmed);
+    const provider = providerOverride || (trimmed.startsWith('xai-') ? 'grok' : customAiProvider);
+    setCustomAiProvider(provider);
     try {
-      if (key.trim()) {
-        localStorage.setItem('tasksmanager_custom_ai_key', key.trim());
+      if (trimmed) {
+        localStorage.setItem('tasksmanager_custom_ai_key', trimmed);
+        localStorage.setItem('tasksmanager_custom_ai_provider', provider);
+        setAiKeySaved(true);
+        setTimeout(() => setAiKeySaved(false), 2500);
       } else {
         localStorage.removeItem('tasksmanager_custom_ai_key');
+        localStorage.removeItem('tasksmanager_custom_ai_provider');
+        setAiKeyCleared(true);
+        setTimeout(() => setAiKeyCleared(false), 2500);
       }
-      setAiKeySaved(true);
-      setTimeout(() => setAiKeySaved(false), 2500);
+    } catch {}
+  };
+
+  const handleClearCustomAiKey = () => {
+    setCustomAiKey('');
+    try {
+      localStorage.removeItem('tasksmanager_custom_ai_key');
+      localStorage.removeItem('tasksmanager_custom_ai_provider');
+      setAiKeyCleared(true);
+      setTimeout(() => setAiKeyCleared(false), 2500);
     } catch {}
   };
 
@@ -768,14 +797,47 @@ export default function SettingsPage() {
 
                   {/* Engine Selection */}
                   <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)' }}>
-                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, display: 'block' }}>
-                      Preferred AI Model
-                    </label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+                      <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                        Preferred AI Model
+                      </label>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        Select default engine or keep recommended auto-failover
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                       {[
-                        { id: 'auto', name: 'Gemini 3.8 Flash', badge: 'Default Flagship', desc: 'Standard next-gen model for structured task extraction' },
+                        {
+                          id: 'auto',
+                          name: 'Auto-Failover Chain',
+                          engine: 'Gemini 3.8 Flash ➔ xAI Grok 4.7',
+                          badge: 'Recommended',
+                          desc: 'Google Gemini primary with instant auto-fallback to xAI Grok if quotas or limits are reached.',
+                          icon: Sparkles,
+                          highlight: true,
+                        },
+                        {
+                          id: 'gemini-3.8-flash',
+                          name: 'Gemini 3.8 Flash',
+                          engine: 'Google DeepMind',
+                          badge: 'Primary Flagship',
+                          desc: 'Standard next-gen model for structured task extraction, quick drafts, and multi-field parsing.',
+                          icon: Zap,
+                          highlight: false,
+                        },
+                        {
+                          id: 'grok-4.7',
+                          name: 'xAI Grok 4.7',
+                          engine: 'xAI Frontier',
+                          badge: 'Direct Grok',
+                          desc: 'Direct connection to xAI Grok with high-context reasoning and linguistic resilience.',
+                          icon: Cpu,
+                          highlight: false,
+                        },
                       ].map((m) => {
-                        const isSelected = preferredAiModel === m.id || (m.id === 'auto' && preferredAiModel === 'auto');
+                        const isSelected = preferredAiModel === m.id;
+                        const Icon = m.icon;
                         return (
                           <button
                             key={m.id}
@@ -785,71 +847,302 @@ export default function SettingsPage() {
                               background: isSelected ? 'rgba(0, 255, 102, 0.08)' : 'var(--bg-elevated)',
                               border: isSelected ? '1.5px solid var(--accent, #00ff66)' : '1px solid var(--border)',
                               borderRadius: '8px',
-                              padding: '12px 14px',
+                              padding: '14px 14px',
                               textAlign: 'left',
                               cursor: 'pointer',
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: 4,
+                              gap: 6,
+                              transition: 'all 0.18s ease',
+                              position: 'relative',
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: isSelected ? 'var(--accent)' : 'var(--text-primary)' }}>
-                                {m.name}
-                              </span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                <Icon size={15} style={{ color: isSelected ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }} />
+                                <span style={{ fontSize: 13, fontWeight: 700, color: isSelected ? 'var(--accent)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                                  {m.name}
+                                </span>
+                              </div>
                               <span style={{
                                 fontSize: 10,
                                 fontWeight: 700,
                                 padding: '2px 6px',
                                 borderRadius: 4,
                                 background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
-                                color: isSelected ? '#000' : 'var(--text-muted)'
+                                color: isSelected ? '#000' : 'var(--text-muted)',
+                                flexShrink: 0,
                               }}>
                                 {m.badge}
                               </span>
                             </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.3 }}>
+
+                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                              {m.engine}
+                            </span>
+
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.35, marginTop: 2 }}>
                               {m.desc}
                             </span>
                           </button>
                         );
                       })}
                     </div>
+
+                    {/* Dynamic Active Pipeline Ribbon */}
+                    {(() => {
+                      const pipelineMap: Record<string, {
+                        title: string;
+                        status: string;
+                        statusColor: string;
+                        dotColor: string;
+                        glowColor: string;
+                        desc: string;
+                        nodes: Array<{ label: string; icon: any; bg: string; color: string; border?: string }>;
+                      }> = {
+                        auto: {
+                          title: 'Active Pipeline (Smart Auto-Failover):',
+                          status: 'Dual Engines Active',
+                          statusColor: 'var(--completed, #00ff66)',
+                          dotColor: 'var(--completed, #00ff66)',
+                          glowColor: 'var(--completed, #00ff66)',
+                          desc: 'Requests prioritize Gemini 3.8 Flash and automatically fail over to xAI Grok 4.7 if quotas or rate limits occur.',
+                          nodes: [
+                            { label: '1. Google Gemini (Primary)', icon: Zap, bg: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)', border: 'rgba(0, 255, 102, 0.25)' },
+                            { label: '2. xAI Grok (Auto-Failover)', icon: Cpu, bg: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: 'rgba(56, 189, 248, 0.25)' },
+                            { label: 'Zero-Downtime Guarantee', icon: ShieldCheck, bg: 'var(--bg-surface)', color: 'var(--text-muted)' },
+                          ],
+                        },
+                        'gemini-3.8-flash': {
+                          title: 'Active Pipeline (Direct Dedicated):',
+                          status: 'Gemini 3.8 Flash Dedicated',
+                          statusColor: 'var(--accent, #00ff66)',
+                          dotColor: 'var(--accent, #00ff66)',
+                          glowColor: 'var(--accent, #00ff66)',
+                          desc: 'All requests route directly to Google Gemini 3.8 Flash for ultra low-latency structured task parsing.',
+                          nodes: [
+                            { label: '1. Google Gemini 3.8 Flash (Direct)', icon: Zap, bg: 'rgba(0, 255, 102, 0.12)', color: 'var(--accent)', border: 'rgba(0, 255, 102, 0.3)' },
+                            { label: 'Dedicated Single-Engine', icon: ShieldCheck, bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
+                            { label: 'Sub-Second Extraction', icon: null, bg: 'var(--bg-surface)', color: 'var(--text-muted)' },
+                          ],
+                        },
+                        'grok-4.7': {
+                          title: 'Active Pipeline (Direct Dedicated):',
+                          status: 'xAI Grok 4.7 Dedicated',
+                          statusColor: '#38bdf8',
+                          dotColor: '#38bdf8',
+                          glowColor: '#38bdf8',
+                          desc: 'All requests route directly to xAI Grok 4.7 for frontier linguistic reasoning and extended context.',
+                          nodes: [
+                            { label: '1. xAI Grok 4.7 (Direct Frontier)', icon: Cpu, bg: 'rgba(56, 189, 248, 0.14)', color: '#38bdf8', border: 'rgba(56, 189, 248, 0.3)' },
+                            { label: 'Dedicated Single-Engine', icon: ShieldCheck, bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
+                            { label: 'Frontier Reasoning', icon: null, bg: 'var(--bg-surface)', color: 'var(--text-muted)' },
+                          ],
+                        },
+                      };
+
+                      const current = pipelineMap[preferredAiModel] || pipelineMap.auto;
+
+                      return (
+                        <div style={{
+                          marginTop: 12,
+                          padding: '12px 14px',
+                          borderRadius: 8,
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid var(--border-subtle)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10,
+                          transition: 'all 0.2s ease',
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 10,
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                <ShieldCheck size={15} style={{ color: current.statusColor }} />
+                                <span>{current.title}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 11 }}>
+                                {current.nodes.map((node, i) => {
+                                  const IconComponent = node.icon;
+                                  return (
+                                    <span key={node.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                      {i > 0 && <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />}
+                                      <span style={{
+                                        padding: '3px 8px',
+                                        borderRadius: 4,
+                                        background: node.bg,
+                                        color: node.color,
+                                        border: node.border ? `1px solid ${node.border}` : 'none',
+                                        fontWeight: 700,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                      }}>
+                                        {IconComponent && <IconComponent size={11} />}
+                                        {node.label}
+                                      </span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: current.statusColor, fontWeight: 700 }}>
+                              <span style={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: '50%',
+                                background: current.dotColor,
+                                boxShadow: `0 0 6px ${current.glowColor}`,
+                              }} />
+                              {current.status}
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                            {current.desc}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Personal Free API Key */}
                   <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.01)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+                      <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
                         <Key size={15} style={{ color: '#38bdf8' }} />
-                        <span>Personal API Key (Optional — Never Hits Shared Quotas)</span>
+                        <span>Personal API Key (Google Gemini or xAI Grok)</span>
                       </label>
-                      {aiKeySaved && (
-                        <span style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <CheckCircle2 size={14} /> Key saved to browser
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {aiKeySaved && (
+                          <span style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircle2 size={14} /> Key saved to browser
+                          </span>
+                        )}
+                        {aiKeyCleared && (
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
+                            Key cleared
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                      Paste your personal Google Gemini or xAI Grok API key to bypass shared workspace limits. Key is saved locally in your browser and used automatically.
+                    </p>
+
+                    {/* Provider selector chips & detection tag */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Target Provider:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCustomAiProvider('gemini')}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            background: customAiProvider === 'gemini' ? 'rgba(0, 255, 102, 0.12)' : 'var(--bg-surface)',
+                            border: customAiProvider === 'gemini' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                            color: customAiProvider === 'gemini' ? 'var(--accent)' : 'var(--text-muted)',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          Google Gemini
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCustomAiProvider('grok')}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            background: customAiProvider === 'grok' ? 'rgba(56, 189, 248, 0.12)' : 'var(--bg-surface)',
+                            border: customAiProvider === 'grok' ? '1px solid #38bdf8' : '1px solid var(--border)',
+                            color: customAiProvider === 'grok' ? '#38bdf8' : 'var(--text-muted)',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          xAI Grok
+                        </button>
+                      </div>
+
+                      {customAiKey && (
+                        <span style={{
+                          fontSize: 11,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background: customAiKey.startsWith('xai-') ? 'rgba(56, 189, 248, 0.12)' : 'rgba(0, 255, 102, 0.1)',
+                          color: customAiKey.startsWith('xai-') ? '#38bdf8' : 'var(--accent)',
+                          fontWeight: 700,
+                        }}>
+                          {customAiKey.startsWith('xai-') ? 'Detected: xAI Grok Key' : 'Detected: Google Gemini Key'}
                         </span>
                       )}
                     </div>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
-                      Paste your own free Google Gemini API key to bypass shared limits. Stored safely only in your browser storage.
-                    </p>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input
-                        type="password"
-                        placeholder="AIzaSy... or AQ.Ab8..."
-                        value={customAiKey}
-                        onChange={(e) => setCustomAiKey(e.target.value)}
-                        style={{
-                          flex: 1,
-                          background: 'var(--bg-surface)',
-                          border: '1px solid var(--border)',
-                          borderRadius: 6,
-                          padding: '8px 12px',
-                          fontSize: 12,
-                          color: 'var(--text-primary)',
-                          fontFamily: 'monospace',
-                        }}
-                      />
+
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <input
+                          type={showAiKey ? 'text' : 'password'}
+                          placeholder={customAiProvider === 'grok' ? 'xai-...' : 'AIzaSy... or AQ.Ab8...'}
+                          value={customAiKey}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setCustomAiKey(val);
+                            if (val.trim().startsWith('xai-')) {
+                              setCustomAiProvider('grok');
+                            } else if (val.trim().length > 0 && customAiProvider === 'grok' && !val.trim().startsWith('xai-')) {
+                              setCustomAiProvider('gemini');
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            background: 'var(--bg-surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 6,
+                            padding: '8px 40px 8px 12px',
+                            fontSize: 12,
+                            color: 'var(--text-primary)',
+                            fontFamily: 'monospace',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAiKey(!showAiKey)}
+                          title={showAiKey ? 'Hide key' : 'Show key'}
+                          style={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            padding: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          {showAiKey ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => handleSaveCustomAiKey(customAiKey)}
@@ -865,12 +1158,39 @@ export default function SettingsPage() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 6,
+                          flexShrink: 0,
+                          transition: 'opacity 0.15s',
                         }}
                       >
                         <Save size={14} /> Save Key
                       </button>
+
+                      {customAiKey && (
+                        <button
+                          type="button"
+                          onClick={handleClearCustomAiKey}
+                          title="Remove custom API key"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.12)',
+                            color: 'var(--danger, #ef4444)',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            borderRadius: 6,
+                            padding: '8px 12px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Trash2 size={13} /> Clear
+                        </button>
+                      )}
                     </div>
-                    <div style={{ marginTop: 8 }}>
+
+                    <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 16 }}>
                       <a
                         href="https://aistudio.google.com/app/apikey"
                         target="_blank"
@@ -878,6 +1198,14 @@ export default function SettingsPage() {
                         style={{ fontSize: 12, color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}
                       >
                         Get free Google Gemini API key (Google AI Studio) <ExternalLink size={12} />
+                      </a>
+                      <a
+                        href="https://console.x.ai/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 12, color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}
+                      >
+                        Get xAI Grok API key (xAI Console) <ExternalLink size={12} />
                       </a>
                     </div>
                   </div>
