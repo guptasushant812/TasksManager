@@ -4,6 +4,8 @@ import Task, { getNextTaskId } from '../models/Task';
 import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
 
+import EscalationSettings from '../models/EscalationSettings';
+
 const ALLOWED_TASK_PRIORITIES = ['High', 'Medium', 'Low'];
 const ALLOWED_TASK_STATUSES = ['InProgress', 'Pending', 'Completed'];
 
@@ -18,6 +20,54 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
         filter._id = { ...(filter._id as object), $in: distinctTaskIds };
       } else {
         filter._id = { $in: distinctTaskIds };
+      }
+    }
+
+    if (req.query.overdueOnly === 'true') {
+      const now = new Date();
+      const overdueAgg = await FollowUp.aggregate([
+        { $match: { isDeleted: false } },
+        { $sort: { followUpNumber: -1, createdAt: -1, followUpDate: -1 } },
+        {
+          $group: {
+            _id: '$taskId',
+            nextFollowUpDate: { $first: '$nextFollowUpDate' },
+          },
+        },
+        {
+          $match: {
+            nextFollowUpDate: { $ne: null, $lt: now },
+          },
+        },
+      ]);
+      const overdueTaskIds = overdueAgg.map((o) => o._id);
+      filter.workStatus = { $ne: 'Completed' };
+      if (filter._id) {
+        filter._id = { ...(filter._id as object), $in: overdueTaskIds };
+      } else {
+        filter._id = { $in: overdueTaskIds };
+      }
+    }
+
+    if (req.query.escalatedOnly === 'true') {
+      const settings = await EscalationSettings.findOne().lean() as any;
+      const threshold = settings?.threshold || 3;
+      const escalationsEnabled = settings?.enabled || false;
+
+      let escalatedTaskIds: any[] = [];
+      if (escalationsEnabled) {
+        const countAgg = await FollowUp.aggregate([
+          { $match: { isDeleted: false } },
+          { $group: { _id: '$taskId', count: { $sum: 1 } } },
+          { $match: { count: { $gte: threshold } } },
+        ]);
+        escalatedTaskIds = countAgg.map((c) => c._id);
+      }
+      filter.workStatus = { $ne: 'Completed' };
+      if (filter._id) {
+        filter._id = { ...(filter._id as object), $in: escalatedTaskIds };
+      } else {
+        filter._id = { $in: escalatedTaskIds };
       }
     }
 

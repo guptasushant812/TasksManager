@@ -89,6 +89,8 @@ function getEmptyStateConfig({
   const hasSearch = Boolean(filters.search?.trim());
   const hasPriority = Boolean(filters.priority);
   const hasFollowUps = filters.hasFollowUps === 'true';
+  const isOverdueFilter = filters.overdueOnly === 'true';
+  const isEscalatedFilter = filters.escalatedOnly === 'true';
 
   if (hasSearch) {
     return {
@@ -106,6 +108,44 @@ function getEmptyStateConfig({
 
   // 1. Today Filter Scope
   if (isToday) {
+    if (isOverdueFilter) {
+      return {
+        title: 'No overdue follow-ups for today',
+        description: 'All follow-up actions scheduled for today are on track with no overdue items.',
+        actions: [
+          {
+            label: "View All Today's Tasks",
+            variant: 'primary',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View This Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (isEscalatedFilter) {
+      return {
+        title: 'No escalated tasks for today',
+        description: 'All tasks scheduled for today are within communication thresholds.',
+        actions: [
+          {
+            label: "View All Today's Tasks",
+            variant: 'primary',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View This Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
     if (status) {
       return {
         title: `No ${statusLabel.toLowerCase()} tasks for today`,
@@ -170,6 +210,44 @@ function getEmptyStateConfig({
   // Specific Day (not today)
   if (hasSpecificDay) {
     const formattedDay = formatDate(filters.day!);
+    if (isOverdueFilter) {
+      return {
+        title: `No overdue follow-ups on ${formattedDay}`,
+        description: `No overdue follow-ups were found for tasks on ${formattedDay}.`,
+        actions: [
+          {
+            label: `View All on ${formattedDay}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (isEscalatedFilter) {
+      return {
+        title: `No escalated tasks on ${formattedDay}`,
+        description: `No tasks on ${formattedDay} exceeded the escalation threshold.`,
+        actions: [
+          {
+            label: `View All on ${formattedDay}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
     if (status) {
       return {
         title: `No ${statusLabel.toLowerCase()} tasks on ${formattedDay}`,
@@ -208,6 +286,44 @@ function getEmptyStateConfig({
 
   // Week Scope
   if (hasWeek) {
+    if (isOverdueFilter) {
+      return {
+        title: `No overdue follow-ups in Week ${filters.weekIndex}`,
+        description: `All follow-up tasks in Week ${filters.weekIndex} are within schedule.`,
+        actions: [
+          {
+            label: `View All in Week ${filters.weekIndex}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (isEscalatedFilter) {
+      return {
+        title: `No escalated tasks in Week ${filters.weekIndex}`,
+        description: `No tasks exceeded the escalation threshold in Week ${filters.weekIndex}.`,
+        actions: [
+          {
+            label: `View All in Week ${filters.weekIndex}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
     if (status) {
       return {
         title: `No ${statusLabel.toLowerCase()} tasks in Week ${filters.weekIndex}`,
@@ -268,6 +384,44 @@ function getEmptyStateConfig({
   if (hasMonth) {
     const currentMo = parseInt(filters.month || '1', 10);
     const prevMonth = currentMo === 1 ? '12' : String(currentMo - 1);
+
+    if (isOverdueFilter) {
+      return {
+        title: `No overdue follow-ups in ${monthName} ${yearText}`,
+        description: `All follow-up communication in ${monthName} ${yearText} is within schedule with no overdue items.`,
+        actions: [
+          {
+            label: `View All Tasks for ${monthName}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (isEscalatedFilter) {
+      return {
+        title: `No escalated tasks in ${monthName} ${yearText}`,
+        description: `All tasks in ${monthName} ${yearText} are within the maximum follow-up threshold.`,
+        actions: [
+          {
+            label: `View All Tasks for ${monthName}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
 
     if (status) {
       return {
@@ -341,6 +495,44 @@ function getEmptyStateConfig({
 
   // 3. Year Scope (all months of a year)
   if (isYearOnly) {
+    if (isOverdueFilter) {
+      return {
+        title: `No overdue follow-ups in ${yearText}`,
+        description: `No overdue follow-up items were found across ${yearText}.`,
+        actions: [
+          {
+            label: `View All Tasks in ${yearText}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View All Time',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ overdueOnly: undefined, year: '', month: '', day: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (isEscalatedFilter) {
+      return {
+        title: `No escalated tasks in ${yearText}`,
+        description: `No tasks exceeded the escalation threshold across ${yearText}.`,
+        actions: [
+          {
+            label: `View All Tasks in ${yearText}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+          },
+          {
+            label: 'View All Time',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ escalatedOnly: undefined, year: '', month: '', day: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
     if (status) {
       return {
         title: `No ${statusLabel.toLowerCase()} tasks in ${yearText}`,
@@ -379,6 +571,44 @@ function getEmptyStateConfig({
   }
 
   // 4. All Time Scope
+  if (isOverdueFilter) {
+    return {
+      title: 'No overdue follow-ups found',
+      description: 'All follow-up communication in your workspace is on track with zero overdue items.',
+      actions: [
+        {
+          label: 'View All Tasks',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ overdueOnly: undefined, page: 1 }),
+        },
+        {
+          label: 'Reset Filters',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ overdueOnly: undefined, year: currentYearStr, month: currentMonthStr, day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  if (isEscalatedFilter) {
+    return {
+      title: 'No escalated tasks found',
+      description: 'All tasks in your workspace are within acceptable communication limits.',
+      actions: [
+        {
+          label: 'View All Tasks',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ escalatedOnly: undefined, page: 1 }),
+        },
+        {
+          label: 'Reset Filters',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ escalatedOnly: undefined, year: currentYearStr, month: currentMonthStr, day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
   if (status) {
     return {
       title: `No ${statusLabel.toLowerCase()} tasks found`,
@@ -559,6 +789,8 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     filters.givenBy,
     filters.dateFrom,
     filters.dateTo,
+    filters.overdueOnly === 'true' ? 'overdue' : '',
+    filters.escalatedOnly === 'true' ? 'escalated' : '',
     isCustomSort ? 'customSort' : '',
   ].filter(Boolean).length;
 
@@ -656,6 +888,34 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                 onClick={() => onFiltersChange({ status: '', page: 1 })}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
                 title="Remove status filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.overdueOnly === 'true' && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid var(--high)', padding: '3px 8px', color: 'var(--high)' }}>
+              <span>Filter: <strong>Overdue Follow-Ups</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ overdueOnly: undefined, page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--high)', padding: 0, display: 'inline-flex' }}
+                title="Remove overdue filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.escalatedOnly === 'true' && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(234, 179, 8, 0.12)', border: '1px solid var(--medium)', padding: '3px 8px', color: 'var(--medium)' }}>
+              <span>Filter: <strong>Escalated Tasks</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ escalatedOnly: undefined, page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--medium)', padding: 0, display: 'inline-flex' }}
+                title="Remove escalation filter"
               >
                 <X style={{ width: 12, height: 12 }} />
               </button>

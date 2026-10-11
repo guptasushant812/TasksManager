@@ -80,4 +80,6 @@ export interface TaskFilters {
   page?: number;
   limit?: number;
   hasFollowUps?: string;
+  overdueOnly?: string;
+  escalatedOnly?: string;
 }
