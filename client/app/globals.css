@@ -6732,6 +6732,56 @@ body {
     font-size: 12px;
     line-height: 1.4;
   }
+
+  .manual-task-form-body {
+    padding: 10px 10px !important;
+  }
+
+  .manual-task-card {
+    padding: 10px 10px !important;
+  }
+
+  .task-form-grid-dates-status {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .task-form-grid-dates-status > div {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .task-form-grid-dates-status input,
+  .task-form-grid-dates-status select {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .task-form-grid-dates-status input[type="date"] {
+    font-size: 11px !important;
+    padding-left: 6px !important;
+    padding-right: 2px !important;
+  }
+
+  .task-form-grid-dates-status .priority-button-group {
+    height: 38px !important;
+    min-height: 38px !important;
+    gap: 4px !important;
+  }
+
+  .task-form-grid-dates-status .pill.priority-pill-btn {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 4px !important;
+    font-size: 11.5px !important;
+  }
 }
 
 /* ── Task Form & Modal Responsive Rules (MediaQueryPrompt.md Sec. 2, 3, 6, 8) ── */
