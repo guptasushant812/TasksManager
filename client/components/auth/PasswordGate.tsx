@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
-import { Eye, EyeOff, Clock, ShieldAlert, Lock, LogOut } from 'lucide-react';
+import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
@@ -244,21 +244,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('lockedReturnUrl');
-    }
-    if (timeoutTimerRef.current) {
-      clearTimeout(timeoutTimerRef.current);
-      timeoutTimerRef.current = null;
-    }
-    localStorage.setItem('isAppLocked', 'true');
-    setIsTimedOut(false);
-    setIsLocked(true);
-    setPassword('');
-    setError(false);
-    router.replace('/');
-  };
 
   if (isPublic) return <>{children}</>;
 
@@ -429,41 +414,22 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="btn btn-ghost"
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    padding: '11px',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <LogOut size={15} style={{ marginRight: 6 }} />
-                  Log Out
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  style={{
-                    flex: 1.4,
-                    justifyContent: 'center',
-                    padding: '11px',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    boxShadow: 'var(--shadow-taste-sm)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {isUnlocking ? 'Resuming...' : 'Continue Session'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  padding: '11px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  boxShadow: 'var(--shadow-taste-sm)',
+                  cursor: 'pointer',
+                }}
+              >
+                {isUnlocking ? 'Resuming...' : 'Continue Session'}
+              </button>
             </form>
           </div>
         </div>
