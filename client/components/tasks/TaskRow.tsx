@@ -65,11 +65,15 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
             {task.taskId}
           </span>
           {task.dueDate && (
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+            <span style={{
+              fontSize: 10,
+              color: fuOverdue && task.workStatus !== 'Completed' ? 'var(--high)' : 'var(--text-muted)',
+              fontWeight: fuOverdue && task.workStatus !== 'Completed' ? 600 : 400,
+            }}>
               Due: {formatDate(task.dueDate)}
             </span>
           )}
-          {fuCount > 0 && (
+          {fuCount > 0 ? (
             <span
               style={{
                 fontSize: 10,
@@ -87,7 +91,25 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
             >
               💬 {fuCount} {fuOverdue ? '• Overdue' : ''}
             </span>
-          )}
+          ) : fuOverdue ? (
+            <span
+              style={{
+                fontSize: 10,
+                padding: '1px 5px',
+                borderRadius: 4,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 3,
+                background: 'rgba(239,68,68,0.12)',
+                color: 'var(--high)',
+                border: '1px solid rgba(239,68,68,0.25)',
+              }}
+              title="Task is past due"
+            >
+              Overdue
+            </span>
+          ) : null}
         </div>
         <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: 13, display: 'block', lineHeight: 1.4 }}>
           {task.title}

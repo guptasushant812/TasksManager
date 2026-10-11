@@ -25,6 +25,7 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
 
     if (req.query.overdueOnly === 'true') {
       const now = new Date();
+      delete filter.date;
       const overdueAgg = await FollowUp.aggregate([
         { $match: { isDeleted: false } },
         { $sort: { followUpNumber: -1, createdAt: -1, followUpDate: -1 } },
@@ -40,7 +41,16 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
           },
         },
       ]);
-      const overdueTaskIds = overdueAgg.map((o) => o._id);
+      const fuOverdueTaskIds = overdueAgg.map((o) => o._id);
+      const taskDueDateOverdue = await Task.distinct('_id', {
+        isDeleted: { $ne: true },
+        workStatus: { $ne: 'Completed' },
+        dueDate: { $ne: null, $lt: now },
+      });
+      const overdueTaskIds = Array.from(
+        new Set([...fuOverdueTaskIds.map(String), ...taskDueDateOverdue.map(String)])
+      ).map((id) => new mongoose.Types.ObjectId(id));
+
       filter.workStatus = { $ne: 'Completed' };
       if (filter._id) {
         filter._id = { ...(filter._id as object), $in: overdueTaskIds };
@@ -50,6 +60,7 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
     }
 
     if (req.query.escalatedOnly === 'true') {
+      delete filter.date;
       const settings = await EscalationSettings.findOne().lean() as any;
       const threshold = settings?.threshold || 3;
       const escalationsEnabled = settings?.enabled || false;
@@ -143,8 +154,11 @@ export async function listTasks(req: Request, res: Response, next: NextFunction)
           nextFollowUpDate: null,
           isOverdue: false,
         };
+        const taskOverdue = Boolean(task.dueDate && new Date(task.dueDate) < now);
         if (task.workStatus === 'Completed') {
           summary.isOverdue = false;
+        } else if (taskOverdue) {
+          summary.isOverdue = true;
         }
         return {
           ...task,
