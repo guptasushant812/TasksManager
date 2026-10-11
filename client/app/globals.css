@@ -6737,7 +6737,7 @@ body {
 /* ── Task Form & Modal Responsive Rules (MediaQueryPrompt.md Sec. 2, 3, 6, 8) ── */
 .manual-task-form-body {
   padding: 16px 20px;
-  gap: 1rem;
+  gap: 1.25rem;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   width: 100% !important;
@@ -6751,7 +6751,11 @@ body {
   max-width: 100% !important;
   box-sizing: border-box !important;
   min-width: 0 !important;
-  overflow-x: hidden !important;
+  height: 510px;
+  min-height: 510px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .manual-task-card-header {
@@ -6766,6 +6770,18 @@ body {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.manual-task-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .manual-task-card-actions {
@@ -6894,6 +6910,8 @@ body {
 
   .manual-task-card {
     padding: 12px 12px;
+    height: 500px;
+    min-height: 500px;
   }
 
   .manual-task-footer {
@@ -7002,11 +7020,12 @@ body {
 
   .manual-task-card {
     padding: 8px 6px !important;
+    height: 480px !important;
+    min-height: 480px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     min-width: 0 !important;
-    overflow-x: hidden !important;
   }
 
   .manual-task-card-header {
