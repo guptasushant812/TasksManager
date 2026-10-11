@@ -159,7 +159,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
 
   return (
     <>
-      <header className="app-header">
+      <header className="app-header sticky top-0 z-40">
         <div className="header-actions">
           <div className="header-actions-group">
             <button

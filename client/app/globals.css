@@ -525,7 +525,8 @@ html:not(.dark) .brutalist-hover:active {
 .page-layout {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
+  flex-shrink: 0;
 }
 
 .page-content {
@@ -3709,6 +3710,8 @@ html:not(.dark) .label {
   height: 64px;
   border-bottom: var(--border-width-layout) solid var(--border);
   background: var(--bg-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   position: sticky;
   top: 0px;
   z-index: 40;
