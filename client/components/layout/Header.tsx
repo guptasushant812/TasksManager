@@ -13,10 +13,13 @@ import {
   ArrowRight, 
   Share2, 
   Sliders, 
-  Info 
+  Info,
+  Lock,
+  LogOut
 } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   filters: TaskFilters;
@@ -38,6 +41,7 @@ const DEFAULT_NOTIF_PREFS: NotificationPreferences = {
 };
 
 export default function Header({ filters, onTaskCreated }: HeaderProps) {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -397,40 +401,117 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Workspace Admin</div>
                 </div>
 
-                {[
-                  { label: 'Settings', href: '/settings' },
-                  { label: 'Logout', href: '#' },
-                ].map((item) => (
-                  <Link key={item.label} href={item.href} onClick={() => setProfileOpen(false)} style={{ textDecoration: 'none' }}>
-                    <button
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        width: '100%',
-                        padding: '8px 12px',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 'var(--radius-md)',
-                        cursor: 'pointer',
-                        color: item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)',
-                        fontSize: 13,
-                        fontWeight: 400,
-                        textAlign: 'left',
-                        transition: 'all 0.1s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-hover)';
-                        e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = item.label === 'Logout' ? 'var(--high)' : 'var(--text-secondary)';
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  </Link>
-                ))}
+                <Link href="/settings" onClick={() => setProfileOpen(false)} style={{ textDecoration: 'none' }}>
+                  <button
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '8px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                      color: 'var(--text-secondary)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--bg-hover)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
+                  >
+                    <Sliders size={15} style={{ marginRight: 8, opacity: 0.85 }} />
+                    Settings
+                  </button>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    if (typeof window !== 'undefined') {
+                      const currentPath = window.location.pathname + window.location.search;
+                      if (currentPath && currentPath !== '/') {
+                        sessionStorage.setItem('lockedReturnUrl', currentPath);
+                      }
+                    }
+                    localStorage.setItem('isAppLocked', 'true');
+                    window.dispatchEvent(new Event('storage'));
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-hover)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  <Lock size={15} style={{ marginRight: 8, opacity: 0.85 }} />
+                  Lock Workspace
+                </button>
+
+                <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 0' }} />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    if (typeof window !== 'undefined') {
+                      sessionStorage.removeItem('lockedReturnUrl');
+                    }
+                    localStorage.setItem('isAppLocked', 'true');
+                    window.dispatchEvent(new Event('storage'));
+                    router.replace('/');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    color: 'var(--high)',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--high-bg)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <LogOut size={15} style={{ marginRight: 8, opacity: 0.85 }} />
+                  Logout
+                </button>
               </div>
             )}
           </div>
