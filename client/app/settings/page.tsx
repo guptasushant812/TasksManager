@@ -1469,6 +1469,12 @@ export default function SettingsPage() {
                           fontSize: 13,
                         }}
                         onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            const currentPath = window.location.pathname + window.location.search;
+                            if (currentPath && currentPath !== '/') {
+                              sessionStorage.setItem('lockedReturnUrl', currentPath);
+                            }
+                          }
                           localStorage.setItem('isAppLocked', 'true');
                           setTimeout(() => {
                             window.dispatchEvent(new Event('storage'));
