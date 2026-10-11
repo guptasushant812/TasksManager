@@ -74,7 +74,8 @@ function getEmptyStateConfig({
 
   const isToday = Boolean(filters.day && (filters.day === todayIso || filters.day.startsWith(todayIso)));
   const hasSpecificDay = Boolean(filters.day);
-  const hasMonth = Boolean(filters.month) && !hasSpecificDay;
+  const hasWeek = Boolean(filters.weekIndex && filters.month) && !hasSpecificDay;
+  const hasMonth = Boolean(filters.month) && !hasSpecificDay && !hasWeek;
   const monthName = filters.month ? (SHORT_MONTHS[parseInt(filters.month, 10) - 1] || 'this month') : '';
   const yearText = filters.year || currentYearStr;
   const isYearOnly = Boolean(filters.year) && !filters.month && !hasSpecificDay;
@@ -200,6 +201,64 @@ function getEmptyStateConfig({
           label: 'View All Time',
           variant: 'ghost',
           onClick: () => onFiltersChange({ day: '', month: '', year: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // Week Scope
+  if (hasWeek) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} tasks in Week ${filters.weekIndex}`,
+        description: `There are no tasks with "${statusLabel}" status recorded in Week ${filters.weekIndex} (${monthName} ${yearText}).`,
+        actions: [
+          {
+            label: `View All in Week ${filters.weekIndex}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority tasks in Week ${filters.weekIndex}`,
+        description: `No tasks matching ${filters.priority} priority exist in Week ${filters.weekIndex} (${monthName} ${yearText}).`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No tasks found for Week ${filters.weekIndex}`,
+      description: `There are no tasks recorded in Week ${filters.weekIndex} (${monthName} ${yearText}).`,
+      actions: [
+        {
+          label: 'View Full Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+        },
+        {
+          label: `View All Months (${yearText})`,
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', dateFrom: '', dateTo: '', page: 1 }),
         },
       ],
     };
