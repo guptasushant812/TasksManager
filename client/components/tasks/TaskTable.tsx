@@ -6,7 +6,7 @@ import TaskRow from './TaskRow';
 import SearchBar from './SearchBar';
 import FilterSortPanel from './FilterSortPanel';
 import ExportMenu from './ExportMenu';
-import { formatDate, getDayName, getWeeksInMonth, SHORT_MONTHS } from '@/lib/dates';
+import { formatDate, getDayName, getWeeksInMonth, SHORT_MONTHS, toIsoDate } from '@/lib/dates';
 import EditTaskModal from '../modals/EditTaskModal';
 import NewTaskModal from '../modals/NewTaskModal';
 import FollowUpPanel from '../follow-ups/FollowUpPanel';
@@ -43,6 +43,342 @@ const SORT_LABELS: Record<string, string> = {
   workStatus: 'Status',
   createdAt: 'Created At',
 };
+
+interface EmptyStateAction {
+  label: string;
+  onClick: () => void;
+  variant: 'primary' | 'ghost';
+}
+
+interface EmptyStateConfig {
+  title: string;
+  description: string;
+  actions: EmptyStateAction[];
+}
+
+function getEmptyStateConfig({
+  filters,
+  onFiltersChange,
+  onAddNewTask,
+  onClearSearch,
+}: {
+  filters: TaskFilters;
+  onFiltersChange: (f: Partial<TaskFilters>) => void;
+  onAddNewTask: () => void;
+  onClearSearch: () => void;
+}): EmptyStateConfig {
+  const now = new Date();
+  const currentYearStr = now.getFullYear().toString();
+  const currentMonthStr = (now.getMonth() + 1).toString();
+  const todayIso = toIsoDate(now);
+
+  const isToday = Boolean(filters.day && (filters.day === todayIso || filters.day.startsWith(todayIso)));
+  const hasSpecificDay = Boolean(filters.day);
+  const hasMonth = Boolean(filters.month) && !hasSpecificDay;
+  const monthName = filters.month ? (SHORT_MONTHS[parseInt(filters.month, 10) - 1] || 'this month') : '';
+  const yearText = filters.year || currentYearStr;
+  const isYearOnly = Boolean(filters.year) && !filters.month && !hasSpecificDay;
+
+  const status = filters.status;
+  const statusLabel =
+    status === 'InProgress' ? 'In Progress' :
+    status === 'Pending' ? 'Pending' :
+    status === 'Completed' ? 'Completed' : '';
+
+  const hasSearch = Boolean(filters.search?.trim());
+  const hasPriority = Boolean(filters.priority);
+  const hasFollowUps = filters.hasFollowUps === 'true';
+
+  if (hasSearch) {
+    return {
+      title: `No tasks matching "${filters.search}"`,
+      description: 'No tasks match your search query in this view. Try adjusting your keyword or clearing the search filter.',
+      actions: [
+        {
+          label: 'Clear Search',
+          variant: 'primary',
+          onClick: onClearSearch,
+        },
+      ],
+    };
+  }
+
+  // 1. Today Filter Scope
+  if (isToday) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} tasks for today`,
+        description: `There are currently no tasks marked as "${statusLabel}" scheduled for today.`,
+        actions: [
+          {
+            label: "View All Today's Tasks",
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View This Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority tasks today`,
+        description: `No tasks marked with ${filters.priority} priority are scheduled for today.`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: "View All Today's Tasks",
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ priority: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: 'No tasks scheduled for today',
+      description: 'You have no tasks created or scheduled for today.',
+      actions: [
+        {
+          label: '+ Create Task for Today',
+          variant: 'primary',
+          onClick: onAddNewTask,
+        },
+        {
+          label: 'View This Month',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ day: '', month: '', year: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // Specific Day (not today)
+  if (hasSpecificDay) {
+    const formattedDay = formatDate(filters.day!);
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} tasks on ${formattedDay}`,
+        description: `No tasks with "${statusLabel}" status were found on ${formattedDay}.`,
+        actions: [
+          {
+            label: `View All on ${formattedDay}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+    return {
+      title: `No tasks found for ${formattedDay}`,
+      description: 'There are no tasks recorded on this specific date.',
+      actions: [
+        {
+          label: 'View Full Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ day: '', month: '', year: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 2. Specific Month Scope
+  if (hasMonth) {
+    const currentMo = parseInt(filters.month || '1', 10);
+    const prevMonth = currentMo === 1 ? '12' : String(currentMo - 1);
+
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} tasks in ${monthName} ${yearText}`,
+        description: `There are no tasks with "${statusLabel}" status recorded for ${monthName} ${yearText}.`,
+        actions: [
+          {
+            label: `View All Tasks for ${monthName}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ status: '', month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority tasks in ${monthName} ${yearText}`,
+        description: `There are no tasks matching ${filters.priority} priority in ${monthName} ${yearText}.`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasFollowUps) {
+      return {
+        title: `No follow-ups recorded for ${monthName} ${yearText}`,
+        description: `None of the tasks in ${monthName} ${yearText} have follow-up communication logs.`,
+        actions: [
+          {
+            label: `View All Tasks for ${monthName}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ hasFollowUps: undefined, page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No tasks found for ${monthName} ${yearText}`,
+      description: 'You are viewing a specific month with no tasks yet. Your previous tasks are safe in other months.',
+      actions: [
+        {
+          label: `View All Months (${yearText})`,
+          variant: 'primary',
+          onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 }),
+        },
+        {
+          label: 'View Previous Month',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ month: prevMonth, weekIndex: undefined, day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 3. Year Scope (all months of a year)
+  if (isYearOnly) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} tasks in ${yearText}`,
+        description: `No tasks with "${statusLabel}" status were found across any months of ${yearText}.`,
+        actions: [
+          {
+            label: `View All Tasks in ${yearText}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View All Time',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ year: '', month: '', day: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No tasks found for ${yearText}`,
+      description: `There are no tasks recorded across any months in ${yearText}.`,
+      actions: [
+        {
+          label: 'View Current Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ year: currentYearStr, month: currentMonthStr, day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ year: '', month: '', day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 4. All Time Scope
+  if (status) {
+    return {
+      title: `No ${statusLabel.toLowerCase()} tasks found`,
+      description: `There are no tasks currently marked as "${statusLabel}" in your workspace.`,
+      actions: [
+        {
+          label: 'View All Tasks',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ status: '', page: 1 }),
+        },
+        {
+          label: 'Reset Filters',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ status: '', year: currentYearStr, month: currentMonthStr, day: '', priority: '', search: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  if (hasPriority) {
+    return {
+      title: `No ${filters.priority} priority tasks found`,
+      description: `No tasks matching ${filters.priority} priority exist in the workspace.`,
+      actions: [
+        {
+          label: 'Clear Priority',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ priority: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  if (hasFollowUps) {
+    return {
+      title: 'No tasks with follow-ups',
+      description: 'None of your tasks have follow-up entries yet.',
+      actions: [
+        {
+          label: 'View All Tasks',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ hasFollowUps: undefined, page: 1 }),
+        },
+      ],
+    };
+  }
+
+  return {
+    title: 'No tasks in workspace',
+    description: 'Your workspace has no tasks. Get started by creating your first task.',
+    actions: [
+      {
+        label: '+ Create New Task',
+        variant: 'primary',
+        onClick: onAddNewTask,
+      },
+    ],
+  };
+}
 
 export default function TaskTable({ filters, onFiltersChange, refreshKey, mode = 'tasks', isDashboard = false }: TaskTableProps) {
   const { tasks, pagination, loading, error, fetchTasks, deleteTask, deleteManyTasks } = useTasks();
@@ -400,50 +736,46 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                     </tr>
                   ))
                 ) : tasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
-                      <div style={{ maxWidth: 440, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
-                          {filters.month 
-                            ? `No tasks found for ${SHORT_MONTHS[parseInt(filters.month || '1', 10) - 1] || 'this month'} ${filters.year || ''}`
-                            : 'No tasks found'
-                          }
-                        </div>
-                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                          {filters.month
-                            ? 'You are viewing a specific month with no tasks yet. Your previous tasks are safe in other months.'
-                            : activeFiltersCount > 0 
-                              ? 'No tasks match your current filters.' 
-                              : 'Create your first task using the "+ New Task" button.'
-                          }
-                        </p>
-                        {filters.month && (
-                          <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={() => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 })}
-                              style={{ fontSize: 13, padding: '7px 16px' }}
-                            >
-                              View All Months ({filters.year || '2026'})
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-ghost"
-                              onClick={() => {
-                                const currentMo = parseInt(filters.month || '1', 10);
-                                const prevMonth = currentMo === 1 ? '12' : String(currentMo - 1);
-                                onFiltersChange({ month: prevMonth, weekIndex: undefined, day: '', page: 1 });
-                              }}
-                              style={{ fontSize: 13, padding: '7px 16px' }}
-                            >
-                              View Previous Month
-                            </button>
+                  (() => {
+                    const emptyState = getEmptyStateConfig({
+                      filters,
+                      onFiltersChange,
+                      onAddNewTask: () => setShowNewTaskModal(true),
+                      onClearSearch: () => {
+                        setSearchInput('');
+                        onFiltersChange({ search: '', page: 1 });
+                      },
+                    });
+                    return (
+                      <tr>
+                        <td colSpan={10} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+                          <div style={{ maxWidth: 460, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+                              {emptyState.title}
+                            </div>
+                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                              {emptyState.description}
+                            </p>
+                            {emptyState.actions.length > 0 && (
+                              <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                {emptyState.actions.map((act) => (
+                                  <button
+                                    key={act.label}
+                                    type="button"
+                                    className={`btn ${act.variant === 'primary' ? 'btn-primary' : 'btn-ghost'}`}
+                                    onClick={act.onClick}
+                                    style={{ fontSize: 13, padding: '7px 16px' }}
+                                  >
+                                    {act.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                        </td>
+                      </tr>
+                    );
+                  })()
                 ) : (
                   (() => {
                     let weeksInMonth: any[] = [];
