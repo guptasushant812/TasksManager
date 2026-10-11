@@ -11,7 +11,366 @@ import ExportMenu from '../tasks/ExportMenu';
 import FollowUpPanel from './FollowUpPanel';
 import FollowUpAddModal from './FollowUpAddModal';
 import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, Sparkles, Plus, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { SHORT_MONTHS } from '@/lib/dates';
+import { SHORT_MONTHS, toIsoDate, formatDate } from '@/lib/dates';
+
+interface EmptyStateAction {
+  label: string;
+  variant: 'primary' | 'ghost';
+  onClick: () => void;
+}
+
+interface EmptyStateConfig {
+  title: string;
+  description: string;
+  actions: EmptyStateAction[];
+}
+
+function getFollowUpEmptyStateConfig({
+  filters,
+  onFiltersChange,
+  onClearSearch,
+}: {
+  filters: TaskFilters;
+  onFiltersChange: (f: Partial<TaskFilters>) => void;
+  onClearSearch: () => void;
+}): EmptyStateConfig {
+  const now = new Date();
+  const currentYearStr = now.getFullYear().toString();
+  const currentMonthStr = (now.getMonth() + 1).toString();
+  const todayIso = toIsoDate(now);
+
+  const isToday = Boolean(filters.day && (filters.day === todayIso || filters.day.startsWith(todayIso)));
+  const hasSpecificDay = Boolean(filters.day);
+  const hasWeek = Boolean(filters.weekIndex && filters.month) && !hasSpecificDay;
+  const hasMonth = Boolean(filters.month) && !hasSpecificDay && !hasWeek;
+  const monthName = filters.month ? (SHORT_MONTHS[parseInt(filters.month, 10) - 1] || 'this month') : '';
+  const yearText = filters.year || currentYearStr;
+  const isYearOnly = Boolean(filters.year) && !filters.month && !hasSpecificDay;
+
+  const status = filters.status;
+  const statusLabel =
+    status === 'InProgress' ? 'In Progress' :
+    status === 'Pending' ? 'Pending' :
+    status === 'Completed' ? 'Completed' : '';
+
+  const hasSearch = Boolean(filters.search?.trim());
+  const hasPriority = Boolean(filters.priority);
+
+  if (hasSearch) {
+    return {
+      title: `No follow-ups matching "${filters.search}"`,
+      description: 'No follow-up communication matches your search query in this view. Try adjusting your keyword or clearing the search filter.',
+      actions: [
+        {
+          label: 'Clear Search',
+          variant: 'primary',
+          onClick: onClearSearch,
+        },
+      ],
+    };
+  }
+
+  // 1. Today Scope
+  if (isToday) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} follow-ups for today`,
+        description: `There are currently no follow-up logs or reminders for "${statusLabel}" tasks scheduled for today.`,
+        actions: [
+          {
+            label: "View All Today's Follow-Ups",
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View This Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority follow-ups today`,
+        description: `No follow-ups for ${filters.priority} priority tasks are scheduled for today.`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: "View All Today's Follow-Ups",
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ priority: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: 'No follow-ups scheduled for today',
+      description: 'You have no communication logs or scheduled follow-up actions due today.',
+      actions: [
+        {
+          label: 'View This Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ day: '', month: '', year: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // Specific Day (not today)
+  if (hasSpecificDay) {
+    const formattedDay = formatDate(filters.day!);
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} follow-ups on ${formattedDay}`,
+        description: `No follow-ups for "${statusLabel}" tasks were recorded on ${formattedDay}.`,
+        actions: [
+          {
+            label: `View All on ${formattedDay}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+    return {
+      title: `No follow-ups found for ${formattedDay}`,
+      description: 'There are no follow-up communication records on this specific date.',
+      actions: [
+        {
+          label: 'View Full Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ day: '', month: '', year: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // Week Scope
+  if (hasWeek) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} follow-ups in Week ${filters.weekIndex}`,
+        description: `There are no follow-ups for "${statusLabel}" tasks recorded in Week ${filters.weekIndex} of ${monthName} ${yearText}.`,
+        actions: [
+          {
+            label: `View All in Week ${filters.weekIndex}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority follow-ups in Week ${filters.weekIndex}`,
+        description: `No follow-ups matching ${filters.priority} priority exist in Week ${filters.weekIndex} (${monthName} ${yearText}).`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: 'View Full Month',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No follow-ups found for Week ${filters.weekIndex}`,
+      description: `There are no follow-up records in Week ${filters.weekIndex} (${monthName} ${yearText}).`,
+      actions: [
+        {
+          label: 'View Full Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ weekIndex: undefined, dateFrom: '', dateTo: '', page: 1 }),
+        },
+        {
+          label: `View All Months (${yearText})`,
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', dateFrom: '', dateTo: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 2. Specific Month Scope
+  if (hasMonth) {
+    const currentMo = parseInt(filters.month || '1', 10);
+    const prevMonth = currentMo === 1 ? '12' : String(currentMo - 1);
+
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} follow-ups in ${monthName} ${yearText}`,
+        description: `There are no follow-ups for "${statusLabel}" tasks recorded in ${monthName} ${yearText}.`,
+        actions: [
+          {
+            label: `View All Follow-Ups for ${monthName}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ status: '', month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    if (hasPriority) {
+      return {
+        title: `No ${filters.priority} priority follow-ups in ${monthName} ${yearText}`,
+        description: `There are no follow-ups matching ${filters.priority} priority tasks in ${monthName} ${yearText}.`,
+        actions: [
+          {
+            label: 'Clear Priority',
+            variant: 'primary',
+            onClick: () => onFiltersChange({ priority: '', page: 1 }),
+          },
+          {
+            label: `View All Months (${yearText})`,
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No follow-ups found for ${monthName} ${yearText}`,
+      description: 'You are viewing a specific month with no follow-ups yet. Your previous follow-ups are safe in other months.',
+      actions: [
+        {
+          label: `View All Months (${yearText})`,
+          variant: 'primary',
+          onClick: () => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 }),
+        },
+        {
+          label: 'View Previous Month',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ month: prevMonth, weekIndex: undefined, day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 3. Year Scope
+  if (isYearOnly) {
+    if (status) {
+      return {
+        title: `No ${statusLabel.toLowerCase()} follow-ups in ${yearText}`,
+        description: `No follow-ups for "${statusLabel}" tasks were found across any months of ${yearText}.`,
+        actions: [
+          {
+            label: `View All Follow-Ups in ${yearText}`,
+            variant: 'primary',
+            onClick: () => onFiltersChange({ status: '', page: 1 }),
+          },
+          {
+            label: 'View All Time',
+            variant: 'ghost',
+            onClick: () => onFiltersChange({ year: '', month: '', day: '', status: '', page: 1 }),
+          },
+        ],
+      };
+    }
+
+    return {
+      title: `No follow-ups found for ${yearText}`,
+      description: `There are no communication records logged across any months in ${yearText}.`,
+      actions: [
+        {
+          label: 'View Current Month',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ year: currentYearStr, month: currentMonthStr, day: '', page: 1 }),
+        },
+        {
+          label: 'View All Time',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ year: '', month: '', day: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  // 4. All Time Scope
+  if (status) {
+    return {
+      title: `No ${statusLabel.toLowerCase()} follow-ups found`,
+      description: `There are no follow-up records currently associated with "${statusLabel}" tasks.`,
+      actions: [
+        {
+          label: 'View All Follow-Ups',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ status: '', page: 1 }),
+        },
+        {
+          label: 'Reset Filters',
+          variant: 'ghost',
+          onClick: () => onFiltersChange({ status: '', year: currentYearStr, month: currentMonthStr, day: '', priority: '', search: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  if (hasPriority) {
+    return {
+      title: `No ${filters.priority} priority follow-ups found`,
+      description: `No follow-up records matching ${filters.priority} priority exist in the workspace.`,
+      actions: [
+        {
+          label: 'Clear Priority',
+          variant: 'primary',
+          onClick: () => onFiltersChange({ priority: '', page: 1 }),
+        },
+      ],
+    };
+  }
+
+  return {
+    title: 'No follow-up records found',
+    description: 'Tasks with logged communication history, reminders, or scheduled next actions will appear here.',
+    actions: [
+      {
+        label: 'Reset Filters',
+        variant: 'primary',
+        onClick: () => onFiltersChange({ year: currentYearStr, month: currentMonthStr, day: '', status: '', priority: '', search: '', page: 1 }),
+      },
+    ],
+  };
+}
 
 interface FollowUpWorkspaceProps {
   filters: TaskFilters;
@@ -349,46 +708,57 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Make sure the server is reachable.</p>
           </div>
         ) : tasks.length === 0 && !loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--text-muted)' }}>
-            <div style={{ maxWidth: 440, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: 'var(--accent-subtle)',
-                  color: 'var(--accent)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Sparkles style={{ width: 22, height: 22 }} />
-              </div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                {filters.month
-                  ? `No follow-ups found for ${SHORT_MONTHS[parseInt(filters.month || '1', 10) - 1] || 'this month'} ${filters.year || ''}`
-                  : 'No follow-up records found'}
-              </h2>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                {activeFiltersCount > 0
-                  ? 'No follow-up communication matches your current active filters.'
-                  : 'Tasks with logged communication logs, reminders, or next actions will appear here.'}
-              </p>
-              {filters.month && (
-                <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => onFiltersChange({ month: '', weekIndex: undefined, day: '', page: 1 })}
-                    style={{ fontSize: 13, padding: '7px 16px' }}
+          (() => {
+            const emptyState = getFollowUpEmptyStateConfig({
+              filters,
+              onFiltersChange,
+              onClearSearch: () => {
+                setSearchInput('');
+                onFiltersChange({ search: '', page: 1 });
+              },
+            });
+            return (
+              <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--text-muted)' }}>
+                <div style={{ maxWidth: 460, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      background: 'var(--accent-subtle)',
+                      color: 'var(--accent)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    View All Months ({filters.year || '2026'})
-                  </button>
+                    <Sparkles style={{ width: 22, height: 22 }} />
+                  </div>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                    {emptyState.title}
+                  </h2>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                    {emptyState.description}
+                  </p>
+                  {emptyState.actions.length > 0 && (
+                    <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {emptyState.actions.map((act) => (
+                        <button
+                          key={act.label}
+                          type="button"
+                          className={`btn ${act.variant === 'primary' ? 'btn-primary' : 'btn-ghost'}`}
+                          onClick={act.onClick}
+                          style={{ fontSize: 13, padding: '7px 16px' }}
+                        >
+                          {act.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })()
         ) : (
           <>
             <div className="fu-desktop-table" style={{ overflowX: 'auto' }}>
