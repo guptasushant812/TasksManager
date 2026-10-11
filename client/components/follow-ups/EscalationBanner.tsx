@@ -10,6 +10,7 @@ interface EscalationBannerProps {
   activeFollowUpCount: number;
   taskStatus: string;
   onOpenConfig?: () => void;
+  followUpsLoading?: boolean;
 }
 
 export default function EscalationBanner({
@@ -17,6 +18,7 @@ export default function EscalationBanner({
   activeFollowUpCount,
   taskStatus,
   onOpenConfig,
+  followUpsLoading = false,
 }: EscalationBannerProps) {
   const { settings, loading } = useEscalation();
   const { escalateTask } = useTasks();
@@ -26,17 +28,50 @@ export default function EscalationBanner({
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const prevCountRef = useRef(activeFollowUpCount);
+  const prevCountRef = useRef<number | null>(null);
+  const isInitialCheckDoneRef = useRef(false);
 
   useEffect(() => {
-    if (!loading && settings?.enabled) {
-      // Prompt modal when hitting the threshold exactly
-      if (activeFollowUpCount > prevCountRef.current && activeFollowUpCount === settings.threshold) {
-        setShowConfirmModal(true);
-      }
-      prevCountRef.current = activeFollowUpCount;
+    if (loading || followUpsLoading || !settings?.enabled || !taskId) {
+      return;
     }
-  }, [activeFollowUpCount, loading, settings]);
+
+    const storageKey = `escalation_prompted_${taskId}`;
+    const alreadyPrompted = typeof window !== 'undefined' && localStorage.getItem(storageKey) === 'true';
+
+    // On initial load of existing history, mark pre-existing threshold tasks as seen so modal doesn't pop up.
+    if (!isInitialCheckDoneRef.current) {
+      isInitialCheckDoneRef.current = true;
+      prevCountRef.current = activeFollowUpCount;
+
+      if (activeFollowUpCount >= settings.threshold && !alreadyPrompted) {
+        try {
+          localStorage.setItem(storageKey, 'true');
+        } catch {
+          // Ignore storage quota or access limitations
+        }
+      }
+      return;
+    }
+
+    const previousCount = prevCountRef.current ?? activeFollowUpCount;
+    prevCountRef.current = activeFollowUpCount;
+
+    // Show only the first time threshold is actively reached.
+    if (
+      !alreadyPrompted &&
+      taskStatus !== 'Completed' &&
+      previousCount < settings.threshold &&
+      activeFollowUpCount >= settings.threshold
+    ) {
+      setShowConfirmModal(true);
+      try {
+        localStorage.setItem(storageKey, 'true');
+      } catch {
+        // Ignore storage quota or access limitations
+      }
+    }
+  }, [activeFollowUpCount, loading, followUpsLoading, settings, taskId, taskStatus]);
 
   if (loading || !settings || !settings.enabled) return null;
 

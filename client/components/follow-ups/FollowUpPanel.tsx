@@ -264,9 +264,11 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
 
         <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
           <EscalationBanner
+            key={task._id}
             taskId={task._id}
             activeFollowUpCount={activeCount}
             taskStatus={task.workStatus}
+            followUpsLoading={loading}
           />
         </div>
 

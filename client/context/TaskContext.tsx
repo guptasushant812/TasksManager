@@ -83,6 +83,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
           overdueOnly: isCurrentlyActive ? undefined : 'true',
           escalatedOnly: undefined,
           status: '',
+          day: '',
           page: 1,
         };
       } else {
@@ -92,6 +93,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
           escalatedOnly: isCurrentlyActive ? undefined : 'true',
           overdueOnly: undefined,
           status: '',
+          day: '',
           page: 1,
         };
       }
