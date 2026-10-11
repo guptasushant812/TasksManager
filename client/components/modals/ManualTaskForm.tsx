@@ -320,9 +320,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
                 boxSizing: 'border-box',
                 display: 'flex',
                 flexDirection: 'column',
-                height: 510,
-                minHeight: 510,
-                overflow: 'hidden',
               }}
             >
               <div className="manual-task-card-header">
@@ -432,11 +429,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
               <div
                 className="manual-task-card-body"
                 style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  paddingRight: 4,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
