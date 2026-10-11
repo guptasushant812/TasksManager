@@ -14,8 +14,11 @@ export default function DashboardPage() {
     handleTaskCreated,
     availableYears,
     handleStatusClick,
+    handleSecondaryFilterClick,
     refreshKey
   } = useTaskContext();
+
+  const activeSecondary = filters.overdueOnly === 'true' ? 'overdue' : filters.escalatedOnly === 'true' ? 'escalated' : '';
 
   return (
     <div className="page-layout">
@@ -45,13 +48,19 @@ export default function DashboardPage() {
             loading={summaryLoading}
             activeStatus={filters.status || ''}
             onStatusClick={handleStatusClick}
+            activeSecondaryFilter={activeSecondary}
+            onSecondaryFilterClick={handleSecondaryFilterClick}
           />
         </section>
 
         <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBlockEnd: 16 }}>
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
-              Tasks Overview {filters.status ? `(${filters.status})` : ''}
+              Tasks Overview {
+                filters.status ? `(${filters.status})` :
+                filters.overdueOnly === 'true' ? '(Overdue Follow-Ups)' :
+                filters.escalatedOnly === 'true' ? '(Escalated Tasks)' : ''
+              }
             </h2>
           </div>
 

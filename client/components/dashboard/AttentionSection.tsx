@@ -143,7 +143,7 @@ export default function AttentionSection({
               width: 28,
               height: 28,
               borderRadius: 'var(--radius-sm)',
-              background: attentionItems.length > 0 ? 'var(--high-bg)' : 'var(--low-bg)',
+              background: attentionItems.length > 0 ? 'var(--high-bg)' : 'var(--completed-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,7 +230,7 @@ export default function AttentionSection({
               width: 36,
               height: 36,
               borderRadius: 'var(--radius-full)',
-              background: 'var(--low-bg)',
+              background: 'var(--completed-bg)',
               color: 'var(--completed)',
               display: 'inline-flex',
               alignItems: 'center',
@@ -370,7 +370,7 @@ export default function AttentionSection({
                   onClick={() => onCompleteTask(task)}
                   className="brutalist-hover"
                   style={{
-                    background: 'var(--low-bg)',
+                    background: 'var(--completed-bg)',
                     border: '1px solid var(--completed)',
                     borderRadius: 'var(--radius-sm)',
                     padding: '6px 10px',

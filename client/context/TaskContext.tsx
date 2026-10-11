@@ -14,6 +14,7 @@ interface TaskContextValue {
   handleTaskCreated: () => void;
   availableYears: number[];
   handleStatusClick: (status: WorkStatus | '') => void;
+  handleSecondaryFilterClick: (type: 'overdue' | 'escalated') => void;
 }
 
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
@@ -64,7 +65,37 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleStatusClick = useCallback((status: WorkStatus | '') => {
-    setFilters((prev) => ({ ...prev, status, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      status,
+      overdueOnly: undefined,
+      escalatedOnly: undefined,
+      page: 1,
+    }));
+  }, []);
+
+  const handleSecondaryFilterClick = useCallback((type: 'overdue' | 'escalated') => {
+    setFilters((prev) => {
+      if (type === 'overdue') {
+        const isCurrentlyActive = prev.overdueOnly === 'true';
+        return {
+          ...prev,
+          overdueOnly: isCurrentlyActive ? undefined : 'true',
+          escalatedOnly: undefined,
+          status: '',
+          page: 1,
+        };
+      } else {
+        const isCurrentlyActive = prev.escalatedOnly === 'true';
+        return {
+          ...prev,
+          escalatedOnly: isCurrentlyActive ? undefined : 'true',
+          overdueOnly: undefined,
+          status: '',
+          page: 1,
+        };
+      }
+    });
   }, []);
 
   const handleTaskCreated = useCallback(() => {
@@ -76,7 +107,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     <TaskContext.Provider value={{
       filters, setFilters, handleFiltersChange,
       summary, summaryLoading, refreshKey, handleTaskCreated,
-      availableYears, handleStatusClick
+      availableYears, handleStatusClick, handleSecondaryFilterClick
     }}>
       {children}
     </TaskContext.Provider>
