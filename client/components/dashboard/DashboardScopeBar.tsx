@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { TaskFilters } from '@/types/task';
-import { SHORT_MONTHS } from '@/lib/dates';
+import { SHORT_MONTHS, toIsoDate } from '@/lib/dates';
 import { Calendar, RotateCw, ChevronDown, Check } from 'lucide-react';
 
 interface ScopeDropdownOption {
@@ -131,8 +131,16 @@ export default function DashboardScopeBar({
   const today = new Date();
   const currentYearStr = today.getFullYear().toString();
   const currentMonthStr = (today.getMonth() + 1).toString();
+  const todayIso = toIsoDate(today);
+
+  const isToday =
+    filters.day === todayIso &&
+    !filters.weekStart &&
+    !filters.dateFrom &&
+    !filters.dateTo;
 
   const isCurrentMonth =
+    !isToday &&
     filters.year === currentYearStr &&
     filters.month === currentMonthStr &&
     !filters.day &&
@@ -141,6 +149,19 @@ export default function DashboardScopeBar({
     !filters.dateTo;
 
   const isAllTime = !filters.year && !filters.month && !filters.dateFrom && !filters.dateTo && !filters.day;
+
+  const handleSelectToday = () => {
+    onFiltersChange({
+      year: currentYearStr,
+      month: currentMonthStr,
+      weekIndex: undefined,
+      weekStart: undefined,
+      day: todayIso,
+      dateFrom: '',
+      dateTo: '',
+      page: 1,
+    });
+  };
 
   const handleSelectThisMonth = () => {
     onFiltersChange({
@@ -245,6 +266,14 @@ export default function DashboardScopeBar({
           </div>
 
           <div className="scope-toggle-group" role="group" aria-label="Time scope preset">
+            <button
+              type="button"
+              onClick={handleSelectToday}
+              className={`scope-toggle-btn brutalist-hover ${isToday ? 'active' : ''}`}
+            >
+              Today
+            </button>
+
             <button
               type="button"
               onClick={handleSelectThisMonth}
