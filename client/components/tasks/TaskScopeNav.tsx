@@ -618,58 +618,7 @@ export default function TaskScopeNav({
         </div>
       )}
 
-      {!isToday && !filters.month && filters.year && (
-        <div className="card animate-slide-down" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 16px',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--box-shadow-brutalist-sm)',
-          fontSize: 12,
-          color: 'var(--text-secondary)',
-          flexWrap: 'wrap',
-          gap: 8,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Calendar
-              style={{
-                width: 15,
-                height: 15,
-                color: 'var(--text-muted)',
-                flexShrink: 0,
-              }}
-            />
-            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>All Months</span>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Year {filters.year}</span>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
-            <span style={{ color: 'var(--text-muted)' }}>Showing all tasks for {filters.year}</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleClearTimeFilters}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              padding: '2px 6px',
-              transition: 'color 0.1s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-          >
-            Clear Time Filters ✕
-          </button>
-        </div>
-      )}
+
 
 
     </div>
