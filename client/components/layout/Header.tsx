@@ -536,27 +536,10 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 34,
-                    height: 34,
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(16, 185, 129, 0.12)',
-                    border: '1px solid rgba(16, 185, 129, 0.28)',
-                    color: '#10b981',
-                  }}
-                >
-                  <Share2 style={{ width: 16, height: 16 }} />
-                </div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                  Share Public Link
-                </h3>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                Share Public Link
+              </h3>
               <button
                 type="button"
                 onClick={() => setShowShareModal(false)}
