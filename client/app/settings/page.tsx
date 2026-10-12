@@ -55,7 +55,7 @@ interface ThemeOption {
   isLight?: boolean;
 }
 
-const LIGHT_THEMES = ['light'];
+const LIGHT_THEMES = ['light', 'sketch'];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
@@ -93,6 +93,18 @@ const THEME_OPTIONS: ThemeOption[] = [
     palette: ['#0b1120', '#38bdf8', '#60a5fa', '#818cf8', '#1e293b'],
     gradient: 'linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #818cf8 100%)',
     isLight: false,
+  },
+  {
+    id: 'sketch',
+    name: 'Sketch',
+    subtitle: 'Hand-Drawn & Paper',
+    description: 'Authentic hand-drawn paper aesthetic with warm paper grain, soft pencil lines, hard offset shadows, and marker accents.',
+    font: 'Patrick Hand',
+    primaryColor: '#ff4d4d',
+    bgColor: '#fdfbf7',
+    palette: ['#fdfbf7', '#2d2d2d', '#ff4d4d', '#2d5da1', '#fff9c4'],
+    gradient: 'linear-gradient(135deg, #2d2d2d 0%, #ff4d4d 50%, #2d5da1 100%)',
+    isLight: true,
   },
 ];
 
@@ -303,7 +315,7 @@ export default function SettingsPage() {
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.classList.add('dark');
-      } else if (saved === 'light') {
+      } else if (saved === 'light' || saved === 'sketch') {
         document.documentElement.classList.remove('dark');
       }
       setCurrentTheme(saved);
