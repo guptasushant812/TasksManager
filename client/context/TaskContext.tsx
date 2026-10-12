@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { TaskFilters, WorkStatus, Summary } from '@/types/task';
 import { useSummary } from '@/hooks/useSummary';
 import { getYearRange, toIsoDate } from '@/lib/dates';
+import { BASE_URL } from '@/lib/api';
 
 interface TaskContextValue {
   filters: TaskFilters;
@@ -48,7 +49,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Initial silent warm-up ping to wake up backend if asleep on Render free tier
-    fetch('/api/health').catch(() => {});
+    fetch(`${BASE_URL}/api/health`).catch(() => {});
   }, []);
 
   useEffect(() => {

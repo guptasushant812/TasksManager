@@ -1,15 +1,23 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const rawBackend = (
+  process.env.BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.BACKEND_URL ||
+  'http://127.0.0.1:4000'
+).trim();
+
+const backendBase = rawBackend.replace(/\/+$/, '').replace(/\/api$/, '');
+const destination = `${backendBase}/api/:path*`;
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // Disable strict CSP for local dev so Google Fonts loads
   async headers() {
     return [];
   },
-  // Allow images from external sources if needed later
   images: {
     remotePatterns: [],
   },
@@ -17,8 +25,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        // Use 127.0.0.1 to avoid Windows IPv6 (::1) ECONNREFUSED issues
-        destination: process.env.BACKEND_API_URL || 'http://127.0.0.1:4000/api/:path*',
+        destination,
       },
     ];
   },
