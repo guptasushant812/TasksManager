@@ -25,22 +25,58 @@ export interface AiRateLimitResult {
 
 export type AiGenerateResult = AiSuccessResult | AiRateLimitResult;
 
+function detectKeyProvider(apiKey?: string, explicitProvider?: string): 'gemini' | 'groq' | 'grok' {
+  if (explicitProvider) {
+    const p = explicitProvider.toLowerCase();
+    if (p === 'groq') return 'groq';
+    if (p === 'grok' || p === 'xai') return 'grok';
+    if (p === 'gemini') return 'gemini';
+  }
+  if (!apiKey) return 'gemini';
+  const trimmed = apiKey.trim();
+  if (trimmed.startsWith('gsk_')) return 'groq';
+  if (trimmed.startsWith('xai-')) return 'grok';
+  return 'gemini';
+}
+
 async function callGemini(apiKey: string, model: string, prompt: string): Promise<string> {
   const ai = new GoogleGenAI({ 
     apiKey,
     httpOptions: { timeout: 8000 }
   });
-  const interaction = await ai.interactions.create({
-    model,
-    input: prompt,
-  }, {
-    maxRetries: 0,
-    timeout: 8000,
-  });
 
-  const text = (interaction.output_text || '').trim();
-  if (!text) throw new Error('Empty response from Gemini');
-  return text;
+  // Try interactions endpoint first, falling back to generateContent for keys/models lacking interaction support
+  try {
+    const interaction = await ai.interactions.create({
+      model,
+      input: prompt,
+    }, {
+      maxRetries: 0,
+      timeout: 8000,
+    });
+    const text = (interaction.output_text || '').trim();
+    if (text) return text;
+  } catch (err: any) {
+    const msg = (err?.message || '').toLowerCase();
+    if (
+      msg.includes('quota') || 
+      msg.includes('429') || 
+      msg.includes('resource_exhausted') || 
+      msg.includes('api_key_invalid') || 
+      msg.includes('unauthenticated')
+    ) {
+      throw err;
+    }
+    const res = await ai.models.generateContent({
+      model,
+      contents: prompt,
+    });
+    const text = (res?.text || '').trim();
+    if (text) return text;
+    throw err;
+  }
+
+  throw new Error('Empty response from Gemini');
 }
 
 async function callGroq(apiKey: string, model: string, prompt: string): Promise<string> {
@@ -119,11 +155,8 @@ async function callGrok(apiKey: string, model: string, prompt: string): Promise<
   }
 }
 
-function getGeminiKeys(customKey?: string): string[] {
+function getServerGeminiKeys(): string[] {
   const keys: string[] = [];
-  if (customKey && customKey.trim() && customKey !== 'your_gemini_api_key_here') {
-    keys.push(customKey.trim());
-  }
   for (const envName of ['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3', 'GEMINI_BACKUP_KEY']) {
     const k = process.env[envName];
     if (k && k.trim() && k !== 'your_gemini_api_key_here' && !keys.includes(k.trim())) {
@@ -144,14 +177,18 @@ export async function executeAiWithFallback(
   prompt: string,
   options: AiTaskRequestOptions
 ): Promise<AiGenerateResult> {
-  const customProvider = (options.customProvider || '').toLowerCase();
-  const geminiKeys = getGeminiKeys(customProvider === 'gemini' ? options.customApiKey : undefined);
-  const groqKey = (customProvider === 'groq' ? options.customApiKey : undefined) || process.env.GROQ_API_KEY;
-  const grokKey = (customProvider === 'grok' || customProvider === 'xai' ? options.customApiKey : undefined) || process.env.XAI_API_KEY;
+  const customKey = options.customApiKey?.trim();
+  const customProvider = customKey ? detectKeyProvider(customKey, options.customProvider) : undefined;
 
-  const geminiModel = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok') && !options.preferredModel.toLowerCase().includes('groq')
+  const serverGeminiKeys = getServerGeminiKeys();
+  const groqKey = (customProvider === 'groq' ? customKey : undefined) || process.env.GROQ_API_KEY;
+  const grokKey = (customProvider === 'grok' ? customKey : undefined) || process.env.XAI_API_KEY;
+
+  const primaryGeminiModel = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok') && !options.preferredModel.toLowerCase().includes('groq')
     ? options.preferredModel
     : 'gemini-3.8-flash';
+  const fallbackGeminiModel = primaryGeminiModel === 'gemini-3.5-flash-lite' ? 'gemini-3.8-flash' : 'gemini-3.5-flash-lite';
+
   const groqModel = options.preferredModel && (options.preferredModel.includes('gpt-oss') || options.preferredModel.includes('qwen') || options.preferredModel.includes('llama'))
     ? options.preferredModel
     : (process.env.GROQ_MODEL || 'openai/gpt-oss-120b');
@@ -161,55 +198,79 @@ export async function executeAiWithFallback(
 
   const candidates: AiCandidate[] = [];
 
-  const isGroqExplicit = options.preferredProvider === 'groq' || customProvider === 'groq';
-  const isGrokExplicit = options.preferredProvider === 'grok' || customProvider === 'grok' || customProvider === 'xai' || Boolean(options.preferredModel && options.preferredModel.toLowerCase().includes('grok'));
-
-  if (isGroqExplicit && groqKey && groqKey !== 'your_groq_api_key_here') {
-    candidates.push({
-      provider: 'groq',
-      name: 'Groq',
-      model: groqModel,
-      call: () => callGroq(groqKey, groqModel, prompt),
-    });
-  }
-
-  if (isGrokExplicit && grokKey && grokKey !== 'your_xai_api_key_here') {
-    candidates.push({
-      provider: 'grok',
-      name: 'xAI Grok',
-      model: grokModel,
-      call: () => callGrok(grokKey, grokModel, prompt),
-    });
-  }
-
-  // Gemini candidates (primary path)
-  if (!isGroqExplicit && !isGrokExplicit) {
-    for (let i = 0; i < geminiKeys.length; i++) {
-      const key = geminiKeys[i];
+  // Prioritize user-entered custom key above all default keys
+  if (customKey) {
+    if (customProvider === 'gemini') {
       candidates.push({
         provider: 'gemini',
-        name: i === 0 ? 'Google Gemini' : `Google Gemini (Backup ${i})`,
-        model: geminiModel,
-        call: () => callGemini(key, geminiModel, prompt),
+        name: `Custom Gemini (${primaryGeminiModel})`,
+        model: primaryGeminiModel,
+        call: () => callGemini(customKey, primaryGeminiModel, prompt),
+      });
+      candidates.push({
+        provider: 'gemini',
+        name: `Custom Gemini Fallback (${fallbackGeminiModel})`,
+        model: fallbackGeminiModel,
+        call: () => callGemini(customKey, fallbackGeminiModel, prompt),
+      });
+    } else if (customProvider === 'groq') {
+      candidates.push({
+        provider: 'groq',
+        name: `Custom Groq (${groqModel})`,
+        model: groqModel,
+        call: () => callGroq(customKey, groqModel, prompt),
+      });
+    } else if (customProvider === 'grok') {
+      candidates.push({
+        provider: 'grok',
+        name: `Custom Grok (${grokModel})`,
+        model: grokModel,
+        call: () => callGrok(customKey, grokModel, prompt),
       });
     }
   }
 
-  // Groq fallback (ultra-fast secondary engine)
-  if (!isGroqExplicit && groqKey && groqKey !== 'your_groq_api_key_here') {
+  // Server Gemini keys (try primary model, then fallback model for separate quota pools)
+  for (let i = 0; i < serverGeminiKeys.length; i++) {
+    const key = serverGeminiKeys[i];
+    if (key === customKey) continue;
     candidates.push({
-      provider: 'groq',
-      name: 'Groq',
-      model: groqModel,
-      call: () => callGroq(groqKey, groqModel, prompt),
+      provider: 'gemini',
+      name: i === 0 ? `Google Gemini (${primaryGeminiModel})` : `Google Gemini Backup ${i} (${primaryGeminiModel})`,
+      model: primaryGeminiModel,
+      call: () => callGemini(key, primaryGeminiModel, prompt),
+    });
+    candidates.push({
+      provider: 'gemini',
+      name: i === 0 ? `Google Gemini Lite (${fallbackGeminiModel})` : `Google Gemini Backup ${i} Lite (${fallbackGeminiModel})`,
+      model: fallbackGeminiModel,
+      call: () => callGemini(key, fallbackGeminiModel, prompt),
     });
   }
 
-  // xAI Grok fallback
-  if (!isGrokExplicit && grokKey && grokKey !== 'your_xai_api_key_here') {
+  // Server Groq fallback
+  if (groqKey && groqKey !== 'your_groq_api_key_here' && groqKey !== customKey) {
+    candidates.push({
+      provider: 'groq',
+      name: `Groq (${groqModel})`,
+      model: groqModel,
+      call: () => callGroq(groqKey, groqModel, prompt),
+    });
+    if (groqModel !== 'qwen/qwen3.8-27b') {
+      candidates.push({
+        provider: 'groq',
+        name: 'Groq (qwen/qwen3.8-27b)',
+        model: 'qwen/qwen3.8-27b',
+        call: () => callGroq(groqKey, 'qwen/qwen3.8-27b', prompt),
+      });
+    }
+  }
+
+  // Server Grok fallback
+  if (grokKey && grokKey !== 'your_xai_api_key_here' && grokKey !== customKey) {
     candidates.push({
       provider: 'grok',
-      name: 'xAI Grok',
+      name: `xAI Grok (${grokModel})`,
       model: grokModel,
       call: () => callGrok(grokKey, grokModel, prompt),
     });
@@ -265,7 +326,7 @@ export function getAvailableAiProviders() {
         id: 'gemini',
         name: 'Google Gemini',
         status: hasGemini ? 'active' : 'not_configured',
-        models: ['gemini-3.8-flash'],
+        models: ['gemini-3.8-flash', 'gemini-3.5-flash-lite'],
         defaultModel: 'gemini-3.8-flash',
       },
       {
