@@ -1,5 +1,17 @@
-// The Next.js frontend will proxy API requests to the backend via next.config.ts rewrites.
-const BASE_URL = '';
+function resolveBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim()) {
+    const trimmed = envUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      if (!trimmed.includes('localhost') && !trimmed.includes('127.0.0.1')) {
+        return trimmed.replace(/\/+$/, '').replace(/\/api$/, '');
+      }
+    }
+  }
+  return '';
+}
+
+const BASE_URL = resolveBaseUrl();
 type FetchOptions = {
   method?: string;
   body?: unknown;

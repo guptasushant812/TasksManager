@@ -1008,7 +1008,28 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         {error ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p style={{ color: 'var(--high)', marginBottom: 6, fontSize: 13 }}>⚠ {error}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Make sure the server is running on port 4000</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 440, marginInline: 'auto', lineHeight: 1.5 }}>
+              {typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+                ? 'Unable to reach backend server. If hosted on Render free tier, the instance may be spinning up from sleep (~30–50s).'
+                : 'Make sure the backend server is running on port 4000.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => fetchTasks({ ...filters, limit: tableLimit })}
+              style={{
+                marginTop: 14,
+                padding: '6px 14px',
+                fontSize: 12,
+                fontWeight: 600,
+                borderRadius: 'var(--radius-sm, 6px)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+              }}
+            >
+              Retry Connection
+            </button>
           </div>
         ) : (
           <div className="task-table-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
