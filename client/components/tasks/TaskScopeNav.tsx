@@ -671,41 +671,7 @@ export default function TaskScopeNav({
         </div>
       )}
 
-      {isAllTime && !filters.month && !filters.year && (
-        <div className="card animate-slide-down" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 16px',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--box-shadow-brutalist-sm)',
-          fontSize: 12,
-          color: 'var(--text-secondary)',
-          flexWrap: 'wrap',
-          gap: 8,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <Calendar
-              style={{
-                width: 15,
-                height: 15,
-                color: 'var(--text-muted)',
-                flexShrink: 0,
-              }}
-            />
-            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>All Time</span>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>All Months &amp; All Years</span>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8', display: 'inline-block' }} />
-              Showing all tasks without date restrictions
-            </span>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
