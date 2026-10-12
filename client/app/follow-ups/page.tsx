@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import FollowUpWorkspace from '@/components/follow-ups/FollowUpWorkspace';
-import CascadingFilterNav from '@/components/dashboard/CascadingFilterNav';
+import TaskScopeNav from '@/components/tasks/TaskScopeNav';
 import { useTaskContext } from '@/context/TaskContext';
 import { TaskFilters } from '@/types/task';
 
@@ -41,10 +41,11 @@ export default function FollowUpsPage() {
         </div>
 
         <section style={{ marginBottom: 16 }}>
-          <CascadingFilterNav
+          <TaskScopeNav
             filters={localFilters}
             onFiltersChange={handleFiltersChange}
             availableYears={availableYears}
+            entityName="follow-ups"
           />
         </section>
 

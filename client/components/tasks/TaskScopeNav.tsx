@@ -146,12 +146,14 @@ interface TaskScopeNavProps {
   filters: TaskFilters;
   onFiltersChange: (partial: Partial<TaskFilters>) => void;
   availableYears: number[];
+  entityName?: string;
 }
 
 export default function TaskScopeNav({
   filters,
   onFiltersChange,
   availableYears,
+  entityName = 'tasks',
 }: TaskScopeNavProps) {
   const today = new Date();
   const currentYearStr = today.getFullYear().toString();
@@ -452,7 +454,7 @@ export default function TaskScopeNav({
               <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                Showing today&apos;s tasks only
+                Showing today&apos;s {entityName} only
               </span>
             </div>
           </div>
