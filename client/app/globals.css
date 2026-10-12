@@ -8303,4 +8303,55 @@ html:not(.dark) .saas-task-summary {
     height: 40px !important;
   }
 }
+
+@keyframes shareModalBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shareModalCardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shareCardSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.share-modal-overlay {
+  animation: shareModalBackdropFade 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.share-modal-box {
+  animation: shareModalCardEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.share-card-enter {
+  animation: shareCardSlideDown 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .share-modal-overlay,
+  .share-modal-box,
+  .share-card-enter {
+    animation: none !important;
+  }
+}
 

@@ -520,16 +520,19 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     </header>
 
       {showShareModal && (
-        <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+        <div
+          className="modal-overlay share-modal-overlay"
+          onClick={() => setShowShareModal(false)}
+        >
           <div
-            className="modal-box animate-slide-up"
+            className="modal-box share-modal-box"
             style={{
               maxWidth: 520,
               padding: '24px 26px',
               borderRadius: 'var(--radius-xl)',
-              background: 'var(--bg-surface)',
+              background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.05), transparent 70%), var(--bg-surface)',
               border: '1px solid var(--border)',
-              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -543,9 +546,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                     width: 34,
                     height: 34,
                     borderRadius: 'var(--radius-sm)',
-                    background: 'var(--accent-subtle)',
-                    border: '1px solid var(--accent)',
-                    color: 'var(--accent)',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.28)',
+                    color: '#10b981',
                   }}
                 >
                   <Share2 style={{ width: 16, height: 16 }} />
