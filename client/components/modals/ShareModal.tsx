@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   X,
   Link2,
+  ShieldCheck,
   Lock,
   Check,
 } from 'lucide-react';
@@ -82,30 +83,45 @@ export default function ShareModal({ onClose }: ShareModalProps) {
           background: 'var(--bg-elevated)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
-          padding: '14px 16px',
+          padding: '16px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 14,
-          marginBottom: 14,
+          gap: 16,
+          marginBottom: 16,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Globe
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 200 }}>
+          <div
             style={{
-              width: 17,
-              height: 17,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 38,
+              height: 38,
+              borderRadius: 'var(--radius-md)',
+              background: settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-hover)',
+              border: `1px solid ${settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.28)' : 'var(--border-subtle)'}`,
               color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
-              transition: 'color 0.25s ease',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               flexShrink: 0,
             }}
-          />
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-            Enable Public Sharing
-          </span>
+          >
+            <Globe style={{ width: 18, height: 18 }} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+              <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                Enable Public Sharing
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              Anyone with the public link can view your active tasks board.
+            </p>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button
             type="button"
             role="switch"
@@ -114,19 +130,19 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             onClick={handleToggle}
             style={{
               position: 'relative',
-              width: 44,
-              height: 24,
+              width: 48,
+              height: 26,
               borderRadius: 9999,
               border: 'none',
               cursor: isToggling ? 'not-allowed' : 'pointer',
               background: settings.isPublicShareEnabled ? '#10b981' : 'rgba(255, 255, 255, 0.15)',
               transition: 'background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease',
-              padding: 2,
+              padding: 3,
               outline: 'none',
               display: 'flex',
               alignItems: 'center',
               opacity: isToggling ? 0.6 : 1,
-              boxShadow: settings.isPublicShareEnabled ? '0 0 12px rgba(16, 185, 129, 0.35)' : 'none',
+              boxShadow: settings.isPublicShareEnabled ? '0 0 14px rgba(16, 185, 129, 0.35)' : 'none',
             }}
             title={settings.isPublicShareEnabled ? 'Click to disable sharing' : 'Click to enable sharing'}
           >
@@ -137,8 +153,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 height: 20,
                 borderRadius: '50%',
                 background: '#ffffff',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
-                transform: settings.isPublicShareEnabled ? 'translateX(20px)' : 'translateX(0)',
+                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.28)',
+                transform: settings.isPublicShareEnabled ? 'translateX(22px)' : 'translateX(0)',
                 transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
@@ -149,11 +165,28 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               fontSize: 11.5,
               fontWeight: 700,
               fontFamily: 'JetBrains Mono, monospace',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '3px 8px',
+              borderRadius: 6,
+              background: settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-hover)',
+              border: `1px solid ${settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.25)' : 'var(--border-subtle)'}`,
               color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
-              minWidth: 46,
-              transition: 'color 0.25s ease',
+              minWidth: 62,
+              justifyContent: 'center',
+              transition: 'all 0.25s ease',
             }}
           >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
+                boxShadow: settings.isPublicShareEnabled ? '0 0 6px #10b981' : 'none',
+              }}
+            />
             {settings.isPublicShareEnabled ? 'Active' : 'Off'}
           </span>
         </div>
@@ -166,15 +199,15 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             background: 'var(--bg-elevated)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-lg)',
-            padding: '14px 16px',
-            marginBottom: 16,
+            padding: '16px 18px',
+            marginBottom: 20,
           }}
         >
-          <div style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <span
               style={{
-                fontSize: 10.5,
-                fontWeight: 700,
+                fontSize: 11,
+                fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 color: 'var(--text-muted)',
@@ -182,6 +215,20 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               }}
             >
               YOUR PUBLIC LINK
+            </span>
+
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 4,
+                background: 'rgba(56, 189, 248, 0.08)',
+                border: '1px solid rgba(56, 189, 248, 0.22)',
+                color: 'var(--accent)',
+              }}
+            >
+              Read-Only Access
             </span>
           </div>
 
@@ -193,18 +240,19 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-md)',
               overflow: 'hidden',
-              marginBottom: 10,
+              marginBottom: 12,
+              boxShadow: 'var(--box-shadow-brutalist-sm)',
             }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: '0 10px',
+                padding: '0 12px',
                 color: 'var(--text-muted)',
               }}
             >
-              <Link2 style={{ width: 14, height: 14 }} />
+              <Link2 style={{ width: 15, height: 15 }} />
             </div>
 
             <input
@@ -216,8 +264,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                padding: '9px 0',
-                fontSize: 12,
+                padding: '11px 0',
+                fontSize: 12.5,
                 fontFamily: 'JetBrains Mono, monospace',
                 color: '#34d399',
               }}
@@ -231,14 +279,15 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                padding: '0 14px',
+                gap: 7,
+                padding: '0 18px',
                 background: copied ? '#059669' : '#10b981',
                 color: copied ? '#ffffff' : '#022c22',
                 border: 'none',
                 borderLeft: '1px solid rgba(0, 0, 0, 0.1)',
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: 12,
+                letterSpacing: '0.02em',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -246,19 +295,34 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             >
               {copied ? (
                 <>
-                  <Check style={{ width: 14, height: 14 }} />
+                  <Check style={{ width: 15, height: 15 }} />
                   <span>COPIED!</span>
                 </>
               ) : (
                 <>
-                  <Copy style={{ width: 13, height: 13 }} />
+                  <Copy style={{ width: 14, height: 14 }} />
                   <span>COPY LINK</span>
                 </>
               )}
             </button>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 8,
+              paddingTop: 10,
+              borderTop: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+              <ShieldCheck style={{ width: 14, height: 14, color: '#10b981' }} />
+              <span>Share securely with your team or clients.</span>
+            </div>
+
             <button
               type="button"
               onClick={() => setShowRegenerateConfirm(true)}
@@ -266,12 +330,12 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               className="brutalist-hover"
               style={{
                 background: 'transparent',
-                border: '1px solid rgba(248, 113, 113, 0.25)',
+                border: '1px solid rgba(248, 113, 113, 0.3)',
                 borderRadius: 'var(--radius-sm)',
                 color: '#f87171',
                 fontSize: 11,
-                fontWeight: 600,
-                padding: '4px 8px',
+                fontWeight: 700,
+                padding: '4px 10px',
                 cursor: isToggling ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -282,13 +346,13 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             >
               <RefreshCw
                 style={{
-                  width: 11,
-                  height: 11,
+                  width: 12,
+                  height: 12,
                   transition: 'transform 0.3s ease',
                 }}
                 className={isToggling ? 'animate-spin' : ''}
               />
-              <span>Regenerate Link</span>
+              <span>REGENERATE LINK</span>
             </button>
           </div>
         </div>
@@ -301,7 +365,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             background: 'var(--bg-hover)',
             border: '1px dashed var(--border-subtle)',
             borderRadius: 'var(--radius-lg)',
-            marginBottom: 16,
+            marginBottom: 20,
             color: 'var(--text-muted)',
             display: 'flex',
             flexDirection: 'column',
@@ -309,9 +373,12 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             gap: 8,
           }}
         >
-          <Lock style={{ width: 18, height: 18, opacity: 0.6 }} />
+          <Lock style={{ width: 20, height: 20, opacity: 0.6 }} />
           <span style={{ fontSize: 13, fontWeight: 600 }}>
-            Public sharing is disabled
+            Public sharing is currently disabled
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 320 }}>
+            Enable public sharing above to generate and share your live task board link.
           </span>
         </div>
       )}
@@ -320,11 +387,16 @@ export default function ShareModal({ onClose }: ShareModalProps) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
-          paddingTop: 14,
+          justifyContent: 'space-between',
+          paddingTop: 16,
           borderTop: '1px solid var(--border-subtle)',
+          gap: 12,
         }}
       >
+        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+          Public visitors have view-only access.
+        </span>
+
         <button
           type="button"
           onClick={onClose}
@@ -337,7 +409,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: '0.02em',
-            padding: '7px 18px',
+            padding: '8px 20px',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
