@@ -88,7 +88,7 @@ function ScopeDropdown({
           borderColor: 'var(--border-subtle)',
           color: 'var(--text-muted)',
         } : undefined}
-        title={disabled ? "Month & Year filters are locked while viewing Today's tasks" : undefined}
+        title={disabled ? "Month & Year filters are locked in this preset mode" : undefined}
       >
         <span className="scope-dropdown-selected-text">{displayText}</span>
         <ChevronDown
@@ -310,6 +310,8 @@ export default function TaskScopeNav({
       label: String(y),
     }));
 
+  const isDropdownDisabled = isToday || isCurrentMonth;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div className="dashboard-scope-container">
@@ -356,7 +358,7 @@ export default function TaskScopeNav({
                 onChange={handleMonthChange}
                 ariaLabel="Filter by month"
                 className="scope-dropdown-month"
-                disabled={isToday}
+                disabled={isDropdownDisabled}
               />
 
               <ScopeDropdown
@@ -366,7 +368,7 @@ export default function TaskScopeNav({
                 onChange={handleYearChange}
                 ariaLabel="Filter by year"
                 className="scope-dropdown-year"
-                disabled={isToday}
+                disabled={isDropdownDisabled}
               />
             </div>
           </div>
