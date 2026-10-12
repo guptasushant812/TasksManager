@@ -3,7 +3,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import Header from '@/components/layout/Header';
 import TaskTable from '@/components/tasks/TaskTable';
 
-import CascadingFilterNav from '@/components/dashboard/CascadingFilterNav';
+import TaskScopeNav from '@/components/tasks/TaskScopeNav';
 
 export default function TasksPage() {
   const {
@@ -28,7 +28,7 @@ export default function TasksPage() {
         </div>
 
         <section>
-          <CascadingFilterNav
+          <TaskScopeNav
             filters={filters}
             onFiltersChange={handleFiltersChange}
             availableYears={availableYears}
