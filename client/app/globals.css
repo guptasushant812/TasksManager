@@ -117,7 +117,7 @@
 }
 
 /* Ambient Background and Frosted Glass Blur for Light Mode */
-html:not(.dark) body, html[data-theme="light"] body {
+html:not(.dark):not([data-theme="sketch"]) body, html[data-theme="light"] body {
   background: 
     radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.07) 0px, transparent 50%),
@@ -127,12 +127,12 @@ html:not(.dark) body, html[data-theme="light"] body {
   background-attachment: fixed !important;
 }
 
-html:not(.dark) .header,
-html:not(.dark) .settings-card,
-html:not(.dark) .settings-theme-card,
-html:not(.dark) .table-wrapper,
-html:not(.dark) .modal-box,
-html:not(.dark) .card,
+html:not(.dark):not([data-theme="sketch"]) .header,
+html:not(.dark):not([data-theme="sketch"]) .settings-card,
+html:not(.dark):not([data-theme="sketch"]) .settings-theme-card,
+html:not(.dark):not([data-theme="sketch"]) .table-wrapper,
+html:not(.dark):not([data-theme="sketch"]) .modal-box,
+html:not(.dark):not([data-theme="sketch"]) .card,
 html[data-theme="light"] .header,
 html[data-theme="light"] .settings-card,
 html[data-theme="light"] .settings-theme-card,
@@ -311,6 +311,182 @@ html[data-theme="dark"] .card {
   --shadow-taste-md: 0 8px 24px -6px rgba(2, 6, 23, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-taste-lg: 0 16px 36px -8px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="sketch"] {
+  color-scheme: light;
+
+  --bg-base: #fdfbf7;
+  --bg-surface: #ffffff;
+  --bg-elevated: #fff9c4;
+  --bg-card: #ffffff;
+  --bg-hover: #f5eedc;
+  --bg-active: #e5e0d8;
+
+  --border: #2d2d2d;
+  --border-subtle: rgba(45, 45, 45, 0.25);
+  --border-focus: #2d5da1;
+  --border-width-layout: 2px;
+
+  --text-primary: #2d2d2d;
+  --text-secondary: #55524c;
+  --text-muted: #8a8377;
+  --font-sans: "Patrick Hand", cursive, sans-serif;
+  --font-heading: "Kalam", cursive, sans-serif;
+  --font-inter: "Patrick Hand", cursive, sans-serif;
+
+  --accent: #ff4d4d;
+  --accent-hover: #e63939;
+  --accent-subtle: rgba(255, 77, 77, 0.14);
+  --accent-glow: #ff4d4d;
+  --accent-secondary: #2d5da1;
+  --accent-tertiary: #fff9c4;
+
+  --btn-new-task-bg: #2d2d2d;
+  --btn-new-task-bg-hover: #ff4d4d;
+  --btn-new-task-gradient: none;
+  --btn-new-task-text: #ffffff;
+  --btn-new-task-border: #2d2d2d;
+  --btn-new-task-glow: 4px 4px 0px 0px #2d2d2d;
+  --btn-new-task-glow-hover: 2px 2px 0px 0px #2d2d2d;
+
+  --high: #ff4d4d;
+  --high-bg: rgba(255, 77, 77, 0.14);
+  --medium: #d97706;
+  --medium-bg: rgba(217, 119, 6, 0.14);
+  --low: #2d5da1;
+  --low-bg: rgba(45, 93, 161, 0.14);
+  --inprogress: #2d5da1;
+  --inprogress-bg: rgba(45, 93, 161, 0.14);
+  --pending: #eab308;
+  --pending-bg: rgba(234, 179, 8, 0.18);
+  --completed: #16a34a;
+  --completed-bg: rgba(22, 163, 74, 0.14);
+
+  --box-shadow-brutalist: 4px 4px 0px 0px #2d2d2d;
+  --box-shadow-brutalist-sm: 3px 3px 0px 0px #2d2d2d;
+  --shadow-taste-sm: 2px 2px 0px 0px #2d2d2d;
+  --shadow-taste-md: 4px 4px 0px 0px #2d2d2d;
+  --shadow-taste-lg: 6px 6px 0px 0px #2d2d2d;
+  --sheen-highlight: none;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+html[data-theme="sketch"] body {
+  background-color: #fdfbf7 !important;
+  background-image: radial-gradient(#e5e0d8 1.5px, transparent 1.5px) !important;
+  background-size: 24px 24px !important;
+  background-attachment: fixed !important;
+  font-family: "Patrick Hand", cursive, sans-serif !important;
+}
+
+html[data-theme="sketch"] h1,
+html[data-theme="sketch"] h2,
+html[data-theme="sketch"] h3,
+html[data-theme="sketch"] h4,
+html[data-theme="sketch"] h5,
+html[data-theme="sketch"] h6,
+html[data-theme="sketch"] .font-heading,
+html[data-theme="sketch"] .header-title {
+  font-family: "Kalam", cursive, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em;
+}
+
+html[data-theme="sketch"] p,
+html[data-theme="sketch"] span,
+html[data-theme="sketch"] td,
+html[data-theme="sketch"] label,
+html[data-theme="sketch"] button,
+html[data-theme="sketch"] input,
+html[data-theme="sketch"] select,
+html[data-theme="sketch"] textarea {
+  font-family: "Patrick Hand", cursive, sans-serif !important;
+}
+
+html[data-theme="sketch"] .card,
+html[data-theme="sketch"] .settings-card,
+html[data-theme="sketch"] .settings-theme-card,
+html[data-theme="sketch"] .table-wrapper,
+html[data-theme="sketch"] .modal-box,
+html[data-theme="sketch"] .app-dialog-box {
+  background: #ffffff !important;
+  border: 2px solid #2d2d2d !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  box-shadow: 4px 4px 0px 0px #2d2d2d !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="sketch"] .pill,
+html[data-theme="sketch"] .header-btn,
+html[data-theme="sketch"] button.brutalist-hover,
+html[data-theme="sketch"] .btn-primary,
+html[data-theme="sketch"] .btn-secondary {
+  border: 2px solid #2d2d2d !important;
+  border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px !important;
+  box-shadow: 3px 3px 0px 0px #2d2d2d !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+html[data-theme="sketch"] .pill:hover,
+html[data-theme="sketch"] .header-btn:hover,
+html[data-theme="sketch"] button.brutalist-hover:hover {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 2px 2px 0px 0px #2d2d2d !important;
+}
+
+html[data-theme="sketch"] .pill:active,
+html[data-theme="sketch"] .header-btn:active,
+html[data-theme="sketch"] button.brutalist-hover:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 0px 0px 0px 0px #2d2d2d !important;
+}
+
+html[data-theme="sketch"] input,
+html[data-theme="sketch"] select,
+html[data-theme="sketch"] textarea {
+  background: #ffffff !important;
+  border: 2px solid #2d2d2d !important;
+  border-radius: 255px 10px 225px 10px / 10px 225px 10px 255px !important;
+  box-shadow: 2px 2px 0px 0px rgba(45, 45, 45, 0.15) !important;
+}
+
+html[data-theme="sketch"] input:focus,
+html[data-theme="sketch"] select:focus,
+html[data-theme="sketch"] textarea:focus {
+  border-color: #2d5da1 !important;
+  box-shadow: 3px 3px 0px 0px #2d5da1 !important;
+  outline: none !important;
+}
+
+html[data-theme="sketch"] th {
+  border-bottom: 2px solid #2d2d2d !important;
+  font-family: "Kalam", cursive, sans-serif !important;
+}
+
+html[data-theme="sketch"] tr {
+  border-bottom: 1px dashed rgba(45, 45, 45, 0.3) !important;
+}
+
+html[data-theme="sketch"] tbody tr:hover {
+  background-color: #fff9c4 !important;
+}
+
+html[data-theme="sketch"] .app-header {
+  background: #fdfbf7 !important;
+  border-bottom: 2px solid #2d2d2d !important;
+  box-shadow: 0 3px 0px 0px rgba(45, 45, 45, 0.1) !important;
+}
+
+html[data-theme="sketch"] .app-sidebar,
+html[data-theme="sketch"] .sidebar {
+  background: #fdfbf7 !important;
+  border-right: 2px solid #2d2d2d !important;
 }
 
 
