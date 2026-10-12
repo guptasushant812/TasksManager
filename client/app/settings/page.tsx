@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
+import { apiFetch } from '@/lib/api';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import { RecipientItem } from '@/types/escalation';
 import { 
@@ -379,10 +380,17 @@ export default function SettingsPage() {
     setShowPasswordConfirmModal(true);
   };
 
-  const handleConfirmPasswordUpdate = () => {
+  const handleConfirmPasswordUpdate = async () => {
     try {
       const trimmed = newPassword.trim();
-      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
+
+      // Update in database so all devices and sessions enforce the new passcode and invalidate previous ones
+      await apiFetch('/api/settings/update-password', {
+        method: 'POST',
+        body: { newPassword: trimmed },
+      });
+
+      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sun123@","timeoutMs":300000}');
       current.password = trimmed;
       localStorage.setItem('securityConfig', JSON.stringify(current));
       setTimeout(() => {
@@ -395,8 +403,8 @@ export default function SettingsPage() {
       setConfirmPassword('');
       setShowPasswordConfirmModal(false);
       setTimeout(() => setPasswordSaved(false), 5000);
-    } catch {
-      setPasswordError('Could not save password to storage.');
+    } catch (err: any) {
+      setPasswordError(err instanceof Error ? err.message : 'Could not save password to server.');
       setShowPasswordConfirmModal(false);
     }
   };
@@ -1795,7 +1803,7 @@ export default function SettingsPage() {
                         style={{ width: 'min(200px, 100%)', fontSize: 14, padding: '8px 12px' }}
                         onChange={(e) => {
                           const val = parseInt(e.target.value);
-                          const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sushant2026@","timeoutMs":300000}');
+                          const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sun123@","timeoutMs":300000}');
                           current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
                           setTimeout(() => {

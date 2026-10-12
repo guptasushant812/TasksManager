@@ -2,6 +2,7 @@
 import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { apiFetch } from '@/lib/api';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastActiveRef = useRef<number>(Date.now());
@@ -27,12 +29,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          password: parsed.password || 'Sushant2026@',
+          password: parsed.password || 'Sun123@',
           timeoutMs: Number(parsed.timeoutMs) || 300000,
         };
       }
     } catch {}
-    return { password: 'Sushant2026@', timeoutMs: 300000 };
+    return { password: 'Sun123@', timeoutMs: 300000 };
   }, []);
 
   const formatDuration = (ms: number): string => {
@@ -233,14 +235,40 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }, 160);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { password: correctPassword } = getConfig();
+    const trimmed = password.trim();
+    if (!trimmed || isVerifying) return;
 
-    if (password === correctPassword || password === 'Sushant2026@') {
-      handleUnlockSuccess();
-    } else {
-      setError(true);
+    setIsVerifying(true);
+    setError(false);
+
+    try {
+      const res = await apiFetch<{ valid: boolean }>('/api/settings/verify-password', {
+        method: 'POST',
+        body: { password: trimmed },
+      });
+
+      if (res.valid) {
+        try {
+          const current = JSON.parse(localStorage.getItem('securityConfig') || '{"timeoutMs":300000}');
+          current.password = trimmed;
+          localStorage.setItem('securityConfig', JSON.stringify(current));
+        } catch {}
+        handleUnlockSuccess();
+      } else {
+        setError(true);
+      }
+    } catch {
+      // Offline fallback: verify strictly against current local cached password
+      const { password: currentPassword } = getConfig();
+      if (trimmed === currentPassword) {
+        handleUnlockSuccess();
+      } else {
+        setError(true);
+      }
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -416,6 +444,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
               <button
                 type="submit"
+                disabled={isVerifying || isUnlocking}
                 className="btn btn-primary"
                 style={{
                   width: '100%',
@@ -425,10 +454,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   fontWeight: 700,
                   fontSize: 13.5,
                   boxShadow: 'var(--shadow-taste-sm)',
-                  cursor: 'pointer',
+                  cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
+                  opacity: isVerifying || isUnlocking ? 0.7 : 1,
                 }}
               >
-                {isUnlocking ? 'Resuming...' : 'Continue Session'}
+                {isUnlocking ? 'Resuming...' : isVerifying ? 'Verifying...' : 'Continue Session'}
               </button>
             </form>
           </div>
@@ -564,6 +594,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               </div>
               <button
                 type="submit"
+                disabled={isVerifying || isUnlocking}
                 className="btn btn-primary"
                 style={{
                   width: '100%',
@@ -573,10 +604,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   fontWeight: 700,
                   fontSize: 13.5,
                   boxShadow: 'var(--shadow-taste-sm)',
-                  cursor: 'pointer',
+                  cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
+                  opacity: isVerifying || isUnlocking ? 0.7 : 1,
                 }}
               >
-                {isUnlocking ? 'Unlocking...' : 'Unlock Workspace'}
+                {isUnlocking ? 'Unlocking...' : isVerifying ? 'Verifying...' : 'Unlock Workspace'}
               </button>
             </form>
           </div>

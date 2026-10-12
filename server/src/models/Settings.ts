@@ -4,6 +4,8 @@ import crypto from 'crypto';
 export interface ISettings extends Document {
   isPublicShareEnabled: boolean;
   publicShareToken: string;
+  masterPasswordHash?: string | null;
+  passwordUpdatedAt?: Date | null;
 }
 
 const SettingsSchema: Schema = new Schema(
@@ -13,6 +15,8 @@ const SettingsSchema: Schema = new Schema(
       type: String, 
       default: () => crypto.randomBytes(16).toString('hex') 
     },
+    masterPasswordHash: { type: String, default: null },
+    passwordUpdatedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
