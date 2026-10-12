@@ -106,7 +106,7 @@ export default function SettingsPage() {
   // AI Assistant Preferences & Fallback Key
   const [preferredAiModel, setPreferredAiModel] = useState('auto');
   const [customAiKey, setCustomAiKey] = useState('');
-  const [customAiProvider, setCustomAiProvider] = useState<'gemini' | 'grok'>('gemini');
+  const [customAiProvider, setCustomAiProvider] = useState<'gemini' | 'groq' | 'grok'>('gemini');
   const [showAiKey, setShowAiKey] = useState(false);
   const [aiKeySaved, setAiKeySaved] = useState(false);
   const [aiKeyCleared, setAiKeyCleared] = useState(false);
@@ -118,10 +118,12 @@ export default function SettingsPage() {
       const k = localStorage.getItem('tasksmanager_custom_ai_key');
       if (k) setCustomAiKey(k);
       const p = localStorage.getItem('tasksmanager_custom_ai_provider');
-      if (p === 'grok' || p === 'gemini') {
-        setCustomAiProvider(p);
+      if (p === 'grok' || p === 'groq' || p === 'gemini') {
+        setCustomAiProvider(p as 'gemini' | 'groq' | 'grok');
       } else if (k?.startsWith('xai-')) {
         setCustomAiProvider('grok');
+      } else if (k?.startsWith('gsk_')) {
+        setCustomAiProvider('groq');
       }
     } catch {}
   }, []);
@@ -133,10 +135,10 @@ export default function SettingsPage() {
     } catch {}
   };
 
-  const handleSaveCustomAiKey = (key: string, providerOverride?: 'gemini' | 'grok') => {
+  const handleSaveCustomAiKey = (key: string, providerOverride?: 'gemini' | 'groq' | 'grok') => {
     const trimmed = key.trim();
     setCustomAiKey(trimmed);
-    const provider = providerOverride || (trimmed.startsWith('xai-') ? 'grok' : customAiProvider);
+    const provider = providerOverride || (trimmed.startsWith('xai-') ? 'grok' : trimmed.startsWith('gsk_') ? 'groq' : customAiProvider);
     setCustomAiProvider(provider);
     try {
       if (trimmed) {
@@ -811,9 +813,9 @@ export default function SettingsPage() {
                         {
                           id: 'auto',
                           name: 'Auto-Failover Chain',
-                          engine: 'Gemini 3.8 Flash ➔ xAI Grok 4.7',
+                          engine: 'Gemini ➔ Groq ➔ xAI Grok',
                           badge: 'Recommended',
-                          desc: 'Google Gemini primary with instant auto-fallback to xAI Grok if quotas or limits are reached.',
+                          desc: 'Google Gemini primary with instant auto-fallback to Groq and xAI Grok if quotas or limits are reached.',
                           icon: Sparkles,
                           highlight: true,
                         },
@@ -827,8 +829,17 @@ export default function SettingsPage() {
                           highlight: false,
                         },
                         {
+                          id: 'openai/gpt-oss-120b',
+                          name: 'Groq (Ultra-Fast)',
+                          engine: 'Groq Hardware LPUs',
+                          badge: 'Ultra Fast',
+                          desc: 'Sub-second task extraction with open flagship weights powered by Groq LPUs.',
+                          icon: Cpu,
+                          highlight: false,
+                        },
+                        {
                           id: 'grok-4.7',
-                          name: 'xAI Grok 4.7',
+                          name: 'xAI Grok',
                           engine: 'xAI Frontier',
                           badge: 'Direct Grok',
                           desc: 'Direct connection to xAI Grok with high-context reasoning and linguistic resilience.',
@@ -1063,6 +1074,23 @@ export default function SettingsPage() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setCustomAiProvider('groq')}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            background: customAiProvider === 'groq' ? 'rgba(249, 115, 22, 0.12)' : 'var(--bg-surface)',
+                            border: customAiProvider === 'groq' ? '1px solid #f97316' : '1px solid var(--border)',
+                            color: customAiProvider === 'groq' ? '#f97316' : 'var(--text-muted)',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          Groq (Fast)
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setCustomAiProvider('grok')}
                           style={{
                             padding: '3px 10px',
@@ -1085,11 +1113,23 @@ export default function SettingsPage() {
                           fontSize: 11,
                           padding: '2px 8px',
                           borderRadius: 4,
-                          background: customAiKey.startsWith('xai-') ? 'rgba(56, 189, 248, 0.12)' : 'rgba(0, 255, 102, 0.1)',
-                          color: customAiKey.startsWith('xai-') ? '#38bdf8' : 'var(--accent)',
+                          background: customAiKey.startsWith('xai-')
+                            ? 'rgba(56, 189, 248, 0.12)'
+                            : customAiKey.startsWith('gsk_')
+                            ? 'rgba(249, 115, 22, 0.12)'
+                            : 'rgba(0, 255, 102, 0.1)',
+                          color: customAiKey.startsWith('xai-')
+                            ? '#38bdf8'
+                            : customAiKey.startsWith('gsk_')
+                            ? '#f97316'
+                            : 'var(--accent)',
                           fontWeight: 700,
                         }}>
-                          {customAiKey.startsWith('xai-') ? 'Detected: xAI Grok Key' : 'Detected: Google Gemini Key'}
+                          {customAiKey.startsWith('xai-')
+                            ? 'Detected: xAI Grok Key'
+                            : customAiKey.startsWith('gsk_')
+                            ? 'Detected: Groq Key'
+                            : 'Detected: Google Gemini Key'}
                         </span>
                       )}
                     </div>
@@ -1098,14 +1138,22 @@ export default function SettingsPage() {
                       <div style={{ position: 'relative', flex: 1 }}>
                         <input
                           type={showAiKey ? 'text' : 'password'}
-                          placeholder={customAiProvider === 'grok' ? 'xai-...' : 'AIzaSy... or AQ.Ab8...'}
+                          placeholder={
+                            customAiProvider === 'grok'
+                              ? 'xai-...'
+                              : customAiProvider === 'groq'
+                              ? 'gsk_...'
+                              : 'AIzaSy... or AQ.Ab8...'
+                          }
                           value={customAiKey}
                           onChange={(e) => {
                             const val = e.target.value;
                             setCustomAiKey(val);
                             if (val.trim().startsWith('xai-')) {
                               setCustomAiProvider('grok');
-                            } else if (val.trim().length > 0 && customAiProvider === 'grok' && !val.trim().startsWith('xai-')) {
+                            } else if (val.trim().startsWith('gsk_')) {
+                              setCustomAiProvider('groq');
+                            } else if (val.trim().length > 0 && !val.trim().startsWith('xai-') && !val.trim().startsWith('gsk_')) {
                               setCustomAiProvider('gemini');
                             }
                           }}

@@ -391,12 +391,13 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           />
         )}
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px' }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 'clamp(14px, 2.5vw, 24px)', display: 'flex', flexDirection: 'column' }}>
           <div style={{
-            padding: '14px 16px', marginBottom: 16,
+            padding: '14px 18px', marginBottom: 16,
             background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
             borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
             lineHeight: 1.6,
+            flexShrink: 0,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <strong style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -411,9 +412,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
           </div>
 
-          <div style={{ marginBottom: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
+          <div style={{ marginBottom: 4, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
+              <label className="label" htmlFor="ai-raw-input" style={{ margin: 0, fontWeight: 700, letterSpacing: '0.04em' }}>
+                DESCRIBE YOUR TASK(S)
+              </label>
               {rawText.trim().length > 0 && (
                 <button
                   type="button"
@@ -432,6 +435,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
             <AutoResizeTextarea
               id="ai-raw-input"
+              className="ai-raw-input-textarea"
               placeholder={`Examples (English, Marathi, or Hinglish):
 
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
@@ -440,10 +444,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               value={aiLoading ? 'Please wait, structuring your tasks...' : rawText}
               onChange={(e) => setRawText(e.target.value)}
               disabled={aiLoading}
-              minHeight={120}
-              maxHeight={320}
+              minHeight={320}
+              maxHeight={560}
               allowManualResize={true}
-              style={{ lineHeight: 1.6, opacity: aiLoading ? 0.6 : 1 }}
+              style={{ lineHeight: 1.6, opacity: aiLoading ? 0.6 : 1, width: '100%', flex: 1 }}
             />
             {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
             {aiError && (

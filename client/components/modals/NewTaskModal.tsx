@@ -72,9 +72,9 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
   return createPortal(
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div 
-        className="modal-box new-task-modal-box animate-slide-up" 
+        className={`modal-box new-task-modal-box animate-slide-up ${mode === 'ai' ? 'new-task-modal-box-ai' : ''} ${mode === 'manual' ? 'new-task-modal-box-manual' : ''}`} 
         style={{ 
-          maxWidth: mode ? 820 : 540, 
+          maxWidth: mode === 'ai' ? 1140 : mode === 'manual' ? 920 : 540, 
         }}
       >
 
