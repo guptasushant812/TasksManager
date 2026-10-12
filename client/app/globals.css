@@ -8354,4 +8354,12 @@ html:not(.dark) .saas-task-summary {
     animation: none !important;
   }
 }
+
+@media (max-width: 480px) {
+  .share-modal-box {
+    padding: 16px !important;
+    margin-inline: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+}
 
