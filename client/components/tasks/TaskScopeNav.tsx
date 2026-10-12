@@ -385,99 +385,49 @@ export default function TaskScopeNav({
 
       {isToday && (
         <div
-          className="animate-slide-down"
+          className="animate-slide-down card"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '12px 18px',
-            background: 'rgba(15, 23, 42, 0.7)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(56, 189, 248, 0.25)',
+            padding: '10px 16px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+            boxShadow: 'var(--box-shadow-brutalist-sm)',
             flexWrap: 'wrap',
-            gap: 12,
+            gap: 10,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <Calendar
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 34,
-                height: 34,
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.4)',
-                color: 'var(--accent)',
+                width: 15,
+                height: 15,
+                color: 'var(--text-muted)',
                 flexShrink: 0,
               }}
-            >
-              <Calendar style={{ width: 17, height: 17 }} />
-            </div>
+            />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--accent)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  padding: '3px 8px',
-                  background: 'rgba(56, 189, 248, 0.1)',
-                  borderRadius: 4,
-                  border: '1px solid rgba(56, 189, 248, 0.2)',
-                }}
-              >
-                Today Date:
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
+                Today
               </span>
-
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '0.01em',
-                }}
-              >
-                {todayDayName} <span style={{ opacity: 0.35, margin: '0 4px' }}>|</span> {todayFormattedDate}
+              <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                {todayDayName}, {todayFormattedDate}
               </span>
-
               {todayWeek && (
-                <span
-                  style={{
-                    padding: '3px 8px',
-                    borderRadius: 4,
-                    background: 'rgba(56, 189, 248, 0.15)',
-                    border: '1px solid rgba(56, 189, 248, 0.4)',
-                    color: 'var(--accent)',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    letterSpacing: '0.05em',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  [Week {todayWeek.index}]
-                </span>
+                <>
+                  <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: 12 }}>
+                    Week {todayWeek.index}
+                  </span>
+                </>
               )}
-
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 12,
-                  color: 'var(--text-secondary)',
-                  fontWeight: 600,
-                  marginLeft: 4,
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+              <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                 Showing today&apos;s tasks only
               </span>
             </div>
@@ -489,23 +439,23 @@ export default function TaskScopeNav({
               onClick={handleSelectThisMonth}
               className="brutalist-hover"
               style={{
-                background: 'var(--bg-surface)',
+                background: 'var(--bg-hover)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-secondary)',
                 fontSize: 12,
                 fontWeight: 700,
-                padding: '5px 12px',
+                padding: '4px 10px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 5,
                 transition: 'all 0.15s ease',
               }}
               title="Switch to This Month to view weekly filters"
             >
               <span>View This Month</span>
-              <ArrowRight style={{ width: 13, height: 13 }} />
+              <ArrowRight style={{ width: 12, height: 12 }} />
             </button>
           </div>
         </div>
