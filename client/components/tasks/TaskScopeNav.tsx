@@ -23,6 +23,7 @@ interface ScopeDropdownProps {
   onChange: (value: string) => void;
   ariaLabel: string;
   className?: string;
+  style?: React.CSSProperties;
   disabled?: boolean;
 }
 
@@ -33,6 +34,7 @@ function ScopeDropdown({
   onChange,
   ariaLabel,
   className = '',
+  style,
   disabled = false,
 }: ScopeDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,14 +70,14 @@ function ScopeDropdown({
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className={`scope-dropdown-wrapper ${className}`}>
+    <div ref={containerRef} className={`scope-dropdown-wrapper ${className}`} style={style}>
       <button
         type="button"
         disabled={disabled}
         onClick={() => {
           if (!disabled) setIsOpen(!isOpen);
         }}
-        className={`scope-dropdown-trigger brutalist-hover ${isOpen ? 'active' : ''}`}
+        className={`scope-dropdown-trigger brutalist-hover ${isOpen ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
@@ -112,7 +114,7 @@ function ScopeDropdown({
             }}
             className={`scope-dropdown-item ${!value ? 'active' : ''}`}
           >
-            <span>{placeholder === 'Month' ? 'All Months' : 'All Years'}</span>
+            <span>{placeholder}</span>
             {!value && <Check style={{ width: 12, height: 12 }} />}
           </button>
           {options.map((opt) => {
@@ -158,29 +160,31 @@ export default function TaskScopeNav({
   const todayDayName = getDayName(today);
   const todayFormattedDate = formatDate(today);
 
-  const isToday =
-    filters.day === todayIso &&
-    !filters.weekIndex &&
-    !filters.weekStart &&
-    !filters.dateFrom &&
-    !filters.dateTo;
+  const [activePreset, setActivePreset] = useState<'today' | 'this_month' | 'all_time'>(() => {
+    if (filters.day === todayIso) return 'today';
+    if (
+      filters.year === currentYearStr &&
+      filters.month === currentMonthStr &&
+      !filters.day &&
+      !filters.weekIndex &&
+      !filters.dateFrom &&
+      !filters.dateTo
+    ) {
+      return 'this_month';
+    }
+    return 'all_time';
+  });
+
+  const isToday = activePreset === 'today' && filters.day === todayIso;
 
   const isCurrentMonth =
-    !isToday &&
+    activePreset === 'this_month' &&
     filters.year === currentYearStr &&
     filters.month === currentMonthStr &&
-    !filters.day &&
-    !filters.weekIndex &&
-    !filters.weekStart &&
-    !filters.dateFrom &&
-    !filters.dateTo;
+    !filters.day;
 
-  const isAllTime =
-    !filters.year &&
-    !filters.month &&
-    !filters.day &&
-    !filters.dateFrom &&
-    !filters.dateTo;
+  const isAllTime = activePreset === 'all_time';
+  const isDropdownDisabled = isToday || isCurrentMonth;
 
   const weeks = useMemo(() => {
     if (!filters.year || !filters.month) return [];
@@ -198,6 +202,7 @@ export default function TaskScopeNav({
   }, [currentMonthWeeks, todayIso]);
 
   const handleSelectToday = () => {
+    setActivePreset('today');
     onFiltersChange({
       year: currentYearStr,
       month: currentMonthStr,
@@ -211,6 +216,7 @@ export default function TaskScopeNav({
   };
 
   const handleSelectThisMonth = () => {
+    setActivePreset('this_month');
     onFiltersChange({
       year: currentYearStr,
       month: currentMonthStr,
@@ -224,6 +230,7 @@ export default function TaskScopeNav({
   };
 
   const handleSelectAllTime = () => {
+    setActivePreset('all_time');
     onFiltersChange({
       year: '',
       month: '',
@@ -237,9 +244,10 @@ export default function TaskScopeNav({
   };
 
   const handleMonthChange = (val: string) => {
+    setActivePreset('all_time');
     onFiltersChange({
       month: val,
-      year: filters.year || currentYearStr,
+      year: filters.year || (val ? currentYearStr : ''),
       weekIndex: undefined,
       weekStart: undefined,
       day: '',
@@ -250,6 +258,7 @@ export default function TaskScopeNav({
   };
 
   const handleYearChange = (val: string) => {
+    setActivePreset('all_time');
     onFiltersChange({
       year: val,
       weekIndex: undefined,
@@ -262,6 +271,7 @@ export default function TaskScopeNav({
   };
 
   const handleReset = () => {
+    setActivePreset('this_month');
     onFiltersChange({
       year: currentYearStr,
       month: currentMonthStr,
@@ -273,6 +283,18 @@ export default function TaskScopeNav({
       status: '',
       priority: '',
       search: '',
+      page: 1,
+    });
+  };
+
+  const handleClearTimeFilters = () => {
+    setActivePreset('all_time');
+    onFiltersChange({
+      month: '',
+      weekIndex: undefined,
+      day: '',
+      dateFrom: '',
+      dateTo: '',
       page: 1,
     });
   };
@@ -309,8 +331,6 @@ export default function TaskScopeNav({
       value: String(y),
       label: String(y),
     }));
-
-  const isDropdownDisabled = isToday || isCurrentMonth;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -353,21 +373,23 @@ export default function TaskScopeNav({
             <div className="scope-selects-group">
               <ScopeDropdown
                 value={filters.month || ''}
-                placeholder="Month"
+                placeholder="All Months"
                 options={monthOptions}
                 onChange={handleMonthChange}
                 ariaLabel="Filter by month"
                 className="scope-dropdown-month"
+                style={{ minWidth: 104 }}
                 disabled={isDropdownDisabled}
               />
 
               <ScopeDropdown
                 value={filters.year || ''}
-                placeholder="Year"
+                placeholder="All Years"
                 options={yearOptions}
                 onChange={handleYearChange}
                 ariaLabel="Filter by year"
                 className="scope-dropdown-year"
+                style={{ minWidth: 96 }}
                 disabled={isDropdownDisabled}
               />
             </div>
@@ -496,7 +518,7 @@ export default function TaskScopeNav({
 
             <button
               type="button"
-              onClick={() => onFiltersChange({ month: '', weekIndex: undefined, day: '', dateFrom: '', dateTo: '', page: 1 })}
+              onClick={handleClearTimeFilters}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -601,23 +623,34 @@ export default function TaskScopeNav({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '8px 16px',
-          background: 'var(--bg-hover)',
+          padding: '10px 16px',
+          background: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--box-shadow-brutalist-sm)',
           fontSize: 12,
           color: 'var(--text-secondary)',
           flexWrap: 'wrap',
           gap: 8,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Active Range:</span>
-            <span style={{ padding: '2px 8px', borderRadius: 4, background: 'var(--bg-surface)', border: '1px solid var(--border)', fontWeight: 600, color: 'var(--text-primary)' }}>
-              All Months ({filters.year})
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Calendar
+              style={{
+                width: 15,
+                height: 15,
+                color: 'var(--text-muted)',
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>All Months</span>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Year {filters.year}</span>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+            <span style={{ color: 'var(--text-muted)' }}>Showing all tasks for {filters.year}</span>
           </div>
           <button
             type="button"
-            onClick={() => onFiltersChange({ year: '', month: '', weekIndex: undefined, day: '', dateFrom: '', dateTo: '', page: 1 })}
+            onClick={handleClearTimeFilters}
             style={{
               background: 'transparent',
               border: 'none',
@@ -635,6 +668,42 @@ export default function TaskScopeNav({
           >
             Clear Time Filters ✕
           </button>
+        </div>
+      )}
+
+      {isAllTime && !filters.month && !filters.year && (
+        <div className="card animate-slide-down" style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 16px',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--box-shadow-brutalist-sm)',
+          fontSize: 12,
+          color: 'var(--text-secondary)',
+          flexWrap: 'wrap',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Calendar
+              style={{
+                width: 15,
+                height: 15,
+                color: 'var(--text-muted)',
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>All Time</span>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>All Months &amp; All Years</span>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>•</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8', display: 'inline-block' }} />
+              Showing all tasks without date restrictions
+            </span>
+          </div>
         </div>
       )}
     </div>
