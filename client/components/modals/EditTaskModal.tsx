@@ -130,12 +130,14 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSuccessPopup]);
 
-  async function handleRegenerate() {
+  async function handleRegenerate(keyOverride?: string, providerOverride?: string) {
     const result = await regenerateSingleDraft(
       data,
       0,
       regenInstruction,
-      data.description
+      data.description,
+      keyOverride,
+      providerOverride
     );
     if (result) {
       setData((prev) => ({
@@ -411,7 +413,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
                   </button>
                   <button
                     type="button"
-                    onClick={handleRegenerate}
+                    onClick={() => handleRegenerate()}
                     className="btn btn-primary"
                     style={{ padding: '4px 12px', height: 28, fontSize: 11, background: 'var(--accent)', color: '#000' }}
                     disabled={isRegenerating}
@@ -460,9 +462,9 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
               onSelectModel={updateSelectedModel}
               customApiKey={customApiKey}
               onSaveCustomKey={updateCustomApiKey}
-              onRetry={() => {
+              onRetry={(keyOverride, providerOverride) => {
                 clearRateLimit();
-                handleRegenerate();
+                handleRegenerate(keyOverride, providerOverride);
               }}
               onClose={clearRateLimit}
             />

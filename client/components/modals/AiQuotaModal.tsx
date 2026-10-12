@@ -9,12 +9,10 @@ interface AiQuotaModalProps {
   onSelectModel: (model: string) => void;
   customApiKey: string;
   onSaveCustomKey: (key: string, provider: string) => void;
-  onRetry: () => void;
+  onRetry: (keyOverride?: string, providerOverride?: string) => void;
   onSwitchToManual?: () => void;
   onClose: () => void;
 }
-
-
 
 export default function AiQuotaModal({
   rateLimitInfo,
@@ -31,12 +29,14 @@ export default function AiQuotaModal({
   const [keySaved, setKeySaved] = useState(false);
 
   const handleSaveKey = () => {
-    if (!apiKeyInput.trim()) return;
-    onSaveCustomKey(apiKeyInput.trim(), 'gemini');
+    const key = apiKeyInput.trim();
+    if (!key) return;
+    const provider = key.startsWith('gsk_') ? 'groq' : key.startsWith('xai-') ? 'grok' : 'gemini';
+    onSaveCustomKey(key, provider);
     setKeySaved(true);
     setTimeout(() => {
-      onRetry();
-    }, 400);
+      onRetry(key, provider);
+    }, 150);
   };
 
   const handleChooseModel = (modelId: string) => {
@@ -320,7 +320,16 @@ export default function AiQuotaModal({
           </button>
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => {
+              const key = apiKeyInput.trim();
+              if (key) {
+                const provider = key.startsWith('gsk_') ? 'groq' : key.startsWith('xai-') ? 'grok' : 'gemini';
+                onSaveCustomKey(key, provider);
+                onRetry(key, provider);
+              } else {
+                onRetry();
+              }
+            }}
             className="btn btn-primary"
             style={{
               background: 'var(--accent, #00ff66)',

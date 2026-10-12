@@ -88,12 +88,22 @@ export function useAiDraft() {
     setFallbackNotice(null);
   }, []);
 
-  const generateDrafts = useCallback(async (rawText: string): Promise<TaskDraft[] | null> => {
+  const generateDrafts = useCallback(async (
+    rawText: string,
+    keyOverride?: string,
+    providerOverride?: string
+  ): Promise<TaskDraft[] | null> => {
     setLoading(true);
     setError(null);
     setWarning(null);
     setRateLimitInfo(null);
     setFallbackNotice(null);
+
+    const storedKey = typeof window !== 'undefined' ? localStorage.getItem('tasksmanager_custom_ai_key') : null;
+    const storedProvider = typeof window !== 'undefined' ? localStorage.getItem('tasksmanager_custom_ai_provider') : null;
+
+    const effectiveKey = (keyOverride ?? (customApiKey || undefined) ?? (storedKey || undefined) ?? '').trim();
+    const effectiveProvider = (providerOverride ?? (customProvider || undefined) ?? (storedProvider || undefined) ?? 'gemini').trim();
 
     try {
       const res = await apiFetch<AiDraftResponse>('/api/ai-draft', {
@@ -101,8 +111,8 @@ export function useAiDraft() {
         body: { 
           rawText,
           preferredModel: selectedModel !== 'auto' ? selectedModel : undefined,
-          customApiKey: customApiKey.trim() || undefined,
-          customProvider: customApiKey.trim() ? customProvider : undefined,
+          customApiKey: effectiveKey || undefined,
+          customProvider: effectiveKey ? effectiveProvider : undefined,
         },
       });
 
@@ -147,12 +157,20 @@ export function useAiDraft() {
     task: TaskDraft,
     index: number,
     instruction?: string,
-    context?: string
+    context?: string,
+    keyOverride?: string,
+    providerOverride?: string
   ): Promise<TaskDraft | null> => {
     setRegeneratingIndex(index);
     setError(null);
     setWarning(null);
     setRateLimitInfo(null);
+
+    const storedKey = typeof window !== 'undefined' ? localStorage.getItem('tasksmanager_custom_ai_key') : null;
+    const storedProvider = typeof window !== 'undefined' ? localStorage.getItem('tasksmanager_custom_ai_provider') : null;
+
+    const effectiveKey = (keyOverride ?? (customApiKey || undefined) ?? (storedKey || undefined) ?? '').trim();
+    const effectiveProvider = (providerOverride ?? (customProvider || undefined) ?? (storedProvider || undefined) ?? 'gemini').trim();
 
     try {
       const res = await apiFetch<AiRegenResponse>('/api/ai-draft/regenerate', {
@@ -162,8 +180,8 @@ export function useAiDraft() {
           instruction, 
           context,
           preferredModel: selectedModel !== 'auto' ? selectedModel : undefined,
-          customApiKey: customApiKey.trim() || undefined,
-          customProvider: customApiKey.trim() ? customProvider : undefined,
+          customApiKey: effectiveKey || undefined,
+          customProvider: effectiveKey ? effectiveProvider : undefined,
         },
       });
 

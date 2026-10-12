@@ -117,9 +117,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     setShowConfirmGenerate(true);
   }
 
-  async function executeGeneration() {
+  async function executeGeneration(keyOverride?: string, providerOverride?: string) {
     setShowConfirmGenerate(false);
-    const result = await generateDrafts(rawText);
+    const result = await generateDrafts(rawText, keyOverride, providerOverride);
     if (result && result.length > 0) {
       setDrafts(result.map(d => ({ ...d, id: d.id || generateId() })));
       setStep('preview');
@@ -222,11 +222,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     setRegenInstruction('');
   }
 
-  async function handleConfirmRegen(index: number) {
+  async function handleConfirmRegen(index: number, keyOverride?: string, providerOverride?: string) {
     const task = drafts[index];
     if (!task) return;
 
-    const result = await regenerateSingleDraft(task, index, regenInstruction, rawText);
+    const result = await regenerateSingleDraft(task, index, regenInstruction, rawText, keyOverride, providerOverride);
     if (result) {
       setDrafts(prev => {
         const next = [...prev];
@@ -360,7 +360,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             type="button" 
             className="app-dialog-btn-action" 
             style={{ background: 'var(--accent)', color: '#000' }}
-            onClick={executeGeneration}
+            onClick={() => executeGeneration()}
           >
             Yes, Process
           </button>
@@ -382,9 +382,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             onSelectModel={updateSelectedModel}
             customApiKey={customApiKey}
             onSaveCustomKey={updateCustomApiKey}
-            onRetry={() => {
+            onRetry={(keyOverride, providerOverride) => {
               clearRateLimit();
-              executeGeneration();
+              executeGeneration(keyOverride, providerOverride);
             }}
             onSwitchToManual={onSwitchToManual}
             onClose={clearRateLimit}
@@ -513,10 +513,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           onSelectModel={updateSelectedModel}
           customApiKey={customApiKey}
           onSaveCustomKey={updateCustomApiKey}
-          onRetry={() => {
+          onRetry={(keyOverride, providerOverride) => {
             clearRateLimit();
             if (activeRegenIndex !== null && drafts[activeRegenIndex]) {
-              handleConfirmRegen(activeRegenIndex);
+              handleConfirmRegen(activeRegenIndex, keyOverride, providerOverride);
             }
           }}
           onSwitchToManual={onSwitchToManual}
