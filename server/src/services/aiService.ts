@@ -26,10 +26,16 @@ export interface AiRateLimitResult {
 export type AiGenerateResult = AiSuccessResult | AiRateLimitResult;
 
 async function callGemini(apiKey: string, model: string, prompt: string): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ 
+    apiKey,
+    httpOptions: { timeout: 8000 }
+  });
   const interaction = await ai.interactions.create({
     model,
     input: prompt,
+  }, {
+    maxRetries: 0,
+    timeout: 8000,
   });
 
   const text = (interaction.output_text || '').trim();
@@ -37,65 +43,101 @@ async function callGemini(apiKey: string, model: string, prompt: string): Promis
   return text;
 }
 
-async function callGrok(apiKey: string, model: string, prompt: string): Promise<string> {
-  // Try modern xAI Responses API first
+async function callGroq(apiKey: string, model: string, prompt: string): Promise<string> {
+  const selectedModel = model && !model.toLowerCase().includes('grok') && !model.toLowerCase().includes('gemini')
+    ? model
+    : (process.env.GROQ_MODEL || 'openai/gpt-oss-120b');
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
-    const res = await fetch('https://api.x.ai/v1/responses', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: model || 'grok-4.7',
-        input: prompt,
+        model: selectedModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
       }),
+      signal: controller.signal,
     });
 
-    if (res.ok) {
-      const data: any = await res.json();
-      const text =
-        data?.output_text ||
-        (Array.isArray(data?.output) && data.output.map((o: any) => o?.text || o?.content || '').join('')) ||
-        data?.text ||
-        '';
-      if (text.trim()) return text.trim();
-    } else {
+    if (!res.ok) {
       const errData: any = await res.json().catch(() => ({}));
-      const errMsg = errData?.error?.message || errData?.error || errData?.message;
-      if (errMsg && (errMsg.includes('permission') || errMsg.includes('credit') || errMsg.includes('license') || errMsg.includes('quota'))) {
-        throw new Error(errMsg);
-      }
-    }
-  } catch (err: any) {
-    if (err.message && (err.message.includes('permission') || err.message.includes('credit') || err.message.includes('license') || err.message.includes('quota'))) {
+      const errMsg = errData?.error?.message || errData?.message || `Groq API failed with status ${res.status}`;
+      const err: any = new Error(errMsg);
+      err.status = res.status;
       throw err;
     }
+
+    const data: any = await res.json();
+    const text = data?.choices?.[0]?.message?.content || '';
+    if (!text.trim()) throw new Error('Empty response from Groq');
+    return text.trim();
+  } finally {
+    clearTimeout(timeoutId);
   }
+}
 
-  // Fallback to OpenAI-compatible chat completions
-  const chatRes = await fetch('https://api.x.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: model || 'grok-4.7',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
-    }),
-  });
+async function callGrok(apiKey: string, model: string, prompt: string): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-  if (!chatRes.ok) {
-    const errData: any = await chatRes.json().catch(() => ({}));
-    throw new Error(errData?.error?.message || errData?.error || errData?.message || `xAI API failed with status ${chatRes.status}`);
+  try {
+    const chatRes = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: model || process.env.XAI_MODEL || 'grok-2-latest',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!chatRes.ok) {
+      const errData: any = await chatRes.json().catch(() => ({}));
+      const errMsg = errData?.error?.message || errData?.error || errData?.message || `xAI API failed with status ${chatRes.status}`;
+      const err: any = new Error(errMsg);
+      err.status = chatRes.status;
+      throw err;
+    }
+
+    const chatData: any = await chatRes.json();
+    const text = chatData?.choices?.[0]?.message?.content || '';
+    if (!text.trim()) throw new Error('Empty response from Grok');
+    return text.trim();
+  } finally {
+    clearTimeout(timeoutId);
   }
+}
 
-  const chatData: any = await chatRes.json();
-  const text = chatData?.choices?.[0]?.message?.content || '';
-  if (!text.trim()) throw new Error('Empty response from Grok');
-  return text.trim();
+function getGeminiKeys(customKey?: string): string[] {
+  const keys: string[] = [];
+  if (customKey && customKey.trim() && customKey !== 'your_gemini_api_key_here') {
+    keys.push(customKey.trim());
+  }
+  for (const envName of ['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3', 'GEMINI_BACKUP_KEY']) {
+    const k = process.env[envName];
+    if (k && k.trim() && k !== 'your_gemini_api_key_here' && !keys.includes(k.trim())) {
+      keys.push(k.trim());
+    }
+  }
+  return keys;
+}
+
+interface AiCandidate {
+  provider: 'gemini' | 'groq' | 'grok';
+  name: string;
+  model: string;
+  call: () => Promise<string>;
 }
 
 export async function executeAiWithFallback(
@@ -103,134 +145,120 @@ export async function executeAiWithFallback(
   options: AiTaskRequestOptions
 ): Promise<AiGenerateResult> {
   const customProvider = (options.customProvider || '').toLowerCase();
-  const geminiKey = (customProvider === 'gemini' ? options.customApiKey : undefined) || process.env.GEMINI_API_KEY;
+  const geminiKeys = getGeminiKeys(customProvider === 'gemini' ? options.customApiKey : undefined);
+  const groqKey = (customProvider === 'groq' ? options.customApiKey : undefined) || process.env.GROQ_API_KEY;
   const grokKey = (customProvider === 'grok' || customProvider === 'xai' ? options.customApiKey : undefined) || process.env.XAI_API_KEY;
 
-  const isGrokExplicit =
-    options.preferredProvider === 'grok' ||
-    customProvider === 'grok' ||
-    customProvider === 'xai' ||
-    Boolean(options.preferredModel && options.preferredModel.toLowerCase().includes('grok'));
-
-  const geminiModel = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok')
+  const geminiModel = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok') && !options.preferredModel.toLowerCase().includes('groq')
     ? options.preferredModel
     : 'gemini-3.8-flash';
+  const groqModel = options.preferredModel && (options.preferredModel.includes('gpt-oss') || options.preferredModel.includes('qwen') || options.preferredModel.includes('llama'))
+    ? options.preferredModel
+    : (process.env.GROQ_MODEL || 'openai/gpt-oss-120b');
   const grokModel = options.preferredModel && options.preferredModel.toLowerCase().includes('grok')
     ? options.preferredModel
-    : (process.env.XAI_MODEL || 'grok-4.7');
+    : (process.env.XAI_MODEL || 'grok-2-latest');
 
-  if (!geminiKey && !grokKey) {
+  const candidates: AiCandidate[] = [];
+
+  const isGroqExplicit = options.preferredProvider === 'groq' || customProvider === 'groq';
+  const isGrokExplicit = options.preferredProvider === 'grok' || customProvider === 'grok' || customProvider === 'xai' || Boolean(options.preferredModel && options.preferredModel.toLowerCase().includes('grok'));
+
+  if (isGroqExplicit && groqKey && groqKey !== 'your_groq_api_key_here') {
+    candidates.push({
+      provider: 'groq',
+      name: 'Groq',
+      model: groqModel,
+      call: () => callGroq(groqKey, groqModel, prompt),
+    });
+  }
+
+  if (isGrokExplicit && grokKey && grokKey !== 'your_xai_api_key_here') {
+    candidates.push({
+      provider: 'grok',
+      name: 'xAI Grok',
+      model: grokModel,
+      call: () => callGrok(grokKey, grokModel, prompt),
+    });
+  }
+
+  // Gemini candidates (primary path)
+  if (!isGroqExplicit && !isGrokExplicit) {
+    for (let i = 0; i < geminiKeys.length; i++) {
+      const key = geminiKeys[i];
+      candidates.push({
+        provider: 'gemini',
+        name: i === 0 ? 'Google Gemini' : `Google Gemini (Backup ${i})`,
+        model: geminiModel,
+        call: () => callGemini(key, geminiModel, prompt),
+      });
+    }
+  }
+
+  // Groq fallback (ultra-fast secondary engine)
+  if (!isGroqExplicit && groqKey && groqKey !== 'your_groq_api_key_here') {
+    candidates.push({
+      provider: 'groq',
+      name: 'Groq',
+      model: groqModel,
+      call: () => callGroq(groqKey, groqModel, prompt),
+    });
+  }
+
+  // xAI Grok fallback
+  if (!isGrokExplicit && grokKey && grokKey !== 'your_xai_api_key_here') {
+    candidates.push({
+      provider: 'grok',
+      name: 'xAI Grok',
+      model: grokModel,
+      call: () => callGrok(grokKey, grokModel, prompt),
+    });
+  }
+
+  if (candidates.length === 0) {
     return {
       rateLimitExceeded: true,
-      exhaustedProviders: ['Google Gemini', 'xAI Grok'],
+      exhaustedProviders: ['Google Gemini', 'Groq', 'xAI Grok'],
       message: 'No valid AI provider API key configured on server or client.',
     };
   }
 
-  // If user explicitly chose Grok
-  if (isGrokExplicit) {
-    if (!grokKey) {
-      return {
-        rateLimitExceeded: true,
-        exhaustedProviders: ['xAI Grok'],
-        message: 'No xAI / Grok API key configured on server or client.',
-      };
-    }
-    try {
-      const text = await callGrok(grokKey, grokModel, prompt);
-      return {
-        text,
-        providerUsed: 'grok',
-        modelUsed: grokModel,
-        fallbackTriggered: false,
-      };
-    } catch (grokErr: any) {
-      if (geminiKey && geminiKey !== 'your_gemini_api_key_here') {
-        try {
-          const text = await callGemini(geminiKey, geminiModel, prompt);
-          return {
-            text,
-            providerUsed: 'gemini',
-            modelUsed: geminiModel,
-            fallbackTriggered: true,
-            fallbackReason: `Grok failed (${grokErr.message || 'unknown error'}), automatically switched to Gemini.`,
-          };
-        } catch {}
-      }
-      return {
-        rateLimitExceeded: true,
-        exhaustedProviders: ['xAI Grok'],
-        message: grokErr.message || 'xAI Grok request failed.',
-      };
-    }
-  }
+  const exhaustedProviders: string[] = [];
+  let attempts = 0;
+  const primaryName = candidates[0].name;
 
-  // Primary path: Try Gemini first
-  let geminiError: any = null;
-  if (geminiKey && geminiKey !== 'your_gemini_api_key_here') {
+  for (const candidate of candidates) {
+    attempts++;
     try {
-      const text = await callGemini(geminiKey, geminiModel, prompt);
+      const text = await candidate.call();
+      const fallbackTriggered = attempts > 1;
       return {
         text,
-        providerUsed: 'gemini',
-        modelUsed: geminiModel,
-        fallbackTriggered: false,
+        providerUsed: candidate.provider,
+        modelUsed: candidate.model,
+        fallbackTriggered,
+        fallbackReason: fallbackTriggered
+          ? `${primaryName} was unavailable; automatically switched to ${candidate.name}.`
+          : undefined,
       };
     } catch (err: any) {
-      geminiError = err;
-      console.warn('[AI Service] Gemini call failed, attempting fallback to Grok:', err.message || err);
-    }
-  } else {
-    geminiError = new Error('Gemini key is not configured.');
-  }
-
-  // Fallback to Grok if Gemini is rate limited, busy, or errored
-  if (grokKey && grokKey !== 'your_xai_api_key_here') {
-    try {
-      const text = await callGrok(grokKey, grokModel, prompt);
-      return {
-        text,
-        providerUsed: 'grok',
-        modelUsed: grokModel,
-        fallbackTriggered: true,
-        fallbackReason: `Gemini was unavailable (${geminiError?.message || 'limit reached'}), automatically switched to Grok.`,
-      };
-    } catch (grokErr: any) {
-      console.error('[AI Service] Grok fallback also failed:', grokErr.message || grokErr);
-      const isCreditOrQuota = (grokErr.message || '').toLowerCase().includes('credit') ||
-        (grokErr.message || '').toLowerCase().includes('permission') ||
-        (grokErr.message || '').toLowerCase().includes('quota') ||
-        (grokErr.message || '').toLowerCase().includes('rate limit');
-
-      return {
-        rateLimitExceeded: true,
-        exhaustedProviders: ['Google Gemini', 'xAI Grok'],
-        message: isCreditOrQuota
-          ? `Gemini quota reached and xAI Grok returned: ${grokErr.message}`
-          : 'Both Gemini and Grok are currently unavailable or have reached their request limits.',
-      };
+      console.warn(`[AI Service] ${candidate.name} failed:`, err.message || err);
+      exhaustedProviders.push(candidate.name);
     }
   }
 
-  // If Grok key is not configured, format Gemini limit error
-  const msg = (geminiError?.message || '').toLowerCase();
-  const status = geminiError?.status || geminiError?.statusCode || (geminiError?.response && geminiError.response.status);
-  const isLimit = status === 429 || msg.includes('429') || msg.includes('rate limit') || msg.includes('quota') || msg.includes('resource_exhausted');
-
-  if (isLimit) {
-    return {
-      rateLimitExceeded: true,
-      exhaustedProviders: ['Google Gemini'],
-      message: 'Daily request quota reached for Gemini. Please try again later or provide a custom key.',
-    };
-  }
-
-  throw geminiError;
+  return {
+    rateLimitExceeded: true,
+    exhaustedProviders,
+    message: 'AI request limit reached on all configured engines. Please try again shortly or configure a custom API key.',
+  };
 }
 
 export function getAvailableAiProviders() {
   const hasGemini = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here');
+  const hasGroq = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== 'your_groq_api_key_here');
   const hasGrok = Boolean(process.env.XAI_API_KEY && process.env.XAI_API_KEY !== 'your_xai_api_key_here');
+
   return {
     providers: [
       {
@@ -241,13 +269,20 @@ export function getAvailableAiProviders() {
         defaultModel: 'gemini-3.8-flash',
       },
       {
+        id: 'groq',
+        name: 'Groq (Ultra-Fast)',
+        status: hasGroq ? 'active' : 'not_configured',
+        models: ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b'],
+        defaultModel: 'openai/gpt-oss-120b',
+      },
+      {
         id: 'grok',
         name: 'xAI Grok',
         status: hasGrok ? 'active' : 'not_configured',
-        models: ['grok-4.7'],
-        defaultModel: 'grok-4.7',
+        models: ['grok-2-latest'],
+        defaultModel: 'grok-2-latest',
       },
     ],
-    fallbackEnabled: hasGemini && hasGrok,
+    fallbackEnabled: (hasGemini && (hasGroq || hasGrok)) || (hasGroq && hasGrok),
   };
 }

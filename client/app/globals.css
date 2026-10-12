@@ -6294,6 +6294,75 @@ body {
   transition: max-width 0.25s var(--ease-out), transform 0.2s var(--ease-out);
 }
 
+.new-task-modal-box-ai {
+  width: min(1140px, 94vw) !important;
+  max-width: 1140px !important;
+  height: min(840px, 88vh) !important;
+  height: min(840px, 88dvh) !important;
+  min-height: min(560px, 78vh);
+}
+
+.new-task-modal-box-manual {
+  width: min(920px, 94vw) !important;
+  max-width: 920px !important;
+  max-height: 90vh !important;
+  max-height: 90dvh !important;
+}
+
+.ai-raw-input-textarea {
+  min-height: 300px;
+  max-height: 540px;
+  line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .new-task-modal-box-ai {
+    width: min(100%, 95vw) !important;
+    height: min(820px, 90vh) !important;
+    height: min(820px, 90dvh) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .new-task-modal-box-ai {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    height: 92vh !important;
+    height: 92dvh !important;
+    border-radius: 12px !important;
+  }
+
+  .ai-raw-input-textarea {
+    min-height: 220px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .new-task-modal-box-ai {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    height: 94vh !important;
+    height: 94dvh !important;
+    border-radius: 10px !important;
+  }
+
+  .ai-raw-input-textarea {
+    min-height: 180px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .new-task-modal-box-ai {
+    width: calc(100vw - 8px) !important;
+    max-width: calc(100vw - 8px) !important;
+    height: 96vh !important;
+    height: 96dvh !important;
+    border-radius: 8px !important;
+  }
+}
+
 .dark .new-task-modal-box {
   background: #131422;
   border: 1px solid rgba(255, 255, 255, 0.12);
