@@ -6,9 +6,10 @@ import {
   getWeeksInMonth,
   toIsoDate,
   formatDate,
+  getDayName,
   getShortDayName,
 } from '@/lib/dates';
-import { Calendar, ChevronDown, Check } from 'lucide-react';
+import { Calendar, ChevronDown, Check, ArrowRight } from 'lucide-react';
 
 interface ScopeDropdownOption {
   value: string;
@@ -22,6 +23,7 @@ interface ScopeDropdownProps {
   onChange: (value: string) => void;
   ariaLabel: string;
   className?: string;
+  disabled?: boolean;
 }
 
 function ScopeDropdown({
@@ -31,12 +33,19 @@ function ScopeDropdown({
   onChange,
   ariaLabel,
   className = '',
+  disabled = false,
 }: ScopeDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
   const displayText = selectedOption ? selectedOption.label : placeholder;
+
+  useEffect(() => {
+    if (disabled && isOpen) {
+      setIsOpen(false);
+    }
+  }, [disabled, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -62,22 +71,36 @@ function ScopeDropdown({
     <div ref={containerRef} className={`scope-dropdown-wrapper ${className}`}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) setIsOpen(!isOpen);
+        }}
         className={`scope-dropdown-trigger brutalist-hover ${isOpen ? 'active' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
+        style={disabled ? {
+          opacity: 0.55,
+          cursor: 'not-allowed',
+          background: 'rgba(255, 255, 255, 0.04)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          borderColor: 'var(--border-subtle)',
+          color: 'var(--text-muted)',
+        } : undefined}
+        title={disabled ? "Month & Year filters are locked while viewing Today's tasks" : undefined}
       >
         <span className="scope-dropdown-selected-text">{displayText}</span>
         <ChevronDown
           className="scope-dropdown-chevron"
           style={{
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            opacity: disabled ? 0.35 : 1,
           }}
         />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="scope-dropdown-menu" role="listbox" aria-label={ariaLabel}>
           <button
             type="button"
@@ -132,6 +155,8 @@ export default function TaskScopeNav({
   const currentYearStr = today.getFullYear().toString();
   const currentMonthStr = (today.getMonth() + 1).toString();
   const todayIso = toIsoDate(today);
+  const todayDayName = getDayName(today);
+  const todayFormattedDate = formatDate(today);
 
   const isToday =
     filters.day === todayIso &&
@@ -163,6 +188,14 @@ export default function TaskScopeNav({
   }, [filters.year, filters.month]);
 
   const selectedWeek = weeks.find((w) => w.index === filters.weekIndex);
+
+  const currentMonthWeeks = useMemo(() => {
+    return getWeeksInMonth(today.getFullYear(), today.getMonth() + 1);
+  }, []);
+
+  const todayWeek = useMemo(() => {
+    return currentMonthWeeks.find((w) => w.days.some((d) => toIsoDate(d) === todayIso));
+  }, [currentMonthWeeks, todayIso]);
 
   const handleSelectToday = () => {
     onFiltersChange({
@@ -323,6 +356,7 @@ export default function TaskScopeNav({
                 onChange={handleMonthChange}
                 ariaLabel="Filter by month"
                 className="scope-dropdown-month"
+                disabled={isToday}
               />
 
               <ScopeDropdown
@@ -332,6 +366,7 @@ export default function TaskScopeNav({
                 onChange={handleYearChange}
                 ariaLabel="Filter by year"
                 className="scope-dropdown-year"
+                disabled={isToday}
               />
             </div>
           </div>
@@ -348,7 +383,135 @@ export default function TaskScopeNav({
         </div>
       </div>
 
-      {filters.month && (
+      {isToday && (
+        <div
+          className="animate-slide-down"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 18px',
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 34,
+                height: 34,
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(56, 189, 248, 0.15)',
+                border: '1px solid rgba(56, 189, 248, 0.4)',
+                color: 'var(--accent)',
+                flexShrink: 0,
+              }}
+            >
+              <Calendar style={{ width: 17, height: 17 }} />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'var(--accent)',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  padding: '3px 8px',
+                  background: 'rgba(56, 189, 248, 0.1)',
+                  borderRadius: 4,
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                }}
+              >
+                Today Date:
+              </span>
+
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {todayDayName} <span style={{ opacity: 0.35, margin: '0 4px' }}>|</span> {todayFormattedDate}
+              </span>
+
+              {todayWeek && (
+                <span
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(56, 189, 248, 0.15)',
+                    border: '1px solid rgba(56, 189, 248, 0.4)',
+                    color: 'var(--accent)',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    letterSpacing: '0.05em',
+                    fontFamily: 'JetBrains Mono, monospace',
+                  }}
+                >
+                  [Week {todayWeek.index}]
+                </span>
+              )}
+
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  color: 'var(--text-secondary)',
+                  fontWeight: 600,
+                  marginLeft: 4,
+                }}
+              >
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+                Showing today&apos;s tasks only
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={handleSelectThisMonth}
+              className="brutalist-hover"
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-secondary)',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '5px 12px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.15s ease',
+              }}
+              title="Switch to This Month to view weekly filters"
+            >
+              <span>View This Month</span>
+              <ArrowRight style={{ width: 13, height: 13 }} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isToday && filters.month && (
         <div className="card animate-slide-down" style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{
             display: 'flex',
@@ -481,7 +644,7 @@ export default function TaskScopeNav({
         </div>
       )}
 
-      {!filters.month && filters.year && (
+      {!isToday && !filters.month && filters.year && (
         <div className="card animate-slide-down" style={{
           display: 'flex',
           alignItems: 'center',
