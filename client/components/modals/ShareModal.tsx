@@ -1,7 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
-import { Copy, RefreshCw, Globe, AlertTriangle, CheckCircle2, X } from 'lucide-react';
+import {
+  Copy,
+  RefreshCw,
+  Globe,
+  AlertTriangle,
+  CheckCircle2,
+  X,
+  Link2,
+  ShieldCheck,
+  Lock,
+  Check,
+} from 'lucide-react';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -22,9 +33,19 @@ export default function ShareModal({ onClose }: ShareModalProps) {
 
   if (loading || !settings) {
     return (
-      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <div className="animate-spin" style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', margin: '0 auto 12px' }} />
-        Loading sharing settings…
+      <div style={{ padding: '48px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div
+          className="animate-spin"
+          style={{
+            width: 24,
+            height: 24,
+            border: '2px solid var(--border)',
+            borderTopColor: 'var(--accent)',
+            borderRadius: '50%',
+            margin: '0 auto 12px',
+          }}
+        />
+        <span style={{ fontSize: 13, fontWeight: 600 }}>Loading sharing settings…</span>
       </div>
     );
   }
@@ -57,69 +78,306 @@ export default function ShareModal({ onClose }: ShareModalProps) {
 
   return (
     <div>
-      <div className="card" style={{ padding: '18px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
-        <div style={{ minWidth: 220, flex: 1 }}>
-          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Globe style={{ width: 17, height: 17, color: 'var(--accent)' }} />
-            Enable Public Sharing
-          </h4>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+      <div
+        style={{
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '16px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Globe style={{ width: 16, height: 16, color: 'var(--accent)' }} />
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Enable Public Sharing
+            </span>
+          </div>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
             Anyone with the public link can view your active tasks board.
           </p>
         </div>
-        
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-          <input 
-            type="checkbox" 
-            checked={settings.isPublicShareEnabled} 
-            onChange={handleToggle}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings.isPublicShareEnabled}
             disabled={isToggling}
-            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
-          />
-          <span style={{ color: settings.isPublicShareEnabled ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: 700, fontSize: 13 }}>
-            {settings.isPublicShareEnabled ? 'Active' : 'Disabled'}
+            onClick={handleToggle}
+            style={{
+              position: 'relative',
+              width: 44,
+              height: 24,
+              borderRadius: 9999,
+              border: 'none',
+              cursor: isToggling ? 'not-allowed' : 'pointer',
+              background: settings.isPublicShareEnabled ? '#10b981' : 'var(--bg-active)',
+              transition: 'background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              padding: 2,
+              outline: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              opacity: isToggling ? 0.6 : 1,
+              boxShadow: settings.isPublicShareEnabled ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none',
+            }}
+            title={settings.isPublicShareEnabled ? 'Click to disable' : 'Click to enable'}
+          >
+            <span
+              style={{
+                display: 'block',
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: '#ffffff',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+                transform: settings.isPublicShareEnabled ? 'translateX(20px)' : 'translateX(0)',
+                transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            />
+          </button>
+
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              fontFamily: 'JetBrains Mono, monospace',
+              color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
+              minWidth: 46,
+            }}
+          >
+            {settings.isPublicShareEnabled ? 'Active' : 'Off'}
           </span>
-        </label>
+        </div>
       </div>
 
-      {settings.isPublicShareEnabled && (
-        <div className="animate-fade-in card" style={{ padding: '18px 20px' }}>
-          <label className="label" style={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your Public Link</label>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-            <input 
-              className="input" 
-              value={shareUrl} 
-              readOnly 
-              style={{ flex: 1, minWidth: 220, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--accent)' }} 
-            />
-            <button 
-              type="button"
-              className="btn btn-primary" 
-              onClick={handleCopy} 
-              style={{ minWidth: 110, justifyContent: 'center' }}
+      {settings.isPublicShareEnabled ? (
+        <div
+          className="animate-slide-down"
+          style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '16px 18px',
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--text-muted)',
+                fontFamily: 'JetBrains Mono, monospace',
+              }}
             >
-              {copied ? '✓ Copied' : <><Copy style={{ width: 14, height: 14 }} /> Copy Link</>}
+              YOUR PUBLIC LINK
+            </span>
+
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 4,
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                color: 'var(--accent)',
+              }}
+            >
+              Read-Only Access
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'stretch',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden',
+              marginBottom: 12,
+              boxShadow: 'var(--box-shadow-brutalist-sm)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0 10px',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <Link2 style={{ width: 14, height: 14 }} />
+            </div>
+
+            <input
+              value={shareUrl}
+              readOnly
+              style={{
+                flex: 1,
+                minWidth: 0,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                padding: '10px 0',
+                fontSize: 12,
+                fontFamily: 'JetBrains Mono, monospace',
+                color: 'var(--text-primary)',
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="brutalist-hover"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '0 16px',
+                background: copied ? '#10b981' : 'var(--text-primary)',
+                color: copied ? '#ffffff' : 'var(--bg-base)',
+                border: 'none',
+                borderLeft: '1px solid var(--border)',
+                fontWeight: 800,
+                fontSize: 12,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              {copied ? (
+                <>
+                  <Check style={{ width: 14, height: 14 }} />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy style={{ width: 14, height: 14 }} />
+                  <span>Copy Link</span>
+                </>
+              )}
             </button>
           </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Share securely with your team or clients.</span>
-            <button 
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 8,
+              paddingTop: 10,
+              borderTop: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+              <ShieldCheck style={{ width: 14, height: 14, color: '#10b981' }} />
+              <span>Share securely with your team or clients.</span>
+            </div>
+
+            <button
               type="button"
-              className="btn btn-ghost" 
-              onClick={() => setShowRegenerateConfirm(true)} 
-              disabled={isToggling} 
-              style={{ fontSize: 12, padding: '6px 10px', color: 'var(--high)', borderColor: 'rgba(239, 68, 68, 0.25)' }}
+              onClick={() => setShowRegenerateConfirm(true)}
+              disabled={isToggling}
+              className="brutalist-hover"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(248, 113, 113, 0.35)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--high)',
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '4px 10px',
+                cursor: isToggling ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                transition: 'all 0.15s ease',
+              }}
+              title="Invalidate current link and create a new secure token"
             >
-              <RefreshCw style={{ width: 12, height: 12 }} />
-              Regenerate Link
+              <RefreshCw
+                style={{
+                  width: 12,
+                  height: 12,
+                  transition: 'transform 0.3s ease',
+                }}
+                className={isToggling ? 'animate-spin' : ''}
+              />
+              <span>Regenerate Link</span>
             </button>
           </div>
         </div>
+      ) : (
+        <div
+          className="animate-fade-in"
+          style={{
+            padding: '24px 20px',
+            textAlign: 'center',
+            background: 'var(--bg-hover)',
+            border: '1px dashed var(--border-subtle)',
+            borderRadius: 'var(--radius-lg)',
+            marginBottom: 20,
+            color: 'var(--text-muted)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <Lock style={{ width: 20, height: 20, opacity: 0.6 }} />
+          <span style={{ fontSize: 13, fontWeight: 600 }}>
+            Public sharing is currently disabled
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 320 }}>
+            Enable public sharing above to generate and share your live task board link.
+          </span>
+        </div>
       )}
 
-      <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-subtle)', textAlign: 'right' }}>
-        <button type="button" className="btn btn-ghost" onClick={onClose}>Close Panel</button>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: 16,
+          borderTop: '1px solid var(--border-subtle)',
+          gap: 12,
+        }}
+      >
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          Public visitors have view-only access.
+        </span>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="brutalist-hover"
+          style={{
+            background: 'var(--bg-hover)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--text-primary)',
+            fontSize: 12,
+            fontWeight: 700,
+            padding: '7px 18px',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Close Panel
+        </button>
       </div>
 
       {copied && (
@@ -128,9 +386,9 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             <CheckCircle2 style={{ width: 16, height: 16 }} />
           </div>
           <span className="app-toast-text">Public share link copied to clipboard!</span>
-          <button 
-            type="button" 
-            className="app-toast-dismiss" 
+          <button
+            type="button"
+            className="app-toast-dismiss"
             onClick={() => setCopied(false)}
             aria-label="Dismiss toast"
           >
@@ -141,8 +399,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
 
       {showRegenerateConfirm && (
         <div className="app-dialog-overlay" onClick={() => setShowRegenerateConfirm(false)}>
-          <div 
-            className="app-dialog-box" 
+          <div
+            className="app-dialog-box"
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: 440 }}
           >

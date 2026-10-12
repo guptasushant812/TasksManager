@@ -521,15 +521,58 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
 
       {showShareModal && (
         <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-          <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-box animate-slide-up"
+            style={{
+              maxWidth: 520,
+              padding: '24px 26px',
+              borderRadius: 'var(--radius-xl)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Share Public Link</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 34,
+                    height: 34,
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--accent-subtle)',
+                    border: '1px solid var(--accent)',
+                    color: 'var(--accent)',
+                  }}
+                >
+                  <Share2 style={{ width: 16, height: 16 }} />
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  Share Public Link
+                </h3>
+              </div>
               <button
+                type="button"
                 onClick={() => setShowShareModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 'var(--radius-sm)' }}
+                className="brutalist-hover"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 'var(--radius-sm)',
+                  transition: 'all 0.15s ease',
+                }}
                 aria-label="Close"
               >
-                <X style={{ width: 18, height: 18 }} />
+                <X style={{ width: 16, height: 16 }} />
               </button>
             </div>
             <ShareModal onClose={() => setShowShareModal(false)} />
