@@ -368,7 +368,8 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           flexDirection: 'column', 
           overflow: 'hidden', 
           padding: 0,
-          margin: 'auto',
+          margin: 'auto 0',
+          marginInline: 0,
         }}
       >
         <div style={{ paddingBlock: 16, paddingInline: 24, borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>

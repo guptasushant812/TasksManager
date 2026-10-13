@@ -73,13 +73,14 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
 
       if (scrollH >= maxPx) {
         textarea.style.overflowY = 'auto';
-        textarea.scrollTop = prevScrollTop;
+        textarea.scrollTop = (value || defaultValue) ? prevScrollTop : 0;
       } else {
         textarea.style.overflowY = 'hidden';
+        textarea.scrollTop = 0;
       }
 
       textarea.style.overflowX = 'auto';
-    }, [minPx, maxPx]);
+    }, [minPx, maxPx, value, defaultValue]);
 
     // Adjust height on mount and value changes
     useEffect(() => {
