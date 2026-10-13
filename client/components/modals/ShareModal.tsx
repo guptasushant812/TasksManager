@@ -91,8 +91,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               width: 44,
               height: 44,
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--border)',
+              background: 'var(--bg-elevated)',
+              border: 'var(--border-width-layout, 1px) solid var(--border)',
               color: 'var(--text-secondary)',
               flexShrink: 0,
             }}
@@ -114,7 +114,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
+              color: settings.isPublicShareEnabled ? 'var(--completed, #10b981)' : 'var(--text-muted)',
             }}
           >
             {settings.isPublicShareEnabled ? 'On' : 'Off'}
@@ -132,7 +132,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               borderRadius: 9999,
               border: 'none',
               cursor: isToggling ? 'not-allowed' : 'pointer',
-              background: settings.isPublicShareEnabled ? '#10b981' : 'rgba(255, 255, 255, 0.16)',
+              background: settings.isPublicShareEnabled ? 'var(--completed, #10b981)' : 'var(--bg-hover)',
               transition: 'background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               padding: 3,
               outline: 'none',
@@ -160,11 +160,11 @@ export default function ShareModal({ onClose }: ShareModalProps) {
       {settings.isPublicShareEnabled && (
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
+            background: 'var(--bg-elevated)',
+            border: 'var(--border-width-layout, 1px) solid var(--border)',
+            borderRadius: 'var(--radius-lg, 14px)',
             padding: '16px 16px 18px',
-            marginBottom: 24,
+            marginBottom: 20,
           }}
         >
           <div
@@ -178,7 +178,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             <span
               style={{
                 fontSize: 12.5,
-                fontWeight: 500,
+                fontWeight: 600,
                 color: 'var(--text-muted)',
               }}
             >
@@ -189,10 +189,11 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               type="button"
               onClick={() => setShowRegenerateConfirm(true)}
               disabled={isToggling}
+              className="brutalist-hover"
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--border)',
-                borderRadius: 8,
+                background: 'var(--bg-surface)',
+                border: 'var(--border-width-layout, 1px) solid var(--border)',
+                borderRadius: 'var(--radius-sm, 6px)',
                 color: 'var(--text-secondary)',
                 fontSize: 12,
                 fontWeight: 500,
@@ -228,9 +229,9 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(0, 0, 0, 0.35)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
+              background: 'var(--bg-base)',
+              border: 'var(--border-width-layout, 1px) solid var(--border)',
+              borderRadius: 'var(--radius-md, 10px)',
               padding: '5px 6px 5px 12px',
               gap: 10,
             }}
@@ -249,13 +250,14 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 padding: '6px 0',
                 fontSize: 13,
                 fontFamily: 'JetBrains Mono, monospace',
-                color: '#e2e8f0',
+                color: 'var(--text-primary)',
               }}
             />
 
             <button
               type="button"
               onClick={handleCopy}
+              className="brutalist-hover"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -264,7 +266,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 background: '#ffffff',
                 color: '#0f172a',
                 border: 'none',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm, 6px)',
                 fontWeight: 600,
                 fontSize: 12.5,
                 cursor: 'pointer',
@@ -284,28 +286,36 @@ export default function ShareModal({ onClose }: ShareModalProps) {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'flex-end',
-          paddingTop: 8,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: 16,
+          borderTop: 'var(--border-width-layout, 1px) solid var(--border-subtle)',
+          gap: 12,
+          flexWrap: 'wrap',
         }}
       >
+        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+          Public visitors have view-only access.
+        </span>
+
         <button
           type="button"
           onClick={onClose}
+          className="brutalist-hover"
           style={{
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
+            background: 'var(--bg-hover)',
+            border: 'var(--border-width-layout, 1px) solid var(--border)',
+            borderRadius: 'var(--radius-sm, 6px)',
             color: 'var(--text-primary)',
-            fontSize: 13,
-            fontWeight: 600,
-            padding: '8px 22px',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            padding: '8px 20px',
             cursor: 'pointer',
-            transition: 'background 0.15s ease',
+            transition: 'all 0.15s ease',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
         >
-          Done
+          CLOSE PANEL
         </button>
       </div>
 
