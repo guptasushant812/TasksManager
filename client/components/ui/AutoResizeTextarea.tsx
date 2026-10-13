@@ -56,22 +56,24 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
       const textarea = textareaRef.current;
       if (!textarea) return;
 
-      // Respect height set manually by the user
-      if (userResizedRef.current && textarea.offsetHeight !== lastManualHeightRef.current) {
-        lastManualHeightRef.current = textarea.offsetHeight;
+      if (userResizedRef.current) {
+        if (textarea.scrollHeight > textarea.clientHeight) {
+          textarea.style.overflowY = 'auto';
+        }
         return;
       }
 
-      // Reset to auto to measure scrollHeight accurately
+      // Preserve scrollTop so typing at max height boundary does not jump to the top
+      const prevScrollTop = textarea.scrollTop;
       textarea.style.height = 'auto';
       const scrollH = textarea.scrollHeight;
 
       const targetHeight = Math.min(Math.max(scrollH + 2, minPx), maxPx);
       textarea.style.height = `${targetHeight}px`;
 
-      // Show vertical scrollbar only if content exceeds max bounds
-      if (scrollH > maxPx) {
+      if (scrollH >= maxPx) {
         textarea.style.overflowY = 'auto';
+        textarea.scrollTop = prevScrollTop;
       } else {
         textarea.style.overflowY = 'hidden';
       }
@@ -112,6 +114,9 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
         if (textarea.offsetHeight !== startH) {
           userResizedRef.current = true;
           lastManualHeightRef.current = textarea.offsetHeight;
+          if (textarea.scrollHeight > textarea.clientHeight) {
+            textarea.style.overflowY = 'auto';
+          }
         }
       };
 

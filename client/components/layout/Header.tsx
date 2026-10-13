@@ -528,6 +528,9 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
             className="modal-box share-modal-box"
             style={{
               maxWidth: 520,
+              maxHeight: 'min(92dvh, 760px)',
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
               padding: '24px 26px',
               borderRadius: 'var(--radius-xl)',
               background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.05), transparent 70%), var(--bg-surface)',
