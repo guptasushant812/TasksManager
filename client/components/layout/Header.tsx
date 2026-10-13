@@ -538,6 +538,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               borderRadius: 'var(--radius-xl)',
               background: 'var(--bg-surface)',
               border: 'var(--border-width-layout, 1px) solid var(--border)',
+              borderTop: '1px solid var(--accent)',
               boxShadow: 'var(--shadow-taste-lg, 0 24px 64px -12px rgba(0, 0, 0, 0.75))',
             }}
             onClick={(e) => e.stopPropagation()}
