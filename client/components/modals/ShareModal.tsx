@@ -2,16 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import {
-  Copy,
   RefreshCw,
   Globe,
   AlertTriangle,
-  CheckCircle2,
   X,
   Link2,
-  ShieldCheck,
-  Lock,
-  Check,
 } from 'lucide-react';
 
 interface ShareModalProps {
@@ -80,48 +75,50 @@ export default function ShareModal({ onClose }: ShareModalProps) {
     <div>
       <div
         style={{
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '16px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          padding: '4px 0 20px',
           gap: 16,
-          marginBottom: 16,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 200 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 38,
-              height: 38,
-              borderRadius: 'var(--radius-md)',
-              background: settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-hover)',
-              border: `1px solid ${settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.28)' : 'var(--border-subtle)'}`,
-              color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
-              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
               flexShrink: 0,
             }}
           >
-            <Globe style={{ width: 18, height: 18 }} />
+            <Globe style={{ width: 20, height: 20 }} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-              <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                Enable Public Sharing
-              </span>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+              Public Access
             </div>
-            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-              Anyone with the public link can view your active tasks board.
-            </p>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
+              {settings.isPublicShareEnabled ? 'Link is currently active' : 'Link is currently disabled'}
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
+            }}
+          >
+            {settings.isPublicShareEnabled ? 'On' : 'Off'}
+          </span>
           <button
             type="button"
             role="switch"
@@ -130,21 +127,19 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             onClick={handleToggle}
             style={{
               position: 'relative',
-              width: 48,
+              width: 46,
               height: 26,
               borderRadius: 9999,
               border: 'none',
               cursor: isToggling ? 'not-allowed' : 'pointer',
-              background: settings.isPublicShareEnabled ? '#10b981' : 'rgba(255, 255, 255, 0.15)',
-              transition: 'background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease',
+              background: settings.isPublicShareEnabled ? '#10b981' : 'rgba(255, 255, 255, 0.16)',
+              transition: 'background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               padding: 3,
               outline: 'none',
               display: 'flex',
               alignItems: 'center',
               opacity: isToggling ? 0.6 : 1,
-              boxShadow: settings.isPublicShareEnabled ? '0 0 14px rgba(16, 185, 129, 0.35)' : 'none',
             }}
-            title={settings.isPublicShareEnabled ? 'Click to disable sharing' : 'Click to enable sharing'}
           >
             <span
               style={{
@@ -153,107 +148,94 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 height: 20,
                 borderRadius: '50%',
                 background: '#ffffff',
-                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.28)',
-                transform: settings.isPublicShareEnabled ? 'translateX(22px)' : 'translateX(0)',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+                transform: settings.isPublicShareEnabled ? 'translateX(20px)' : 'translateX(0)',
                 transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
           </button>
+        </div>
+      </div>
 
-          <span
+      {settings.isPublicShareEnabled && (
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: '16px 16px 18px',
+            marginBottom: 24,
+          }}
+        >
+          <div
             style={{
-              fontSize: 11.5,
-              fontWeight: 700,
-              fontFamily: 'JetBrains Mono, monospace',
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '3px 8px',
-              borderRadius: 6,
-              background: settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-hover)',
-              border: `1px solid ${settings.isPublicShareEnabled ? 'rgba(16, 185, 129, 0.25)' : 'var(--border-subtle)'}`,
-              color: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
-              minWidth: 62,
-              justifyContent: 'center',
-              transition: 'all 0.25s ease',
+              justifyContent: 'space-between',
+              marginBottom: 12,
             }}
           >
             <span
               style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: settings.isPublicShareEnabled ? '#10b981' : 'var(--text-muted)',
-                boxShadow: settings.isPublicShareEnabled ? '0 0 6px #10b981' : 'none',
-              }}
-            />
-            {settings.isPublicShareEnabled ? 'Active' : 'Off'}
-          </span>
-        </div>
-      </div>
-
-      {settings.isPublicShareEnabled ? (
-        <div
-          className="share-card-enter"
-          style={{
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '16px 18px',
-            marginBottom: 20,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
+                fontSize: 12.5,
+                fontWeight: 500,
                 color: 'var(--text-muted)',
-                fontFamily: 'JetBrains Mono, monospace',
               }}
             >
-              YOUR PUBLIC LINK
+              Direct URL
             </span>
 
-            <span
+            <button
+              type="button"
+              onClick={() => setShowRegenerateConfirm(true)}
+              disabled={isToggling}
               style={{
-                fontSize: 11,
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: 4,
-                background: 'rgba(56, 189, 248, 0.08)',
-                border: '1px solid rgba(56, 189, 248, 0.22)',
-                color: 'var(--accent)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--text-secondary)',
+                fontSize: 12,
+                fontWeight: 500,
+                padding: '5px 12px',
+                cursor: isToggling ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.borderColor = 'var(--text-muted)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.borderColor = 'var(--border)';
               }}
             >
-              Read-Only Access
-            </span>
+              <RefreshCw
+                style={{
+                  width: 12,
+                  height: 12,
+                  transition: 'transform 0.3s ease',
+                }}
+                className={isToggling ? 'animate-spin' : ''}
+              />
+              <span>Regenerate</span>
+            </button>
           </div>
 
           <div
             style={{
               display: 'flex',
-              alignItems: 'stretch',
-              background: 'var(--bg-surface)',
+              alignItems: 'center',
+              background: 'rgba(0, 0, 0, 0.35)',
               border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
-              marginBottom: 12,
-              boxShadow: 'var(--box-shadow-brutalist-sm)',
+              borderRadius: 10,
+              padding: '5px 6px 5px 12px',
+              gap: 10,
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 12px',
-                color: 'var(--text-muted)',
-              }}
-            >
-              <Link2 style={{ width: 15, height: 15 }} />
-            </div>
+            <Link2 style={{ width: 15, height: 15, color: 'var(--text-muted)', flexShrink: 0 }} />
 
             <input
               value={shareUrl}
@@ -264,176 +246,68 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                padding: '11px 0',
-                fontSize: 12.5,
+                padding: '6px 0',
+                fontSize: 13,
                 fontFamily: 'JetBrains Mono, monospace',
-                color: '#34d399',
+                color: '#e2e8f0',
               }}
             />
 
             <button
               type="button"
               onClick={handleCopy}
-              className="brutalist-hover"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 7,
-                padding: '0 18px',
-                background: copied ? '#059669' : '#10b981',
-                color: copied ? '#ffffff' : '#022c22',
+                padding: '6px 18px',
+                background: '#ffffff',
+                color: '#0f172a',
                 border: 'none',
-                borderLeft: '1px solid rgba(0, 0, 0, 0.1)',
-                fontWeight: 800,
-                fontSize: 12,
-                letterSpacing: '0.02em',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 12.5,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                flexShrink: 0,
+                transition: 'opacity 0.15s ease',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
             >
-              {copied ? (
-                <>
-                  <Check style={{ width: 15, height: 15 }} />
-                  <span>COPIED!</span>
-                </>
-              ) : (
-                <>
-                  <Copy style={{ width: 14, height: 14 }} />
-                  <span>COPY LINK</span>
-                </>
-              )}
+              {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 8,
-              paddingTop: 10,
-              borderTop: '1px solid var(--border-subtle)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-              <ShieldCheck style={{ width: 14, height: 14, color: '#10b981' }} />
-              <span>Share securely with your team or clients.</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowRegenerateConfirm(true)}
-              disabled={isToggling}
-              className="brutalist-hover"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(248, 113, 113, 0.3)',
-                borderRadius: 'var(--radius-sm)',
-                color: '#f87171',
-                fontSize: 11,
-                fontWeight: 700,
-                padding: '4px 10px',
-                cursor: isToggling ? 'not-allowed' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                transition: 'all 0.15s ease',
-              }}
-              title="Invalidate current link and create a new secure token"
-            >
-              <RefreshCw
-                style={{
-                  width: 12,
-                  height: 12,
-                  transition: 'transform 0.3s ease',
-                }}
-                className={isToggling ? 'animate-spin' : ''}
-              />
-              <span>REGENERATE LINK</span>
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div
-          className="share-card-enter"
-          style={{
-            padding: '24px 20px',
-            textAlign: 'center',
-            background: 'var(--bg-hover)',
-            border: '1px dashed var(--border-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            marginBottom: 20,
-            color: 'var(--text-muted)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <Lock style={{ width: 20, height: 20, opacity: 0.6 }} />
-          <span style={{ fontSize: 13, fontWeight: 600 }}>
-            Public sharing is currently disabled
-          </span>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 320 }}>
-            Enable public sharing above to generate and share your live task board link.
-          </span>
         </div>
       )}
 
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingTop: 16,
-          borderTop: '1px solid var(--border-subtle)',
-          gap: 12,
+          justifyContent: 'flex-end',
+          paddingTop: 8,
         }}
       >
-        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
-          Public visitors have view-only access.
-        </span>
-
         <button
           type="button"
           onClick={onClose}
-          className="brutalist-hover"
           style={{
-            background: 'var(--bg-hover)',
+            background: 'var(--bg-elevated)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 8,
             color: 'var(--text-primary)',
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            padding: '8px 20px',
+            fontSize: 13,
+            fontWeight: 600,
+            padding: '8px 22px',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'background 0.15s ease',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
         >
-          CLOSE PANEL
+          Done
         </button>
       </div>
-
-      {copied && (
-        <div className="app-toast app-toast-success" role="status">
-          <div className="app-toast-icon">
-            <CheckCircle2 style={{ width: 16, height: 16 }} />
-          </div>
-          <span className="app-toast-text">Public share link copied to clipboard!</span>
-          <button
-            type="button"
-            className="app-toast-dismiss"
-            onClick={() => setCopied(false)}
-            aria-label="Dismiss toast"
-          >
-            <X style={{ width: 14, height: 14 }} />
-          </button>
-        </div>
-      )}
 
       {showRegenerateConfirm && (
         <div className="app-dialog-overlay" onClick={() => setShowRegenerateConfirm(false)}>

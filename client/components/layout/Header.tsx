@@ -536,52 +536,39 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               overscrollBehavior: 'contain',
               padding: '24px 26px',
               borderRadius: 'var(--radius-xl)',
-              background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.05), transparent 70%), var(--bg-surface)',
+              background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
-              boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 36,
-                    height: 36,
-                    borderRadius: 'var(--radius-md)',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
-                    color: '#10b981',
-                  }}
-                >
-                  <Share2 style={{ width: 17, height: 17 }} />
-                </div>
-                <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                   Share Public Link
                 </h3>
+                <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                  Anyone with this link will be able to view this page.
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowShareModal(false)}
-                className="brutalist-hover"
                 style={{
                   background: 'transparent',
-                  border: '1px solid var(--border-subtle)',
+                  border: 'none',
                   color: 'var(--text-muted)',
                   cursor: 'pointer',
-                  padding: 6,
+                  padding: 4,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: 'var(--radius-sm)',
-                  transition: 'all 0.15s ease',
+                  transition: 'color 0.15s ease',
                 }}
                 aria-label="Close"
               >
-                <X style={{ width: 16, height: 16 }} />
+                <X style={{ width: 18, height: 18 }} />
               </button>
             </div>
             <ShareModal onClose={() => setShowShareModal(false)} />
