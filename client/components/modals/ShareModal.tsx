@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   X,
   Link2,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface ShareModalProps {
@@ -158,15 +160,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
       </div>
 
       {settings.isPublicShareEnabled && (
-        <div
-          style={{
-            background: 'var(--bg-elevated)',
-            border: 'var(--border-width-layout, 1px) solid var(--border)',
-            borderRadius: 'var(--radius-lg, 14px)',
-            padding: '16px 16px 18px',
-            marginBottom: 20,
-          }}
-        >
+        <div className="share-url-card">
           <div
             style={{
               display: 'flex',
@@ -225,59 +219,37 @@ export default function ShareModal({ onClose }: ShareModalProps) {
             </button>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-base)',
-              border: 'var(--border-width-layout, 1px) solid var(--border)',
-              borderRadius: 'var(--radius-md, 10px)',
-              padding: '5px 6px 5px 12px',
-              gap: 10,
-            }}
-          >
-            <Link2 style={{ width: 15, height: 15, color: 'var(--text-muted)', flexShrink: 0 }} />
-
-            <input
-              value={shareUrl}
-              readOnly
-              style={{
-                flex: 1,
-                minWidth: 0,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                padding: '6px 0',
-                fontSize: 13,
-                fontFamily: 'JetBrains Mono, monospace',
-                color: 'var(--text-primary)',
-              }}
-            />
+          <div className="share-url-group">
+            <div
+              className="share-url-box"
+              onClick={handleCopy}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopy(); } }}
+              title="Click to copy URL"
+            >
+              <Link2 className="share-url-icon" />
+              <div className="share-url-text">
+                {shareUrl}
+              </div>
+            </div>
 
             <button
               type="button"
               onClick={handleCopy}
-              className="brutalist-hover"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '6px 18px',
-                background: '#ffffff',
-                color: '#0f172a',
-                border: 'none',
-                borderRadius: 'var(--radius-sm, 6px)',
-                fontWeight: 600,
-                fontSize: 12.5,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                transition: 'opacity 0.15s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+              className="share-copy-btn brutalist-hover"
             >
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? (
+                <>
+                  <Check style={{ width: 13, height: 13 }} />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy style={{ width: 13, height: 13 }} />
+                  <span>Copy</span>
+                </>
+              )}
             </button>
           </div>
         </div>
