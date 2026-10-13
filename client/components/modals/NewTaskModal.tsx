@@ -74,7 +74,10 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       <div 
         className="modal-box new-task-modal-box animate-slide-up" 
         style={{ 
+          width: '100%',
           maxWidth: mode ? 820 : 540, 
+          margin: 'auto 0',
+          marginInline: 0,
         }}
       >
 

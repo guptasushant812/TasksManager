@@ -527,8 +527,11 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
           <div
             className="modal-box share-modal-box"
             style={{
+              width: '100%',
               maxWidth: 520,
               maxHeight: 'min(92dvh, 760px)',
+              margin: 'auto 0',
+              marginInline: 0,
               overflowY: 'auto',
               overscrollBehavior: 'contain',
               padding: '24px 26px',

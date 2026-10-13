@@ -405,20 +405,33 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             flexDirection: 'column' 
           }}
         >
-          <div style={{
-            padding: '14px 16px', marginBottom: 16,
-            background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
-            borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            flexShrink: 0,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <strong style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <Sparkles style={{ width: 14, height: 14 }} /> AI Task Structuring
+          <div 
+            className="ai-modal-info-banner"
+            style={{
+              padding: '12px 14px', marginBottom: 14,
+              background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+              flexShrink: 0,
+            }}
+          >
+            <div 
+              className="ai-modal-banner-header"
+              style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', 
+                gap: '6px 12px', 
+                marginBottom: 6 
+              }}
+            >
+              <strong style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                <Sparkles style={{ width: 14, height: 14, flexShrink: 0 }} /> AI Task Structuring
               </strong>
               {rawText.trim().length > 0 && (
-                <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCircle2 style={{ width: 12, height: 12 }} /> Draft saved locally
+                <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                  <CheckCircle2 style={{ width: 12, height: 12, flexShrink: 0 }} /> Draft saved locally
                 </span>
               )}
             </div>
@@ -426,7 +439,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           </div>
 
           <div style={{ marginBottom: 4, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 6, flexShrink: 0 }}>
               <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
               {rawText.trim().length > 0 && (
                 <button
@@ -434,7 +447,8 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                   onClick={() => setShowDiscardConfirm(true)}
                   style={{
                     background: 'none', border: 'none', color: 'var(--text-muted)',
-                    fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                    fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    whiteSpace: 'nowrap',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--high)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
