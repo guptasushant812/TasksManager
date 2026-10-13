@@ -2293,7 +2293,7 @@ textarea.input,
   line-height: 1.5;
   overflow-x: auto !important;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: rgba(140, 140, 160, 0.5) transparent;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -2307,36 +2307,85 @@ textarea.input,
   box-sizing: border-box;
 }
 
-/* Horizontal & Vertical Scrollbar Styling for WebKit / Chromium / Edge */
+.dark textarea,
+.dark textarea.input,
+.dark .auto-grow-textarea,
+.dark .textarea,
+[data-theme="slate"] textarea,
+[data-theme="slate"] textarea.input,
+[data-theme="slate"] .auto-grow-textarea,
+[data-theme="slate"] .textarea {
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+}
+
 textarea::-webkit-scrollbar,
 textarea.input::-webkit-scrollbar,
-.auto-grow-textarea::-webkit-scrollbar {
-  width: 6px;
-  height: 6px; /* Explicit horizontal scrollbar track height so it is fully visible and scrollable */
+.auto-grow-textarea::-webkit-scrollbar,
+.textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
 textarea::-webkit-scrollbar-track,
 textarea.input::-webkit-scrollbar-track,
-.auto-grow-textarea::-webkit-scrollbar-track {
-  background: transparent;
+.auto-grow-textarea::-webkit-scrollbar-track,
+.textarea::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 9999px;
+}
+
+.dark textarea::-webkit-scrollbar-track,
+.dark textarea.input::-webkit-scrollbar-track,
+.dark .auto-grow-textarea::-webkit-scrollbar-track,
+.dark .textarea::-webkit-scrollbar-track,
+[data-theme="slate"] textarea::-webkit-scrollbar-track,
+[data-theme="slate"] textarea.input::-webkit-scrollbar-track,
+[data-theme="slate"] .auto-grow-textarea::-webkit-scrollbar-track,
+[data-theme="slate"] .textarea::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 textarea::-webkit-scrollbar-thumb,
 textarea.input::-webkit-scrollbar-thumb,
-.auto-grow-textarea::-webkit-scrollbar-thumb {
-  background-color: var(--border);
+.auto-grow-textarea::-webkit-scrollbar-thumb,
+.textarea::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 140, 160, 0.5);
   border-radius: 9999px;
 }
 
 textarea::-webkit-scrollbar-thumb:hover,
 textarea.input::-webkit-scrollbar-thumb:hover,
-.auto-grow-textarea::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-muted);
+.auto-grow-textarea::-webkit-scrollbar-thumb:hover,
+.textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(140, 140, 160, 0.8);
+}
+
+.dark textarea::-webkit-scrollbar-thumb,
+.dark textarea.input::-webkit-scrollbar-thumb,
+.dark .auto-grow-textarea::-webkit-scrollbar-thumb,
+.dark .textarea::-webkit-scrollbar-thumb,
+[data-theme="slate"] textarea::-webkit-scrollbar-thumb,
+[data-theme="slate"] textarea.input::-webkit-scrollbar-thumb,
+[data-theme="slate"] .auto-grow-textarea::-webkit-scrollbar-thumb,
+[data-theme="slate"] .textarea::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+.dark textarea::-webkit-scrollbar-thumb:hover,
+.dark textarea.input::-webkit-scrollbar-thumb:hover,
+.dark .auto-grow-textarea::-webkit-scrollbar-thumb:hover,
+.dark .textarea::-webkit-scrollbar-thumb:hover,
+[data-theme="slate"] textarea::-webkit-scrollbar-thumb:hover,
+[data-theme="slate"] textarea.input::-webkit-scrollbar-thumb:hover,
+[data-theme="slate"] .auto-grow-textarea::-webkit-scrollbar-thumb:hover,
+[data-theme="slate"] .textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.48);
 }
 
 textarea::-webkit-scrollbar-corner,
 textarea.input::-webkit-scrollbar-corner,
-.auto-grow-textarea::-webkit-scrollbar-corner {
+.auto-grow-textarea::-webkit-scrollbar-corner,
+.textarea::-webkit-scrollbar-corner {
   background: transparent;
 }
 
@@ -8536,6 +8585,116 @@ html:not(.dark) .saas-task-summary {
     padding: 16px !important;
     margin-inline: 8px !important;
     max-width: calc(100vw - 16px) !important;
+    max-height: 94dvh !important;
+  }
+}
+
+.ai-modal-content-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 160, 0.4) transparent;
+}
+
+.dark .ai-modal-content-scroll,
+[data-theme="slate"] .ai-modal-content-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.ai-modal-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-modal-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-modal-content-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 140, 160, 0.4);
+  border-radius: 9999px;
+}
+
+.dark .ai-modal-content-scroll::-webkit-scrollbar-thumb,
+[data-theme="slate"] .ai-modal-content-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .ai-modal-content-scroll {
+    padding: 14px 16px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .new-task-modal-box {
+    max-height: 94dvh !important;
+  }
+
+  .ai-modal-content-scroll {
+    padding: 12px 14px !important;
+  }
+
+  #ai-raw-input {
+    min-height: 180px !important;
+    max-height: 220px !important;
+  }
+
+  .ai-modal-bottom-bar {
+    padding: 12px 14px !important;
+    gap: 8px !important;
+  }
+
+  .ai-modal-bottom-bar button {
+    min-height: 44px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .new-task-modal-box {
+    max-height: 96dvh !important;
+  }
+
+  .ai-modal-content-scroll {
+    padding: 10px 12px !important;
+  }
+
+  #ai-raw-input {
+    min-height: 150px !important;
+    max-height: 190px !important;
+  }
+
+  .ai-modal-bottom-bar {
+    padding: 10px 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .ai-modal-bottom-bar > div {
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .ai-modal-bottom-bar button {
+    flex: 1 !important;
+  }
+}
+
+@media (max-height: 600px) {
+  .new-task-modal-box {
+    max-height: 96dvh !important;
+  }
+
+  .ai-modal-content-scroll {
+    padding: 10px 14px !important;
+  }
+
+  #ai-raw-input {
+    min-height: 130px !important;
+    max-height: 160px !important;
+  }
+
+  .ai-modal-bottom-bar {
+    padding: 8px 14px !important;
   }
 }
 

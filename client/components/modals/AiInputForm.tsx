@@ -391,12 +391,26 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           />
         )}
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px' }}>
+        <div 
+          className="ai-modal-content-scroll"
+          style={{ 
+            flex: 1, 
+            minHeight: 0, 
+            overflowY: 'auto', 
+            overflowX: 'hidden', 
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch',
+            padding: '16px 20px', 
+            display: 'flex', 
+            flexDirection: 'column' 
+          }}
+        >
           <div style={{
             padding: '14px 16px', marginBottom: 16,
             background: 'var(--accent-subtle)', border: '1px solid rgba(139,92,246,0.2)',
             borderRadius: 'var(--radius-lg)', fontSize: 13, color: 'var(--text-secondary)',
             lineHeight: 1.6,
+            flexShrink: 0,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <strong style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -411,8 +425,8 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
           </div>
 
-          <div style={{ marginBottom: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ marginBottom: 4, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexShrink: 0 }}>
               <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
               {rawText.trim().length > 0 && (
                 <button
@@ -440,14 +454,14 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               value={aiLoading ? 'Please wait, structuring your tasks...' : rawText}
               onChange={(e) => setRawText(e.target.value)}
               disabled={aiLoading}
-              minHeight={120}
-              maxHeight={320}
+              minHeight={240}
+              maxHeight={260}
               allowManualResize={true}
               style={{ lineHeight: 1.6, opacity: aiLoading ? 0.6 : 1 }}
             />
-            {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block' }}>{errors.rawText}</span>}
+            {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block', flexShrink: 0 }}>{errors.rawText}</span>}
             {aiError && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--high)', marginTop: 8, padding: '8px 12px', background: 'var(--high-bg)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--high)', marginTop: 8, padding: '8px 12px', background: 'var(--high-bg)', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}>
                 <AlertCircle style={{ width: 14, height: 14 }} /> {aiError}
               </div>
             )}
