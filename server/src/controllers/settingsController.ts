@@ -67,20 +67,18 @@ export async function verifyMasterPassword(req: Request, res: Response, next: Ne
       return;
     }
 
-    let settings = await Settings.findOne();
-    if (!settings) {
-      settings = await Settings.create({});
-    }
+    const trimmed = password.trim();
+    const inputHash = hashMasterPassword(trimmed);
 
-    const inputHash = hashMasterPassword(password);
+    const settings = await Settings.findOne({}, 'masterPasswordHash').lean();
 
-    if (settings.masterPasswordHash) {
+    if (settings && settings.masterPasswordHash) {
       res.json({ valid: settings.masterPasswordHash === inputHash });
       return;
     }
 
     // Fall back to default passcode if no custom password was set yet
-    const isDefault = password.trim() === 'Sun123@' || password.trim() === 'Sushant2026@';
+    const isDefault = trimmed === 'Sun123@' || trimmed === 'Sushant2026@';
     res.json({ valid: isDefault });
   } catch (err) {
     next(err);
