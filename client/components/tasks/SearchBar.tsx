@@ -1,24 +1,44 @@
 'use client';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-export default function SearchBar({ value, onChange }: SearchBarProps) {
+export default function SearchBar({
+  value,
+  onChange,
+  placeholder,
+  className = '',
+}: SearchBarProps) {
   return (
-    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-      <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', width: 16, height: 16, pointerEvents: 'none' }} />
+    <div className={`task-search-wrapper ${className}`}>
+      <Search className="task-search-icon" aria-hidden="true" />
       <input
         id="task-search"
         type="text"
-        className="input"
-        placeholder="Search tasks by title, description, assigned by…"
+        className="input task-search-input"
+        placeholder={placeholder || 'Search tasks by title, assigned by…'}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ paddingLeft: 36 }}
+        aria-label="Search tasks"
+        autoComplete="off"
+        spellCheck="false"
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          className="task-search-clear-btn"
+          aria-label="Clear search text"
+          title="Clear search"
+        >
+          <X style={{ width: 14, height: 14 }} />
+        </button>
+      )}
     </div>
   );
 }

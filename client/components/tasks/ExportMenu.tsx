@@ -204,13 +204,13 @@ export default function ExportMenu({
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <button
         id="btn-export"
-        className="btn btn-ghost"
+        className="btn btn-ghost task-toolbar-btn export-menu-trigger-btn"
         onClick={() => setOpen(!open)}
         disabled={checking || exportingFormat !== null}
-        style={{ minWidth: 100 }}
+        title="Export tasks to PDF, Excel or ZIP"
       >
         {exportingFormat ? (
           <>
