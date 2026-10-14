@@ -68,10 +68,22 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
       textarea.style.height = 'auto';
       const scrollH = textarea.scrollHeight;
 
-      const targetHeight = Math.min(Math.max(scrollH + 2, minPx), maxPx);
+      // Respect responsive CSS min and max bounds set via media queries
+      const computedMax = typeof window !== 'undefined' ? window.getComputedStyle(textarea).maxHeight : null;
+      const parsedCssMax = computedMax && computedMax !== 'none' ? parseFloat(computedMax) : null;
+      const effectiveMaxPx = parsedCssMax !== null && !isNaN(parsedCssMax) ? Math.min(parsedCssMax, maxPx) : maxPx;
+
+      const computedMin = typeof window !== 'undefined' ? window.getComputedStyle(textarea).minHeight : null;
+      const parsedCssMin = computedMin && computedMin !== 'none' ? parseFloat(computedMin) : null;
+      const effectiveMinPx = parsedCssMin !== null && !isNaN(parsedCssMin) ? parsedCssMin : minPx;
+
+      const targetHeight = Math.min(Math.max(scrollH + 2, effectiveMinPx), effectiveMaxPx);
       textarea.style.height = `${targetHeight}px`;
 
-      if (scrollH >= maxPx) {
+      const hasOverflow = scrollH >= effectiveMaxPx || textarea.scrollHeight > textarea.clientHeight;
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+
+      if (hasOverflow || isMobile) {
         textarea.style.overflowY = 'auto';
         textarea.scrollTop = (value || defaultValue) ? prevScrollTop : 0;
       } else {

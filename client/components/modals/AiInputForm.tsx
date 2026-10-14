@@ -552,7 +552,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
         />
       )}
 
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="ai-modal-content-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
