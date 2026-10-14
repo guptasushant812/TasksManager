@@ -796,68 +796,72 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
-        <SearchBar value={searchInput} onChange={setSearchInput} />
+      <div className="task-toolbar-container">
+        <div className="task-toolbar-search-col">
+          <SearchBar value={searchInput} onChange={setSearchInput} />
+        </div>
 
-        <div ref={filterRef} style={{ position: 'relative' }}>
+        <div className={`task-toolbar-actions-col ${selectMode && selectedIds.length > 0 ? 'has-delete' : ''}`}>
+          <div ref={filterRef} className="task-toolbar-filter-wrap">
+            <button
+              id="btn-filter-sort"
+              className={`btn ${activeFiltersCount > 0 ? 'btn-primary' : 'btn-ghost'} task-toolbar-btn`}
+              onClick={() => setShowFilter(!showFilter)}
+              style={{ position: 'relative' }}
+              title="Filter and sort tasks"
+            >
+              <Filter style={{ width: 14, height: 14, flexShrink: 0 }} />
+              <span>Filter</span>
+              {activeFiltersCount > 0 && (
+                <span className="task-toolbar-badge">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+            {showFilter && (
+              <FilterSortPanel
+                filters={filters}
+                onFiltersChange={(f) => { onFiltersChange(f); }}
+                onClose={() => setShowFilter(false)}
+              />
+            )}
+          </div>
+
           <button
-            id="btn-filter-sort"
-            className={`btn ${activeFiltersCount > 0 ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => setShowFilter(!showFilter)}
-            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            id="btn-select-mode"
+            className={`btn ${selectMode ? 'btn-primary' : 'btn-ghost'} task-toolbar-btn`}
+            onClick={() => { setSelectMode(!selectMode); setSelectedIds([]); }}
+            title="Toggle multi-select mode"
           >
-            <Filter style={{ width: 14, height: 14 }} />
-            <span>Filter</span>
-            {activeFiltersCount > 0 && (
-              <span style={{
-                background: 'var(--bg-base)',
-                color: 'var(--text-primary)',
-                borderRadius: '50%',
-                width: 18,
-                height: 18,
-                fontSize: 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 900,
-                border: '1px solid var(--border)',
-              }}>
-                {activeFiltersCount}
+            <CheckSquare style={{ width: 14, height: 14, flexShrink: 0 }} />
+            <span>Select</span>
+            {selectedIds.length > 0 && (
+              <span className="task-toolbar-badge">
+                {selectedIds.length}
               </span>
             )}
           </button>
-          {showFilter && (
-            <FilterSortPanel
-              filters={filters}
-              onFiltersChange={(f) => { onFiltersChange(f); }}
-              onClose={() => setShowFilter(false)}
-            />
+
+          {selectMode && selectedIds.length > 0 && (
+            <button
+              className="btn btn-danger task-toolbar-btn task-toolbar-btn-delete"
+              onClick={handleDeleteSelected}
+              title={`Delete ${selectedIds.length} selected tasks`}
+            >
+              <Trash2 style={{ width: 14, height: 14, flexShrink: 0 }} />
+              <span>Delete</span>
+            </button>
           )}
+
+          <div className="task-toolbar-export-wrap">
+            <ExportMenu
+              filters={filters}
+              selectedIds={selectedIds}
+              totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
+              onAddNewTask={() => setShowNewTaskModal(true)}
+            />
+          </div>
         </div>
-
-        <button
-          id="btn-select-mode"
-          className={`btn ${selectMode ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => { setSelectMode(!selectMode); setSelectedIds([]); }}
-        >
-          <CheckSquare style={{ width: 14, height: 14 }} />
-          Select
-          {selectedIds.length > 0 && ` (${selectedIds.length})`}
-        </button>
-
-        {selectMode && selectedIds.length > 0 && (
-          <button className="btn btn-danger" onClick={handleDeleteSelected}>
-            <Trash2 style={{ width: 14, height: 14 }} />
-            Delete {selectedIds.length}
-          </button>
-        )}
-
-        <ExportMenu
-          filters={filters}
-          selectedIds={selectedIds}
-          totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
-          onAddNewTask={() => setShowNewTaskModal(true)}
-        />
       </div>
 
       {activeFiltersCount > 0 && (
