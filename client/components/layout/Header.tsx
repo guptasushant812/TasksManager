@@ -20,6 +20,7 @@ import {
 import { useTaskContext } from '@/context/TaskContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { lockSession } from '@/lib/sessionManager';
 
 interface HeaderProps {
   filters: TaskFilters;
@@ -437,14 +438,8 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                   type="button"
                   onClick={() => {
                     setProfileOpen(false);
-                    if (typeof window !== 'undefined') {
-                      const currentPath = window.location.pathname + window.location.search;
-                      if (currentPath && currentPath !== '/') {
-                        sessionStorage.setItem('lockedReturnUrl', currentPath);
-                      }
-                    }
-                    localStorage.setItem('isAppLocked', 'true');
-                    window.dispatchEvent(new Event('storage'));
+                    const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined;
+                    lockSession('manual', currentPath);
                   }}
                   style={{
                     display: 'flex',
@@ -483,8 +478,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
                     if (typeof window !== 'undefined') {
                       sessionStorage.removeItem('lockedReturnUrl');
                     }
-                    localStorage.setItem('isAppLocked', 'true');
-                    window.dispatchEvent(new Event('storage'));
+                    lockSession('manual');
                     router.replace('/');
                   }}
                   style={{

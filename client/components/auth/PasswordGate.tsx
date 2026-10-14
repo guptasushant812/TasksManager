@@ -3,6 +3,15 @@ import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import {
+  getSessionStatus,
+  persistActivityTimestamps,
+  lockSession,
+  unlockSession,
+  subscribeToSessionEvents,
+  getSecurityConfig,
+  STORAGE_KEYS,
+} from '@/lib/sessionManager';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -19,23 +28,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastActiveRef = useRef<number>(Date.now());
   const lastThrottleRef = useRef<number>(0);
   const lastStorageWriteRef = useRef<number>(0);
-
-  const getConfig = useCallback(() => {
-    try {
-      const stored = localStorage.getItem('securityConfig');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          password: parsed.password || 'Sun123@',
-          timeoutMs: Number(parsed.timeoutMs) || 300000,
-        };
-      }
-    } catch {}
-    return { password: 'Sun123@', timeoutMs: 300000 };
-  }, []);
 
   const formatDuration = (ms: number): string => {
     const minutes = Math.round(ms / 60000);
@@ -49,8 +43,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const saveCurrentReturnUrl = useCallback(() => {
     if (typeof window === 'undefined') return;
     const currentPath = window.location.pathname + window.location.search;
-    if (currentPath && currentPath !== '/' && !sessionStorage.getItem('lockedReturnUrl')) {
-      sessionStorage.setItem('lockedReturnUrl', currentPath);
+    if (currentPath && currentPath !== '/' && !sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL)) {
+      sessionStorage.setItem(STORAGE_KEYS.LOCKED_RETURN_URL, currentPath);
     }
   }, []);
 
@@ -62,9 +56,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     saveCurrentReturnUrl();
     setIsTimedOut(true);
     setIsLocked(true);
-    try {
-      localStorage.setItem('isAppLocked', 'true');
-    } catch {}
+    lockSession('timeout');
   }, [saveCurrentReturnUrl]);
 
   const scheduleTimeout = useCallback((delayMs: number) => {
@@ -76,27 +68,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }, Math.max(0, delayMs));
   }, [triggerSessionTimeout]);
 
-  // Throttled user activity handler to avoid event listener overhead
-  const handleUserActivity = useCallback(() => {
-    if (isLocked || isTimedOut) return;
-
-    const now = Date.now();
-    if (now - lastThrottleRef.current < 1000) return;
-    lastThrottleRef.current = now;
-    lastActiveRef.current = now;
-
-    // Throttle cross-tab localStorage writes to once every 5 seconds
-    if (now - lastStorageWriteRef.current > 5000) {
-      try {
-        localStorage.setItem('lastActiveTime', now.toString());
-        lastStorageWriteRef.current = now;
-      } catch {}
-    }
-
-    const { timeoutMs } = getConfig();
-    scheduleTimeout(timeoutMs);
-  }, [isLocked, isTimedOut, getConfig, scheduleTimeout]);
-
   const checkSyncState = useCallback(() => {
     if (isPublic) {
       setLoading(false);
@@ -105,36 +76,53 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       return;
     }
 
-    const lockedFlag = localStorage.getItem('isAppLocked') === 'true';
-    const { timeoutMs } = getConfig();
-    const storedTime = parseInt(localStorage.getItem('lastActiveTime') || '0', 10);
-    const effectiveActive = Math.max(lastActiveRef.current, isNaN(storedTime) ? 0 : storedTime);
+    const status = getSessionStatus(isPublic);
 
-    if (!effectiveActive) {
+    if (status.isLocked) {
+      saveCurrentReturnUrl();
       setIsLocked(true);
-      setIsTimedOut(false);
-      try {
-        localStorage.setItem('isAppLocked', 'true');
-      } catch {}
+      setIsTimedOut(status.isTimedOut);
+      if (timeoutTimerRef.current) {
+        clearTimeout(timeoutTimerRef.current);
+        timeoutTimerRef.current = null;
+      }
       setLoading(false);
       return;
     }
 
-    const elapsed = Date.now() - effectiveActive;
+    setIsLocked(false);
+    setIsTimedOut(false);
+    setLoading(false);
+    scheduleTimeout(status.remainingMs);
+  }, [isPublic, saveCurrentReturnUrl, scheduleTimeout]);
 
-    if (elapsed >= timeoutMs) {
-      triggerSessionTimeout();
-      setLoading(false);
-    } else if (lockedFlag) {
-      setIsLocked(true);
-      setLoading(false);
-    } else {
-      setIsLocked(false);
-      setIsTimedOut(false);
-      scheduleTimeout(timeoutMs - elapsed);
-      setLoading(false);
+  const handleUserActivity = useCallback(() => {
+    if (isLocked || isTimedOut) return;
+
+    const now = Date.now();
+    if (now - lastThrottleRef.current < 1000) return;
+    lastThrottleRef.current = now;
+
+    // Throttle cross-tab storage writes to once every 4 seconds
+    if (now - lastStorageWriteRef.current > 4000) {
+      persistActivityTimestamps(now);
+      lastStorageWriteRef.current = now;
     }
-  }, [isPublic, getConfig, triggerSessionTimeout, scheduleTimeout]);
+
+    const { timeoutMs } = getSecurityConfig();
+    scheduleTimeout(timeoutMs);
+  }, [isLocked, isTimedOut, scheduleTimeout]);
+
+  // Periodic heartbeat safeguard against timer suspension in background tabs
+  useEffect(() => {
+    if (isLocked || isPublic) return;
+
+    const interval = setInterval(() => {
+      checkSyncState();
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [isLocked, isPublic, checkSyncState]);
 
   useEffect(() => {
     if (isPublic) {
@@ -158,22 +146,32 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       window.addEventListener(ev, handleUserActivity, { passive: true });
     });
 
-    const onStorageChange = (e: Event) => {
-      const storageEvent = e as StorageEvent;
-      if (!storageEvent.key || storageEvent.key === 'isAppLocked' || storageEvent.key === 'securityConfig' || storageEvent.key === 'lastActiveTime') {
-        checkSyncState();
-      }
-    };
+    const unsubscribeEvents = subscribeToSessionEvents(() => {
+      checkSyncState();
+    });
 
-    const onVisibilityOrFocus = () => {
+    const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkSyncState();
+      } else if (!isLocked && !isPublic) {
+        persistActivityTimestamps(Date.now());
       }
     };
 
-    window.addEventListener('storage', onStorageChange);
-    window.addEventListener('visibilitychange', onVisibilityOrFocus);
-    window.addEventListener('focus', onVisibilityOrFocus);
+    const onPageHide = () => {
+      if (!isLocked && !isPublic) {
+        persistActivityTimestamps(Date.now());
+      }
+    };
+
+    const onFocus = () => {
+      checkSyncState();
+    };
+
+    window.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pageshow', checkSyncState);
+    window.addEventListener('focus', onFocus);
 
     return () => {
       if (timeoutTimerRef.current) {
@@ -182,11 +180,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       activityEvents.forEach((ev) => {
         window.removeEventListener(ev, handleUserActivity);
       });
-      window.removeEventListener('storage', onStorageChange);
-      window.removeEventListener('visibilitychange', onVisibilityOrFocus);
-      window.removeEventListener('focus', onVisibilityOrFocus);
+      unsubscribeEvents();
+      window.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('pageshow', checkSyncState);
+      window.removeEventListener('focus', onFocus);
     };
-  }, [isPublic, handleUserActivity, checkSyncState]);
+  }, [isPublic, handleUserActivity, checkSyncState, isLocked]);
 
   useEffect(() => {
     if (isLocked && !isPublic) {
@@ -199,18 +199,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }
   }, [isLocked, isPublic, saveCurrentReturnUrl]);
 
-  const handleUnlockSuccess = () => {
+  const handleUnlockSuccess = (updatedPassword?: string) => {
     setIsUnlocking(true);
 
     setTimeout(() => {
-      const now = Date.now();
-      lastActiveRef.current = now;
-      lastStorageWriteRef.current = now;
-
-      try {
-        localStorage.setItem('isAppLocked', 'false');
-        localStorage.setItem('lastActiveTime', now.toString());
-      } catch {}
+      unlockSession(updatedPassword);
 
       setIsLocked(false);
       setIsTimedOut(false);
@@ -218,13 +211,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       setError(false);
       setPassword('');
 
-      const { timeoutMs } = getConfig();
+      const { timeoutMs } = getSecurityConfig();
       scheduleTimeout(timeoutMs);
 
       if (typeof window !== 'undefined') {
-        const returnUrl = sessionStorage.getItem('lockedReturnUrl');
+        const returnUrl = sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL);
         if (returnUrl) {
-          sessionStorage.removeItem('lockedReturnUrl');
+          sessionStorage.removeItem(STORAGE_KEYS.LOCKED_RETURN_URL);
           if (pathname === '/' && returnUrl !== '/') {
             router.replace(returnUrl);
           } else {
@@ -250,18 +243,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       });
 
       if (res.valid) {
-        try {
-          const current = JSON.parse(localStorage.getItem('securityConfig') || '{"timeoutMs":300000}');
-          current.password = trimmed;
-          localStorage.setItem('securityConfig', JSON.stringify(current));
-        } catch {}
-        handleUnlockSuccess();
+        handleUnlockSuccess(trimmed);
       } else {
         setError(true);
       }
     } catch {
-      // Offline fallback: verify strictly against current local cached password
-      const { password: currentPassword } = getConfig();
+      // Offline fallback: verify against current local cached password
+      const { password: currentPassword } = getSecurityConfig();
       if (trimmed === currentPassword) {
         handleUnlockSuccess();
       } else {
@@ -281,7 +269,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     );
   }
 
-  const { timeoutMs } = getConfig();
+  const { timeoutMs } = getSecurityConfig();
   const configuredPeriodText = formatDuration(timeoutMs);
 
   return (
