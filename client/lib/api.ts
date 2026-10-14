@@ -21,11 +21,36 @@ type FetchOptions = {
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {} } = options;
 
+  // Defense-in-depth: reject protected API queries if session is expired or locked
+  if (
+    typeof window !== 'undefined' &&
+    !path.startsWith('/api/status/') &&
+    !path.startsWith('/api/settings/verify-password') &&
+    !path.startsWith('/api/health')
+  ) {
+    const isLocked = localStorage.getItem('isAppLocked') === 'true';
+    const expiresAt = parseInt(localStorage.getItem('sessionExpiresAt') || '0', 10);
+    const isExpired = expiresAt > 0 && Date.now() >= expiresAt;
+
+    if (isLocked || isExpired) {
+      if (isExpired && !isLocked) {
+        try {
+          localStorage.setItem('isAppLocked', 'true');
+          localStorage.setItem('lockReason', 'timeout');
+          window.dispatchEvent(new Event('storage'));
+        } catch {}
+      }
+      throw new Error('Session is locked or expired. Passcode verification required.');
+    }
+  }
+
+  const sessionToken = typeof window !== 'undefined' ? localStorage.getItem('sessionAuthToken') : null;
   const isFormData = body instanceof FormData;
   const config: RequestInit = {
     method,
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
+      ...(sessionToken && { 'x-session-token': sessionToken }),
       ...headers,
     },
   };

@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
 import { apiFetch } from '@/lib/api';
+import { lockSession, broadcastSessionEvent } from '@/lib/sessionManager';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import { RecipientItem } from '@/types/escalation';
 import { 
@@ -1818,9 +1819,9 @@ export default function SettingsPage() {
                           const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sun123@","timeoutMs":300000}');
                           current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
-                          setTimeout(() => {
-                            window.dispatchEvent(new Event('storage'));
-                          }, 0);
+                          const lastActive = parseInt(localStorage.getItem('lastActiveTime') || Date.now().toString(), 10);
+                          localStorage.setItem('sessionExpiresAt', (lastActive + val).toString());
+                          broadcastSessionEvent('activity');
                           const minutes = Math.round(val / 60000);
                           setTimeoutSavedMsg(`Auto-lock inactivity timeout set to ${minutes} minute${minutes > 1 ? 's' : ''}.`);
                           setTimeoutSaved(true);
@@ -1865,16 +1866,8 @@ export default function SettingsPage() {
                           fontSize: 13,
                         }}
                         onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            const currentPath = window.location.pathname + window.location.search;
-                            if (currentPath && currentPath !== '/') {
-                              sessionStorage.setItem('lockedReturnUrl', currentPath);
-                            }
-                          }
-                          localStorage.setItem('isAppLocked', 'true');
-                          setTimeout(() => {
-                            window.dispatchEvent(new Event('storage'));
-                          }, 0);
+                          const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined;
+                          lockSession('manual', currentPath);
                         }}
                       >
                         Lock Workspace
