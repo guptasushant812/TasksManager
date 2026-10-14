@@ -8765,6 +8765,74 @@ html:not(.dark) .saas-task-summary {
 @media (max-width: 768px) {
   .ai-modal-content-scroll {
     padding: 14px 16px !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.08) !important;
+    touch-action: pan-y !important;
+  }
+
+  .ai-modal-content-scroll::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+  }
+
+  .ai-modal-content-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 9999px !important;
+  }
+
+  .ai-modal-content-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.45) !important;
+    border-radius: 9999px !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) .ai-modal-content-scroll {
+    scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.06) !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) .ai-modal-content-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06) !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) .ai-modal-content-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  #ai-raw-input {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.08) !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  #ai-raw-input::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+  }
+
+  #ai-raw-input::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 9999px !important;
+  }
+
+  #ai-raw-input::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.45) !important;
+    border-radius: 9999px !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) #ai-raw-input {
+    scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.06) !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) #ai-raw-input::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06) !important;
+  }
+
+  html:not(.dark):not([data-theme="slate"]) #ai-raw-input::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4) !important;
   }
 }
 
