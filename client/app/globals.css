@@ -8989,39 +8989,67 @@ html:not(.dark) .saas-task-summary {
 
 .task-search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
-  width: 16px;
-  height: 16px;
+  color: var(--text-secondary);
+  width: 17px;
+  height: 17px;
   pointer-events: none;
   flex-shrink: 0;
-  transition: color 0.15s ease;
+  z-index: 2;
+  opacity: 0.9;
+  transition: color 0.18s ease, opacity 0.18s ease;
+}
+
+.dark .task-search-icon,
+[data-theme="dark"] .task-search-icon,
+[data-theme="slate"] .task-search-icon {
+  color: #cbd5e1;
+}
+
+.task-search-wrapper:focus-within .task-search-icon,
+.task-search-wrapper.has-value .task-search-icon {
+  color: var(--accent) !important;
+  opacity: 1 !important;
 }
 
 .task-search-input {
-  width: 100%;
-  height: 38px;
-  padding: 8px 36px 8px 36px;
-  font-size: 13.5px;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-sizing: border-box;
+  width: 100% !important;
+  height: 38px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 42px !important;
+  padding-right: 38px !important;
+  font-size: 13.5px !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.task-search-input::-webkit-search-decoration,
+.task-search-input::-webkit-search-cancel-button,
+.task-search-input::-webkit-search-results-button,
+.task-search-input::-webkit-search-results-decoration {
+  display: none;
 }
 
 .task-search-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-subtle);
-  background: var(--bg-hover);
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-subtle) !important;
+  background: var(--bg-hover) !important;
 }
 
-.task-search-wrapper:focus-within .task-search-icon {
-  color: var(--accent);
+.task-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+  font-weight: 500;
 }
 
 .task-search-clear-btn {
@@ -9031,19 +9059,21 @@ html:not(.dark) .saas-task-summary {
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  padding: 4px;
-  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  z-index: 2;
   transition: all 0.15s ease;
 }
 
 .task-search-clear-btn:hover {
   color: var(--text-primary);
-  background: var(--bg-elevated);
+  background: var(--bg-hover);
 }
 
 @media (max-width: 768px) {
@@ -9065,9 +9095,17 @@ html:not(.dark) .saas-task-summary {
     gap: 8px;
   }
 
+  .task-search-icon {
+    left: 14px;
+    width: 17px;
+    height: 17px;
+  }
+
   .task-search-input {
-    height: 40px;
-    font-size: 14px;
+    height: 42px !important;
+    font-size: 14px !important;
+    padding-left: 44px !important;
+    padding-right: 38px !important;
   }
 }
 
@@ -9084,12 +9122,18 @@ html:not(.dark) .saas-task-summary {
     max-width: 100%;
   }
 
+  .task-search-icon {
+    left: 14px;
+    width: 17px;
+    height: 17px;
+  }
+
   .task-search-input {
-    height: 42px;
-    font-size: 14px;
-    padding-left: 36px;
-    padding-right: 32px;
-    border-radius: 9px;
+    height: 42px !important;
+    font-size: 14px !important;
+    padding-left: 44px !important;
+    padding-right: 38px !important;
+    border-radius: 9px !important;
   }
 
   .task-toolbar-actions-col {
@@ -9144,18 +9188,23 @@ html:not(.dark) .saas-task-summary {
     gap: 3px !important;
   }
 
-  .task-search-input {
-    height: 38px;
-    font-size: 13.5px;
-    padding-left: 32px;
-    padding-right: 28px;
+  .task-search-icon {
+    left: 11px;
+    width: 15px;
+    height: 15px;
   }
 
-  .task-search-icon {
-    left: 10px;
-    width: 14px;
-    height: 14px;
+  .task-search-input {
+    height: 38px !important;
+    font-size: 13px !important;
+    padding-left: 38px !important;
+    padding-right: 32px !important;
+  }
+
+  .task-search-clear-btn {
+    right: 8px;
   }
 }
+
 
 

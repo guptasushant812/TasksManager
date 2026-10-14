@@ -702,16 +702,37 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     return () => clearInterval(interval);
   }, [filters, refreshKey, fetchTasks, tableLimit]);
 
-  // Debounce search input
+  const commitSearch = useCallback((value: string) => {
+    clearTimeout(searchDebounce.current);
+    setSearchInput(value);
+    if (value !== (filters.search || '')) {
+      onFiltersChange({ search: value, page: 1 });
+    }
+  }, [filters.search, onFiltersChange]);
+
+  const handleClearSearch = useCallback(() => {
+    clearTimeout(searchDebounce.current);
+    setSearchInput('');
+    if (filters.search) {
+      onFiltersChange({ search: '', page: 1 });
+    }
+  }, [filters.search, onFiltersChange]);
+
+  // Keep searchInput in sync when reset or changed by parent filters
+  useEffect(() => {
+    setSearchInput(filters.search || '');
+  }, [filters.search]);
+
+  // Auto-search as user types with smooth debounce
   useEffect(() => {
     clearTimeout(searchDebounce.current);
     searchDebounce.current = setTimeout(() => {
-      if (searchInput !== filters.search) {
+      if (searchInput !== (filters.search || '')) {
         onFiltersChange({ search: searchInput, page: 1 });
       }
-    }, 350);
+    }, 260);
     return () => clearTimeout(searchDebounce.current);
-  }, [searchInput]);
+  }, [searchInput, filters.search, onFiltersChange]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -798,7 +819,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     <div>
       <div className="task-toolbar-container">
         <div className="task-toolbar-search-col">
-          <SearchBar value={searchInput} onChange={setSearchInput} />
+          <SearchBar
+            value={searchInput}
+            onChange={setSearchInput}
+            onSubmit={commitSearch}
+            onClear={handleClearSearch}
+          />
         </div>
 
         <div className={`task-toolbar-actions-col ${selectMode && selectedIds.length > 0 ? 'has-delete' : ''}`}>
