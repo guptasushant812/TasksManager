@@ -18,26 +18,8 @@ type FetchOptions = {
   headers?: Record<string, string>;
 };
 
-import { lockSession } from './sessionManager';
-
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {} } = options;
-
-  if (
-    typeof window !== 'undefined' &&
-    !path.startsWith('/api/status/') &&
-    !path.startsWith('/api/settings/verify-password') &&
-    !path.startsWith('/api/health')
-  ) {
-    const isLocked = localStorage.getItem('isAppLocked') === 'true';
-    const expiresAt = parseInt(localStorage.getItem('sessionExpiresAt') || '0', 10);
-    const isExpired = expiresAt > 0 && Date.now() >= expiresAt;
-
-    if (isLocked || isExpired) {
-      lockSession(isExpired ? 'timeout' : 'manual');
-      throw new Error('Session is locked or expired. Passcode verification required.');
-    }
-  }
 
   const sessionToken = typeof window !== 'undefined' ? localStorage.getItem('sessionAuthToken') : null;
   const isFormData = body instanceof FormData;

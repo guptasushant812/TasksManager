@@ -694,11 +694,9 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const displayedTasks = isDashboard ? tasks.slice(0, 5) : tasks;
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
     fetchTasks({ ...filters, limit: tableLimit });
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
       fetchTasks({ ...filters, limit: tableLimit }, true);
     }, 5000);
     return () => clearInterval(interval);
