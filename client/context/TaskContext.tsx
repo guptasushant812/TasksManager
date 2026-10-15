@@ -63,11 +63,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, [summaryFilters, fetchSummary]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
     fetchSummary(summaryFilters);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
       fetchSummary(summaryFilters, true);
     }, 5000);
     return () => clearInterval(interval);
