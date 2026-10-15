@@ -1,9 +1,10 @@
 'use client';
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { TaskFilters, WorkStatus, Summary } from '@/types/task';
 import { useSummary } from '@/hooks/useSummary';
 import { getYearRange, toIsoDate } from '@/lib/dates';
 import { BASE_URL } from '@/lib/api';
+import { subscribeToSessionEvents } from '@/lib/sessionManager';
 
 interface TaskContextValue {
   filters: TaskFilters;
@@ -38,14 +39,14 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const { summary, loading: summaryLoading, fetchSummary } = useSummary();
   const availableYears = getYearRange(START_YEAR);
 
-  const summaryFilters: TaskFilters = {
+  const summaryFilters: TaskFilters = useMemo(() => ({
     year: filters.year,
     month: filters.month,
     day: filters.day,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     status: filters.status,
-  };
+  }), [filters.year, filters.month, filters.day, filters.dateFrom, filters.dateTo, filters.status]);
 
   useEffect(() => {
     // Initial silent warm-up ping to wake up backend if asleep on Render free tier
@@ -53,6 +54,16 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    return subscribeToSessionEvents((type) => {
+      if (type === 'unlock') {
+        setRefreshKey((k) => k + 1);
+        fetchSummary(summaryFilters);
+      }
+    });
+  }, [summaryFilters, fetchSummary]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
     fetchSummary(summaryFilters);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
@@ -60,7 +71,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       fetchSummary(summaryFilters, true);
     }, 5000);
     return () => clearInterval(interval);
-  }, [filters.year, filters.month, filters.day, filters.dateFrom, filters.dateTo, filters.status]);
+  }, [summaryFilters, fetchSummary]);
 
   const handleFiltersChange = useCallback((partial: Partial<TaskFilters>) => {
     setFilters((prev) => ({ ...prev, ...partial, page: partial.page ?? 1 }));

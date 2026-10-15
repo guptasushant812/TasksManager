@@ -17,6 +17,7 @@ export function useTasks() {
       const res = await apiFetch<TasksResponse>(`/api/tasks${qs}`);
       setTasks(res.data);
       setPagination(res.pagination);
+      setError(null);
     } catch (err) {
       if (!silent) setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
     } finally {

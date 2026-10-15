@@ -13,6 +13,7 @@ import FollowUpPanel from '../follow-ups/FollowUpPanel';
 import FollowUpQuickAdd from '../follow-ups/FollowUpQuickAdd';
 import Link from 'next/link';
 import { Filter, CheckSquare, Trash2, ChevronLeft, ChevronRight, ArrowRight, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { lockSession } from '@/lib/sessionManager';
 
 interface TaskTableProps {
   filters: TaskFilters;
@@ -692,11 +693,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
   const tableLimit = isDashboard ? 5 : (filters.limit || 20);
   const displayedTasks = isDashboard ? tasks.slice(0, 5) : tasks;
 
-  // Fetch whenever filters or refreshKey changes
   useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
     fetchTasks({ ...filters, limit: tableLimit });
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
+      if (typeof window !== 'undefined' && localStorage.getItem('isAppLocked') === 'true') return;
       fetchTasks({ ...filters, limit: tableLimit }, true);
     }, 5000);
     return () => clearInterval(interval);
@@ -1038,28 +1040,55 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         {error ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p style={{ color: 'var(--high)', marginBottom: 6, fontSize: 13 }}>⚠ {error}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 440, marginInline: 'auto', lineHeight: 1.5 }}>
-              {typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
-                ? 'Unable to reach backend server. If hosted on Render free tier, the instance may be spinning up from sleep (~30–50s).'
-                : 'Make sure the backend server is running on port 4000.'}
-            </p>
-            <button
-              type="button"
-              onClick={() => fetchTasks({ ...filters, limit: tableLimit })}
-              style={{
-                marginTop: 14,
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                borderRadius: 'var(--radius-sm, 6px)',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-              }}
-            >
-              Retry Connection
-            </button>
+            {error.toLowerCase().includes('passcode') || error.toLowerCase().includes('locked') ? (
+              <>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 440, marginInline: 'auto', lineHeight: 1.5 }}>
+                  Your workspace session is locked or expired. Enter your passcode to unlock and view your tasks.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => lockSession('timeout')}
+                  style={{
+                    marginTop: 14,
+                    padding: '7px 16px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    borderRadius: 'var(--radius-sm, 6px)',
+                    background: 'var(--accent-primary, #6366f1)',
+                    border: '1px solid var(--accent-primary, #6366f1)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Unlock Workspace
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 440, marginInline: 'auto', lineHeight: 1.5 }}>
+                  {typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+                    ? 'Unable to reach backend server. If hosted on Render free tier, the instance may be spinning up from sleep (~30–50s).'
+                    : 'Make sure the backend server is running on port 4000.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fetchTasks({ ...filters, limit: tableLimit })}
+                  style={{
+                    marginTop: 14,
+                    padding: '6px 14px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    borderRadius: 'var(--radius-sm, 6px)',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Retry Connection
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="task-table-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
