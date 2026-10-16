@@ -11,6 +11,7 @@ import {
   subscribeToSessionEvents,
   getSecurityConfig,
   STORAGE_KEYS,
+  formatTimeoutDuration,
 } from '@/lib/sessionManager';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
@@ -33,15 +34,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const lastThrottleRef = useRef<number>(0);
   const lastStorageWriteRef = useRef<number>(0);
 
-  const formatDuration = (ms: number): string => {
-    const minutes = Math.round(ms / 60000);
-    if (minutes >= 60) {
-      const hours = Math.round(minutes / 60);
-      return `${hours} hour${hours > 1 ? 's' : ''}`;
-    }
-    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-  };
-
   const saveCurrentReturnUrl = useCallback(() => {
     if (typeof window === 'undefined') return;
     const currentPath = window.location.pathname + window.location.search;
@@ -63,10 +55,15 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const scheduleTimeout = useCallback((delayMs: number) => {
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current);
+      timeoutTimerRef.current = null;
+    }
+    const { timeoutMs } = getSecurityConfig();
+    if (timeoutMs === 0 || !Number.isFinite(delayMs) || delayMs <= 0) {
+      return;
     }
     timeoutTimerRef.current = setTimeout(() => {
       triggerSessionTimeout();
-    }, Math.max(0, delayMs));
+    }, delayMs);
   }, [triggerSessionTimeout]);
 
   const checkSyncState = useCallback(() => {
@@ -89,8 +86,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
         timeoutTimerRef.current = null;
       }
 
-      // If locked under inactivity timeout, schedule the 1-hour hard boundary transition
-      if (status.isTimedOut && status.remainingMs > 0) {
+      if (status.isTimedOut && status.remainingMs > 0 && Number.isFinite(status.remainingMs)) {
         if (hardTimeoutTimerRef.current) {
           clearTimeout(hardTimeoutTimerRef.current);
         }
@@ -122,6 +118,9 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const handleUserActivity = useCallback(() => {
     if (isLocked || isTimedOut) return;
 
+    const { timeoutMs } = getSecurityConfig();
+    if (timeoutMs === 0) return;
+
     const now = Date.now();
     if (now - lastThrottleRef.current < 1000) return;
     lastThrottleRef.current = now;
@@ -132,7 +131,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       lastStorageWriteRef.current = now;
     }
 
-    const { timeoutMs } = getSecurityConfig();
     scheduleTimeout(timeoutMs);
   }, [isLocked, isTimedOut, scheduleTimeout]);
 
@@ -315,7 +313,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   }
 
   const { timeoutMs } = getSecurityConfig();
-  const configuredPeriodText = formatDuration(timeoutMs);
+  const configuredPeriodText = formatTimeoutDuration(timeoutMs);
 
   return (
     <>

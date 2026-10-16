@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
 import { apiFetch } from '@/lib/api';
-import { lockSession, broadcastSessionEvent } from '@/lib/sessionManager';
+import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration } from '@/lib/sessionManager';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import { RecipientItem } from '@/types/escalation';
 import { 
@@ -1820,10 +1820,13 @@ export default function SettingsPage() {
                           current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
                           const lastActive = parseInt(localStorage.getItem('lastActiveTime') || Date.now().toString(), 10);
-                          localStorage.setItem('sessionExpiresAt', (lastActive + val).toString());
+                          const expiresAt = val > 0 ? (lastActive + val).toString() : 'Infinity';
+                          localStorage.setItem('sessionExpiresAt', expiresAt);
                           broadcastSessionEvent('activity');
-                          const minutes = Math.round(val / 60000);
-                          setTimeoutSavedMsg(`Auto-lock inactivity timeout set to ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+                          const message = val === 0
+                            ? 'Auto-lock inactivity timeout set to Never.'
+                            : `Auto-lock inactivity timeout set to ${formatTimeoutDuration(val)}.`;
+                          setTimeoutSavedMsg(message);
                           setTimeoutSaved(true);
                           setTimeout(() => setTimeoutSaved(false), 4000);
                         }}
@@ -1831,16 +1834,16 @@ export default function SettingsPage() {
                           (() => {
                             try {
                               const conf = JSON.parse(localStorage.getItem('securityConfig') || '{}');
-                              return conf.timeoutMs || 300000;
+                              return typeof conf.timeoutMs === 'number' ? conf.timeoutMs : 300000;
                             } catch(e) { return 300000; }
                           })()
                         }
                       >
-                        <option value="300000">5 minutes (Default)</option>
-                        <option value="600000">10 minutes</option>
-                        <option value="900000">15 minutes</option>
-                        <option value="1800000">30 minutes</option>
-                        <option value="3600000">1 hour</option>
+                        {TIMEOUT_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value.toString()}>
+                            {opt.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
