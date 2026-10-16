@@ -23,19 +23,42 @@ export default function TasksPage() {
     limit: 10,
   }));
 
-  // Parse optional URL search params (e.g. /tasks?status=Pending)
+  // Synchronize incoming query parameters when navigated from dashboard buttons
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const statusParam = params.get('status');
-      if (statusParam) {
-        setTaskFilters((prev) => ({
-          ...prev,
-          status: statusParam as WorkStatus,
-          page: 1,
-        }));
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.toString()) return;
+
+    setTaskFilters((prev) => {
+      const updated: TaskFilters = { ...prev, page: 1 };
+
+      if (params.get('allTime') === 'true') {
+        updated.year = '';
+        updated.month = '';
+        updated.day = '';
+        updated.weekIndex = undefined;
+        updated.weekStart = undefined;
+        updated.dateFrom = '';
+        updated.dateTo = '';
+      } else {
+        if (params.has('year')) updated.year = params.get('year') || '';
+        if (params.has('month')) updated.month = params.get('month') || '';
+        if (params.has('day')) updated.day = params.get('day') || '';
+        if (params.has('weekIndex')) updated.weekIndex = Number(params.get('weekIndex'));
+        if (params.has('weekStart')) updated.weekStart = params.get('weekStart') || '';
+        if (params.has('dateFrom')) updated.dateFrom = params.get('dateFrom') || '';
+        if (params.has('dateTo')) updated.dateTo = params.get('dateTo') || '';
       }
-    }
+
+      if (params.has('status')) updated.status = (params.get('status') as WorkStatus) || '';
+      if (params.has('priority')) updated.priority = (params.get('priority') as TaskFilters['priority']) || '';
+      if (params.has('overdueOnly')) updated.overdueOnly = params.get('overdueOnly') || '';
+      if (params.has('escalatedOnly')) updated.escalatedOnly = params.get('escalatedOnly') || '';
+      if (params.has('search')) updated.search = params.get('search') || '';
+      if (params.has('givenBy')) updated.givenBy = params.get('givenBy') || '';
+
+      return updated;
+    });
   }, []);
 
   const handleFiltersChange = useCallback((partial: Partial<TaskFilters>) => {

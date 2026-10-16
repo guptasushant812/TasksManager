@@ -177,6 +177,23 @@ export default function TaskScopeNav({
     return 'all_time';
   });
 
+  useEffect(() => {
+    if (filters.day === todayIso && !filters.weekStart && !filters.dateFrom && !filters.dateTo) {
+      setActivePreset('today');
+    } else if (
+      filters.year === currentYearStr &&
+      filters.month === currentMonthStr &&
+      !filters.day &&
+      !filters.weekIndex &&
+      !filters.dateFrom &&
+      !filters.dateTo
+    ) {
+      setActivePreset('this_month');
+    } else {
+      setActivePreset('all_time');
+    }
+  }, [filters.day, filters.year, filters.month, filters.weekIndex, filters.weekStart, filters.dateFrom, filters.dateTo, todayIso, currentYearStr, currentMonthStr]);
+
   const isToday = activePreset === 'today' && filters.day === todayIso;
 
   const isCurrentMonth =

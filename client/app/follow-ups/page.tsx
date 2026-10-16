@@ -1,10 +1,10 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import FollowUpWorkspace from '@/components/follow-ups/FollowUpWorkspace';
 import TaskScopeNav from '@/components/tasks/TaskScopeNav';
 import { useTaskContext } from '@/context/TaskContext';
-import { TaskFilters } from '@/types/task';
+import { TaskFilters, WorkStatus } from '@/types/task';
 
 export default function FollowUpsPage() {
   const { handleTaskCreated, refreshKey, availableYears } = useTaskContext();
@@ -19,6 +19,44 @@ export default function FollowUpsPage() {
     sort: 'taskId',
     order: 'desc',
   });
+
+  // Synchronize incoming query parameters when navigated from dashboard buttons
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.toString()) return;
+
+    setLocalFilters((prev) => {
+      const updated: TaskFilters = { ...prev, page: 1, hasFollowUps: 'true' };
+
+      if (params.get('allTime') === 'true') {
+        updated.year = '';
+        updated.month = '';
+        updated.day = '';
+        updated.weekIndex = undefined;
+        updated.weekStart = undefined;
+        updated.dateFrom = '';
+        updated.dateTo = '';
+      } else {
+        if (params.has('year')) updated.year = params.get('year') || '';
+        if (params.has('month')) updated.month = params.get('month') || '';
+        if (params.has('day')) updated.day = params.get('day') || '';
+        if (params.has('weekIndex')) updated.weekIndex = Number(params.get('weekIndex'));
+        if (params.has('weekStart')) updated.weekStart = params.get('weekStart') || '';
+        if (params.has('dateFrom')) updated.dateFrom = params.get('dateFrom') || '';
+        if (params.has('dateTo')) updated.dateTo = params.get('dateTo') || '';
+      }
+
+      if (params.has('status')) updated.status = (params.get('status') as WorkStatus) || '';
+      if (params.has('priority')) updated.priority = (params.get('priority') as TaskFilters['priority']) || '';
+      if (params.has('overdueOnly')) updated.overdueOnly = params.get('overdueOnly') || '';
+      if (params.has('escalatedOnly')) updated.escalatedOnly = params.get('escalatedOnly') || '';
+      if (params.has('search')) updated.search = params.get('search') || '';
+      if (params.has('givenBy')) updated.givenBy = params.get('givenBy') || '';
+
+      return updated;
+    });
+  }, []);
 
   const handleFiltersChange = useCallback((partial: Partial<TaskFilters>) => {
     setLocalFilters((prev) => ({ ...prev, ...partial }));
