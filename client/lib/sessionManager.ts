@@ -22,6 +22,7 @@ export const STORAGE_KEYS = {
 
 export const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
 export const DEFAULT_PASSWORD = 'Sun123@';
+export const HARD_TIMEOUT_MS = 3600000; // 1 hour
 const BROADCAST_CHANNEL_NAME = 'tasksmanager_session_sync';
 
 // Returns configured password and inactivity timeout duration
@@ -49,38 +50,41 @@ export function getSessionStatus(isPublicRoute: boolean = false): SessionStatus 
     return { isLocked: false, isTimedOut: false, remainingMs: Infinity, reason: null };
   }
 
+  const rawLastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
+  const rawExpiresAt = localStorage.getItem(STORAGE_KEYS.SESSION_EXPIRES);
   const lockedFlag = localStorage.getItem(STORAGE_KEYS.APP_LOCKED);
   const rawReason = localStorage.getItem(STORAGE_KEYS.LOCK_REASON);
   const reason = rawReason === 'timeout' || rawReason === 'manual' ? rawReason : null;
 
-  if (lockedFlag === 'true') {
-    return {
-      isLocked: true,
-      isTimedOut: reason === 'timeout',
-      remainingMs: 0,
-      reason: reason || 'manual',
-    };
-  }
-
-  const { timeoutMs } = getSecurityConfig();
-  const rawLastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
-  const rawExpiresAt = localStorage.getItem(STORAGE_KEYS.SESSION_EXPIRES);
-
-  // If no activity has ever been recorded, treat as locked initial state
+  // Uninitialized session without prior activity defaults to locked workspace
   if (!rawLastActive && !rawExpiresAt) {
     return { isLocked: true, isTimedOut: false, remainingMs: 0, reason: 'manual' };
   }
 
   const now = Date.now();
   const lastActive = rawLastActive ? parseInt(rawLastActive, 10) : NaN;
+  const elapsedSinceActive = !isNaN(lastActive) ? now - lastActive : Infinity;
+  const isOverOneHour = elapsedSinceActive >= HARD_TIMEOUT_MS;
 
-  // Protect against backward clock tampering: if system time jumped back by > 1 minute
+  // Guard against backward system clock skew
   if (!isNaN(lastActive) && now < lastActive - 60000) {
-    lockSession('timeout');
-    return { isLocked: true, isTimedOut: true, remainingMs: 0, reason: 'timeout' };
+    lockSession('manual');
+    return { isLocked: true, isTimedOut: false, remainingMs: 0, reason: 'manual' };
   }
 
-  // Derive target expiration deadline
+  if (lockedFlag === 'true') {
+    const isTimeoutModal = reason === 'timeout' && !isOverOneHour;
+    const remainingToHard = Math.max(0, HARD_TIMEOUT_MS - elapsedSinceActive);
+    return {
+      isLocked: true,
+      isTimedOut: isTimeoutModal,
+      remainingMs: isTimeoutModal ? remainingToHard : 0,
+      reason: reason || 'manual',
+    };
+  }
+
+  const { timeoutMs } = getSecurityConfig();
+
   let expiresAt = rawExpiresAt ? parseInt(rawExpiresAt, 10) : NaN;
   if (isNaN(expiresAt)) {
     expiresAt = (!isNaN(lastActive) ? lastActive : now) + timeoutMs;
@@ -89,16 +93,25 @@ export function getSessionStatus(isPublicRoute: boolean = false): SessionStatus 
     } catch {}
   }
 
-  // Session has reached or exceeded its deadline
-  if (now >= expiresAt) {
+  if (now >= expiresAt || isOverOneHour) {
     lockSession('timeout');
-    return { isLocked: true, isTimedOut: true, remainingMs: 0, reason: 'timeout' };
+    const isTimeoutModal = !isOverOneHour;
+    const remainingToHard = Math.max(0, HARD_TIMEOUT_MS - elapsedSinceActive);
+    return {
+      isLocked: true,
+      isTimedOut: isTimeoutModal,
+      remainingMs: isTimeoutModal ? remainingToHard : 0,
+      reason: 'timeout',
+    };
   }
+
+  const remainingToInactivity = Math.max(0, expiresAt - now);
+  const remainingToHard = Math.max(0, HARD_TIMEOUT_MS - elapsedSinceActive);
 
   return {
     isLocked: false,
     isTimedOut: false,
-    remainingMs: Math.max(0, expiresAt - now),
+    remainingMs: Math.min(remainingToInactivity, remainingToHard),
     reason: null,
   };
 }
