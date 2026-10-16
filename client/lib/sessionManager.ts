@@ -16,13 +16,11 @@ export interface TimeoutOption {
 }
 
 export const TIMEOUT_OPTIONS: TimeoutOption[] = [
-  { value: 300000, label: '5 minutes (Default)' },
+  { value: 300000, label: '5 minutes' },
   { value: 600000, label: '10 minutes' },
-  { value: 900000, label: '15 minutes' },
+  { value: 900000, label: '15 minutes (Default)' },
   { value: 1800000, label: '30 minutes' },
   { value: 3600000, label: '1 hour' },
-  { value: 7200000, label: '2 hours' },
-  { value: 86400000, label: '1 day' },
   { value: 0, label: 'Never' },
 ];
 
@@ -37,7 +35,7 @@ export const STORAGE_KEYS = {
   VISIT_ACTIVE: 'tasksmanager_visit_active',
 } as const;
 
-export const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
+export const DEFAULT_TIMEOUT_MS = 900000; // 15 minutes
 export const DEFAULT_PASSWORD = 'Sun123@';
 const BROADCAST_CHANNEL_NAME = 'tasksmanager_session_sync';
 

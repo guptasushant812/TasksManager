@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
 import { apiFetch } from '@/lib/api';
-import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration } from '@/lib/sessionManager';
+import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration, DEFAULT_TIMEOUT_MS } from '@/lib/sessionManager';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import { RecipientItem } from '@/types/escalation';
 import { 
@@ -403,7 +403,7 @@ export default function SettingsPage() {
         body: { newPassword: trimmed },
       });
 
-      const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sun123@","timeoutMs":300000}');
+      const current = JSON.parse(localStorage.getItem('securityConfig') || `{"password":"Sun123@","timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
       current.password = trimmed;
       localStorage.setItem('securityConfig', JSON.stringify(current));
       setTimeout(() => {
@@ -1816,7 +1816,7 @@ export default function SettingsPage() {
                         style={{ width: 'min(200px, 100%)', fontSize: 14, padding: '8px 12px' }}
                         onChange={(e) => {
                           const val = parseInt(e.target.value);
-                          const current = JSON.parse(localStorage.getItem('securityConfig') || '{"password":"Sun123@","timeoutMs":300000}');
+                          const current = JSON.parse(localStorage.getItem('securityConfig') || `{"password":"Sun123@","timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
                           current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
                           const lastActive = parseInt(localStorage.getItem('lastActiveTime') || Date.now().toString(), 10);
@@ -1834,8 +1834,8 @@ export default function SettingsPage() {
                           (() => {
                             try {
                               const conf = JSON.parse(localStorage.getItem('securityConfig') || '{}');
-                              return typeof conf.timeoutMs === 'number' ? conf.timeoutMs : 300000;
-                            } catch(e) { return 300000; }
+                              return typeof conf.timeoutMs === 'number' ? conf.timeoutMs : DEFAULT_TIMEOUT_MS;
+                            } catch(e) { return DEFAULT_TIMEOUT_MS; }
                           })()
                         }
                       >
