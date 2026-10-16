@@ -28,6 +28,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hardTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const checkSyncStateRef = useRef<() => void>(() => {});
   const lastThrottleRef = useRef<number>(0);
   const lastStorageWriteRef = useRef<number>(0);
 
@@ -54,9 +56,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       timeoutTimerRef.current = null;
     }
     saveCurrentReturnUrl();
-    setIsTimedOut(true);
-    setIsLocked(true);
     lockSession('timeout');
+    checkSyncStateRef.current();
   }, [saveCurrentReturnUrl]);
 
   const scheduleTimeout = useCallback((delayMs: number) => {
@@ -82,12 +83,32 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       saveCurrentReturnUrl();
       setIsLocked(true);
       setIsTimedOut(status.isTimedOut);
+
       if (timeoutTimerRef.current) {
         clearTimeout(timeoutTimerRef.current);
         timeoutTimerRef.current = null;
       }
+
+      // If locked under inactivity timeout, schedule the 1-hour hard boundary transition
+      if (status.isTimedOut && status.remainingMs > 0) {
+        if (hardTimeoutTimerRef.current) {
+          clearTimeout(hardTimeoutTimerRef.current);
+        }
+        hardTimeoutTimerRef.current = setTimeout(() => {
+          checkSyncStateRef.current();
+        }, status.remainingMs);
+      } else if (hardTimeoutTimerRef.current) {
+        clearTimeout(hardTimeoutTimerRef.current);
+        hardTimeoutTimerRef.current = null;
+      }
+
       setLoading(false);
       return;
+    }
+
+    if (hardTimeoutTimerRef.current) {
+      clearTimeout(hardTimeoutTimerRef.current);
+      hardTimeoutTimerRef.current = null;
     }
 
     setIsLocked(false);
@@ -95,6 +116,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     setLoading(false);
     scheduleTimeout(status.remainingMs);
   }, [isPublic, saveCurrentReturnUrl, scheduleTimeout]);
+
+  checkSyncStateRef.current = checkSyncState;
 
   const handleUserActivity = useCallback(() => {
     if (isLocked || isTimedOut) return;
@@ -115,14 +138,15 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   // Periodic heartbeat safeguard against timer suspension in background tabs
   useEffect(() => {
-    if (isLocked || isPublic) return;
+    if (isPublic) return;
+    if (isLocked && !isTimedOut) return;
 
     const interval = setInterval(() => {
       checkSyncState();
-    }, 20000);
+    }, 15000);
 
     return () => clearInterval(interval);
-  }, [isLocked, isPublic, checkSyncState]);
+  }, [isLocked, isTimedOut, isPublic, checkSyncState]);
 
   useEffect(() => {
     if (isPublic) {
@@ -177,6 +201,9 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       if (timeoutTimerRef.current) {
         clearTimeout(timeoutTimerRef.current);
       }
+      if (hardTimeoutTimerRef.current) {
+        clearTimeout(hardTimeoutTimerRef.current);
+      }
       activityEvents.forEach((ev) => {
         window.removeEventListener(ev, handleUserActivity);
       });
@@ -204,6 +231,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
     setTimeout(() => {
       unlockSession(updatedPassword);
+
+      if (hardTimeoutTimerRef.current) {
+        clearTimeout(hardTimeoutTimerRef.current);
+        hardTimeoutTimerRef.current = null;
+      }
 
       setIsLocked(false);
       setIsTimedOut(false);

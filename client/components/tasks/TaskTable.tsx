@@ -1045,7 +1045,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                 </p>
                 <button
                   type="button"
-                  onClick={() => lockSession('timeout')}
+                  onClick={() => lockSession('manual')}
                   style={{
                     marginTop: 14,
                     padding: '7px 16px',
