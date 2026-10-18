@@ -426,22 +426,6 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
     return () => clearInterval(interval);
   }, [filters, refreshKey, fetchTasks]);
 
-  const commitSearch = useCallback((value: string) => {
-    clearTimeout(searchDebounce.current);
-    setSearchInput(value);
-    if (value !== (filters.search || '')) {
-      onFiltersChange({ search: value, page: 1 });
-    }
-  }, [filters.search, onFiltersChange]);
-
-  const handleClearSearch = useCallback(() => {
-    clearTimeout(searchDebounce.current);
-    setSearchInput('');
-    if (filters.search) {
-      onFiltersChange({ search: '', page: 1 });
-    }
-  }, [filters.search, onFiltersChange]);
-
   // Keep searchInput in sync when reset or changed by parent filters
   useEffect(() => {
     setSearchInput(filters.search || '');
@@ -454,7 +438,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
       if (searchInput !== (filters.search || '')) {
         onFiltersChange({ search: searchInput, page: 1 });
       }
-    }, 260);
+    }, 350);
     return () => clearTimeout(searchDebounce.current);
   }, [searchInput, filters.search, onFiltersChange]);
 
@@ -532,12 +516,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
         }}
       >
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', flex: 1, minWidth: 260 }}>
-          <SearchBar
-            value={searchInput}
-            onChange={setSearchInput}
-            onSubmit={commitSearch}
-            onClear={handleClearSearch}
-          />
+          <SearchBar value={searchInput} onChange={setSearchInput} />
 
           <div ref={filterRef} style={{ position: 'relative' }}>
             <button
