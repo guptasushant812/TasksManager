@@ -8917,6 +8917,43 @@ html:not(.dark) .saas-task-summary {
   }
 }
 
+.ai-sync-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-sync-chip.synced {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: var(--completed, #10b981);
+}
+
+.ai-sync-chip.saving {
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: var(--text-muted, #94a3b8);
+}
+
+.ai-sync-chip.local {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--pending, #f59e0b);
+}
+
+@media (max-width: 560px) {
+  .ai-modal-bottom-bar {
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 14px)) !important;
+  }
+}
+
 /* Responsive layout for tasks overview toolbar */
 .task-toolbar-container {
   display: flex;
