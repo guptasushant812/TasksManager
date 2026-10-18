@@ -4,6 +4,7 @@ import {
   getAvailableAiProviders, 
   AiTaskRequestOptions 
 } from '../services/aiService';
+import AiDraftState from '../models/AiDraftState';
 
 const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
@@ -276,3 +277,70 @@ Return ONLY a single valid JSON object representing the improved task (no array,
     next(err);
   }
 }
+
+export async function getAiDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const draft = await AiDraftState.findOne({ userId }).lean();
+    if (!draft) {
+      return res.json({ draft: null });
+    }
+    return res.json({
+      draft: {
+        rawText: draft.rawText,
+        step: draft.step,
+        drafts: draft.drafts,
+        updatedAt: draft.updatedAt,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function saveAiDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const { rawText = '', step = 'input', drafts = [] } = req.body;
+
+    if (!rawText.trim() && (!Array.isArray(drafts) || drafts.length === 0)) {
+      await AiDraftState.deleteOne({ userId });
+      return res.json({ success: true, draft: null });
+    }
+
+    const updated = await AiDraftState.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          rawText,
+          step: step === 'preview' ? 'preview' : 'input',
+          drafts: Array.isArray(drafts) ? drafts : [],
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    return res.json({
+      success: true,
+      draft: {
+        rawText: updated.rawText,
+        step: updated.step,
+        drafts: updated.drafts,
+        updatedAt: updated.updatedAt,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAiDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    await AiDraftState.deleteOne({ userId });
+    return res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
