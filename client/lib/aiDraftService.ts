@@ -8,10 +8,15 @@ export interface AiDraftServerState {
   updatedAt?: string;
 }
 
-export async function fetchAiDraftState(): Promise<AiDraftServerState | null> {
+export interface AiDraftResponse {
+  draft: AiDraftServerState | null;
+  clearedAt?: string | null;
+}
+
+export async function fetchAiDraftState(): Promise<AiDraftResponse | null> {
   try {
-    const res = await apiFetch<{ draft: AiDraftServerState | null }>('/api/ai-draft/state');
-    return res.draft;
+    const res = await apiFetch<AiDraftResponse>('/api/ai-draft/state');
+    return res;
   } catch (err) {
     console.warn('Could not fetch AI draft state from server:', err);
     return null;
