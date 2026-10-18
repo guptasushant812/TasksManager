@@ -67,18 +67,41 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       setDraftCount(null);
     }
 
-    fetchAiDraftState().then((serverDraft) => {
-      if (serverDraft) {
+    fetchAiDraftState().then((res) => {
+      const serverDraft = res?.draft;
+      const clearedAt = res?.clearedAt ? new Date(res.clearedAt).getTime() : 0;
+      let localUpdatedAt = 0;
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localUpdatedAt = parsed.updatedAt || 0;
+        }
+      } catch {}
+
+      if (clearedAt && clearedAt >= localUpdatedAt) {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {}
+        setHasAiDraft(false);
+        setDraftCount(null);
+        return;
+      }
+
+      if (serverDraft && (serverDraft.rawText?.trim() || (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0))) {
         if (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0) {
           setHasAiDraft(true);
           setDraftCount(serverDraft.drafts.length);
-        } else if (typeof serverDraft.rawText === 'string' && serverDraft.rawText.trim().length > 0) {
+        } else {
           setHasAiDraft(true);
           setDraftCount(null);
-        } else {
-          setHasAiDraft(false);
-          setDraftCount(null);
         }
+      } else {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {}
+        setHasAiDraft(false);
+        setDraftCount(null);
       }
     });
   }, [mode]);

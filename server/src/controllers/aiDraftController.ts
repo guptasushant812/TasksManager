@@ -283,8 +283,17 @@ export async function getAiDraftState(req: Request, res: Response, next: NextFun
     const userId = (req.headers['x-user-id'] as string) || 'default';
     const draft = await AiDraftState.findOne({ userId }).lean();
     if (!draft) {
-      return res.json({ draft: null });
+      return res.json({ draft: null, clearedAt: null });
     }
+
+    const hasData = Boolean(draft.rawText?.trim() || (Array.isArray(draft.drafts) && draft.drafts.length > 0));
+    if (!hasData) {
+      return res.json({
+        draft: null,
+        clearedAt: draft.clearedAt || draft.updatedAt || null,
+      });
+    }
+
     return res.json({
       draft: {
         rawText: draft.rawText,
@@ -292,6 +301,7 @@ export async function getAiDraftState(req: Request, res: Response, next: NextFun
         drafts: draft.drafts,
         updatedAt: draft.updatedAt,
       },
+      clearedAt: draft.clearedAt || null,
     });
   } catch (err) {
     next(err);
@@ -302,10 +312,23 @@ export async function saveAiDraftState(req: Request, res: Response, next: NextFu
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default';
     const { rawText = '', step = 'input', drafts = [] } = req.body;
+    const hasData = Boolean(rawText.trim() || (Array.isArray(drafts) && drafts.length > 0));
 
-    if (!rawText.trim() && (!Array.isArray(drafts) || drafts.length === 0)) {
-      await AiDraftState.deleteOne({ userId });
-      return res.json({ success: true, draft: null });
+    if (!hasData) {
+      const now = new Date();
+      const updated = await AiDraftState.findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            rawText: '',
+            step: 'input',
+            drafts: [],
+            clearedAt: now,
+          },
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+      return res.json({ success: true, draft: null, clearedAt: updated.clearedAt });
     }
 
     const updated = await AiDraftState.findOneAndUpdate(
@@ -315,6 +338,7 @@ export async function saveAiDraftState(req: Request, res: Response, next: NextFu
           rawText,
           step: step === 'preview' ? 'preview' : 'input',
           drafts: Array.isArray(drafts) ? drafts : [],
+          clearedAt: null,
         },
       },
       { new: true, upsert: true, setDefaultsOnInsert: true }
@@ -328,6 +352,7 @@ export async function saveAiDraftState(req: Request, res: Response, next: NextFu
         drafts: updated.drafts,
         updatedAt: updated.updatedAt,
       },
+      clearedAt: null,
     });
   } catch (err) {
     next(err);
@@ -337,10 +362,23 @@ export async function saveAiDraftState(req: Request, res: Response, next: NextFu
 export async function deleteAiDraftState(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default';
-    await AiDraftState.deleteOne({ userId });
-    return res.json({ success: true });
+    const now = new Date();
+    await AiDraftState.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          rawText: '',
+          step: 'input',
+          drafts: [],
+          clearedAt: now,
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    return res.json({ success: true, clearedAt: now });
   } catch (err) {
     next(err);
   }
 }
+
 

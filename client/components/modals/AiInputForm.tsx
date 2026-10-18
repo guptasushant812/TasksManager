@@ -67,8 +67,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'synced' | 'local_only'>('idle');
   const lastSavedPayloadRef = useRef<string>('');
+  const isDeletingRef = useRef<boolean>(false);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Hydrate draft: read local storage immediately, then fetch latest database draft
+  // Hydrate draft: read local storage for immediate UI, then reconcile with database
   useEffect(() => {
     let localUpdatedAt = 0;
     try {
@@ -97,8 +99,25 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
 
     fetchAiDraftState()
-      .then((serverDraft) => {
-        if (serverDraft) {
+      .then((res) => {
+        if (isDeletingRef.current) return;
+        const serverDraft = res?.draft;
+        const clearedAt = res?.clearedAt ? new Date(res.clearedAt).getTime() : 0;
+
+        // Discarded or saved on another device after local draft was modified
+        if (clearedAt && clearedAt >= localUpdatedAt) {
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch {}
+          setRawText('');
+          setDrafts([]);
+          setStep('input');
+          lastSavedPayloadRef.current = '';
+          setSyncStatus('idle');
+          return;
+        }
+
+        if (serverDraft && (serverDraft.rawText?.trim() || (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0))) {
           const serverUpdatedAt = serverDraft.updatedAt ? new Date(serverDraft.updatedAt).getTime() : 0;
           if (serverUpdatedAt >= localUpdatedAt || localUpdatedAt === 0) {
             const newText = typeof serverDraft.rawText === 'string' ? serverDraft.rawText : '';
@@ -125,6 +144,16 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             } catch {}
             setSyncStatus('synced');
           }
+        } else {
+          // Database has no active draft — clear local storage and state
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch {}
+          setRawText('');
+          setDrafts([]);
+          setStep('input');
+          lastSavedPayloadRef.current = '';
+          setSyncStatus('idle');
         }
       })
       .finally(() => {
@@ -134,7 +163,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
   // Persist draft to local storage immediately and debounce sync to MongoDB
   useEffect(() => {
-    if (!isHydrated) return;
+    if (!isHydrated || isDeletingRef.current) return;
 
     const hasData = Boolean(rawText.trim() || drafts.length > 0);
     const now = Date.now();
@@ -169,7 +198,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
 
     setSyncStatus('saving');
-    const timer = setTimeout(async () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(async () => {
+      if (isDeletingRef.current) return;
       const saved = await saveAiDraftState({ step, rawText, drafts });
       if (saved) {
         lastSavedPayloadRef.current = currentPayload;
@@ -179,7 +212,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
       }
     }, 700);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
   }, [step, rawText, drafts, isHydrated]);
 
   async function handleGenerate() {
@@ -224,6 +261,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   async function handleSave() {
     if (drafts.length === 0 || !validateDrafts()) return;
     setSaving(true);
+    isDeletingRef.current = true;
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
     try {
       for (const d of drafts) {
         await createTask({
@@ -238,11 +280,17 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           userId: null,
         });
       }
-      localStorage.removeItem(STORAGE_KEY);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
       lastSavedPayloadRef.current = '';
+      setRawText('');
+      setDrafts([]);
+      setStep('input');
       await deleteAiDraftState();
       onSaved();
     } catch (err) {
+      isDeletingRef.current = false;
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to save tasks' });
     } finally {
       setSaving(false);
@@ -287,7 +335,14 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   }
 
   async function handleDiscard() {
-    localStorage.removeItem(STORAGE_KEY);
+    isDeletingRef.current = true;
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
     lastSavedPayloadRef.current = '';
     setRawText('');
     setDrafts([]);
@@ -298,6 +353,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     setRegenInstruction('');
     setSyncStatus('idle');
     await deleteAiDraftState();
+    setTimeout(() => {
+      isDeletingRef.current = false;
+    }, 300);
   }
 
   async function handleConfirmRegen(index: number, keyOverride?: string, providerOverride?: string) {
