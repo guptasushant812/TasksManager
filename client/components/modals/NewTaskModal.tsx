@@ -5,6 +5,7 @@ import { TaskFilters } from '@/types/task';
 import ManualTaskForm from './ManualTaskForm';
 import AiInputForm from './AiInputForm';
 import { PenLine, Sparkles, X, ArrowLeft } from 'lucide-react';
+import { fetchAiDraftState } from '@/lib/aiDraftService';
 
 const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
 
@@ -65,6 +66,21 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       setHasAiDraft(false);
       setDraftCount(null);
     }
+
+    fetchAiDraftState().then((serverDraft) => {
+      if (serverDraft) {
+        if (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0) {
+          setHasAiDraft(true);
+          setDraftCount(serverDraft.drafts.length);
+        } else if (typeof serverDraft.rawText === 'string' && serverDraft.rawText.trim().length > 0) {
+          setHasAiDraft(true);
+          setDraftCount(null);
+        } else {
+          setHasAiDraft(false);
+          setDraftCount(null);
+        }
+      }
+    });
   }, [mode]);
 
   if (!mounted || typeof document === 'undefined') return null;

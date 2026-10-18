@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import { useTasks } from '@/hooks/useTasks';
 import { TaskDraft, Priority, WorkStatus } from '@/types/task';
@@ -7,9 +7,10 @@ import TaskFormFields from './TaskFormFields';
 import AiQuotaModal from './AiQuotaModal';
 import { 
   Sparkles, AlertCircle, CheckCircle2, Trash2, ArrowLeft, 
-  Save, RefreshCw, X, AlertTriangle, Plus, Zap, ChevronDown, Check
+  Save, RefreshCw, X, AlertTriangle, Plus, Zap, ChevronDown, Check, CloudCheck
 } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
+import { fetchAiDraftState, saveAiDraftState, deleteAiDraftState } from '@/lib/aiDraftService';
 
 const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
 
@@ -64,48 +65,121 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
   const { createTask } = useTasks();
 
-  // Restore draft from local storage on mount
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'synced' | 'local_only'>('idle');
+  const lastSavedPayloadRef = useRef<string>('');
+
+  // Hydrate draft: read local storage immediately, then fetch latest database draft
   useEffect(() => {
+    let localUpdatedAt = 0;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === 'object') {
+          if (typeof parsed.updatedAt === 'number') {
+            localUpdatedAt = parsed.updatedAt;
+          }
           if (typeof parsed.rawText === 'string') {
             setRawText(parsed.rawText);
           }
           if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
-            setDrafts(parsed.drafts.map((d: any) => ({ ...d, id: d.id || generateId() })));
+            const mapped = parsed.drafts.map((d: any) => ({ ...d, id: d.id || generateId() }));
+            setDrafts(mapped);
             setStep('preview');
           } else if (parsed.step === 'input' || parsed.step === 'preview') {
             setStep(parsed.step);
           }
+          setSyncStatus('synced');
         }
       }
     } catch (e) {
       console.error('Failed to load AI draft from localStorage:', e);
-    } finally {
-      setIsHydrated(true);
     }
+
+    fetchAiDraftState()
+      .then((serverDraft) => {
+        if (serverDraft) {
+          const serverUpdatedAt = serverDraft.updatedAt ? new Date(serverDraft.updatedAt).getTime() : 0;
+          if (serverUpdatedAt >= localUpdatedAt || localUpdatedAt === 0) {
+            const newText = typeof serverDraft.rawText === 'string' ? serverDraft.rawText : '';
+            const newDrafts = Array.isArray(serverDraft.drafts)
+              ? serverDraft.drafts.map((d: any) => ({ ...d, id: d.id || generateId() }))
+              : [];
+            const newStep = serverDraft.step || (newDrafts.length > 0 ? 'preview' : 'input');
+
+            setRawText(newText);
+            setDrafts(newDrafts);
+            setStep(newStep);
+            lastSavedPayloadRef.current = JSON.stringify({ step: newStep, rawText: newText, drafts: newDrafts });
+
+            try {
+              localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                  step: newStep,
+                  rawText: newText,
+                  drafts: newDrafts,
+                  updatedAt: serverUpdatedAt || Date.now(),
+                })
+              );
+            } catch {}
+            setSyncStatus('synced');
+          }
+        }
+      })
+      .finally(() => {
+        setIsHydrated(true);
+      });
   }, []);
 
-  // Persist draft changes to local storage
+  // Persist draft to local storage immediately and debounce sync to MongoDB
   useEffect(() => {
     if (!isHydrated) return;
-    try {
-      if (!rawText.trim() && drafts.length === 0) {
+
+    const hasData = Boolean(rawText.trim() || drafts.length > 0);
+    const now = Date.now();
+
+    if (!hasData) {
+      try {
         localStorage.removeItem(STORAGE_KEY);
-      } else {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      } catch {}
+      deleteAiDraftState();
+      lastSavedPayloadRef.current = '';
+      setSyncStatus('idle');
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
           step,
           rawText,
           drafts,
-          updatedAt: Date.now()
-        }));
-      }
+          updatedAt: now,
+        })
+      );
     } catch (e) {
       console.error('Failed to persist AI draft to localStorage:', e);
     }
+
+    const currentPayload = JSON.stringify({ step, rawText, drafts });
+    if (currentPayload === lastSavedPayloadRef.current) {
+      return;
+    }
+
+    setSyncStatus('saving');
+    const timer = setTimeout(async () => {
+      const saved = await saveAiDraftState({ step, rawText, drafts });
+      if (saved) {
+        lastSavedPayloadRef.current = currentPayload;
+        setSyncStatus('synced');
+      } else {
+        setSyncStatus('local_only');
+      }
+    }, 700);
+
+    return () => clearTimeout(timer);
   }, [step, rawText, drafts, isHydrated]);
 
   async function handleGenerate() {
@@ -164,8 +238,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           userId: null,
         });
       }
-      // Clear saved draft once created
       localStorage.removeItem(STORAGE_KEY);
+      lastSavedPayloadRef.current = '';
+      await deleteAiDraftState();
       onSaved();
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to save tasks' });
@@ -211,8 +286,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     ]);
   }
 
-  function handleDiscard() {
+  async function handleDiscard() {
     localStorage.removeItem(STORAGE_KEY);
+    lastSavedPayloadRef.current = '';
     setRawText('');
     setDrafts([]);
     setStep('input');
@@ -220,6 +296,8 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     setShowDiscardConfirm(false);
     setActiveRegenIndex(null);
     setRegenInstruction('');
+    setSyncStatus('idle');
+    await deleteAiDraftState();
   }
 
   async function handleConfirmRegen(index: number, keyOverride?: string, providerOverride?: string) {
@@ -429,9 +507,35 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               <strong style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                 <Sparkles style={{ width: 14, height: 14, flexShrink: 0 }} /> AI Task Structuring
               </strong>
-              {rawText.trim().length > 0 && (
-                <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                  <CheckCircle2 style={{ width: 12, height: 12, flexShrink: 0 }} /> Draft saved locally
+              {(rawText.trim().length > 0 || drafts.length > 0) && (
+                <span 
+                  style={{ 
+                    fontSize: 11, 
+                    color: syncStatus === 'saving' ? 'var(--text-muted)' : syncStatus === 'synced' ? 'var(--completed)' : 'var(--text-secondary)', 
+                    fontWeight: 600, 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: 5, 
+                    whiteSpace: 'nowrap' 
+                  }}
+                  title={syncStatus === 'synced' ? 'Draft synced across devices' : undefined}
+                >
+                  {syncStatus === 'saving' ? (
+                    <>
+                      <RefreshCw style={{ width: 12, height: 12, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                      Syncing to cloud…
+                    </>
+                  ) : syncStatus === 'synced' ? (
+                    <>
+                      <CloudCheck style={{ width: 13, height: 13, flexShrink: 0 }} />
+                      Synced across devices
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 style={{ width: 12, height: 12, flexShrink: 0 }} />
+                      Draft saved locally
+                    </>
+                  )}
                 </span>
               )}
             </div>
@@ -562,7 +666,19 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
       }}>
         <CheckCircle2 style={{ width: 24, height: 24, color: 'var(--completed)', flexShrink: 0 }} />
         <div>
-          <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
+            {syncStatus === 'saving' && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <RefreshCw style={{ width: 11, height: 11, animation: 'spin 1s linear infinite' }} /> Syncing to cloud…
+              </span>
+            )}
+            {syncStatus === 'synced' && (
+              <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <CloudCheck style={{ width: 12, height: 12 }} /> Synced across devices
+              </span>
+            )}
+          </div>
           <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>
             Review or edit details before saving.
           </div>
