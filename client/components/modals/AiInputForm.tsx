@@ -567,30 +567,22 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               </strong>
               {(rawText.trim().length > 0 || drafts.length > 0) && (
                 <span 
-                  style={{ 
-                    fontSize: 11, 
-                    color: syncStatus === 'saving' ? 'var(--text-muted)' : syncStatus === 'synced' ? 'var(--completed)' : 'var(--text-secondary)', 
-                    fontWeight: 600, 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: 5, 
-                    whiteSpace: 'nowrap' 
-                  }}
+                  className={`ai-sync-chip ${syncStatus === 'saving' ? 'saving' : syncStatus === 'synced' ? 'synced' : 'local'}`}
                   title={syncStatus === 'synced' ? 'Draft synced across devices' : undefined}
                 >
                   {syncStatus === 'saving' ? (
                     <>
-                      <RefreshCw style={{ width: 12, height: 12, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                      <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
                       Syncing to cloud…
                     </>
                   ) : syncStatus === 'synced' ? (
                     <>
-                      <CloudCheck style={{ width: 13, height: 13, flexShrink: 0 }} />
+                      <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
                       Synced across devices
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 style={{ width: 12, height: 12, flexShrink: 0 }} />
+                      <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
                       Draft saved locally
                     </>
                   )}
@@ -727,13 +719,21 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
             {syncStatus === 'saving' && (
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <RefreshCw style={{ width: 11, height: 11, animation: 'spin 1s linear infinite' }} /> Syncing to cloud…
+              <span className="ai-sync-chip saving">
+                <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                Syncing to cloud…
               </span>
             )}
             {syncStatus === 'synced' && (
-              <span style={{ fontSize: 11, color: 'var(--completed)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <CloudCheck style={{ width: 12, height: 12 }} /> Synced across devices
+              <span className="ai-sync-chip synced">
+                <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
+                Synced across devices
+              </span>
+            )}
+            {syncStatus === 'local_only' && (
+              <span className="ai-sync-chip local">
+                <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
+                Draft saved locally
               </span>
             )}
           </div>
