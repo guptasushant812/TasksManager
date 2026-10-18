@@ -1,89 +1,40 @@
 'use client';
-import { useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
-  onSubmit?: (val: string) => void;
-  onClear?: () => void;
   placeholder?: string;
-  className?: string;
 }
 
 export default function SearchBar({
   value,
   onChange,
-  onSubmit,
-  onClear,
-  placeholder,
-  className = '',
+  placeholder = 'Search tasks by title, description, assigned by…',
 }: SearchBarProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (onSubmit) {
-        onSubmit(value);
-      }
-      // On mobile viewports, blur input to dismiss virtual keyboard and show results
-      if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-        inputRef.current?.blur();
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      handleClear();
-    }
-  };
-
-  const handleClear = () => {
-    if (onClear) {
-      onClear();
-    } else {
-      onChange('');
-    }
-    inputRef.current?.focus();
-  };
-
   return (
-    <div className={`task-search-wrapper ${value ? 'has-value' : ''} ${className}`}>
+    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
       <Search
-        className="task-search-icon"
-        strokeWidth={2.2}
-        aria-hidden="true"
-      />
-      <input
-        ref={inputRef}
-        id="task-search"
-        type="text"
-        className="input task-search-input"
-        placeholder={placeholder || 'Search tasks by title, assigned by…'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        enterKeyHint="search"
-        inputMode="search"
-        aria-label="Search tasks"
-        autoComplete="off"
-        spellCheck="false"
         style={{
-          paddingLeft: 42,
-          paddingRight: value ? 38 : 16,
+          position: 'absolute',
+          left: 12,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: 'var(--text-muted)',
+          width: 16,
+          height: 16,
+          pointerEvents: 'none',
         }}
       />
-      {value && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className="task-search-clear-btn"
-          aria-label="Clear search text"
-          title="Clear search"
-        >
-          <X style={{ width: 14, height: 14 }} strokeWidth={2.4} />
-        </button>
-      )}
+      <input
+        id="task-search"
+        type="text"
+        className="input"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ paddingLeft: 36 }}
+      />
     </div>
   );
 }
-
