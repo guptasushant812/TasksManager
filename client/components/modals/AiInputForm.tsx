@@ -12,8 +12,6 @@ import {
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 import { fetchAiDraftState, saveAiDraftState, deleteAiDraftState } from '@/lib/aiDraftService';
 
-const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
-
 function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -66,89 +64,38 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   const { createTask } = useTasks();
 
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'synced' | 'local_only'>('idle');
+  const [isRestoring, setIsRestoring] = useState<boolean>(true);
   const lastSavedPayloadRef = useRef<string>('');
   const isDeletingRef = useRef<boolean>(false);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Hydrate draft: read local storage for immediate UI, then reconcile with database
+  // Restore draft exclusively from MongoDB on mount
   useEffect(() => {
-    let localUpdatedAt = 0;
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          if (typeof parsed.updatedAt === 'number') {
-            localUpdatedAt = parsed.updatedAt;
-          }
-          if (typeof parsed.rawText === 'string') {
-            setRawText(parsed.rawText);
-          }
-          if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
-            const mapped = parsed.drafts.map((d: any) => ({ ...d, id: d.id || generateId() }));
-            setDrafts(mapped);
-            setStep('preview');
-          } else if (parsed.step === 'input' || parsed.step === 'preview') {
-            setStep(parsed.step);
-          }
-          setSyncStatus('synced');
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load AI draft from localStorage:', e);
-    }
+      localStorage.removeItem('tasksmanager_ai_draft_state_v1');
+    } catch {}
+
+    let isMounted = true;
+    setIsRestoring(true);
 
     fetchAiDraftState()
       .then((res) => {
-        if (isDeletingRef.current) return;
+        if (!isMounted || isDeletingRef.current) return;
         const serverDraft = res?.draft;
-        const clearedAt = res?.clearedAt ? new Date(res.clearedAt).getTime() : 0;
-
-        // Discarded or saved on another device after local draft was modified
-        if (clearedAt && clearedAt >= localUpdatedAt) {
-          try {
-            localStorage.removeItem(STORAGE_KEY);
-          } catch {}
-          setRawText('');
-          setDrafts([]);
-          setStep('input');
-          lastSavedPayloadRef.current = '';
-          setSyncStatus('idle');
-          return;
-        }
 
         if (serverDraft && (serverDraft.rawText?.trim() || (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0))) {
-          const serverUpdatedAt = serverDraft.updatedAt ? new Date(serverDraft.updatedAt).getTime() : 0;
-          if (serverUpdatedAt >= localUpdatedAt || localUpdatedAt === 0) {
-            const newText = typeof serverDraft.rawText === 'string' ? serverDraft.rawText : '';
-            const newDrafts = Array.isArray(serverDraft.drafts)
-              ? serverDraft.drafts.map((d: any) => ({ ...d, id: d.id || generateId() }))
-              : [];
-            const newStep = serverDraft.step || (newDrafts.length > 0 ? 'preview' : 'input');
+          const newText = typeof serverDraft.rawText === 'string' ? serverDraft.rawText : '';
+          const newDrafts = Array.isArray(serverDraft.drafts)
+            ? serverDraft.drafts.map((d: any) => ({ ...d, id: d.id || generateId() }))
+            : [];
+          const newStep = serverDraft.step || (newDrafts.length > 0 ? 'preview' : 'input');
 
-            setRawText(newText);
-            setDrafts(newDrafts);
-            setStep(newStep);
-            lastSavedPayloadRef.current = JSON.stringify({ step: newStep, rawText: newText, drafts: newDrafts });
-
-            try {
-              localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                  step: newStep,
-                  rawText: newText,
-                  drafts: newDrafts,
-                  updatedAt: serverUpdatedAt || Date.now(),
-                })
-              );
-            } catch {}
-            setSyncStatus('synced');
-          }
+          setRawText(newText);
+          setDrafts(newDrafts);
+          setStep(newStep);
+          lastSavedPayloadRef.current = JSON.stringify({ step: newStep, rawText: newText, drafts: newDrafts });
+          setSyncStatus('synced');
         } else {
-          // Database has no active draft — clear local storage and state
-          try {
-            localStorage.removeItem(STORAGE_KEY);
-          } catch {}
           setRawText('');
           setDrafts([]);
           setStep('input');
@@ -156,40 +103,32 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           setSyncStatus('idle');
         }
       })
+      .catch((e) => {
+        console.error('Failed to load draft from MongoDB:', e);
+      })
       .finally(() => {
-        setIsHydrated(true);
+        if (isMounted) {
+          setIsRestoring(false);
+          setIsHydrated(true);
+        }
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Persist draft to local storage immediately and debounce sync to MongoDB
+  // Debounce sync draft changes directly to MongoDB
   useEffect(() => {
-    if (!isHydrated || isDeletingRef.current) return;
+    if (!isHydrated || isRestoring || isDeletingRef.current) return;
 
     const hasData = Boolean(rawText.trim() || drafts.length > 0);
-    const now = Date.now();
 
     if (!hasData) {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {}
       deleteAiDraftState();
       lastSavedPayloadRef.current = '';
       setSyncStatus('idle');
       return;
-    }
-
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          step,
-          rawText,
-          drafts,
-          updatedAt: now,
-        })
-      );
-    } catch (e) {
-      console.error('Failed to persist AI draft to localStorage:', e);
     }
 
     const currentPayload = JSON.stringify({ step, rawText, drafts });
@@ -217,7 +156,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
         clearTimeout(saveTimerRef.current);
       }
     };
-  }, [step, rawText, drafts, isHydrated]);
+  }, [step, rawText, drafts, isHydrated, isRestoring]);
 
   async function handleGenerate() {
     if (!rawText.trim()) {
@@ -280,9 +219,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           userId: null,
         });
       }
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {}
       lastSavedPayloadRef.current = '';
       setRawText('');
       setDrafts([]);
@@ -340,9 +276,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = null;
     }
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
     lastSavedPayloadRef.current = '';
     setRawText('');
     setDrafts([]);
@@ -565,7 +498,12 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               <strong style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                 <Sparkles style={{ width: 14, height: 14, flexShrink: 0 }} /> AI Task Structuring
               </strong>
-              {(rawText.trim().length > 0 || drafts.length > 0) && (
+              {isRestoring ? (
+                <span className="ai-sync-chip saving">
+                  <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                  Checking cloud draft…
+                </span>
+              ) : (rawText.trim().length > 0 || drafts.length > 0) ? (
                 <span 
                   className={`ai-sync-chip ${syncStatus === 'saving' ? 'saving' : syncStatus === 'synced' ? 'synced' : 'local'}`}
                   title={syncStatus === 'synced' ? 'Draft synced across devices' : undefined}
@@ -587,7 +525,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                     </>
                   )}
                 </span>
-              )}
+              ) : null}
             </div>
             Describe tasks in plain English, Marathi, or Hinglish. AI will organize the fields for you.
           </div>
@@ -595,7 +533,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           <div style={{ marginBottom: 4, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 6, flexShrink: 0 }}>
               <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
-              {rawText.trim().length > 0 && (
+              {!isRestoring && rawText.trim().length > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowDiscardConfirm(true)}
@@ -614,18 +552,28 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
             <AutoResizeTextarea
               id="ai-raw-input"
-              placeholder={`Examples (English, Marathi, or Hinglish):
+              placeholder={
+                isRestoring
+                  ? 'Checking and restoring draft from cloud...'
+                  : `Examples (English, Marathi, or Hinglish):
 
 1. HOD sir ni sangitla exam timetable tayar karaycha aahe. Subtasks: a) batch count b) room allocation. Aaj submit kela.
 2. Follow up with IT floor router repair sathi. Pending aahe karan technician udya yenar.
-3. Attach 2 notices to Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026.`}
-              value={aiLoading ? 'Please wait, structuring your tasks...' : rawText}
+3. Attach 2 notices to Department Communication ISO File — given by Sachin Oak sir, date 10-07-2026.`
+              }
+              value={
+                isRestoring
+                  ? ''
+                  : aiLoading
+                  ? 'Please wait, structuring your tasks...'
+                  : rawText
+              }
               onChange={(e) => setRawText(e.target.value)}
-              disabled={aiLoading}
+              disabled={aiLoading || isRestoring}
               minHeight={240}
               maxHeight={260}
               allowManualResize={true}
-              style={{ lineHeight: 1.6, opacity: aiLoading ? 0.6 : 1 }}
+              style={{ lineHeight: 1.6, opacity: aiLoading || isRestoring ? 0.6 : 1 }}
             />
             {errors.rawText && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 6, display: 'block', flexShrink: 0 }}>{errors.rawText}</span>}
             {aiError && (
@@ -660,7 +608,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             <button 
               className="btn btn-primary" 
               onClick={handleGenerate} 
-              disabled={aiLoading} 
+              disabled={aiLoading || isRestoring} 
               style={{ 
                 background: 'var(--accent, #00ff66)',
                 color: '#000000',
