@@ -7,8 +7,6 @@ import AiInputForm from './AiInputForm';
 import { PenLine, Sparkles, X, ArrowLeft } from 'lucide-react';
 import { fetchAiDraftState } from '@/lib/aiDraftService';
 
-const STORAGE_KEY = 'tasksmanager_ai_draft_state_v1';
-
 interface NewTaskModalProps {
   defaultFilters: TaskFilters;
   onClose: () => void;
@@ -43,51 +41,11 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed) {
-          if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
-            setHasAiDraft(true);
-            setDraftCount(parsed.drafts.length);
-          } else if (typeof parsed.rawText === 'string' && parsed.rawText.trim().length > 0) {
-            setHasAiDraft(true);
-            setDraftCount(null);
-          } else {
-            setHasAiDraft(false);
-            setDraftCount(null);
-          }
-        }
-      } else {
-        setHasAiDraft(false);
-        setDraftCount(null);
-      }
-    } catch {
-      setHasAiDraft(false);
-      setDraftCount(null);
-    }
+      localStorage.removeItem('tasksmanager_ai_draft_state_v1');
+    } catch {}
 
     fetchAiDraftState().then((res) => {
       const serverDraft = res?.draft;
-      const clearedAt = res?.clearedAt ? new Date(res.clearedAt).getTime() : 0;
-      let localUpdatedAt = 0;
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          localUpdatedAt = parsed.updatedAt || 0;
-        }
-      } catch {}
-
-      if (clearedAt && clearedAt >= localUpdatedAt) {
-        try {
-          localStorage.removeItem(STORAGE_KEY);
-        } catch {}
-        setHasAiDraft(false);
-        setDraftCount(null);
-        return;
-      }
-
       if (serverDraft && (serverDraft.rawText?.trim() || (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0))) {
         if (Array.isArray(serverDraft.drafts) && serverDraft.drafts.length > 0) {
           setHasAiDraft(true);
@@ -97,9 +55,6 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
           setDraftCount(null);
         }
       } else {
-        try {
-          localStorage.removeItem(STORAGE_KEY);
-        } catch {}
         setHasAiDraft(false);
         setDraftCount(null);
       }
