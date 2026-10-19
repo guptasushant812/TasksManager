@@ -103,7 +103,39 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     }
   }, [hasExistingNotes, data.workStatus]);
 
-  // Keep notes for other statuses when switching between them
+  function handleStatusChange(status: WorkStatus | '') {
+    if (data.workStatus === 'Pending' && data.pendingReason === undefined && data.reason) {
+      onChange('pendingReason', data.reason);
+    } else if (data.workStatus === 'InProgress' && data.inProgressReason === undefined && data.reason) {
+      onChange('inProgressReason', data.reason);
+    } else if (data.workStatus === 'Completed' && data.completedRemarks === undefined && data.remarks) {
+      onChange('completedRemarks', data.remarks);
+    }
+
+    onChange('workStatus', status);
+
+    if (status === 'InProgress' || status === 'Pending' || status === 'Completed') {
+      setActiveReasonTab(status);
+      if (status === 'InProgress') {
+        const val = data.inProgressReason !== undefined ? data.inProgressReason : (data.workStatus === 'InProgress' ? data.reason : '');
+        onChange('reason', val);
+      } else if (status === 'Pending') {
+        const val = data.pendingReason !== undefined ? data.pendingReason : (data.workStatus === 'Pending' ? data.reason : '');
+        onChange('reason', val);
+      } else if (status === 'Completed') {
+        const val = data.completedRemarks !== undefined ? data.completedRemarks : (data.workStatus === 'Completed' ? data.remarks : '');
+        onChange('remarks', val);
+      }
+    }
+  }
+
+  function handleReasonTabClick(status: WorkStatus) {
+    setActiveReasonTab(status);
+    if (data.workStatus !== status) {
+      handleStatusChange(status);
+    }
+  }
+
   function handleReasonChange(status: WorkStatus, val: string) {
     if (status === 'Pending') {
       onChange('pendingReason', val);
@@ -251,7 +283,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             id="field-workStatus"
             className="input"
             value={data.workStatus}
-            onChange={(e) => onChange('workStatus', e.target.value)}
+            onChange={(e) => handleStatusChange(e.target.value as WorkStatus | '')}
           >
             <option value="">Select status…</option>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -312,7 +344,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                   <button
                     key={status}
                     type="button"
-                    onClick={() => setActiveReasonTab(status)}
+                    onClick={() => handleReasonTabClick(status)}
                     className={`status-tab-btn ${isActiveTab ? 'active' : ''}`}
                     style={{
                       border: isActiveTab ? `1px solid ${statusColor}` : '1px solid var(--border)',
