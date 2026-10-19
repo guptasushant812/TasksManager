@@ -223,18 +223,21 @@ export async function createTask(req: Request, res: Response, next: NextFunction
     const validatedPriority = ALLOWED_TASK_PRIORITIES.includes(priority) ? priority : 'Medium';
     const validatedStatus = ALLOWED_TASK_STATUSES.includes(workStatus) ? workStatus : 'Pending';
 
-    const rawReason = typeof reason === 'string' ? reason.trim() : '';
-    const rawRemarks = typeof remarks === 'string' ? remarks.trim() : '';
+    let rawReason = typeof reason === 'string' ? reason.trim() : '';
+    let rawRemarks = typeof remarks === 'string' ? remarks.trim() : '';
     let ipReason = typeof req.body.inProgressReason === 'string' ? req.body.inProgressReason.trim() : '';
     let pReason = typeof req.body.pendingReason === 'string' ? req.body.pendingReason.trim() : '';
     let cRemarks = typeof req.body.completedRemarks === 'string' ? req.body.completedRemarks.trim() : '';
 
-    if (validatedStatus === 'InProgress' && !ipReason && rawReason) {
-      ipReason = rawReason;
-    } else if (validatedStatus === 'Pending' && !pReason && rawReason) {
-      pReason = rawReason;
-    } else if (validatedStatus === 'Completed' && !cRemarks && rawRemarks) {
-      cRemarks = rawRemarks;
+    if (validatedStatus === 'InProgress') {
+      if (!ipReason && rawReason) ipReason = rawReason;
+      if (!rawReason && ipReason) rawReason = ipReason;
+    } else if (validatedStatus === 'Pending') {
+      if (!pReason && rawReason) pReason = rawReason;
+      if (!rawReason && pReason) rawReason = pReason;
+    } else if (validatedStatus === 'Completed') {
+      if (!cRemarks && rawRemarks) cRemarks = rawRemarks;
+      if (!rawRemarks && cRemarks) rawRemarks = cRemarks;
     }
 
     const taskId = await getNextTaskId();

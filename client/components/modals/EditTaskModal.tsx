@@ -168,11 +168,21 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   async function handleSave() {
     setShowUpdateConfirm(false);
     setSaving(true);
+    const status = (data.workStatus || 'Pending') as WorkStatus;
+    const ipReason = data.inProgressReason !== undefined ? data.inProgressReason : (status === 'InProgress' ? data.reason : '');
+    const pReason = data.pendingReason !== undefined ? data.pendingReason : (status === 'Pending' ? data.reason : '');
+    const cRemarks = data.completedRemarks !== undefined ? data.completedRemarks : (status === 'Completed' ? data.remarks : '');
+
     try {
       await updateTask(task._id, {
         ...data,
         priority: (data.priority || 'Medium') as Priority,
-        workStatus: (data.workStatus || 'Pending') as WorkStatus,
+        workStatus: status,
+        inProgressReason: ipReason,
+        pendingReason: pReason,
+        completedRemarks: cRemarks,
+        reason: status === 'InProgress' ? ipReason : status === 'Pending' ? pReason : '',
+        remarks: status === 'Completed' ? cRemarks : '',
         date: new Date(data.date).toISOString(),
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
       });

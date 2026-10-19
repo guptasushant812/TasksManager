@@ -175,13 +175,20 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     setSaving(true);
     try {
       for (const d of drafts) {
+        const status = (d.workStatus || 'Pending') as WorkStatus;
+        const ipReason = d.inProgressReason || (status === 'InProgress' ? d.reason : '');
+        const pReason = d.pendingReason || (status === 'Pending' ? d.reason : '');
+        const cRemarks = d.completedRemarks || (status === 'Completed' ? d.remarks : '');
+
         await createTask({
           ...d,
           priority: (d.priority || 'Medium') as Priority,
-          workStatus: (d.workStatus || 'Pending') as WorkStatus,
-          inProgressReason: d.inProgressReason || (d.workStatus === 'InProgress' ? d.reason : ''),
-          pendingReason: d.pendingReason || (d.workStatus === 'Pending' ? d.reason : ''),
-          completedRemarks: d.completedRemarks || (d.workStatus === 'Completed' ? d.remarks : ''),
+          workStatus: status,
+          inProgressReason: ipReason,
+          pendingReason: pReason,
+          completedRemarks: cRemarks,
+          reason: status === 'InProgress' ? ipReason : status === 'Pending' ? pReason : '',
+          remarks: status === 'Completed' ? cRemarks : '',
           date: d.date ? new Date(d.date).toISOString() : new Date().toISOString(),
           dueDate: d.dueDate ? new Date(d.dueDate).toISOString() : undefined,
           userId: null,
