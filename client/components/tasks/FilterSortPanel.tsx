@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { TaskFilters, Priority, WorkStatus } from '@/types/task';
 import { X, ArrowUp, ArrowDown } from 'lucide-react';
-import { STANDARD_GIVEN_BY_LIST, normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { STANDARD_GIVEN_BY_LIST, normalizeGivenBy, getGivenBySuggestions } from '@/lib/normalizeGivenBy';
 import { useGivenByOptions } from '@/hooks/useGivenByOptions';
 
 interface FilterSortPanelProps {
@@ -27,15 +27,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
   const [local, setLocal] = useState({ ...filters });
   const givenByOptions = useGivenByOptions();
 
-  const trimmedFilterGivenBy = local.givenBy ? local.givenBy.trim().toLowerCase() : '';
-  const filterSuggestions = trimmedFilterGivenBy.length > 0
-    ? givenByOptions.filter((name) => {
-        const lowerName = name.toLowerCase();
-        if (lowerName.includes(trimmedFilterGivenBy)) return true;
-        const normalized = normalizeGivenBy(trimmedFilterGivenBy);
-        return normalized && normalized.toLowerCase() === lowerName;
-      })
-    : [];
+  const filterSuggestions = getGivenBySuggestions(local.givenBy, givenByOptions);
 
   function apply() {
     onFiltersChange({ ...local, page: 1 });
