@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 import { fetchAiDraftState, saveAiDraftState, deleteAiDraftState } from '@/lib/aiDraftService';
+import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
 
 function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
@@ -214,6 +215,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
         await createTask({
           ...d,
+          givenBy: normalizeGivenBy(d.givenBy),
           priority: (d.priority || 'Medium') as Priority,
           workStatus: status,
           inProgressReason: ipReason,
