@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
 import { Plus } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
-import { STANDARD_GIVEN_BY_LIST, normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { useGivenByOptions } from '@/hooks/useGivenByOptions';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
@@ -77,6 +78,8 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       setActiveReasonTab(data.workStatus);
     }
   }, [data.workStatus]);
+
+  const givenByOptions = useGivenByOptions();
 
   const currentPending = data.pendingReason !== undefined 
     ? data.pendingReason 
@@ -156,7 +159,16 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     }
   }
 
-  // Show history strip only when multiple status notes exist
+  const trimmedGivenBy = data.givenBy ? data.givenBy.trim().toLowerCase() : '';
+  const matchingSuggestions = trimmedGivenBy.length > 0
+    ? givenByOptions.filter((name) => {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes(trimmedGivenBy)) return true;
+        const normalized = normalizeGivenBy(trimmedGivenBy);
+        return normalized && normalized.toLowerCase() === lowerName;
+      })
+    : [];
+
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
   return (
@@ -193,9 +205,11 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By</label>
           <input
             id="field-givenBy"
-            className="input"
+            className="input hide-datalist-arrow"
             type="text"
             list="given-by-options"
+            autoComplete="off"
+            spellCheck={false}
             placeholder="Who assigned this task"
             value={data.givenBy}
             onChange={(e) => onChange('givenBy', e.target.value)}
@@ -206,7 +220,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             }}
           />
           <datalist id="given-by-options">
-            {STANDARD_GIVEN_BY_LIST.map((name) => (
+            {matchingSuggestions.map((name) => (
               <option key={name} value={name} />
             ))}
           </datalist>

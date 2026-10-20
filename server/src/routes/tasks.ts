@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   listTasks,
+  listGivenByValues,
   createTask,
   updateTask,
   deleteTask,
@@ -12,6 +13,7 @@ import {
 const router = Router();
 
 router.get('/', listTasks);
+router.get('/given-by', listGivenByValues);
 router.post('/', createTask);
 router.put('/:id', updateTask);
 router.delete('/bulk', deleteManyTasks);

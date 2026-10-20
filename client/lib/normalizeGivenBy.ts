@@ -1,20 +1,20 @@
 export const STANDARD_GIVEN_BY_LIST = [
-  'Sudhakar Umale Sir',
-  'Sachin Oak Sir',
-  'Sajjan Lal Sir',
-  'Dipesh Tare Sir',
-  'Jitendra Chavan Sir',
-  'Pankaj Shelar Sir',
-  "Kshama Shukla Ma'am",
   'Amit Nimbalkar Sir',
   'Anup Chavan Sir',
-  'Siddhesh Mane Sir',
-  "Niyati Patel Ma'am",
-  'Sachin Chaubey Sir',
-  "Shruti Kamble Ma'am",
-  'Sushant Gupta [Me]',
   'Department Work',
+  'Dipesh Tare Sir',
+  'Jitendra Chavan Sir',
+  "Kshama Shukla Ma'am",
   'Lab Work',
+  "Niyati Patel Ma'am",
+  'Pankaj Shelar Sir',
+  'Sachin Chaubey Sir',
+  'Sachin Oak Sir',
+  'Sajjan Lal Sir',
+  "Shruti Kamble Ma'am",
+  'Siddhesh Mane Sir',
+  'Sudhakar Umale Sir',
+  'Sushant Gupta [Me]',
 ] as const;
 
 const WORD_MAP: Record<string, string> = {
@@ -105,7 +105,7 @@ function matchStandard(input: string, list: readonly string[] = STANDARD_GIVEN_B
 
   interface CandidateMatch {
     candidate: string;
-    matchedSigCount: number;
+    score: number;
     index: number;
   }
 
@@ -126,10 +126,17 @@ function matchStandard(input: string, list: readonly string[] = STANDARD_GIVEN_B
     const meMatched = inputTokens.includes('me') && candidate.includes('[Me]');
 
     if (allSigFound || meMatched) {
-      const matchedSigCount = inputSigTokens.filter((t) => candSigTokens.includes(t)).length;
+      let score = inputSigTokens.filter((t) => candSigTokens.includes(t)).length;
+
+      // When only "sachin" is entered without a surname, prioritize Sachin Oak
+      const isOnlySachin = inputSigTokens.length === 1 && inputSigTokens[0] === 'sachin';
+      if (isOnlySachin && candidate.includes('Sachin Oak')) {
+        score += 5;
+      }
+
       matches.push({
         candidate,
-        matchedSigCount,
+        score,
         index: i,
       });
     }
@@ -138,8 +145,8 @@ function matchStandard(input: string, list: readonly string[] = STANDARD_GIVEN_B
   if (matches.length === 0) return null;
 
   matches.sort((a, b) => {
-    if (b.matchedSigCount !== a.matchedSigCount) {
-      return b.matchedSigCount - a.matchedSigCount;
+    if (b.score !== a.score) {
+      return b.score - a.score;
     }
     return a.index - b.index;
   });
