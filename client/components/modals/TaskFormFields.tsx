@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
 import { Plus } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
+import { STANDARD_GIVEN_BY_LIST, normalizeGivenBy } from '@/lib/normalizeGivenBy';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
 const STATUSES: WorkStatus[] = ['InProgress', 'Pending', 'Completed'];
@@ -194,10 +195,21 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             id="field-givenBy"
             className="input"
             type="text"
+            list="given-by-options"
             placeholder="Who assigned this task"
             value={data.givenBy}
             onChange={(e) => onChange('givenBy', e.target.value)}
+            onBlur={() => {
+              if (data.givenBy) {
+                onChange('givenBy', normalizeGivenBy(data.givenBy));
+              }
+            }}
           />
+          <datalist id="given-by-options">
+            {STANDARD_GIVEN_BY_LIST.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
         <div>
           <label className="label" htmlFor="field-contactPerson" style={{ marginBottom: 4 }}>Contact Person</label>

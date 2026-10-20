@@ -5,6 +5,7 @@ import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
 import TaskFormFields from './TaskFormFields';
+import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
 import { X, Save, Sparkles, RefreshCw, Check } from 'lucide-react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import AiQuotaModal from './AiQuotaModal';
@@ -176,6 +177,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     try {
       await updateTask(task._id, {
         ...data,
+        givenBy: normalizeGivenBy(data.givenBy),
         priority: (data.priority || 'Medium') as Priority,
         workStatus: status,
         inProgressReason: ipReason,

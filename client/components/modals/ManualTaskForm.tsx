@@ -5,6 +5,7 @@ import { useAiDraft } from '@/hooks/useAiDraft';
 import { toIsoDate } from '@/lib/dates';
 import { Priority, WorkStatus, TaskFilters, TaskDraft } from '@/types/task';
 import TaskFormFields from './TaskFormFields';
+import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
 import {
   Save,
   Plus,
@@ -182,6 +183,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
 
         await createTask({
           ...d,
+          givenBy: normalizeGivenBy(d.givenBy),
           priority: (d.priority || 'Medium') as Priority,
           workStatus: status,
           inProgressReason: ipReason,

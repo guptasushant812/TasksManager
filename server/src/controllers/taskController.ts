@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Task, { getNextTaskId } from '../models/Task';
 import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
+import { normalizeGivenBy } from '../utils/normalizeGivenBy';
 
 import EscalationSettings from '../models/EscalationSettings';
 
@@ -245,7 +246,7 @@ export async function createTask(req: Request, res: Response, next: NextFunction
       taskId,
       title: title.trim(),
       description: typeof description === 'string' ? description.trim() : '',
-      givenBy: typeof givenBy === 'string' ? givenBy.trim() : '',
+      givenBy: typeof givenBy === 'string' ? normalizeGivenBy(givenBy) : '',
       contactPerson: typeof contactPerson === 'string' ? contactPerson.trim() : '',
       priority: validatedPriority,
       workStatus: validatedStatus,
@@ -334,7 +335,8 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
 
     for (const strField of ['description', 'givenBy', 'contactPerson', 'reason', 'remarks', 'inProgressReason', 'pendingReason', 'completedRemarks']) {
       if (req.body[strField] !== undefined) {
-        updates[strField] = typeof req.body[strField] === 'string' ? req.body[strField].trim() : '';
+        const val = typeof req.body[strField] === 'string' ? req.body[strField].trim() : '';
+        updates[strField] = strField === 'givenBy' ? normalizeGivenBy(val) : val;
       }
     }
 

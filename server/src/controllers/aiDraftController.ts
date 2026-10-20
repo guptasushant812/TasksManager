@@ -5,6 +5,7 @@ import {
   AiTaskRequestOptions 
 } from '../services/aiService';
 import AiDraftState from '../models/AiDraftState';
+import { normalizeGivenBy } from '../utils/normalizeGivenBy';
 
 const SYSTEM_PROMPT = `You are a professional task extraction assistant for a daily timesheet task manager system.
 
@@ -56,6 +57,7 @@ function sanitizeDraft(d: Record<string, any>, today: string): Record<string, st
     }
     d[f] = d[f].trim();
   }
+  d.givenBy = normalizeGivenBy(d.givenBy);
 
   // WorkStatus normalization
   const validStatus = ['Completed', 'InProgress', 'Pending'];

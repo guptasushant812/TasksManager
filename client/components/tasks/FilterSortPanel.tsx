@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { TaskFilters, Priority, WorkStatus } from '@/types/task';
 import { X, ArrowUp, ArrowDown } from 'lucide-react';
+import { STANDARD_GIVEN_BY_LIST } from '@/lib/normalizeGivenBy';
 
 interface FilterSortPanelProps {
   filters: TaskFilters;
@@ -194,6 +195,7 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
             <input
               className="input"
               type="text"
+              list="filter-given-by-options"
               placeholder="Filter by assigned person"
               value={local.givenBy || ''}
               onChange={(e) => setLocal((l) => ({ ...l, givenBy: e.target.value }))}
@@ -202,6 +204,11 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
                 boxShadow: 'var(--box-shadow-neon-sm)',
               } : undefined}
             />
+            <datalist id="filter-given-by-options">
+              {STANDARD_GIVEN_BY_LIST.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { normalizeGivenBy } from '../utils/normalizeGivenBy';
 
 export type Priority = 'High' | 'Medium' | 'Low';
 export type WorkStatus = 'InProgress' | 'Pending' | 'Completed';
@@ -55,7 +56,11 @@ const TaskSchema = new Schema<ITask>(
     taskId: { type: String, unique: true },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
-    givenBy: { type: String, default: '' },
+    givenBy: {
+      type: String,
+      default: '',
+      set: (val: unknown) => (typeof val === 'string' ? normalizeGivenBy(val) : ''),
+    },
     contactPerson: { type: String, default: '' },
     priority: {
       type: String,
