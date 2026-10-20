@@ -186,3 +186,35 @@ export function normalizeGivenBy(value?: string | null, list: readonly string[] 
 
   return normalizeSingleEntity(trimmed, list);
 }
+
+export function getGivenBySuggestions(input?: string | null, allOptions: readonly string[] = STANDARD_GIVEN_BY_LIST): string[] {
+  if (!input || !input.trim()) return [];
+
+  const lastDelimiterMatch = input.match(/^(.*(?:\s*(?:&|\band\b|,)\s*))(.*)$/i);
+  let prefix = '';
+  let activeQuery = input;
+
+  if (lastDelimiterMatch) {
+    prefix = lastDelimiterMatch[1];
+    activeQuery = lastDelimiterMatch[2];
+  }
+
+  const q = activeQuery.trim().toLowerCase();
+  if (!q) return [];
+
+  const lowerPrefix = prefix.toLowerCase();
+  const matched: string[] = [];
+
+  for (const name of allOptions) {
+    const lowerName = name.toLowerCase();
+    if (prefix && lowerPrefix.includes(lowerName)) continue;
+
+    const normalized = normalizeGivenBy(q, allOptions);
+    if (lowerName.includes(q) || (normalized && normalized.toLowerCase() === lowerName)) {
+      matched.push(`${prefix}${name}`);
+    }
+  }
+
+  return matched;
+}
+

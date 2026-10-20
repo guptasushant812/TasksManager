@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Priority, WorkStatus } from '@/types/task';
 import { Plus } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
-import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { normalizeGivenBy, getGivenBySuggestions } from '@/lib/normalizeGivenBy';
 import { useGivenByOptions } from '@/hooks/useGivenByOptions';
 
 const PRIORITIES: Priority[] = ['High', 'Medium', 'Low'];
@@ -159,15 +159,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
     }
   }
 
-  const trimmedGivenBy = data.givenBy ? data.givenBy.trim().toLowerCase() : '';
-  const matchingSuggestions = trimmedGivenBy.length > 0
-    ? givenByOptions.filter((name) => {
-        const lowerName = name.toLowerCase();
-        if (lowerName.includes(trimmedGivenBy)) return true;
-        const normalized = normalizeGivenBy(trimmedGivenBy);
-        return normalized && normalized.toLowerCase() === lowerName;
-      })
-    : [];
+  const matchingSuggestions = getGivenBySuggestions(data.givenBy, givenByOptions);
 
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
