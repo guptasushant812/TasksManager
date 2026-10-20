@@ -17,52 +17,53 @@ export const STANDARD_GIVEN_BY_LIST = [
   'Lab Work',
 ] as const;
 
-interface AliasRule {
-  regex: RegExp;
-  canonical: string;
-}
+const WORD_MAP: Record<string, string> = {
+  sir: 'Sir',
+  "ma'am": "Ma'am",
+  maam: "Ma'am",
+  mam: "Ma'am",
+  dr: 'Dr.',
+  'dr.': 'Dr.',
+  prof: 'Prof.',
+  'prof.': 'Prof.',
+  mr: 'Mr.',
+  'mr.': 'Mr.',
+  mrs: 'Mrs.',
+  'mrs.': 'Mrs.',
+  ms: 'Ms.',
+  'ms.': 'Ms.',
+  hod: 'HOD',
+  dyhod: 'DyHOD',
+  'dy.hod': 'DyHOD',
+  iqac: 'IQAC',
+  '[me]': '[Me]',
+  '(me)': '[Me]',
+};
 
-const ALIAS_RULES: AliasRule[] = [
-  { regex: /\b(?:sushant(?:\s+gupta)?(?:\s*\[me\])?|\[me\])\b/i, canonical: 'Sushant Gupta [Me]' },
-  { regex: /\bsudhakar(?:\s+umale)?(?:\s+sir)?\b/i, canonical: 'Sudhakar Umale Sir' },
-  { regex: /\bsachin\s+chaubey(?:\s+sir)?\b/i, canonical: 'Sachin Chaubey Sir' },
-  { regex: /\b(?:dr\.?\s*)?sachin(?:\s+oak)?(?:\s+sir)?\b/i, canonical: 'Sachin Oak Sir' },
-  { regex: /\bsajjan(?:\s+lal)?(?:\s+sir)?\b/i, canonical: 'Sajjan Lal Sir' },
-  { regex: /\bdipesh(?:\s+tare)?(?:\s+sir)?\b/i, canonical: 'Dipesh Tare Sir' },
-  { regex: /\bjitendra(?:\s+chavan)?(?:\s+sir)?\b/i, canonical: 'Jitendra Chavan Sir' },
-  { regex: /\bpankaj(?:\s+shelar)?(?:\s+sir)?\b/i, canonical: 'Pankaj Shelar Sir' },
-  { regex: /\bkshama(?:\s+shukla)?(?:\s+(?:ma'am|mam|maam))?\b/i, canonical: "Kshama Shukla Ma'am" },
-  { regex: /\bamit(?:\s+nimbalkar)?(?:\s+sir)?\b/i, canonical: 'Amit Nimbalkar Sir' },
-  { regex: /\banup(?:\s+chavan)?(?:\s+sir)?\b/i, canonical: 'Anup Chavan Sir' },
-  { regex: /\bsiddhesh(?:\s+mane)?(?:\s+sir)?\b/i, canonical: 'Siddhesh Mane Sir' },
-  { regex: /\bniyati(?:\s+patel)?(?:\s+(?:ma'am|mam|maam))?\b/i, canonical: "Niyati Patel Ma'am" },
-  { regex: /\bshruti(?:\s+kamble)?(?:\s+(?:ma'am|mam|maam))?\b/i, canonical: "Shruti Kamble Ma'am" },
-  { regex: /^\s*department(?:\s+work)?\s*$/i, canonical: 'Department Work' },
-  { regex: /^\s*lab(?:\s+work)?\s*$/i, canonical: 'Lab Work' },
-];
+function formatWord(word: string): string {
+  const clean = word.trim();
+  if (!clean) return '';
+  const lower = clean.toLowerCase();
 
-function titleCaseWord(word: string): string {
-  const lower = word.toLowerCase();
-  if (lower === "ma'am" || lower === 'mam' || lower === 'maam') return "Ma'am";
-  if (lower === 'sir') return 'Sir';
-  if (lower === 'dr.' || lower === 'dr') return 'Dr.';
-  if (lower === '[me]') return '[Me]';
-  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  if (WORD_MAP[lower]) return WORD_MAP[lower];
+
+  if (clean.includes('-')) return clean.split('-').map(formatWord).join('-');
+  if (clean.includes("'")) return clean.split("'").map(formatWord).join("'");
+
+  return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
 }
 
 function normalizeSingleEntity(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
 
-  for (const rule of ALIAS_RULES) {
-    if (rule.regex.test(trimmed)) {
-      return rule.canonical;
-    }
-  }
+  if (/^\s*department(?:\s+work)?\s*$/i.test(trimmed)) return 'Department Work';
+  if (/^\s*lab(?:\s+work)?\s*$/i.test(trimmed)) return 'Lab Work';
 
   return trimmed
     .split(/\s+/)
-    .map(titleCaseWord)
+    .map(formatWord)
+    .filter(Boolean)
     .join(' ');
 }
 
