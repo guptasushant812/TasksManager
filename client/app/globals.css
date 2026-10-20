@@ -1802,6 +1802,31 @@ html:not(.dark) .brutalist-hover:active {
   overflow-wrap: break-word;
 }
 
+.faq-item-body kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 0 var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text-primary);
+  display: inline-block;
+}
+
+.faq-item-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 .faq-tip-box {
   padding-block: 6px;
   padding-inline: 10px;
