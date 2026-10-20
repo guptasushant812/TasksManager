@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Task, { getNextTaskId } from '../models/Task';
 import FollowUp from '../models/FollowUp';
 import { buildQuery } from '../utils/buildQuery';
-import { normalizeGivenBy } from '../utils/normalizeGivenBy';
+import { normalizeGivenBy, STANDARD_GIVEN_BY_LIST } from '../utils/normalizeGivenBy';
 
 import EscalationSettings from '../models/EscalationSettings';
 
@@ -601,3 +601,28 @@ export async function escalateTask(req: Request, res: Response, next: NextFuncti
     next(err);
   }
 }
+
+export async function listGivenByValues(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const rawValues = await Task.distinct('givenBy', { isDeleted: false });
+    const set = new Set<string>();
+    STANDARD_GIVEN_BY_LIST.forEach((name) => set.add(name));
+    rawValues.forEach((val) => {
+      if (typeof val === 'string' && val.trim()) {
+        const parts = val.split(/\s*(?:&|\band\b|,)\s*/i);
+        parts.forEach((part) => {
+          const normalized = normalizeGivenBy(part.trim());
+          if (normalized && !normalized.includes('&') && !normalized.includes(',')) {
+            set.add(normalized);
+          }
+        });
+      }
+    });
+    const sorted = Array.from(set).sort((a, b) => a.localeCompare(b));
+    res.json({ success: true, data: sorted });
+  } catch (err) {
+    next(err);
+  }
+}
+
+

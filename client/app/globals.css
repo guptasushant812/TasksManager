@@ -2247,6 +2247,14 @@ html:not(.dark) .btn-danger:hover {
   box-sizing: border-box;
 }
 
+input[type="text"]::-webkit-calendar-picker-indicator,
+.hide-datalist-arrow::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
 html:not(.dark) .input {
   font-family: var(--font-sans);
   font-size: 14px;
