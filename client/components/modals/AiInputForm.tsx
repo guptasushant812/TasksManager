@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import { useTasks } from '@/hooks/useTasks';
 import { TaskDraft, Priority, WorkStatus } from '@/types/task';
@@ -36,6 +37,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   const [isHydrated, setIsHydrated] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showConfirmGenerate, setShowConfirmGenerate] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Single-task regeneration state
   const [activeRegenIndex, setActiveRegenIndex] = useState<number | null>(null);
@@ -165,7 +167,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
       return;
     }
     setErrors({});
-    setShowConfirmGenerate(true);
+    await executeGeneration();
   }
 
   async function executeGeneration(keyOverride?: string, providerOverride?: string) {
@@ -174,6 +176,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     if (result && result.length > 0) {
       setDrafts(result.map(d => ({ ...d, id: d.id || generateId() })));
       setStep('preview');
+      setShowSuccessModal(true);
+    } else if (result && result.length === 0) {
+      setErrors({ rawText: 'No tasks could be identified. Please add more details to your task description.' });
     }
   }
 
@@ -320,138 +325,381 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     }
   }
 
-  // Discard confirmation dialog
-  const renderDiscardModal = () => (
-    <div
-      className="app-dialog-overlay"
-      style={{ zIndex: 1000 }}
-      onClick={() => setShowDiscardConfirm(false)}
-    >
+  useEffect(() => {
+    if (!showSuccessModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowSuccessModal(false);
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        setShowSuccessModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSuccessModal]);
+
+  const renderDiscardModal = () => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(
       <div
-        className="app-dialog-box"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 420 }}
+        className="app-dialog-overlay"
+        style={{ zIndex: 10000 }}
+        onClick={() => setShowDiscardConfirm(false)}
       >
-        <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+        <div
+          className="app-dialog-box"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 420 }}
+        >
+          <div className="app-dialog-accent-bar app-dialog-accent-danger" />
 
-        <div className="app-dialog-header">
-          <div className="app-dialog-header-left">
-            <div className="app-dialog-icon-wrap app-dialog-icon-danger">
-              <AlertTriangle style={{ width: 22, height: 22 }} />
-            </div>
-            <div>
-              <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
-                Warning
+          <div className="app-dialog-header">
+            <div className="app-dialog-header-left">
+              <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                <AlertTriangle style={{ width: 22, height: 22 }} />
               </div>
-              <h3 className="app-dialog-title">Discard this draft?</h3>
+              <div>
+                <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                  Warning
+                </div>
+                <h3 className="app-dialog-title">Discard this draft?</h3>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowDiscardConfirm(false)}
+              className="app-dialog-close-btn"
+              aria-label="Close"
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowDiscardConfirm(false)}
-            className="app-dialog-close-btn"
-            aria-label="Close"
-          >
-            <X style={{ width: 18, height: 18 }} />
-          </button>
-        </div>
 
-        <div className="app-dialog-body">
-          <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
-            {step === 'preview' 
-              ? `Any unsaved changes across ${drafts.length} generated task${drafts.length !== 1 ? 's' : ''} will be permanently removed.` 
-              : 'Your entered task description text will be permanently cleared.'}
-          </p>
-        </div>
+          <div className="app-dialog-body">
+            <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+              {step === 'preview' 
+                ? `Any unsaved changes across ${drafts.length} generated task${drafts.length !== 1 ? 's' : ''} will be permanently removed.` 
+                : 'Your entered task description text will be permanently cleared.'}
+            </p>
+          </div>
 
-        <div className="app-dialog-footer">
-          <button 
-            type="button" 
-            className="app-dialog-btn-cancel" 
-            onClick={() => setShowDiscardConfirm(false)}
-          >
-            Keep Draft
-          </button>
-          <button 
-            type="button" 
-            className="app-dialog-btn-action app-dialog-btn-danger" 
-            onClick={handleDiscard}
-          >
-            Yes, Discard
-          </button>
+          <div className="app-dialog-footer">
+            <button 
+              type="button" 
+              className="app-dialog-btn-cancel" 
+              onClick={() => setShowDiscardConfirm(false)}
+            >
+              Keep Draft
+            </button>
+            <button 
+              type="button" 
+              className="app-dialog-btn-action app-dialog-btn-danger" 
+              onClick={handleDiscard}
+            >
+              Yes, Discard
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      </div>,
+      document.body
+    );
+  };
 
-  // Generation confirmation dialog
-  const renderGenerateConfirmModal = () => (
-    <div
-      className="app-dialog-overlay"
-      style={{ zIndex: 1000 }}
-      onClick={() => setShowConfirmGenerate(false)}
-    >
+  const renderGenerateConfirmModal = () => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(
       <div
-        className="app-dialog-box"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 420 }}
+        className="app-dialog-overlay"
+        style={{ zIndex: 10000 }}
+        onClick={() => setShowConfirmGenerate(false)}
       >
-        <div className="app-dialog-accent-bar" style={{ background: 'var(--accent)' }} />
+        <div
+          className="app-dialog-box"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 420 }}
+        >
+          <div className="app-dialog-accent-bar" style={{ background: 'var(--accent)' }} />
 
-        <div className="app-dialog-header">
-          <div className="app-dialog-header-left">
-            <div className="app-dialog-icon-wrap" style={{ background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)' }}>
-              <Sparkles style={{ width: 22, height: 22 }} />
-            </div>
-            <div>
-              <div className="app-dialog-eyebrow" style={{ color: 'var(--accent)' }}>
-                Confirm
+          <div className="app-dialog-header">
+            <div className="app-dialog-header-left">
+              <div className="app-dialog-icon-wrap" style={{ background: 'rgba(0, 255, 102, 0.1)', color: 'var(--accent)' }}>
+                <Sparkles style={{ width: 22, height: 22 }} />
               </div>
-              <h3 className="app-dialog-title">Process text with AI?</h3>
+              <div>
+                <div className="app-dialog-eyebrow" style={{ color: 'var(--accent)' }}>
+                  Confirm
+                </div>
+                <h3 className="app-dialog-title">Process text with AI?</h3>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowConfirmGenerate(false)}
+              className="app-dialog-close-btn"
+              aria-label="Close"
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowConfirmGenerate(false)}
-            className="app-dialog-close-btn"
-            aria-label="Close"
-          >
-            <X style={{ width: 18, height: 18 }} />
-          </button>
-        </div>
 
-        <div className="app-dialog-body">
-          <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
-            Are you sure you want to structure this text into tasks using AI?
-          </p>
-        </div>
+          <div className="app-dialog-body">
+            <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+              Are you sure you want to structure this text into tasks using AI?
+            </p>
+          </div>
 
-        <div className="app-dialog-footer">
-          <button 
-            type="button" 
-            className="app-dialog-btn-cancel" 
-            onClick={() => setShowConfirmGenerate(false)}
-          >
-            No
-          </button>
-          <button 
-            type="button" 
-            className="app-dialog-btn-action" 
-            style={{ background: 'var(--accent)', color: '#000' }}
-            onClick={() => executeGeneration()}
-          >
-            Yes, Process
-          </button>
+          <div className="app-dialog-footer">
+            <button 
+              type="button" 
+              className="app-dialog-btn-cancel" 
+              onClick={() => setShowConfirmGenerate(false)}
+            >
+              No
+            </button>
+            <button 
+              type="button" 
+              className="app-dialog-btn-action" 
+              style={{ background: 'var(--accent)', color: '#000' }}
+              onClick={() => executeGeneration()}
+            >
+              Yes, Process
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      </div>,
+      document.body
+    );
+  };
+
+  const renderSuccessModal = () => {
+    if (typeof document === 'undefined') return null;
+    const highPriorityCount = drafts.filter(d => (d.priority || '').toLowerCase() === 'high').length;
+    const completedCount = drafts.filter(d => (d.workStatus || '').toLowerCase() === 'completed').length;
+    const inProgressCount = drafts.filter(d => (d.workStatus || '').toLowerCase() === 'inprogress').length;
+    const pendingCount = drafts.length - completedCount - inProgressCount;
+
+    return createPortal(
+      <div
+        className="app-dialog-overlay"
+        style={{ zIndex: 10000 }}
+        onClick={() => setShowSuccessModal(false)}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-success-dialog-title"
+      >
+        <div
+          className="app-dialog-box"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 480 }}
+        >
+          <div className="app-dialog-accent-bar app-dialog-accent-success" />
+
+          <div className="app-dialog-header">
+            <div className="app-dialog-header-left">
+              <div className="app-dialog-icon-wrap app-dialog-icon-success">
+                <CheckCircle2 style={{ width: 22, height: 22 }} />
+              </div>
+              <div>
+                <div className="app-dialog-eyebrow app-dialog-eyebrow-success">
+                  AI Task Engine
+                </div>
+                <h3 id="ai-success-dialog-title" className="app-dialog-title">
+                  Tasks Structured Successfully
+                </h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              className="app-dialog-close-btn"
+              aria-label="Close dialog"
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
+          </div>
+
+          <div className="app-dialog-body">
+            <p className="app-dialog-desc">
+              AI successfully analyzed your notes and structured {drafts.length} {drafts.length === 1 ? 'task' : 'tasks'} ready for review.
+            </p>
+
+            <div className="app-dialog-card">
+              <div className="app-dialog-row">
+                <span className="app-dialog-label">Tasks Generated</span>
+                <span className="app-dialog-value" style={{ color: 'var(--accent, #00ff66)' }}>
+                  {drafts.length} {drafts.length === 1 ? 'Task' : 'Tasks'} Ready
+                </span>
+              </div>
+              {highPriorityCount > 0 && (
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">Priority Breakdown</span>
+                  <span className="app-dialog-value">
+                    <span style={{ color: '#f87171', fontWeight: 700 }}>{highPriorityCount} High</span>
+                    {drafts.length > highPriorityCount && (
+                      <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>
+                        • {drafts.length - highPriorityCount} Standard
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+              <div className="app-dialog-row">
+                <span className="app-dialog-label">Status Summary</span>
+                <span className="app-dialog-value">
+                  {completedCount > 0 && (
+                    <span style={{ color: 'var(--completed, #22c55e)', marginRight: 6 }}>
+                      {completedCount} Completed
+                    </span>
+                  )}
+                  {inProgressCount > 0 && (
+                    <span style={{ color: 'var(--in-progress, #3b82f6)', marginRight: 6 }}>
+                      {inProgressCount} In Progress
+                    </span>
+                  )}
+                  {pendingCount > 0 && (
+                    <span style={{ color: 'var(--pending, #eab308)' }}>
+                      {pendingCount} Pending
+                    </span>
+                  )}
+                </span>
+              </div>
+              {modelUsed && (
+                <div className="app-dialog-row">
+                  <span className="app-dialog-label">AI Engine</span>
+                  <span className="app-dialog-value" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {modelUsed}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {drafts.length > 0 && (
+              <div style={{ marginTop: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: 8 }}>
+                  Extracted Task Summary
+                </div>
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 6, 
+                    maxHeight: 140, 
+                    overflowY: 'auto',
+                    paddingRight: 4 
+                  }}
+                >
+                  {drafts.map((d, i) => (
+                    <div
+                      key={d.id || i}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 10,
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: 12.5,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>
+                          #{i + 1}
+                        </span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {d.title || 'Untitled Task'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: d.priority === 'High' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            color: d.priority === 'High' ? '#f87171' : '#fbbf24',
+                          }}
+                        >
+                          {d.priority || 'Medium'}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: d.workStatus === 'Completed' ? 'rgba(34, 197, 94, 0.15)' : d.workStatus === 'InProgress' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                            color: d.workStatus === 'Completed' ? 'var(--completed)' : d.workStatus === 'InProgress' ? 'var(--in-progress)' : 'var(--pending)',
+                          }}
+                        >
+                          {d.workStatus || 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="app-dialog-footer">
+            <button
+              type="button"
+              className="app-dialog-btn-cancel"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              className="app-dialog-btn-action app-dialog-btn-success"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              <Check style={{ width: 16, height: 16 }} />
+              Review Tasks
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={saving}
+              style={{
+                minHeight: 40,
+                padding: '9px 18px',
+                fontSize: 13,
+                fontWeight: 700,
+                background: 'var(--accent, #00ff66)',
+                color: '#000000',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                borderRadius: 10,
+              }}
+              onClick={() => {
+                setShowSuccessModal(false);
+                handleSave();
+              }}
+            >
+              {saving ? (
+                <><RefreshCw style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} /> Saving…</>
+              ) : (
+                <><Save style={{ width: 14, height: 14 }} /> Save All Now</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
 
   if (step === 'input') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
         {showDiscardConfirm && renderDiscardModal()}
         {showConfirmGenerate && renderGenerateConfirmModal()}
+        {showSuccessModal && renderSuccessModal()}
 
         {rateLimitInfo && (
           <AiQuotaModal
@@ -644,6 +892,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {showDiscardConfirm && renderDiscardModal()}
+      {showSuccessModal && renderSuccessModal()}
 
       {rateLimitInfo && (
         <AiQuotaModal
