@@ -665,42 +665,49 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
       <div className="ai-modal-content-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '16px', marginBottom: 20,
-        background: 'var(--completed-bg)', border: '1px solid rgba(34,197,94,0.2)',
-        borderRadius: 'var(--radius-lg)', fontSize: 13,
-      }}>
-        <CheckCircle2 style={{ width: 24, height: 24, color: 'var(--completed)', flexShrink: 0 }} />
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
-            {syncStatus === 'saving' && (
-              <span className="ai-sync-chip saving">
-                <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
-                Syncing to cloud…
-              </span>
-            )}
-            {syncStatus === 'synced' && (
-              <span className="ai-sync-chip synced">
-                <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
-                Synced across devices
-              </span>
-            )}
-            {syncStatus === 'local_only' && (
-              <span className="ai-sync-chip local">
-                <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
-                Draft saved locally
-              </span>
-            )}
-          </div>
-          <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>
-            Review or edit details before saving.
+      <div 
+        className="ai-tasks-ready-banner"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '16px', marginBottom: 20,
+          background: 'var(--completed-bg)', border: '1px solid rgba(34,197,94,0.2)',
+          borderRadius: 'var(--radius-lg)', fontSize: 13,
+        }}
+      >
+        <div className="ai-tasks-ready-main" style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+          <CheckCircle2 className="ai-tasks-ready-icon" style={{ width: 24, height: 24, color: 'var(--completed)', flexShrink: 0 }} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div className="ai-tasks-ready-title-row" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 600, color: 'var(--completed)' }}>Tasks Ready</span>
+              {syncStatus === 'saving' && (
+                <span className="ai-sync-chip saving">
+                  <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                  Syncing to cloud…
+                </span>
+              )}
+              {syncStatus === 'synced' && (
+                <span className="ai-sync-chip synced">
+                  <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
+                  Synced across devices
+                </span>
+              )}
+              {syncStatus === 'local_only' && (
+                <span className="ai-sync-chip local">
+                  <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
+                  Draft saved locally
+                </span>
+              )}
+            </div>
+            <div className="ai-tasks-ready-desc" style={{ color: 'var(--text-secondary)', marginTop: 2 }}>
+              Review or edit details before saving.
+            </div>
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+
+        <div className="ai-tasks-ready-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button
             type="button"
+            className="ai-btn-edit-prompt"
             onClick={() => setStep('input')}
             style={{
               background: 'var(--bg-elevated)',
@@ -715,6 +722,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               gap: 6,
               padding: '4px 10px',
               transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--bg-hover)';
@@ -732,10 +740,12 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           </button>
           <button
             type="button"
+            className="ai-btn-discard-all"
             onClick={() => setShowDiscardConfirm(true)}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--high)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4
+              color: 'var(--high)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4,
+              whiteSpace: 'nowrap',
             }}
             title="Discard this entire draft"
           >
@@ -992,13 +1002,16 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
       </div>
 
-      <div style={{
-        display: 'flex', gap: 10,
-        padding: '14px 24px',
-        borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between',
-        alignItems: 'center', background: 'var(--bg-elevated)',
-        flexShrink: 0
-      }}>
+      <div 
+        className="ai-modal-bottom-bar"
+        style={{
+          display: 'flex', gap: 10,
+          padding: '14px 24px',
+          borderTop: '1px solid var(--border-subtle)', justifyContent: 'space-between',
+          alignItems: 'center', background: 'var(--bg-elevated)',
+          flexShrink: 0
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button 
             type="button" 

@@ -8999,3 +8999,80 @@ html:not(.dark) .saas-task-summary {
     padding-bottom: max(14px, env(safe-area-inset-bottom, 14px)) !important;
   }
 }
+
+.ai-tasks-ready-banner {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.ai-tasks-ready-actions button {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .ai-tasks-ready-banner {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .ai-tasks-ready-main {
+    width: 100% !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .ai-tasks-ready-icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin-top: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .ai-tasks-ready-title-row {
+    gap: 6px !important;
+  }
+
+  .ai-tasks-ready-desc {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .ai-tasks-ready-actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+    border-top: 1px solid rgba(34, 197, 94, 0.18) !important;
+  }
+
+  .ai-btn-edit-prompt {
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    white-space: nowrap !important;
+  }
+
+  .ai-btn-discard-all {
+    font-size: 11.5px !important;
+    padding: 5px 6px !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .ai-tasks-ready-banner {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .ai-tasks-ready-actions {
+    padding-top: 8px !important;
+  }
+}
