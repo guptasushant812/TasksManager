@@ -2047,37 +2047,41 @@ html:not(.dark) .brutalist-hover:active {
    PRIMITIVE COMPONENTS
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ─── Glass panel ──────────────────────────────────────────────────────────── */
 .glass {
   background: var(--bg-surface);
-  border: 4px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* ─── Button system ────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth);
-  border: 4px solid var(--border);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  transition: all 0.15s ease;
+  border: 1px solid var(--border);
   white-space: nowrap;
-  line-height: 1;
+  line-height: 1.2;
   user-select: none;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
 }
 
 .btn:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0px 0px var(--border);
+  transform: scale(0.98);
 }
 
 .btn:disabled {
@@ -2088,44 +2092,49 @@ html:not(.dark) .brutalist-hover:active {
 
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn-ghost {
-  background: var(--bg-surface);
-  color: var(--text-primary);
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
 }
 
 .btn-ghost:hover {
   background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
 
 .btn-danger {
-  background: var(--high);
-  color: #fff;
+  background: var(--high-bg);
+  border-color: var(--high);
+  color: var(--high);
 }
 
 .btn-danger:hover {
-  background: #ff4d4d;
+  background: var(--high);
+  color: #ffffff;
 }
 
-/* Minimalist Premium Light Mode Button Overrides */
 html:not(.dark) .btn {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   background: var(--bg-surface);
   color: var(--text-primary);
-  transform: none;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 8px 16px;
+  padding: 8px 14px;
 }
 
 html:not(.dark) .btn:hover {
@@ -2140,21 +2149,20 @@ html:not(.dark) .btn:focus-visible {
 
 html:not(.dark) .btn-primary {
   background: var(--accent);
-  border: 1px solid var(--accent-hover);
+  border-color: var(--accent);
   color: #ffffff;
-  box-shadow: 0 1px 2px 0 rgba(139, 92, 246, 0.3);
+  box-shadow: 0 1px 2px 0 rgba(124, 58, 237, 0.2);
 }
 
 html:not(.dark) .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
   transform: translateY(-1px);
 }
 
 html:not(.dark) .btn-ghost {
   background: transparent;
-  border: 1px solid transparent;
+  border-color: transparent;
   color: var(--text-secondary);
   box-shadow: none;
 }
@@ -2166,85 +2174,91 @@ html:not(.dark) .btn-ghost:hover {
 
 html:not(.dark) .btn-danger {
   background: var(--high-bg);
-  border: 1px solid var(--high);
+  border-color: var(--high);
   color: var(--high);
 }
 
 html:not(.dark) .btn-danger:hover {
   background: var(--high);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
-/* Cyberpunk Dark Mode Button Overrides */
 .dark .btn {
   font-family: var(--font-sans);
   font-weight: 500;
-  border: 1px solid var(--accent);
-  box-shadow: var(--box-shadow-neon-sm);
-  background: transparent;
-  color: var(--accent);
-  clip-path: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
-  border-radius: 0;
-  transition: all 150ms steps(4);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  transition: all 0.15s ease;
+}
+
+.dark .btn:hover {
+  background: var(--bg-hover);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .dark .btn:active {
-  transform: translateY(2px);
-  box-shadow: none;
+  transform: scale(0.98);
 }
 
 .dark .btn-primary {
-  background: var(--accent);
-  color: var(--bg-base);
-  box-shadow: var(--box-shadow-neon);
+  background: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #042416;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .dark .btn-primary:hover {
-  background: transparent;
-  color: var(--accent);
-  box-shadow: var(--box-shadow-neon-lg);
-  filter: brightness(1.2);
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  filter: none;
 }
 
 .dark .btn-ghost {
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
   box-shadow: none;
 }
 
 .dark .btn-ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: var(--box-shadow-neon-sm);
-  background: var(--accent-subtle);
+  background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
 
 .dark .btn-danger {
-  border-color: var(--high);
+  border-color: rgba(244, 63, 94, 0.3);
   color: var(--high);
-  background: transparent;
+  background: var(--high-bg);
+  box-shadow: none;
 }
 
 .dark .btn-danger:hover {
   background: var(--high);
-  color: var(--bg-base);
-  box-shadow: 0 0 10px var(--high), 0 0 20px rgba(255, 51, 102, 0.5);
+  color: #ffffff;
 }
 
-/* ─── Input system ─────────────────────────────────────────────────────────── */
 .input {
-  background: var(--bg-surface);
-  border: 4px solid var(--border);
-  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 400;
   color: var(--text-primary);
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: inherit;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  outline: none;
 }
 
 input[type="text"]::-webkit-calendar-picker-indicator,
@@ -2257,15 +2271,15 @@ input[type="text"]::-webkit-calendar-picker-indicator,
 
 html:not(.dark) .input {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13.5px;
   border: 1px solid var(--border);
   background: var(--bg-surface);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 9px 13px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   font-weight: 400;
   color: var(--text-primary);
-  transition: all 200ms ease;
+  transition: all 0.15s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -2280,23 +2294,23 @@ html:not(.dark) .input:focus {
 
 .input:focus {
   outline: none;
-  background-color: var(--bg-hover);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+  background: var(--bg-surface);
 }
 
 .input::placeholder {
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .dark .input {
   border: 1px solid var(--border);
-  border-radius: 0;
-  clip-path: polygon(0 6px, 6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px));
+  border-radius: var(--radius-md);
   font-weight: 400;
-  color: var(--accent);
-  background: var(--bg-surface);
-  padding-left: 20px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  padding: 9px 13px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -2304,8 +2318,8 @@ html:not(.dark) .input:focus {
 
 .dark .input:focus {
   border-color: var(--accent);
-  box-shadow: var(--box-shadow-neon-sm);
-  background: var(--bg-base);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  background: var(--bg-surface);
 }
 
 select.input {
@@ -2445,52 +2459,36 @@ textarea.input::-webkit-scrollbar-corner,
 /* ─── Card ─────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-surface);
-  border: 4px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 html:not(.dark) .card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   background: var(--bg-card);
-  transition: box-shadow 200ms ease, transform 200ms ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
 }
 
 html:not(.dark) .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
 }
 
 .dark .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  clip-path: polygon(0 12px, 12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px));
-  border-radius: 0;
-  box-shadow: none;
-  transition: all 300ms;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.15s ease;
   position: relative;
 }
 
-.dark .card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: -1;
-}
-
 .dark .card:hover {
-  border-color: var(--accent);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
@@ -2505,24 +2503,21 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
-/* ─── Label ────────────────────────────────────────────────────────────────── */
 .label {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  letter-spacing: 0.01em;
 }
 
 html:not(.dark) .label {
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-secondary);
+  letter-spacing: 0.01em;
 }
 
 /* ─── Badges — Taste Skill Refined Status & Priority Pills ───────────────── */
@@ -2767,40 +2762,37 @@ html:not(.dark) .label {
    PILL BUTTONS (filter navigation)
    ───────────────────────────────────────────────────────────────────────────── */
 .pill {
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  border: 4px solid var(--border);
-  box-shadow: 2px 2px 0px 0px var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .pill:hover {
   background: var(--bg-hover);
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px 0px var(--border);
+  border-color: var(--border-focus);
 }
 
 .pill:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px 0px var(--border);
+  transform: scale(0.98);
 }
 
 .pill.active {
-  background: var(--text-primary);
-  color: var(--bg-base);
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
 }
 
 .pill.today {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: #ffffff;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
