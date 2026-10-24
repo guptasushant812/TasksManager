@@ -35,9 +35,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
   const [data, setData] = useState(initialData);
 
+  const currentTaskIdRef = useRef(task._id);
   useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
+    if (task._id !== currentTaskIdRef.current) {
+      currentTaskIdRef.current = task._id;
+      setData(initialData);
+    }
+  }, [task._id, initialData]);
 
   const isDirty = useMemo(() => {
     return (
@@ -66,6 +70,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const savingRef = useRef(saving);
+  savingRef.current = saving;
+  const showUpdateConfirmRef = useRef(showUpdateConfirm);
+  showUpdateConfirmRef.current = showUpdateConfirm;
+
   useEffect(() => {
     setMounted(true);
     const prevOverflow = document.body.style.overflow;
@@ -74,18 +85,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     if (contentScrollRef.current) {
       contentScrollRef.current.scrollTop = 0;
     }
-    const timer = setTimeout(() => {
-      if (contentScrollRef.current) {
-        contentScrollRef.current.scrollTop = 0;
-      }
-    }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) {
-        if (showUpdateConfirm) {
+      if (e.key === 'Escape' && !savingRef.current) {
+        if (showUpdateConfirmRef.current) {
           setShowUpdateConfirm(false);
         } else {
-          onClose();
+          onCloseRef.current();
         }
       }
     };
@@ -93,11 +99,10 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
     return () => {
       document.body.style.overflow = prevOverflow;
-      clearTimeout(timer);
       if (aiNoticeTimeoutRef.current) clearTimeout(aiNoticeTimeoutRef.current);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [saving, showUpdateConfirm, onClose]);
+  }, []);
 
   const {
     regeneratingIndex,

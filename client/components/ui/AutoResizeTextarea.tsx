@@ -63,8 +63,11 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
         return;
       }
 
-      // Preserve scrollTop so typing at max height boundary does not jump to the top
+      // Preserve scrollTop of both textarea and nearest scrollable container
       const prevScrollTop = textarea.scrollTop;
+      const scrollParent = textarea.closest('.modal-body-content') as HTMLElement | null;
+      const parentScrollTop = scrollParent?.scrollTop;
+
       textarea.style.height = 'auto';
       const scrollH = textarea.scrollHeight;
 
@@ -88,20 +91,19 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
         textarea.scrollTop = (value || defaultValue) ? prevScrollTop : 0;
       } else {
         textarea.style.overflowY = 'hidden';
-        textarea.scrollTop = 0;
       }
 
       textarea.style.overflowX = 'auto';
+
+      if (scrollParent && parentScrollTop !== undefined && scrollParent.scrollTop !== parentScrollTop) {
+        scrollParent.scrollTop = parentScrollTop;
+      }
     }, [minPx, maxPx, value, defaultValue]);
 
     // Adjust height on mount and value changes
     useEffect(() => {
       adjustHeight();
-      const raf = requestAnimationFrame(() => {
-        adjustHeight();
-      });
-      return () => cancelAnimationFrame(raf);
-    }, [value, defaultValue, adjustHeight]);
+    }, [adjustHeight]);
 
     // Recalculate on window resize unless manually sized
     useEffect(() => {
