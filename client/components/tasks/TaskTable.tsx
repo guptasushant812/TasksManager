@@ -689,6 +689,16 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   const filterRef = useRef<HTMLDivElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const showToast = useCallback((msg: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setDeleteSuccessMsg(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setDeleteSuccessMsg(null);
+      toastTimeoutRef.current = undefined;
+    }, 3500);
+  }, []);
 
   const tableLimit = isDashboard ? 5 : (filters.limit || 20);
   const displayedTasks = isDashboard ? tasks.slice(0, 5) : tasks;
@@ -701,6 +711,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     }, 5000);
     return () => clearInterval(interval);
   }, [filters, refreshKey, fetchTasks, tableLimit]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
 
   // Keep searchInput in sync when reset or changed by parent filters
   useEffect(() => {
@@ -747,8 +763,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
       const deletedTaskId = taskToDelete.taskId;
       setTaskToDelete(null);
       fetchTasks({ ...filters, limit: tableLimit });
-      setDeleteSuccessMsg(`Task ${deletedTaskId} deleted successfully`);
-      setTimeout(() => setDeleteSuccessMsg(null), 3500);
+      showToast(`Task ${deletedTaskId} deleted successfully`);
     } catch (err) {
       setDeleteErrorMsg(err instanceof Error ? err.message : 'Failed to delete task');
     } finally {
@@ -769,8 +784,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
       await deleteManyTasks(selectedIds);
       setSelectedIds([]);
       fetchTasks({ ...filters, limit: tableLimit });
-      setDeleteSuccessMsg(`Successfully deleted ${count} task${count > 1 ? 's' : ''}`);
-      setTimeout(() => setDeleteSuccessMsg(null), 3500);
+      showToast(`Successfully deleted ${count} task${count > 1 ? 's' : ''}`);
     } catch (err) {
       setDeleteErrorMsg(err instanceof Error ? err.message : 'Failed to delete selected tasks');
     } finally {
@@ -1356,8 +1370,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           onSaved={(msg) => {
             setEditTask(null);
             fetchTasks({ ...filters, limit: tableLimit });
-            setDeleteSuccessMsg(msg || 'Task updated successfully');
-            setTimeout(() => setDeleteSuccessMsg(null), 3500);
+            showToast(msg || 'Task updated successfully');
           }}
         />
       )}
@@ -1616,7 +1629,10 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           <button
             type="button"
             className="app-toast-dismiss"
-            onClick={() => setDeleteSuccessMsg(null)}
+            onClick={() => {
+              if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+              setDeleteSuccessMsg(null);
+            }}
             aria-label="Dismiss toast"
           >
             <X style={{ width: 14, height: 14 }} />
