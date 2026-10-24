@@ -8110,14 +8110,14 @@ body {
   }
 }
 
-/* Toast notification layout and responsive placement */
+/* Toast notification positioned at the top right corner */
 .app-toast {
   position: fixed;
   top: clamp(18px, 2.5vh, 28px);
-  left: 50%;
-  transform: translateX(-50%);
+  right: clamp(16px, 2.5vw, 28px);
+  left: auto;
   bottom: auto;
-  right: auto;
+  transform: none;
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -8128,20 +8128,20 @@ body {
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.14), 0 4px 14px -2px rgba(16, 185, 129, 0.12);
-  animation: appToastSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  max-width: min(520px, calc(100vw - 32px));
+  animation: appToastSlideDownRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: min(440px, calc(100vw - 32px));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-@keyframes appToastSlideDown {
+@keyframes appToastSlideDownRight {
   from {
     opacity: 0;
-    transform: translate(-50%, -18px) scale(0.96);
+    transform: translate3d(16px, -14px, 0) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -8254,38 +8254,26 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 600px) {
   .app-toast {
-    top: auto;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
-    left: 12px;
+    top: max(16px, env(safe-area-inset-top, 16px));
     right: 12px;
-    transform: none;
-    margin: 0 auto;
+    left: auto;
+    bottom: auto;
     max-width: calc(100vw - 24px);
-    width: fit-content;
+    width: auto;
     padding: 10px 14px;
     font-size: 13px;
     border-radius: 12px;
-    animation: appToastSlideUpMobile 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-}
-
-@keyframes appToastSlideUpMobile {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
 @media (max-width: 360px) {
   .app-toast {
-    left: 8px;
+    top: max(12px, env(safe-area-inset-top, 12px));
     right: 8px;
+    left: auto;
+    bottom: auto;
     max-width: calc(100vw - 16px);
     padding: 8px 10px;
     font-size: 12px;
