@@ -231,7 +231,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       </div>
 
       <div className="task-form-grid-dates-status">
-        <div>
+        <div className="task-form-field-date">
           <label className="label" htmlFor="field-date" style={{ marginBottom: 4 }}>Task Date *</label>
           <input
             id="field-date"
@@ -243,7 +243,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           />
           {errors.date && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.date}</span>}
         </div>
-        <div>
+        <div className="task-form-field-duedate">
           <label className="label" htmlFor="field-dueDate" style={{ marginBottom: 4 }}>Due Date</label>
           <input
             id="field-dueDate"
@@ -253,7 +253,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             onChange={(e) => onChange('dueDate', e.target.value)}
           />
         </div>
-        <div>
+        <div className="task-form-field-priority">
           <label className="label" style={{ marginBottom: 4 }}>Priority</label>
           <div className="priority-button-group" style={{ display: 'flex', gap: 6, width: '100%', minWidth: 0, height: 42, alignItems: 'stretch' }}>
             {PRIORITIES.map((p) => {
@@ -295,7 +295,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             })}
           </div>
         </div>
-        <div>
+        <div className="task-form-field-status">
           <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work Status</label>
           <select
             id="field-workStatus"
