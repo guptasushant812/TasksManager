@@ -2080,10 +2080,20 @@ html:not(.dark) .brutalist-hover:active {
   box-shadow: 0px 0px 0px 0px var(--border);
 }
 
-.btn:disabled {
-  opacity: 0.5;
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.42;
   cursor: not-allowed;
-  pointer-events: none;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.dark .btn:disabled,
+.dark .btn[disabled] {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .btn-primary {

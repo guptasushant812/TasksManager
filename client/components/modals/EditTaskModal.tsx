@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Task, Priority, WorkStatus } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
@@ -17,21 +17,43 @@ interface EditTaskModalProps {
 }
 
 export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalProps) {
-  const [data, setData] = useState({
-    title: task.title,
-    description: task.description,
-    givenBy: task.givenBy,
+  const initialData = useMemo(() => ({
+    title: task.title || '',
+    description: task.description || '',
+    givenBy: task.givenBy || '',
     contactPerson: task.contactPerson || '',
-    priority: task.priority as Priority | '',
-    workStatus: task.workStatus as WorkStatus | '',
+    priority: (task.priority || '') as Priority | '',
+    workStatus: (task.workStatus || '') as WorkStatus | '',
     reason: task.reason || '',
     remarks: task.remarks || '',
-    inProgressReason: task.inProgressReason || (task.workStatus === 'InProgress' ? task.reason : ''),
-    pendingReason: task.pendingReason || (task.workStatus === 'Pending' ? task.reason : ''),
-    completedRemarks: task.completedRemarks || (task.workStatus === 'Completed' ? task.remarks : ''),
+    inProgressReason: task.inProgressReason || (task.workStatus === 'InProgress' ? task.reason : '') || '',
+    pendingReason: task.pendingReason || (task.workStatus === 'Pending' ? task.reason : '') || '',
+    completedRemarks: task.completedRemarks || (task.workStatus === 'Completed' ? task.remarks : '') || '',
     date: toIsoDate(task.date),
     dueDate: task.dueDate ? toIsoDate(task.dueDate) : '',
-  });
+  }), [task]);
+
+  const [data, setData] = useState(initialData);
+
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
+  const isDirty = useMemo(() => {
+    return (
+      (data.title || '') !== initialData.title ||
+      (data.description || '') !== initialData.description ||
+      (data.givenBy || '') !== initialData.givenBy ||
+      (data.contactPerson || '') !== initialData.contactPerson ||
+      (data.priority || '') !== initialData.priority ||
+      (data.workStatus || '') !== initialData.workStatus ||
+      (data.date || '') !== initialData.date ||
+      (data.dueDate || '') !== initialData.dueDate ||
+      (data.inProgressReason || '') !== initialData.inProgressReason ||
+      (data.pendingReason || '') !== initialData.pendingReason ||
+      (data.completedRemarks || '') !== initialData.completedRemarks
+    );
+  }, [data, initialData]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const { updateTask } = useTasks();
@@ -132,6 +154,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   }
 
   function handleTriggerUpdate() {
+    if (!isDirty || saving) return;
     if (!validate()) return;
     setShowUpdateConfirm(true);
   }
@@ -518,7 +541,13 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
         <div className="edit-task-modal-footer" style={{ padding: '14px 24px', borderTop: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0 }}>
           <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleTriggerUpdate} disabled={saving}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleTriggerUpdate}
+            disabled={saving || !isDirty}
+            title={!isDirty ? 'No changes made' : 'Update Task'}
+          >
             {saving ? (
               <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} /> Saving…</>
             ) : (
