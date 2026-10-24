@@ -164,9 +164,9 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
   const hasMultipleNotes = (currentPending ? 1 : 0) + (currentInProgress ? 1 : 0) + (currentCompleted ? 1 : 0) > 1;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       <div>
-        <label className="label" htmlFor="field-title" style={{ marginBottom: 4 }}>Task title *</label>
+        <label className="label" htmlFor="field-title" style={{ marginBottom: 4 }}>Task Title *</label>
         <input
           id="field-title"
           className="input"
@@ -194,7 +194,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
 
       <div className="task-form-grid-2col">
         <div>
-          <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given by</label>
+          <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By</label>
           <input
             id="field-givenBy"
             className="input hide-datalist-arrow"
@@ -218,7 +218,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </datalist>
         </div>
         <div>
-          <label className="label" htmlFor="field-contactPerson" style={{ marginBottom: 4 }}>Contact person</label>
+          <label className="label" htmlFor="field-contactPerson" style={{ marginBottom: 4 }}>Contact Person</label>
           <input
             id="field-contactPerson"
             className="input"
@@ -232,7 +232,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
 
       <div className="task-form-grid-dates-status">
         <div>
-          <label className="label" htmlFor="field-date" style={{ marginBottom: 4 }}>Task date *</label>
+          <label className="label" htmlFor="field-date" style={{ marginBottom: 4 }}>Task Date *</label>
           <input
             id="field-date"
             className="input"
@@ -244,7 +244,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           {errors.date && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.date}</span>}
         </div>
         <div>
-          <label className="label" htmlFor="field-dueDate" style={{ marginBottom: 4 }}>Due date</label>
+          <label className="label" htmlFor="field-dueDate" style={{ marginBottom: 4 }}>Due Date</label>
           <input
             id="field-dueDate"
             className="input"
@@ -255,7 +255,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         </div>
         <div>
           <label className="label" style={{ marginBottom: 4 }}>Priority</label>
-          <div className="priority-button-group" style={{ display: 'flex', gap: 6, width: '100%', minWidth: 0, height: 38, alignItems: 'stretch' }}>
+          <div className="priority-button-group" style={{ display: 'flex', gap: 6, width: '100%', minWidth: 0, height: 42, alignItems: 'stretch' }}>
             {PRIORITIES.map((p) => {
               const isSelected = data.priority === p;
               const cfg = PRIORITY_CONFIG[p];
@@ -264,22 +264,24 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                   key={p}
                   type="button"
                   onClick={() => onChange('priority', isSelected ? '' : p)}
-                  className={`priority-pill-btn ${isSelected ? 'active' : ''}`}
+                  className={`pill priority-pill-btn ${isSelected ? 'active' : ''}`}
                   style={{
                     flex: 1,
                     minWidth: 0,
                     height: '100%',
-                    minHeight: 38,
-                    padding: '6px 10px',
-                    fontSize: 12.5,
-                    fontWeight: 600,
+                    minHeight: 42,
+                    padding: '8px 10px',
+                    fontSize: 13,
+                    fontWeight: 700,
                     textAlign: 'center',
-                    borderRadius: 'var(--radius-md, 8px)',
-                    border: isSelected ? `1px solid ${cfg.borderActive}` : '1px solid var(--border)',
-                    background: isSelected ? cfg.bgActive : 'var(--bg-elevated)',
-                    color: isSelected ? cfg.color : 'var(--text-secondary)',
+                    textTransform: 'capitalize',
+                    borderRadius: 9999,
+                    border: isSelected ? `1.5px solid ${cfg.borderActive}` : `1px solid ${cfg.borderInactive}`,
+                    background: isSelected ? cfg.bgActive : cfg.bgInactive,
+                    color: isSelected ? cfg.color : cfg.textInactive,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? `0 0 10px ${cfg.bgActive}` : 'none',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -294,7 +296,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           </div>
         </div>
         <div>
-          <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work status</label>
+          <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work Status</label>
           <select
             id="field-workStatus"
             className="input"
@@ -423,6 +425,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
+              style={{ borderColor: 'var(--pending)' }}
             />
           </div>
         )}
@@ -430,7 +433,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {activeReasonTab === 'InProgress' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-reason-inprogress">
-              Reason for In Progress
+              Reason for InProgress
             </label>
             <AutoResizeTextarea
               id="field-reason-inprogress"
@@ -440,6 +443,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
+              style={{ borderColor: 'var(--inprogress)' }}
             />
           </div>
         )}
@@ -447,7 +451,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
         {activeReasonTab === 'Completed' && (
           <div className="animate-fade-in">
             <label className="label" htmlFor="field-remarks-completed">
-              Reason / remarks for Completed
+              Reason for Completed
             </label>
             <AutoResizeTextarea
               id="field-remarks-completed"
@@ -457,6 +461,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
+              style={{ borderColor: 'var(--completed)' }}
             />
           </div>
         )}
