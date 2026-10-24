@@ -276,9 +276,8 @@ function generatePdfBuffer(
 
       const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
       const hasDueDates = tasks.some(t => Boolean(t.dueDate));
-      const isSingleDateReport = reportTitle.includes('Daily ') || reportTitle.includes(' — Date ');
       const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
-      const showDateCol = !isSingleDateReport && uniqueDates.size > 0;
+      const showDateCol = uniqueDates.size > 0;
 
       interface ColDef {
         key: string;
@@ -290,22 +289,7 @@ function generatePdfBuffer(
 
       const allColDefs: ColDef[] = [
         { key: 'sr', header: 'Sr.', baseWidth: 26, align: 'center', getValue: (_, idx) => String(idx + 1) },
-        { key: 'title', header: 'Title', baseWidth: 112, align: 'left', getValue: (t) => t.title || '—' },
-        { key: 'description', header: 'Description', baseWidth: 178, align: 'left', getValue: (t) => t.description || '—' },
-        { key: 'givenBy', header: 'Given By', baseWidth: 78, align: 'left', getValue: (t) => t.givenBy || '—' },
-        { key: 'priority', header: 'Priority', baseWidth: 48, align: 'center', getValue: (t) => t.priority || '—' },
-        { key: 'status', header: 'Status', baseWidth: 60, align: 'center', getValue: (t) => t.workStatus || '—' },
       ];
-
-      if (hasFollowUps) {
-        allColDefs.push({
-          key: 'fUps',
-          header: 'F-Ups',
-          baseWidth: 34,
-          align: 'center',
-          getValue: (t) => String(summaryMap.get(t._id.toString()) || 0)
-        });
-      }
 
       if (showDateCol) {
         allColDefs.push({
@@ -314,6 +298,24 @@ function generatePdfBuffer(
           baseWidth: 58,
           align: 'center',
           getValue: (t) => formatDateStr(t.date)
+        });
+      }
+
+      allColDefs.push(
+        { key: 'title', header: 'Title', baseWidth: 112, align: 'left', getValue: (t) => t.title || '—' },
+        { key: 'description', header: 'Description', baseWidth: 178, align: 'left', getValue: (t) => t.description || '—' },
+        { key: 'givenBy', header: 'Given By', baseWidth: 78, align: 'left', getValue: (t) => t.givenBy || '—' },
+        { key: 'priority', header: 'Priority', baseWidth: 48, align: 'center', getValue: (t) => t.priority || '—' },
+        { key: 'status', header: 'Status', baseWidth: 60, align: 'center', getValue: (t) => t.workStatus || '—' },
+      );
+
+      if (hasFollowUps) {
+        allColDefs.push({
+          key: 'fUps',
+          header: 'F-Ups',
+          baseWidth: 34,
+          align: 'center',
+          getValue: (t) => String(summaryMap.get(t._id.toString()) || 0)
         });
       }
 
@@ -747,9 +749,8 @@ async function generateExcelBuffer(
 
   const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
   const hasDueDates = tasks.some(t => Boolean(t.dueDate));
-  const isSingleDateReport = reportTitle.includes('Daily ') || reportTitle.includes(' — Date ');
   const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
-  const showDateCol = !isSingleDateReport && uniqueDates.size > 0;
+  const showDateCol = uniqueDates.size > 0;
 
   interface ExcelColDef {
     header: string;
@@ -763,21 +764,7 @@ async function generateExcelBuffer(
 
   const excelCols: ExcelColDef[] = [
     { header: 'Sr No', key: 'sr', width: 8, getValue: (_, idx) => idx + 1 },
-    { header: 'Title', key: 'title', width: 28, getValue: (t) => t.title || '', isLeft: true },
-    { header: 'Description', key: 'description', width: 48, getValue: (t) => t.description || '', isLeft: true },
-    { header: 'Given By', key: 'givenBy', width: 20, getValue: (t) => t.givenBy || '', isLeft: true },
-    { header: 'Priority', key: 'priority', width: 14, getValue: (t) => t.priority || '', isPriority: true },
-    { header: 'Work Status', key: 'workStatus', width: 16, getValue: (t) => t.workStatus || '', isStatus: true },
   ];
-
-  if (hasFollowUps) {
-    excelCols.push({
-      header: 'Follow-ups',
-      key: 'fUps',
-      width: 13,
-      getValue: (t) => summaryMap.get(t._id.toString()) || 0,
-    });
-  }
 
   if (showDateCol) {
     excelCols.push({
@@ -785,6 +772,23 @@ async function generateExcelBuffer(
       key: 'date',
       width: 14,
       getValue: (t) => formatDateStr(t.date),
+    });
+  }
+
+  excelCols.push(
+    { header: 'Title', key: 'title', width: 28, getValue: (t) => t.title || '', isLeft: true },
+    { header: 'Description', key: 'description', width: 48, getValue: (t) => t.description || '', isLeft: true },
+    { header: 'Given By', key: 'givenBy', width: 20, getValue: (t) => t.givenBy || '', isLeft: true },
+    { header: 'Priority', key: 'priority', width: 14, getValue: (t) => t.priority || '', isPriority: true },
+    { header: 'Work Status', key: 'workStatus', width: 16, getValue: (t) => t.workStatus || '', isStatus: true },
+  );
+
+  if (hasFollowUps) {
+    excelCols.push({
+      header: 'Follow-ups',
+      key: 'fUps',
+      width: 13,
+      getValue: (t) => summaryMap.get(t._id.toString()) || 0,
     });
   }
 

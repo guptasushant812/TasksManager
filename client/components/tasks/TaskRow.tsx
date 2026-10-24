@@ -51,6 +51,10 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
         )}
       </td>
 
+      <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 12 }}>{formatDate(task.date)}</span>
+      </td>
+
       <td style={{ minWidth: 140, maxWidth: 200, whiteSpace: 'normal', wordWrap: 'break-word' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
           <span style={{
@@ -136,10 +140,6 @@ export default function TaskRow({ task, index, selected, selectMode, followUpSum
         <span className={STATUS_BADGE[task.workStatus]}>
           {task.workStatus}
         </span>
-      </td>
-
-      <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
-        <span style={{ fontSize: 12 }}>{formatDate(task.date)}</span>
       </td>
 
       <td style={{ minWidth: 100, maxWidth: 140, whiteSpace: 'normal', wordWrap: 'break-word' }}>
