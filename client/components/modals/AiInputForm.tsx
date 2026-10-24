@@ -779,13 +779,17 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           return (
             <div 
               key={draft.id || i} 
-              className="card animate-fade-in" 
+              className="card ai-task-draft-card animate-fade-in" 
               style={{ 
                 padding: 20, 
                 position: 'relative',
                 borderTop: '1px solid var(--accent)',
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustRegenerated ? '2px solid var(--completed)' : undefined,
-                transition: 'border 0.2s ease'
+                transition: 'border 0.2s ease',
+                width: '100%',
+                maxWidth: '100%',
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div 
