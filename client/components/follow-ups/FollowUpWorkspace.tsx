@@ -808,9 +808,9 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                   </tr>
                 </thead>
                 <tbody>
-                  {loading && tasks.length === 0
+                  {loading
                     ? Array.from({ length: 5 }).map((_, i) => (
-                        <tr key={`fu-skel-${i}`}>
+                        <tr key={`fu-skel-${i}`} className="skeleton-row">
                           <td colSpan={6} style={{ padding: '16px 20px' }}>
                             <div className="skeleton" style={{ height: 24, width: '100%', opacity: 1 - i * 0.18 }} />
                           </td>
@@ -834,8 +834,9 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
               </table>
             </div>
 
-            <div className="fu-mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 12 }}>
-              {tasks.map((task) => (
+            {!loading && (
+              <div className="fu-mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 12 }}>
+                {tasks.map((task) => (
                 <FollowUpCard
                   key={task._id}
                   task={task}
@@ -849,8 +850,9 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                 />
               ))}
             </div>
-          </>
-        )}
+          )}
+        </>
+      )}
 
         {!loading && tasks.length > 0 && (
           <div

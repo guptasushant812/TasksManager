@@ -1146,7 +1146,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
                 </tr>
               </thead>
               <tbody>
-                {loading && tasks.length === 0 ? (
+                {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={`skeleton-${i}`} className="skeleton-row">
                       <td colSpan={10} style={{ padding: '16px 24px' }}>
