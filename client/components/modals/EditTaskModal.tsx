@@ -10,16 +10,10 @@ import { X, Save, Sparkles, RefreshCw, Check } from 'lucide-react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import AiQuotaModal from './AiQuotaModal';
 
-const STATUS_BADGE: Record<string, string> = {
-  InProgress: 'badge-inprogress',
-  Pending: 'badge-pending',
-  Completed: 'badge-completed',
-};
-
 interface EditTaskModalProps {
   task: Task;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (message?: string) => void;
 }
 
 export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalProps) {
@@ -45,8 +39,8 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const [isRegenOpen, setIsRegenOpen] = useState(false);
   const [regenInstruction, setRegenInstruction] = useState('');
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState<{ title: string; message: string } | null>(null);
-  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const aiNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -55,7 +49,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Ensure modal content starts at top
     if (contentScrollRef.current) {
       contentScrollRef.current.scrollTop = 0;
     }
@@ -66,8 +59,12 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving && !showUpdateConfirm) {
-        onClose();
+      if (e.key === 'Escape' && !saving) {
+        if (showUpdateConfirm) {
+          setShowUpdateConfirm(false);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -75,6 +72,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     return () => {
       document.body.style.overflow = prevOverflow;
       clearTimeout(timer);
+      if (aiNoticeTimeoutRef.current) clearTimeout(aiNoticeTimeoutRef.current);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [saving, showUpdateConfirm, onClose]);
@@ -107,30 +105,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     return Object.keys(errs).length === 0;
   }
 
-  const handleCloseSuccess = () => {
-    if (successTimeoutRef.current) {
-      clearTimeout(successTimeoutRef.current);
-      successTimeoutRef.current = null;
-    }
-    const isAiModal = showSuccessPopup?.title?.includes('AI') || showSuccessPopup?.message?.includes('AI');
-    setShowSuccessPopup(null);
-    if (!isAiModal) {
-      onSaved();
-    }
-  };
-
-  useEffect(() => {
-    if (!showSuccessPopup) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter') {
-        e.preventDefault();
-        handleCloseSuccess();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSuccessPopup]);
-
   async function handleRegenerate(keyOverride?: string, providerOverride?: string) {
     const result = await regenerateSingleDraft(
       data,
@@ -149,15 +123,11 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       }));
       setIsRegenOpen(false);
       setRegenInstruction('');
-      
-      setShowSuccessPopup({ 
-        title: 'Task updated successfully', 
-        message: 'AI suggestions have been applied.', 
-      });
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-      successTimeoutRef.current = setTimeout(() => {
-        setShowSuccessPopup(null);
-      }, 3500);
+      setAiNotice('AI suggestions applied');
+      if (aiNoticeTimeoutRef.current) clearTimeout(aiNoticeTimeoutRef.current);
+      aiNoticeTimeoutRef.current = setTimeout(() => {
+        setAiNotice(null);
+      }, 3000);
     }
   }
 
@@ -167,7 +137,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   }
 
   async function handleSave() {
-    setShowUpdateConfirm(false);
     setSaving(true);
     const status = (data.workStatus || 'Pending') as WorkStatus;
     const ipReason = data.inProgressReason !== undefined ? data.inProgressReason : (status === 'InProgress' ? data.reason : '');
@@ -188,187 +157,226 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         date: new Date(data.date).toISOString(),
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
       });
-      
-      setShowSuccessPopup({
-        title: 'Task updated successfully',
-        message: 'Your changes have been saved.',
-      });
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-      successTimeoutRef.current = setTimeout(() => {
-        setShowSuccessPopup(null);
-        onSaved();
-      }, 3500);
+
+      setShowUpdateConfirm(false);
+      onSaved(`Task ${task.taskId} updated successfully`);
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to update task' });
+      setShowUpdateConfirm(false);
     } finally {
       setSaving(false);
     }
   }
 
-  // Confirmation and success dialogs
   const renderUpdateConfirmModal = () => (
-    <div className="app-dialog-overlay" style={{ zIndex: 1100 }} onClick={() => setShowUpdateConfirm(false)}>
+    <div
+      className="app-dialog-overlay"
+      style={{ zIndex: 1100 }}
+      onClick={() => !saving && setShowUpdateConfirm(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-task-update-title"
+    >
       <div 
         className="app-dialog-box animate-slide-up" 
         onClick={(e) => e.stopPropagation()} 
-        style={{ maxWidth: 450, marginInline: 'clamp(12px, 3vw, 16px)', width: 'min(450px, calc(100vw - 24px))' }}
+        style={{
+          maxWidth: 420,
+          width: 'min(420px, calc(100vw - 24px))',
+          marginInline: 'clamp(12px, 3vw, 16px)',
+          borderRadius: 14,
+          overflow: 'hidden',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 20px 48px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        }}
       >
-        <div className="app-dialog-accent-bar app-dialog-accent-success" />
-        <div className="app-dialog-header">
-          <div className="app-dialog-header-left">
-            <div className="app-dialog-icon-wrap app-dialog-icon-success">
-              <Save style={{ width: 20, height: 20 }} />
-            </div>
-            <div>
-              <div className="app-dialog-eyebrow app-dialog-eyebrow-success">CONFIRM UPDATE</div>
-              <h3 className="app-dialog-title">Update Task?</h3>
-            </div>
-          </div>
+        <div className="app-dialog-accent-bar app-dialog-accent-success" style={{ height: 2.5 }} />
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px 14px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-elevated)',
+        }}>
+          <h3
+            id="confirm-task-update-title"
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+              margin: 0,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Confirm Task Update?
+          </h3>
           <button 
             type="button" 
-            onClick={() => setShowUpdateConfirm(false)} 
+            onClick={() => !saving && setShowUpdateConfirm(false)} 
             className="app-dialog-close-btn"
             aria-label="Close confirmation dialog"
+            disabled={saving}
+            style={{ padding: 4 }}
           >
-            <X style={{ width: 18, height: 18 }} />
+            <X style={{ width: 16, height: 16 }} />
           </button>
         </div>
 
-        <div className="app-dialog-body">
-          <p className="app-dialog-desc">
-            Please review the updated details before saving changes to this task.
-          </p>
-
-          <div className="app-dialog-card">
-            <div className="app-dialog-row">
-              <span className="app-dialog-label">Task ID</span>
-              <span className="app-dialog-value" style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent)' }}>
+        <div style={{ padding: '16px 20px', background: 'var(--bg-surface)' }}>
+          <div
+            className="app-dialog-card"
+            style={{
+              margin: 0,
+              padding: '12px 14px',
+              borderRadius: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Task ID</span>
+              <span style={{
+                fontFamily: 'var(--font-mono, JetBrains Mono, monospace)',
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--accent, #10b981)',
+                background: 'var(--accent-subtle, rgba(16, 185, 129, 0.12))',
+                padding: '2px 8px',
+                borderRadius: 4,
+                letterSpacing: '0.02em',
+              }}>
                 {task.taskId}
               </span>
             </div>
-            <div className="app-dialog-row">
-              <span className="app-dialog-label">Title</span>
-              <span className="app-dialog-value" style={{ maxWidth: 'min(240px, 60vw)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', paddingTop: 1 }}>Title</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  textAlign: 'right',
+                  maxWidth: '260px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={data.title}
+              >
                 {data.title}
               </span>
             </div>
-            <div className="app-dialog-row">
-              <span className="app-dialog-label">Status</span>
-              <span className="app-dialog-value" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: data.workStatus === 'Completed' ? '#34d399' : data.workStatus === 'InProgress' ? '#60a5fa' : '#fbbf24' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Status</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: data.workStatus === 'Completed' ? '#34d399' : data.workStatus === 'InProgress' ? '#60a5fa' : '#fbbf24',
+              }}>
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    background: data.workStatus === 'Completed' ? '#34d399' : data.workStatus === 'InProgress' ? '#60a5fa' : '#fbbf24',
+                  }}
+                />
                 {data.workStatus || 'Pending'}
               </span>
             </div>
-            <div className="app-dialog-row">
-              <span className="app-dialog-label">Priority</span>
-              <span className="app-dialog-value">{data.priority || 'Medium'}</span>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Priority</span>
+              <span style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: data.priority === 'High' ? '#f43f5e' : data.priority === 'Medium' ? '#a78bfa' : '#38bdf8',
+                background: data.priority === 'High' ? 'rgba(244, 63, 94, 0.12)' : data.priority === 'Medium' ? 'rgba(167, 139, 250, 0.12)' : 'rgba(56, 189, 248, 0.12)',
+                padding: '2px 8px',
+                borderRadius: 4,
+              }}>
+                {data.priority || 'Medium'}
+              </span>
             </div>
-            {data.dueDate && (
-              <div className="app-dialog-row">
-                <span className="app-dialog-label">Due Date</span>
-                <span className="app-dialog-value">{data.dueDate}</span>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="app-dialog-footer">
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 10,
+          padding: '12px 20px 16px',
+          borderTop: '1px solid var(--border-subtle)',
+          background: 'var(--bg-elevated)',
+        }}>
           <button 
             type="button" 
             className="app-dialog-btn-cancel" 
             onClick={() => setShowUpdateConfirm(false)}
-            style={{ minHeight: 44 }}
+            disabled={saving}
+            style={{
+              height: 38,
+              minHeight: 38,
+              padding: '0 16px',
+              fontSize: 13,
+              borderRadius: 8,
+              cursor: 'pointer',
+            }}
           >
             Cancel
           </button>
           <button 
             type="button" 
             className="app-dialog-btn-action" 
-            style={{ background: 'var(--accent)', color: '#000', fontWeight: 700, minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6 }} 
+            style={{
+              height: 38,
+              minHeight: 38,
+              padding: '0 18px',
+              fontSize: 13,
+              fontWeight: 600,
+              background: 'var(--accent, #10b981)',
+              color: '#042416',
+              borderRadius: 8,
+              border: 'none',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }} 
             onClick={handleSave}
             disabled={saving}
           >
-            <Save style={{ width: 16, height: 16 }} />
-            {saving ? 'Updating…' : 'Yes, Save Changes'}
+            {saving ? (
+              <>
+                <div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', borderRadius: '50%' }} />
+                <span>Saving…</span>
+              </>
+            ) : (
+              <span>Save Changes</span>
+            )}
           </button>
         </div>
       </div>
     </div>
   );
 
-  const renderSuccessModal = () => {
-    if (!showSuccessPopup) return null;
-    const currentStatus = data.workStatus || task.workStatus || 'Pending';
-    return (
-      <div 
-        className="app-dialog-overlay" 
-        style={{ zIndex: 1200 }} 
-        onClick={handleCloseSuccess}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="saas-success-title"
-      >
-        <div 
-          className="saas-success-modal" 
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button 
-            type="button"
-            className="saas-modal-close-btn"
-            onClick={handleCloseSuccess}
-            aria-label="Close dialog"
-          >
-            <X style={{ width: 16, height: 16 }} />
-          </button>
-
-          <div className="saas-success-header">
-            <div className="saas-success-icon-wrap">
-              <Check style={{ width: 18, height: 18, strokeWidth: 2.5 }} />
-            </div>
-
-            <h3 id="saas-success-title" className="saas-success-title">
-              {showSuccessPopup.title}
-            </h3>
-            <p className="saas-success-subtitle">
-              {showSuccessPopup.message}
-            </p>
-          </div>
-
-          <div className="saas-task-summary">
-            <div className="saas-task-summary-main">
-              <span className="saas-task-id">{task.taskId}</span>
-              <span className="saas-task-title" title={data.title}>
-                {data.title}
-              </span>
-            </div>
-            <div className="saas-task-summary-meta">
-              <span className={`badge ${STATUS_BADGE[currentStatus] || 'badge-pending'}`}>
-                {currentStatus}
-              </span>
-            </div>
-          </div>
-
-          <div className="saas-success-footer">
-            <button
-              type="button"
-              className="saas-btn-done"
-              onClick={handleCloseSuccess}
-              autoFocus
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   if (!mounted || typeof document === 'undefined') return null;
 
   return createPortal(
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}>
       {showUpdateConfirm && renderUpdateConfirmModal()}
-      {renderSuccessModal()}
       
       <div 
         className="modal-box animate-slide-up" 
@@ -386,9 +394,17 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
       >
         <div style={{ paddingBlock: 16, paddingInline: 24, borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingInlineEnd: 16, flexWrap: 'wrap', gap: 12 }}>
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
-              <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
+                <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
+              </div>
+              {aiNotice && (
+                <span className="animate-fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#34d399', background: 'rgba(16, 185, 129, 0.12)', padding: '3px 8px', borderRadius: 'var(--radius-sm, 6px)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                  <Check style={{ width: 12, height: 12, strokeWidth: 2.5 }} />
+                  {aiNotice}
+                </span>
+              )}
             </div>
             
             <div style={{ position: 'relative' }}>
