@@ -7065,16 +7065,25 @@ body {
   }
 
   .task-form-grid-dates-status .priority-button-group {
-    height: 38px !important;
-    min-height: 38px !important;
+    height: 34px !important;
+    min-height: 34px !important;
     gap: 4px !important;
   }
 
   .task-form-grid-dates-status .pill.priority-pill-btn {
-    min-height: 38px !important;
-    height: 38px !important;
-    padding: 0 4px !important;
-    font-size: 11.5px !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+
+  .label,
+  html.dark .label,
+  html:not(.dark) .label {
+    font-size: 11px !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 3px !important;
   }
 }
 
@@ -7087,6 +7096,28 @@ body {
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 160, 0.4) transparent;
+}
+
+.manual-task-form-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.manual-task-form-body::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+.manual-task-form-body::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 140, 160, 0.4);
+  border-radius: 9999px;
+  border: none !important;
+}
+
+.dark .manual-task-form-body::-webkit-scrollbar-thumb,
+[data-theme="slate"] .manual-task-form-body::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .manual-task-card {
@@ -7249,24 +7280,40 @@ body {
   }
 
   .manual-task-footer {
-    padding: 10px 12px;
-    gap: 8px;
-    flex-wrap: wrap;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
   }
 
   .manual-task-footer-secondary {
-    gap: 6px;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
   }
 
   .manual-task-footer-secondary .btn {
-    padding: 6px 10px;
-    font-size: 12px;
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    min-height: 38px !important;
+  }
+
+  .manual-task-footer-primary {
+    width: 100% !important;
+    display: flex !important;
   }
 
   .manual-task-footer-primary .btn {
-    padding: 7px 14px;
-    font-size: 12.5px;
-    white-space: nowrap;
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 9px 14px !important;
+    font-size: 12.5px !important;
+    min-height: 42px !important;
+    white-space: nowrap !important;
   }
 
   .task-form-grid-2col {
@@ -7285,6 +7332,29 @@ body {
   .task-form-field-priority,
   .task-form-field-status {
     grid-column: 1 / -1;
+  }
+
+  .priority-button-group {
+    height: 36px !important;
+    min-height: 36px !important;
+    gap: 6px !important;
+  }
+
+  .pill.priority-pill-btn {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .label,
+  html.dark .label,
+  html:not(.dark) .label {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 4px !important;
   }
 
   .edit-task-modal-footer {
@@ -8932,6 +9002,45 @@ html:not(.dark) .saas-task-summary {
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+  }
+
+  .task-form-grid-dates-status input[type="date"] {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  .priority-button-group {
+    height: 36px !important;
+    min-height: 36px !important;
+    gap: 6px !important;
+  }
+
+  .pill.priority-pill-btn {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .label,
+  html.dark .label,
+  html:not(.dark) .label {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 4px !important;
+  }
+
+  .manual-task-card-header h3,
+  .ai-task-draft-card h3 {
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
   }
 
   .ai-modal-content-scroll {
@@ -8960,6 +9069,41 @@ html:not(.dark) .saas-task-summary {
 
   .ai-task-draft-card {
     padding: 10px 10px !important;
+  }
+
+  .priority-button-group {
+    height: 34px !important;
+    min-height: 34px !important;
+    gap: 4px !important;
+  }
+
+  .pill.priority-pill-btn {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+
+  .label,
+  html.dark .label,
+  html:not(.dark) .label {
+    font-size: 11px !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 3px !important;
+  }
+
+  .task-form-grid-dates-status input,
+  .task-form-grid-dates-status select {
+    height: 35px !important;
+    min-height: 35px !important;
+    padding: 6px 8px !important;
+    font-size: 11.5px !important;
+  }
+
+  .task-form-grid-dates-status input[type="date"] {
+    font-size: 11px !important;
+    padding: 5px 6px !important;
   }
 
   .ai-modal-content-scroll {
