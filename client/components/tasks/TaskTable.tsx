@@ -1353,7 +1353,12 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
         <EditTaskModal
           task={editTask}
           onClose={() => setEditTask(null)}
-          onSaved={() => { setEditTask(null); fetchTasks({ ...filters, limit: tableLimit }); }}
+          onSaved={(msg) => {
+            setEditTask(null);
+            fetchTasks({ ...filters, limit: tableLimit });
+            setDeleteSuccessMsg(msg || 'Task updated successfully');
+            setTimeout(() => setDeleteSuccessMsg(null), 3500);
+          }}
         />
       )}
 
@@ -1364,6 +1369,8 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
           onSaved={() => {
             setShowNewTaskModal(false);
             fetchTasks({ ...filters, limit: tableLimit });
+            setDeleteSuccessMsg('Task created successfully');
+            setTimeout(() => setDeleteSuccessMsg(null), 3500);
           }}
         />
       )}
