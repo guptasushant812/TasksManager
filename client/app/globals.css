@@ -6001,57 +6001,15 @@ table.task-table {
     grid-column: 1 / -1;
     margin-bottom: -8px;
     opacity: 0.7;
+    order: 1;
   }
 
-  /* 2. Title */
+  /* 2. Date */
   .task-table td:nth-child(2) {
-    grid-column: 1 / -1;
-    font-size: 16px;
-    font-weight: 700;
+    order: 4;
   }
 
-  /* 3. Description */
-  .task-table td:nth-child(3) {
-    grid-column: 1 / -1;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-  }
-
-  /* Add mini labels to data points */
-  .task-table td:nth-child(4)::before {
-    content: "Given By";
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    letter-spacing: 0.05em;
-  }
-
-  .task-table td:nth-child(5)::before {
-    content: "Priority";
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    letter-spacing: 0.05em;
-  }
-
-  .task-table td:nth-child(6)::before {
-    content: "Status";
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    letter-spacing: 0.05em;
-  }
-
-  .task-table td:nth-child(7)::before {
+  .task-table td:nth-child(2)::before {
     content: "Date";
     display: block;
     font-size: 10px;
@@ -6062,8 +6020,70 @@ table.task-table {
     letter-spacing: 0.05em;
   }
 
+  /* 3. Title */
+  .task-table td:nth-child(3) {
+    grid-column: 1 / -1;
+    font-size: 16px;
+    font-weight: 700;
+    order: 2;
+  }
+
+  /* 4. Description */
+  .task-table td:nth-child(4) {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    order: 3;
+  }
+
+  /* Add mini labels to data points */
+  .task-table td:nth-child(5) {
+    order: 5;
+  }
+
+  .task-table td:nth-child(5)::before {
+    content: "Given By";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .task-table td:nth-child(6) {
+    order: 6;
+  }
+
+  .task-table td:nth-child(6)::before {
+    content: "Priority";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .task-table td:nth-child(7) {
+    order: 7;
+  }
+
+  .task-table td:nth-child(7)::before {
+    content: "Status";
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
   /* Ensure badges and dates align nicely */
-  .task-table td:nth-child(4),
+  .task-table td:nth-child(2),
   .task-table td:nth-child(5),
   .task-table td:nth-child(6),
   .task-table td:nth-child(7) {
@@ -6078,6 +6098,7 @@ table.task-table {
     margin-top: 8px;
     padding-top: 12px !important;
     border-top: 1px dashed var(--border-subtle) !important;
+    order: 8;
   }
 
   /* 9. Actions */
@@ -6089,6 +6110,7 @@ table.task-table {
     align-items: center;
     padding-top: 12px !important;
     border-top: 1px solid var(--border-subtle) !important;
+    order: 9;
   }
 }
 

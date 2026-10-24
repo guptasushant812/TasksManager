@@ -25,12 +25,12 @@ interface TaskTableProps {
 
 const SORT_COLUMNS: { key: string; label: string }[] = [
   { key: 'taskId', label: '#' },
+  { key: 'date', label: 'Date' },
   { key: 'title', label: 'Task' },
   { key: 'description', label: 'Description' },
   { key: 'givenBy', label: 'Given By' },
   { key: 'priority', label: 'Priority' },
   { key: 'workStatus', label: 'Status' },
-  { key: 'date', label: 'Date' },
   { key: 'reason', label: 'Reason / Remarks' },
   { key: 'actions', label: 'Actions' },
 ];
