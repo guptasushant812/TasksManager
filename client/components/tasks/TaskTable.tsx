@@ -734,6 +734,10 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
     return () => clearTimeout(searchDebounce.current);
   }, [searchInput, filters.search, onFiltersChange]);
 
+  const handleCloseEdit = useCallback(() => {
+    setEditTask(null);
+  }, []);
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
@@ -1366,7 +1370,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
       {editTask && (
         <EditTaskModal
           task={editTask}
-          onClose={() => setEditTask(null)}
+          onClose={handleCloseEdit}
           onSaved={(msg) => {
             setEditTask(null);
             fetchTasks({ ...filters, limit: tableLimit });
