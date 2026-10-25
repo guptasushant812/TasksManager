@@ -1,11 +1,5 @@
-# ==============================================================================
-# TasksManager Comprehensive .gitignore
-# Prevents accidental leakage of secrets, credentials, build artifacts & caches
-# ==============================================================================
-
 # Dependencies
 node_modules/
-*/node_modules/
 .pnp
 .pnp.*
 .yarn/*
@@ -14,11 +8,9 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# Environment Variables & Secret Keys (CRITICAL SECURITY)
+# Environment & Secrets
 .env
-.env*
-*.env
-*.env.*
+.env.*
 !.env.example
 *.pem
 *.key
@@ -31,34 +23,27 @@ service-account*.json
 id_rsa*
 id_ed25519*
 
-# Next.js & TypeScript Build Outputs
+# Build Outputs
 .next/
-*/.next/
 dist/
-*/dist/
 build/
-*/build/
 out/
-*/out/
 *.tsbuildinfo
 next-env.d.ts
 
-# Logs & Diagnostics
-logs/
+# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Operating System Files
+# OS Files
 .DS_Store
 Thumbs.db
-ehthumbs.db
 Desktop.ini
-$RECYCLE.BIN/
 
-# IDE & Editor Configurations
+# IDE & Editor
 .vscode/
 .idea/
 *.suo
@@ -69,39 +54,34 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-# Temporary Scripts, Scratchpads & Test Dumps
-scratch*
-test_*
-*.tmp
-*.temp
-out.txt
-server/check-db.js
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
 
-# Export Archives & Media Dumps
+# Hosting
+.vercel/
+.serverless/
+
+# Archives
 *.zip
 *.tar
 *.tar.gz
 *.7z
 *.rar
 
-# Test Coverage & Frameworks
-coverage/
-.nyc_output/
+# Generated docs
+*.pdf
 
-# Cloud & Hosting Providers
-.vercel/
-.serverless/
+# Uploads (runtime data, not source)
+server/uploads/*
+!server/uploads/.gitkeep
 
-# Prompt Files & Notes
-MediaQueryPrompt.md
-
-# Agent Artifacts
+# Agent & AI tooling
 .agents/
 .serena/
 .cursor/
 skills-lock.json
-
-
-# Generated AI Documentation
-TasksManager_AI_Architecture.pdf
-TasksManager_AI_Architecture.md
+client/AGENTS.md
+client/CLAUDE.md
