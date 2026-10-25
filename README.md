@@ -45,12 +45,7 @@ We recently underwent a massive UI/UX and architectural overhaul to solve severa
 > 🔒 **Security Notice**: Never commit `.env` files or real database credentials to Git. All secrets must remain in local, uncommitted `.env` files which are protected by `.gitignore`.
 
 1. **Configure Server Environment**:
-   Copy the example environment template into `server/.env`:
-   ```bash
-   cp server/.env.example server/.env
-   # Or copy root .env.example
-   ```
-   Open `server/.env` and configure your MongoDB connection:
+   Create a `server/.env` file with your configuration:
    ```env
    # Local MongoDB
    MONGODB_URI=mongodb://localhost:27017/taskmanager
