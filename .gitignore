@@ -97,6 +97,8 @@ MediaQueryPrompt.md
 
 # Agent Artifacts
 .agents/
+.serena/
+.cursor/
 skills-lock.json
 
 
