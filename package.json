@@ -14,9 +14,5 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "@google/genai": "^2.24.0",
-    "lucide-react": "^1.48.0"
   }
 }
