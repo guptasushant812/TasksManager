@@ -21,7 +21,6 @@ interface TaskContextValue {
 
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 
-const currentYear = new Date().getFullYear();
 const START_YEAR = 2022;
 
 export function TaskProvider({ children }: { children: ReactNode }) {
