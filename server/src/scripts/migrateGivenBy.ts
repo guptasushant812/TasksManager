@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import { normalizeGivenBy } from '../utils/normalizeGivenBy';
 
 async function previewAndMigrate(isDryRun: boolean = true) {
-  const mongoUri = process.env.MONGO_URI;
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
   if (!mongoUri) {
-    throw new Error('MONGO_URI is missing from environment variables');
+    throw new Error('MONGODB_URI or MONGO_URI is missing from environment variables');
   }
 
   await mongoose.connect(mongoUri);
