@@ -434,6 +434,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setPassword(e.target.value);
                       setError(false);
                     }}
+                    disabled={isVerifying || isUnlocking}
                     className="input"
                     style={{
                       width: '100%',
@@ -441,12 +442,15 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       paddingRight: 40,
                       borderRadius: '8px',
                       boxShadow: 'var(--shadow-taste-sm)',
+                      cursor: isVerifying || isUnlocking ? 'not-allowed' : undefined,
+                      opacity: isVerifying || isUnlocking ? 0.7 : 1,
                     }}
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isVerifying || isUnlocking}
                     style={{
                       position: 'absolute',
                       right: 10,
@@ -454,12 +458,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       transform: 'translateY(-50%)',
                       background: 'transparent',
                       border: 'none',
-                      cursor: 'pointer',
+                      cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
                       color: 'var(--text-muted)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: 4,
+                      opacity: isVerifying || isUnlocking ? 0.5 : 1,
                     }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -585,6 +590,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setPassword(e.target.value);
                       setError(false);
                     }}
+                    disabled={isVerifying || isUnlocking}
                     className="input"
                     style={{
                       width: '100%',
@@ -592,12 +598,15 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       paddingRight: 40,
                       borderRadius: '8px',
                       boxShadow: 'var(--shadow-taste-sm)',
+                      cursor: isVerifying || isUnlocking ? 'not-allowed' : undefined,
+                      opacity: isVerifying || isUnlocking ? 0.7 : 1,
                     }}
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isVerifying || isUnlocking}
                     style={{
                       position: 'absolute',
                       right: 10,
@@ -605,12 +614,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       transform: 'translateY(-50%)',
                       background: 'transparent',
                       border: 'none',
-                      cursor: 'pointer',
+                      cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
                       color: 'var(--text-muted)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: 4,
+                      opacity: isVerifying || isUnlocking ? 0.5 : 1,
                     }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
