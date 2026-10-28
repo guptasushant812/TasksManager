@@ -33,7 +33,9 @@ import {
   ShieldCheck,
   Zap,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 const TABS = [
@@ -171,12 +173,40 @@ export default function SettingsPage() {
 
   const handleClearCustomAiKey = () => {
     setCustomAiKey('');
+    setAiKeyTestResult(null);
     try {
       localStorage.removeItem('tasksmanager_custom_ai_key');
       localStorage.removeItem('tasksmanager_custom_ai_provider');
       setAiKeyCleared(true);
       setTimeout(() => setAiKeyCleared(false), 2500);
     } catch {}
+  };
+
+  const [testingAiKey, setTestingAiKey] = useState(false);
+  const [aiKeyTestResult, setAiKeyTestResult] = useState<{ valid: boolean; message: string } | null>(null);
+
+  const handleTestCustomAiKey = async () => {
+    const key = customAiKey.trim();
+    if (!key) return;
+    setTestingAiKey(true);
+    setAiKeyTestResult(null);
+    try {
+      const res = await fetch('/api/ai-draft/validate-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: key, provider: customAiProvider }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAiKeyTestResult({ valid: true, message: `Key verified successfully with ${data.provider}!` });
+      } else {
+        setAiKeyTestResult({ valid: false, message: data.message || 'Key verification failed.' });
+      }
+    } catch {
+      setAiKeyTestResult({ valid: false, message: 'Could not connect to validation service.' });
+    } finally {
+      setTestingAiKey(false);
+    }
   };
 
   // Check scroll boundary to reveal edge gradient masks & chevron buttons
@@ -1214,6 +1244,30 @@ export default function SettingsPage() {
 
                       <button
                         type="button"
+                        onClick={handleTestCustomAiKey}
+                        disabled={!customAiKey.trim() || testingAiKey}
+                        style={{
+                          background: 'var(--bg-surface)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          padding: '8px 14px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: testingAiKey ? 'wait' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          flexShrink: 0,
+                          opacity: customAiKey.trim() && !testingAiKey ? 1 : 0.5,
+                        }}
+                      >
+                        <RefreshCw size={13} className={testingAiKey ? 'animate-spin' : ''} />
+                        {testingAiKey ? 'Testing...' : 'Test Key'}
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => handleSaveCustomAiKey(customAiKey)}
                         style={{
                           background: 'var(--accent, #00ff66)',
@@ -1258,6 +1312,27 @@ export default function SettingsPage() {
                         </button>
                       )}
                     </div>
+
+                    {aiKeyTestResult && (
+                      <div
+                        style={{
+                          marginTop: 10,
+                          padding: '8px 12px',
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: aiKeyTestResult.valid ? 'rgba(0, 255, 102, 0.08)' : 'rgba(239, 68, 68, 0.1)',
+                          border: aiKeyTestResult.valid ? '1px solid rgba(0, 255, 102, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                          color: aiKeyTestResult.valid ? 'var(--accent, #00ff66)' : '#f87171',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        {aiKeyTestResult.valid ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                        <span>{aiKeyTestResult.message}</span>
+                      </div>
+                    )}
 
                     <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 16 }}>
                       <a

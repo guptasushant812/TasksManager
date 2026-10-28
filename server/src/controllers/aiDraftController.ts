@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { 
   executeAiWithFallback, 
   getAvailableAiProviders, 
+  detectKeyProvider,
   AiTaskRequestOptions 
 } from '../services/aiService';
 import AiDraftState from '../models/AiDraftState';
@@ -136,7 +137,15 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
     const prompt = `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`;
     const result = await executeAiWithFallback(prompt, options);
 
-    // If rate limit / quota exceeded on all available models
+    if ('apiKeyError' in result) {
+      res.status(200).json({
+        rateLimitExceeded: false,
+        apiKeyError: true,
+        message: result.message,
+      });
+      return;
+    }
+
     if ('rateLimitExceeded' in result) {
       res.status(200).json({
         rateLimitExceeded: true,
@@ -242,6 +251,15 @@ Return ONLY a single valid JSON object representing the improved task (no array,
     };
 
     const result = await executeAiWithFallback(REGEN_PROMPT, options);
+
+    if ('apiKeyError' in result) {
+      res.status(200).json({
+        rateLimitExceeded: false,
+        apiKeyError: true,
+        message: result.message,
+      });
+      return;
+    }
 
     if ('rateLimitExceeded' in result) {
       res.status(200).json({
@@ -382,5 +400,69 @@ export async function deleteAiDraftState(req: Request, res: Response, next: Next
     next(err);
   }
 }
+
+export async function validateAiKey(req: Request, res: Response) {
+  try {
+    const { apiKey, provider } = req.body as { apiKey?: string; provider?: string };
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+      res.status(400).json({ valid: false, message: 'API key is required.' });
+      return;
+    }
+
+    const key = apiKey.trim();
+    const detectedProvider = detectKeyProvider(key, provider);
+
+    if (detectedProvider === 'gemini') {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: key });
+      await ai.models.generateContent({
+        model: 'gemini-3.5-flash-lite',
+        contents: 'Say OK',
+      });
+      res.json({ valid: true, provider: 'gemini', model: 'gemini-3.5-flash-lite' });
+      return;
+    }
+
+    if (detectedProvider === 'groq') {
+      const testRes = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      if (!testRes.ok) {
+        res.json({ valid: false, message: 'Invalid Groq API key.' });
+        return;
+      }
+      res.json({ valid: true, provider: 'groq' });
+      return;
+    }
+
+    if (detectedProvider === 'grok') {
+      const testRes = await fetch('https://api.x.ai/v1/models', {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      if (!testRes.ok) {
+        res.json({ valid: false, message: 'Invalid xAI Grok API key.' });
+        return;
+      }
+      res.json({ valid: true, provider: 'grok' });
+      return;
+    }
+
+    res.json({ valid: true, provider: detectedProvider });
+  } catch (err: any) {
+    const msg = (err?.message || '').toLowerCase();
+    const isAuth =
+      msg.includes('api_key_invalid') ||
+      msg.includes('api key not valid') ||
+      msg.includes('unauthenticated') ||
+      err?.status === 400 ||
+      err?.status === 401 ||
+      err?.status === 403;
+    res.json({
+      valid: false,
+      message: isAuth ? 'Invalid API key provided for Google Gemini.' : (err?.message || 'Failed to validate API key'),
+    });
+  }
+}
+
 
 

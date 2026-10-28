@@ -16,6 +16,11 @@ export interface AiSuccessResult {
   fallbackReason?: string;
 }
 
+export interface AiApiKeyErrorResult {
+  apiKeyError: true;
+  message: string;
+}
+
 export interface AiRateLimitResult {
   rateLimitExceeded: true;
   exhaustedProviders: string[];
@@ -23,9 +28,9 @@ export interface AiRateLimitResult {
   message: string;
 }
 
-export type AiGenerateResult = AiSuccessResult | AiRateLimitResult;
+export type AiGenerateResult = AiSuccessResult | AiRateLimitResult | AiApiKeyErrorResult;
 
-function detectKeyProvider(apiKey?: string, explicitProvider?: string): 'gemini' | 'groq' | 'grok' {
+export function detectKeyProvider(apiKey?: string, explicitProvider?: string): 'gemini' | 'groq' | 'grok' {
   if (explicitProvider) {
     const p = explicitProvider.toLowerCase();
     if (p === 'groq') return 'groq';
@@ -40,39 +45,56 @@ function detectKeyProvider(apiKey?: string, explicitProvider?: string): 'gemini'
 }
 
 async function callGemini(apiKey: string, model: string, prompt: string): Promise<string> {
-  const ai = new GoogleGenAI({ 
-    apiKey,
-    httpOptions: { timeout: 8000 }
-  });
+  const ai = new GoogleGenAI({ apiKey });
 
-  // Try interactions endpoint first, falling back to generateContent for keys/models lacking interaction support
   try {
-    const interaction = await ai.interactions.create({
-      model,
-      input: prompt,
-    }, {
-      maxRetries: 0,
-      timeout: 8000,
-    });
-    const text = (interaction.output_text || '').trim();
-    if (text) return text;
-  } catch (err: any) {
-    const msg = (err?.message || '').toLowerCase();
-    if (
-      msg.includes('quota') || 
-      msg.includes('429') || 
-      msg.includes('resource_exhausted') || 
-      msg.includes('api_key_invalid') || 
-      msg.includes('unauthenticated')
-    ) {
-      throw err;
-    }
     const res = await ai.models.generateContent({
       model,
       contents: prompt,
     });
     const text = (res?.text || '').trim();
     if (text) return text;
+  } catch (err: any) {
+    const msg = (err?.message || '').toLowerCase();
+    const isAuth =
+      msg.includes('api_key_invalid') ||
+      msg.includes('api key not valid') ||
+      msg.includes('unauthenticated') ||
+      (msg.includes('invalid_argument') && msg.includes('api key')) ||
+      err?.status === 400 && msg.includes('api key') ||
+      err?.status === 401 ||
+      err?.status === 403;
+
+    if (isAuth) {
+      const authErr: any = new Error('The API key provided for Google Gemini is invalid or unauthorized.');
+      authErr.isAuthError = true;
+      authErr.provider = 'gemini';
+      throw authErr;
+    }
+
+    const isQuota =
+      err?.status === 429 ||
+      msg.includes('quota') ||
+      msg.includes('resource_exhausted');
+
+    if (isQuota) {
+      const quotaErr: any = new Error(`Quota limit reached for ${model}.`);
+      quotaErr.isQuotaError = true;
+      throw quotaErr;
+    }
+
+    // Try interactions fallback only if generateContent is not supported on this model
+    try {
+      const interaction = await ai.interactions.create(
+        { model, input: prompt },
+        { maxRetries: 0 }
+      );
+      const text = (interaction?.output_text || '').trim();
+      if (text) return text;
+    } catch {
+      // ignore interactions error and preserve initial generateContent failure
+    }
+
     throw err;
   }
 
@@ -85,7 +107,7 @@ async function callGroq(apiKey: string, model: string, prompt: string): Promise<
     : (process.env.GROQ_MODEL || 'openai/gpt-oss-120b');
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -107,6 +129,12 @@ async function callGroq(apiKey: string, model: string, prompt: string): Promise<
       const errMsg = errData?.error?.message || errData?.message || `Groq API failed with status ${res.status}`;
       const err: any = new Error(errMsg);
       err.status = res.status;
+      if (res.status === 401 || res.status === 403) {
+        err.isAuthError = true;
+      }
+      if (res.status === 429) {
+        err.isQuotaError = true;
+      }
       throw err;
     }
 
@@ -121,7 +149,7 @@ async function callGroq(apiKey: string, model: string, prompt: string): Promise<
 
 async function callGrok(apiKey: string, model: string, prompt: string): Promise<string> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const chatRes = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -143,6 +171,12 @@ async function callGrok(apiKey: string, model: string, prompt: string): Promise<
       const errMsg = errData?.error?.message || errData?.error || errData?.message || `xAI API failed with status ${chatRes.status}`;
       const err: any = new Error(errMsg);
       err.status = chatRes.status;
+      if (chatRes.status === 401 || chatRes.status === 403 || errMsg.includes('permission-denied')) {
+        err.isAuthError = true;
+      }
+      if (chatRes.status === 429) {
+        err.isQuotaError = true;
+      }
       throw err;
     }
 
@@ -170,6 +204,7 @@ interface AiCandidate {
   provider: 'gemini' | 'groq' | 'grok';
   name: string;
   model: string;
+  isCustomKey?: boolean;
   call: () => Promise<string>;
 }
 
@@ -184,10 +219,19 @@ export async function executeAiWithFallback(
   const groqKey = (customProvider === 'groq' ? customKey : undefined) || process.env.GROQ_API_KEY;
   const grokKey = (customProvider === 'grok' ? customKey : undefined) || process.env.XAI_API_KEY;
 
-  const primaryGeminiModel = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok') && !options.preferredModel.toLowerCase().includes('groq')
+  const preferredGemini = options.preferredModel && !options.preferredModel.toLowerCase().includes('grok') && !options.preferredModel.toLowerCase().includes('groq')
     ? options.preferredModel
-    : 'gemini-3.8-flash';
-  const fallbackGeminiModel = primaryGeminiModel === 'gemini-3.5-flash-lite' ? 'gemini-3.8-flash' : 'gemini-3.5-flash-lite';
+    : undefined;
+
+  // Resilient Gemini model cascade avoiding single-point 503 bottlenecks
+  const geminiModelChain = Array.from(new Set([
+    preferredGemini,
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-3.8-flash',
+  ].filter(Boolean))) as string[];
 
   const groqModel = options.preferredModel && (options.preferredModel.includes('gpt-oss') || options.preferredModel.includes('qwen') || options.preferredModel.includes('llama'))
     ? options.preferredModel
@@ -198,26 +242,24 @@ export async function executeAiWithFallback(
 
   const candidates: AiCandidate[] = [];
 
-  // Prioritize user-entered custom key above all default keys
+  // Prioritize user custom API key first
   if (customKey) {
     if (customProvider === 'gemini') {
-      candidates.push({
-        provider: 'gemini',
-        name: `Custom Gemini (${primaryGeminiModel})`,
-        model: primaryGeminiModel,
-        call: () => callGemini(customKey, primaryGeminiModel, prompt),
-      });
-      candidates.push({
-        provider: 'gemini',
-        name: `Custom Gemini Fallback (${fallbackGeminiModel})`,
-        model: fallbackGeminiModel,
-        call: () => callGemini(customKey, fallbackGeminiModel, prompt),
-      });
+      for (const m of geminiModelChain) {
+        candidates.push({
+          provider: 'gemini',
+          name: `Custom Gemini (${m})`,
+          model: m,
+          isCustomKey: true,
+          call: () => callGemini(customKey, m, prompt),
+        });
+      }
     } else if (customProvider === 'groq') {
       candidates.push({
         provider: 'groq',
         name: `Custom Groq (${groqModel})`,
         model: groqModel,
+        isCustomKey: true,
         call: () => callGroq(customKey, groqModel, prompt),
       });
     } else if (customProvider === 'grok') {
@@ -225,27 +267,25 @@ export async function executeAiWithFallback(
         provider: 'grok',
         name: `Custom Grok (${grokModel})`,
         model: grokModel,
+        isCustomKey: true,
         call: () => callGrok(customKey, grokModel, prompt),
       });
     }
   }
 
-  // Server Gemini keys (try primary model, then fallback model for separate quota pools)
+  // Server default keys
   for (let i = 0; i < serverGeminiKeys.length; i++) {
     const key = serverGeminiKeys[i];
     if (key === customKey) continue;
-    candidates.push({
-      provider: 'gemini',
-      name: i === 0 ? `Google Gemini (${primaryGeminiModel})` : `Google Gemini Backup ${i} (${primaryGeminiModel})`,
-      model: primaryGeminiModel,
-      call: () => callGemini(key, primaryGeminiModel, prompt),
-    });
-    candidates.push({
-      provider: 'gemini',
-      name: i === 0 ? `Google Gemini Lite (${fallbackGeminiModel})` : `Google Gemini Backup ${i} Lite (${fallbackGeminiModel})`,
-      model: fallbackGeminiModel,
-      call: () => callGemini(key, fallbackGeminiModel, prompt),
-    });
+    for (const m of geminiModelChain.slice(0, 3)) {
+      candidates.push({
+        provider: 'gemini',
+        name: i === 0 ? `Google Gemini (${m})` : `Google Gemini Backup ${i} (${m})`,
+        model: m,
+        isCustomKey: false,
+        call: () => callGemini(key, m, prompt),
+      });
+    }
   }
 
   // Server Groq fallback
@@ -254,6 +294,7 @@ export async function executeAiWithFallback(
       provider: 'groq',
       name: `Groq (${groqModel})`,
       model: groqModel,
+      isCustomKey: false,
       call: () => callGroq(groqKey, groqModel, prompt),
     });
     if (groqModel !== 'qwen/qwen3.8-27b') {
@@ -261,6 +302,7 @@ export async function executeAiWithFallback(
         provider: 'groq',
         name: 'Groq (qwen/qwen3.8-27b)',
         model: 'qwen/qwen3.8-27b',
+        isCustomKey: false,
         call: () => callGroq(groqKey, 'qwen/qwen3.8-27b', prompt),
       });
     }
@@ -272,6 +314,7 @@ export async function executeAiWithFallback(
       provider: 'grok',
       name: `xAI Grok (${grokModel})`,
       model: grokModel,
+      isCustomKey: false,
       call: () => callGrok(grokKey, grokModel, prompt),
     });
   }
@@ -305,13 +348,29 @@ export async function executeAiWithFallback(
     } catch (err: any) {
       console.warn(`[AI Service] ${candidate.name} failed:`, err.message || err);
       exhaustedProviders.push(candidate.name);
+
+      // If user entered a custom key and it failed authentication, stop and report immediately
+      if (candidate.isCustomKey && err?.isAuthError) {
+        return {
+          apiKeyError: true,
+          message: `The custom ${candidate.provider === 'gemini' ? 'Google Gemini' : candidate.provider} API key is invalid or unauthorized. Please verify your key on Google AI Studio.`,
+        };
+      }
     }
+  }
+
+  if (customKey) {
+    return {
+      rateLimitExceeded: true,
+      exhaustedProviders,
+      message: 'All AI models attempted with your custom key reached quota or rate limits. Please try again in a few moments.',
+    };
   }
 
   return {
     rateLimitExceeded: true,
     exhaustedProviders,
-    message: 'AI request limit reached on all configured engines. Please try again shortly or configure a custom API key.',
+    message: 'The free-tier daily request allowance on the default AI endpoint has reached its limit. Add your own free Gemini API key to continue without limits.',
   };
 }
 
@@ -326,8 +385,8 @@ export function getAvailableAiProviders() {
         id: 'gemini',
         name: 'Google Gemini',
         status: hasGemini ? 'active' : 'not_configured',
-        models: ['gemini-3.8-flash', 'gemini-3.5-flash-lite'],
-        defaultModel: 'gemini-3.8-flash',
+        models: ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.8-flash'],
+        defaultModel: 'gemini-3.5-flash',
       },
       {
         id: 'groq',
