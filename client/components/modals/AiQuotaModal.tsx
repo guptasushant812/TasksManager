@@ -25,13 +25,35 @@ export default function AiQuotaModal({
   onClose,
 }: AiQuotaModalProps) {
   const [apiKeyInput, setApiKeyInput] = useState(customApiKey || '');
-  const [showKeyForm, setShowKeyForm] = useState(false);
+  const [showKeyForm, setShowKeyForm] = useState(true);
   const [keySaved, setKeySaved] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSaveKey = () => {
+  const handleSaveKey = async () => {
     const key = apiKeyInput.trim();
     if (!key) return;
+    setValidationError(null);
+    setValidating(true);
     const provider = key.startsWith('gsk_') ? 'groq' : key.startsWith('xai-') ? 'grok' : 'gemini';
+
+    try {
+      const res = await fetch('/api/ai-draft/validate-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: key, provider }),
+      });
+      const data = await res.json().catch(() => ({ valid: true }));
+      if (data && data.valid === false) {
+        setValidationError(data.message || 'Key validation failed. Please check your key.');
+        setValidating(false);
+        return;
+      }
+    } catch {
+      // Proceed on network test failure
+    }
+
+    setValidating(false);
     onSaveCustomKey(key, provider);
     setKeySaved(true);
     setTimeout(() => {
@@ -39,11 +61,11 @@ export default function AiQuotaModal({
     }, 150);
   };
 
-  const handleChooseModel = (modelId: string) => {
-    onSelectModel(modelId);
-    setTimeout(() => {
-      onRetry();
-    }, 150);
+  const handleClearKey = () => {
+    setApiKeyInput('');
+    onSaveCustomKey('', 'gemini');
+    setKeySaved(false);
+    setValidationError(null);
   };
 
   return (
@@ -96,22 +118,22 @@ export default function AiQuotaModal({
                 width: 36,
                 height: 36,
                 borderRadius: '10px',
-                background: 'rgba(234, 179, 8, 0.15)',
-                border: '1px solid rgba(234, 179, 8, 0.3)',
+                background: rateLimitInfo.isCustomKeyError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                border: rateLimitInfo.isCustomKeyError ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(234, 179, 8, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#eab308',
+                color: rateLimitInfo.isCustomKeyError ? '#ef4444' : '#eab308',
               }}
             >
               <Sparkles style={{ width: 18, height: 18 }} />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>
-                Daily AI Limit Reached
+                {rateLimitInfo.isCustomKeyError ? 'AI Key Verification Needed' : 'Daily AI Limit Reached'}
               </h3>
               <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                Your text is safely preserved — select an option to continue
+                Your text is safely preserved — enter a key or switch to manual
               </span>
             </div>
           </div>
@@ -143,32 +165,52 @@ export default function AiQuotaModal({
             gap: 18,
           }}
         >
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 'var(--radius-md, 10px)',
-              background: 'rgba(234, 179, 8, 0.08)',
-              border: '1px solid rgba(234, 179, 8, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#facc15', fontSize: 13, fontWeight: 700 }}>
-              <Clock style={{ width: 16, height: 16 }} />
-              <span>Standard Model Quota Exhausted</span>
+          {rateLimitInfo.isCustomKeyError ? (
+            <div
+              style={{
+                padding: '14px 16px',
+                borderRadius: 'var(--radius-md, 10px)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#f87171', fontSize: 13, fontWeight: 700 }}>
+                <Key style={{ width: 16, height: 16 }} />
+                <span>Custom Key Error</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {rateLimitInfo.message}
+              </p>
             </div>
-            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              The free-tier daily request allowance on the default AI endpoint has reached its limit.
-              {rateLimitInfo.retryAfter && (
-                <span style={{ display: 'block', marginTop: 4, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Estimated quota reset: {rateLimitInfo.retryAfter}
-                </span>
-              )}
-            </p>
-          </div>
-
-
+          ) : (
+            <div
+              style={{
+                padding: '14px 16px',
+                borderRadius: 'var(--radius-md, 10px)',
+                background: 'rgba(234, 179, 8, 0.08)',
+                border: '1px solid rgba(234, 179, 8, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#facc15', fontSize: 13, fontWeight: 700 }}>
+                <Clock style={{ width: 16, height: 16 }} />
+                <span>Standard Model Quota Exhausted</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                The free-tier daily request allowance on the default AI endpoint has reached its limit. Enter your own free Gemini API key below to continue without waiting.
+                {rateLimitInfo.retryAfter && (
+                  <span style={{ display: 'block', marginTop: 4, fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Estimated quota reset: {rateLimitInfo.retryAfter}
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
 
           <div
             style={{
@@ -207,18 +249,43 @@ export default function AiQuotaModal({
             {showKeyForm && (
               <div style={{ padding: '0 14px 14px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border-subtle)' }}>
                 <p style={{ margin: 0, fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  You can get a 100% free Google Gemini key in under 30 seconds from Google AI Studio. It is stored securely only on your device.
+                  You can get a free Google Gemini key in under 30 seconds from Google AI Studio. It is stored securely on your browser.
                 </p>
+
+                {customApiKey && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(0, 255, 102, 0.06)', border: '1px solid rgba(0, 255, 102, 0.2)', borderRadius: 6, fontSize: 11 }}>
+                    <span style={{ color: 'var(--accent, #00ff66)', fontWeight: 600 }}>
+                      Active saved key: ••••••••{customApiKey.slice(-4)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleClearKey}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, textDecoration: 'underline' }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
+                {validationError && (
+                  <div style={{ padding: '6px 10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 6, fontSize: 11.5, color: '#f87171' }}>
+                    {validationError}
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
                     type="password"
                     placeholder="AIzaSy... or AQ.Ab8..."
                     value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    onChange={(e) => {
+                      setApiKeyInput(e.target.value);
+                      setValidationError(null);
+                    }}
                     style={{
                       flex: 1,
                       background: 'var(--bg-surface)',
-                      border: '1px solid var(--border)',
+                      border: validationError ? '1px solid #ef4444' : '1px solid var(--border)',
                       borderRadius: 6,
                       padding: '8px 12px',
                       fontSize: 12,
@@ -229,7 +296,7 @@ export default function AiQuotaModal({
                   <button
                     type="button"
                     onClick={handleSaveKey}
-                    disabled={!apiKeyInput.trim()}
+                    disabled={!apiKeyInput.trim() || validating}
                     style={{
                       background: 'var(--accent, #00ff66)',
                       color: '#000',
@@ -238,15 +305,15 @@ export default function AiQuotaModal({
                       padding: '8px 14px',
                       fontSize: 12,
                       fontWeight: 800,
-                      cursor: 'pointer',
+                      cursor: validating ? 'wait' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
-                      opacity: apiKeyInput.trim() ? 1 : 0.6,
+                      opacity: apiKeyInput.trim() && !validating ? 1 : 0.6,
                     }}
                   >
-                    {keySaved ? <Check style={{ width: 14, height: 14 }} /> : <ShieldCheck style={{ width: 14, height: 14 }} />}
-                    Save & Retry
+                    {validating ? <RefreshCw className="animate-spin" style={{ width: 14, height: 14 }} /> : keySaved ? <Check style={{ width: 14, height: 14 }} /> : <ShieldCheck style={{ width: 14, height: 14 }} />}
+                    {validating ? 'Verifying...' : keySaved ? 'Saved!' : 'Save & Retry'}
                   </button>
                 </div>
                 <a
@@ -326,6 +393,9 @@ export default function AiQuotaModal({
                 const provider = key.startsWith('gsk_') ? 'groq' : key.startsWith('xai-') ? 'grok' : 'gemini';
                 onSaveCustomKey(key, provider);
                 onRetry(key, provider);
+              } else if (customApiKey) {
+                const provider = customApiKey.startsWith('gsk_') ? 'groq' : customApiKey.startsWith('xai-') ? 'grok' : 'gemini';
+                onRetry(customApiKey, provider);
               } else {
                 onRetry();
               }

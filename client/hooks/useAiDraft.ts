@@ -8,12 +8,14 @@ export interface RateLimitState {
   message: string;
   exhaustedProviders: string[];
   retryAfter?: string;
+  isCustomKeyError?: boolean;
 }
 
 interface AiDraftResponse {
   drafts?: TaskDraft[];
   warning?: string;
   rateLimitExceeded?: boolean;
+  apiKeyError?: boolean;
   message?: string;
   exhaustedProviders?: string[];
   retryAfter?: string;
@@ -27,6 +29,7 @@ interface AiRegenResponse {
   task?: TaskDraft;
   warning?: string;
   rateLimitExceeded?: boolean;
+  apiKeyError?: boolean;
   message?: string;
   exhaustedProviders?: string[];
   retryAfter?: string;
@@ -116,10 +119,20 @@ export function useAiDraft() {
         },
       });
 
-      // Handle structured rate limit response
+      if (res.apiKeyError) {
+        setRateLimitInfo({
+          isExceeded: true,
+          isCustomKeyError: true,
+          message: res.message || 'The provided custom API key is invalid or unauthorized.',
+          exhaustedProviders: ['Custom Key'],
+        });
+        return null;
+      }
+
       if (res.rateLimitExceeded) {
         setRateLimitInfo({
           isExceeded: true,
+          isCustomKeyError: false,
           message: res.message || 'Daily free-tier request limit reached across default AI models.',
           exhaustedProviders: res.exhaustedProviders || ['Google Gemini'],
           retryAfter: res.retryAfter,
@@ -185,9 +198,20 @@ export function useAiDraft() {
         },
       });
 
+      if (res.apiKeyError) {
+        setRateLimitInfo({
+          isExceeded: true,
+          isCustomKeyError: true,
+          message: res.message || 'The provided custom API key is invalid or unauthorized.',
+          exhaustedProviders: ['Custom Key'],
+        });
+        return null;
+      }
+
       if (res.rateLimitExceeded) {
         setRateLimitInfo({
           isExceeded: true,
+          isCustomKeyError: false,
           message: res.message || 'Daily AI free-tier limit reached.',
           exhaustedProviders: res.exhaustedProviders || ['Google Gemini'],
           retryAfter: res.retryAfter,
