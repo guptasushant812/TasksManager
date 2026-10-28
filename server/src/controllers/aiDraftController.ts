@@ -108,13 +108,15 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
       preferredProvider, 
       preferredModel, 
       customApiKey, 
-      customProvider 
+      customProvider,
+      userApiKeys,
     } = req.body as { 
       rawText: string;
       preferredProvider?: any;
       preferredModel?: string;
       customApiKey?: string;
       customProvider?: string;
+      userApiKeys?: { gemini?: string; groq?: string; grok?: string };
     };
 
     if (!rawText || typeof rawText !== 'string' || rawText.trim().length === 0) {
@@ -132,6 +134,7 @@ export async function createAiDraft(req: Request, res: Response, next: NextFunct
       preferredModel,
       customApiKey: customApiKey || (req.headers['x-user-ai-key'] as string | undefined),
       customProvider: customProvider || (req.headers['x-user-ai-provider'] as string | undefined),
+      userApiKeys,
     };
 
     const prompt = `${SYSTEM_PROMPT}\n\nUSER INPUT:\n${rawText.trim()}`;
@@ -194,6 +197,7 @@ export async function regenerateSingleAiDraft(req: Request, res: Response, next:
       preferredModel,
       customApiKey,
       customProvider,
+      userApiKeys,
     } = req.body as {
       task: Record<string, string>;
       instruction?: string;
@@ -202,6 +206,7 @@ export async function regenerateSingleAiDraft(req: Request, res: Response, next:
       preferredModel?: string;
       customApiKey?: string;
       customProvider?: string;
+      userApiKeys?: { gemini?: string; groq?: string; grok?: string };
     };
 
     if (!task || typeof task !== 'object') {
@@ -248,6 +253,7 @@ Return ONLY a single valid JSON object representing the improved task (no array,
       preferredModel,
       customApiKey: customApiKey || (req.headers['x-user-ai-key'] as string | undefined),
       customProvider: customProvider || (req.headers['x-user-ai-provider'] as string | undefined),
+      userApiKeys,
     };
 
     const result = await executeAiWithFallback(REGEN_PROMPT, options);
@@ -402,6 +408,7 @@ export async function deleteAiDraftState(req: Request, res: Response, next: Next
 }
 
 export async function validateAiKey(req: Request, res: Response) {
+  let detectedProvider: 'gemini' | 'groq' | 'grok' = 'gemini';
   try {
     const { apiKey, provider } = req.body as { apiKey?: string; provider?: string };
     if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
@@ -410,17 +417,36 @@ export async function validateAiKey(req: Request, res: Response) {
     }
 
     const key = apiKey.trim();
-    const detectedProvider = detectKeyProvider(key, provider);
+    detectedProvider = detectKeyProvider(key, provider);
 
     if (detectedProvider === 'gemini') {
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey: key });
-      await ai.models.generateContent({
-        model: 'gemini-3.5-flash-lite',
-        contents: 'Say OK',
-      });
-      res.json({ valid: true, provider: 'gemini', model: 'gemini-3.5-flash-lite' });
-      return;
+      let verified = false;
+      let lastErrMsg = '';
+
+      for (const m of ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash']) {
+        try {
+          await ai.models.generateContent({
+            model: m,
+            contents: 'Say OK',
+          });
+          verified = true;
+          res.json({ valid: true, provider: 'gemini', model: m });
+          return;
+        } catch (e: any) {
+          lastErrMsg = e?.message || '';
+          const msg = lastErrMsg.toLowerCase();
+          if (e?.status === 400 && msg.includes('api key') || e?.status === 401 || e?.status === 403 || msg.includes('api_key_invalid')) {
+            break;
+          }
+        }
+      }
+
+      if (!verified) {
+        res.json({ valid: false, message: 'Invalid Google Gemini API key or quota exceeded.' });
+        return;
+      }
     }
 
     if (detectedProvider === 'groq') {
@@ -428,7 +454,7 @@ export async function validateAiKey(req: Request, res: Response) {
         headers: { Authorization: `Bearer ${key}` },
       });
       if (!testRes.ok) {
-        res.json({ valid: false, message: 'Invalid Groq API key.' });
+        res.json({ valid: false, message: 'Invalid Groq API key or unauthorized.' });
         return;
       }
       res.json({ valid: true, provider: 'groq' });
@@ -440,7 +466,7 @@ export async function validateAiKey(req: Request, res: Response) {
         headers: { Authorization: `Bearer ${key}` },
       });
       if (!testRes.ok) {
-        res.json({ valid: false, message: 'Invalid xAI Grok API key.' });
+        res.json({ valid: false, message: 'Invalid xAI Grok API key or unauthorized.' });
         return;
       }
       res.json({ valid: true, provider: 'grok' });
@@ -457,9 +483,10 @@ export async function validateAiKey(req: Request, res: Response) {
       err?.status === 400 ||
       err?.status === 401 ||
       err?.status === 403;
+    const provName = detectedProvider === 'gemini' ? 'Google Gemini' : detectedProvider === 'groq' ? 'Groq' : 'xAI Grok';
     res.json({
       valid: false,
-      message: isAuth ? 'Invalid API key provided for Google Gemini.' : (err?.message || 'Failed to validate API key'),
+      message: isAuth ? `Invalid API key provided for ${provName}.` : (err?.message || `Failed to validate ${provName} key`),
     });
   }
 }

@@ -6,6 +6,13 @@ export interface ISettings extends Document {
   publicShareToken: string;
   masterPasswordHash?: string | null;
   passwordUpdatedAt?: Date | null;
+  aiKeys?: {
+    gemini?: string;
+    groq?: string;
+    grok?: string;
+  };
+  preferredAiModel?: string;
+  activeAiProvider?: string;
 }
 
 const SettingsSchema: Schema = new Schema(
@@ -17,6 +24,13 @@ const SettingsSchema: Schema = new Schema(
     },
     masterPasswordHash: { type: String, default: null },
     passwordUpdatedAt: { type: Date, default: null },
+    aiKeys: {
+      gemini: { type: String, default: '' },
+      groq: { type: String, default: '' },
+      grok: { type: String, default: '' },
+    },
+    preferredAiModel: { type: String, default: 'auto' },
+    activeAiProvider: { type: String, default: 'gemini' },
   },
   { timestamps: true }
 );

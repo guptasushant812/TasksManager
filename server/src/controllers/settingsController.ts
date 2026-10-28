@@ -22,7 +22,7 @@ export async function getSettings(req: Request, res: Response, next: NextFunctio
 
 export async function updateSettings(req: Request, res: Response, next: NextFunction) {
   try {
-    const { isPublicShareEnabled } = req.body;
+    const { isPublicShareEnabled, aiKeys, preferredAiModel, activeAiProvider } = req.body;
     let settings = await Settings.findOne();
     if (!settings) {
       settings = new Settings();
@@ -30,6 +30,22 @@ export async function updateSettings(req: Request, res: Response, next: NextFunc
     
     if (typeof isPublicShareEnabled === 'boolean') {
       settings.isPublicShareEnabled = isPublicShareEnabled;
+    }
+
+    if (aiKeys && typeof aiKeys === 'object') {
+      settings.aiKeys = {
+        gemini: typeof aiKeys.gemini === 'string' ? aiKeys.gemini.trim() : (settings.aiKeys?.gemini || ''),
+        groq: typeof aiKeys.groq === 'string' ? aiKeys.groq.trim() : (settings.aiKeys?.groq || ''),
+        grok: typeof aiKeys.grok === 'string' ? aiKeys.grok.trim() : (settings.aiKeys?.grok || ''),
+      };
+    }
+
+    if (typeof preferredAiModel === 'string') {
+      settings.preferredAiModel = preferredAiModel;
+    }
+
+    if (typeof activeAiProvider === 'string') {
+      settings.activeAiProvider = activeAiProvider;
     }
     
     await settings.save();
