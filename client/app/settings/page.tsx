@@ -119,74 +119,122 @@ export default function SettingsPage() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // AI Assistant Preferences & Fallback Key
+  // AI Assistant Preferences & Fallback Keys
   const [preferredAiModel, setPreferredAiModel] = useState('auto');
-  const [customAiKey, setCustomAiKey] = useState('');
   const [customAiProvider, setCustomAiProvider] = useState<'gemini' | 'groq' | 'grok'>('gemini');
+  const [aiKeys, setAiKeys] = useState<{ gemini: string; groq: string; grok: string }>({
+    gemini: '',
+    groq: '',
+    grok: '',
+  });
   const [showAiKey, setShowAiKey] = useState(false);
   const [aiKeySaved, setAiKeySaved] = useState(false);
   const [aiKeyCleared, setAiKeyCleared] = useState(false);
 
   useEffect(() => {
-    try {
-      const m = localStorage.getItem('tasksmanager_preferred_ai_model');
-      if (m) setPreferredAiModel(m);
-      const k = localStorage.getItem('tasksmanager_custom_ai_key');
-      if (k) setCustomAiKey(k);
-      const p = localStorage.getItem('tasksmanager_custom_ai_provider');
-      if (p === 'grok' || p === 'groq' || p === 'gemini') {
-        setCustomAiProvider(p as 'gemini' | 'groq' | 'grok');
-      } else if (k?.startsWith('xai-')) {
-        setCustomAiProvider('grok');
-      } else if (k?.startsWith('gsk_')) {
-        setCustomAiProvider('groq');
+    const loadCloudSettings = async () => {
+      try {
+        const data = await apiFetch<any>('/api/settings');
+        if (data) {
+          if (data.preferredAiModel) {
+            setPreferredAiModel(data.preferredAiModel);
+          }
+          if (data.activeAiProvider && ['gemini', 'groq', 'grok'].includes(data.activeAiProvider)) {
+            setCustomAiProvider(data.activeAiProvider);
+          }
+          if (data.aiKeys && typeof data.aiKeys === 'object') {
+            setAiKeys({
+              gemini: data.aiKeys.gemini || '',
+              groq: data.aiKeys.groq || '',
+              grok: data.aiKeys.grok || '',
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch cloud AI settings:', err);
       }
-    } catch {}
+    };
+
+    loadCloudSettings();
   }, []);
 
-  const handleSaveAiModel = (model: string) => {
+  const handleSaveAiModel = async (model: string) => {
     setPreferredAiModel(model);
     try {
-      localStorage.setItem('tasksmanager_preferred_ai_model', model);
+      await apiFetch('/api/settings', {
+        method: 'PATCH',
+        body: { preferredAiModel: model },
+      });
     } catch {}
   };
 
-  const handleSaveCustomAiKey = (key: string, providerOverride?: 'gemini' | 'groq' | 'grok') => {
-    const trimmed = key.trim();
-    setCustomAiKey(trimmed);
-    const provider = providerOverride || (trimmed.startsWith('xai-') ? 'grok' : trimmed.startsWith('gsk_') ? 'groq' : customAiProvider);
-    setCustomAiProvider(provider);
+  const handleKeyInputChange = (val: string) => {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('xai-') && customAiProvider !== 'grok') {
+      setCustomAiProvider('grok');
+      setAiKeys(prev => ({ ...prev, grok: val }));
+      setAiKeyTestResult(null);
+      return;
+    }
+    if (trimmed.startsWith('gsk_') && customAiProvider !== 'groq') {
+      setCustomAiProvider('groq');
+      setAiKeys(prev => ({ ...prev, groq: val }));
+      setAiKeyTestResult(null);
+      return;
+    }
+    if (trimmed.startsWith('AIzaSy') && customAiProvider !== 'gemini') {
+      setCustomAiProvider('gemini');
+      setAiKeys(prev => ({ ...prev, gemini: val }));
+      setAiKeyTestResult(null);
+      return;
+    }
+
+    setAiKeys(prev => ({ ...prev, [customAiProvider]: val }));
+    setAiKeyTestResult(null);
+  };
+
+  const handleSaveCustomAiKey = async () => {
+    const trimmed = aiKeys[customAiProvider].trim();
+    const nextKeys = { ...aiKeys, [customAiProvider]: trimmed };
     try {
-      if (trimmed) {
-        localStorage.setItem('tasksmanager_custom_ai_key', trimmed);
-        localStorage.setItem('tasksmanager_custom_ai_provider', provider);
-        setAiKeySaved(true);
-        setTimeout(() => setAiKeySaved(false), 2500);
-      } else {
-        localStorage.removeItem('tasksmanager_custom_ai_key');
-        localStorage.removeItem('tasksmanager_custom_ai_provider');
-        setAiKeyCleared(true);
-        setTimeout(() => setAiKeyCleared(false), 2500);
-      }
-    } catch {}
+      await apiFetch('/api/settings', {
+        method: 'PATCH',
+        body: {
+          aiKeys: nextKeys,
+          activeAiProvider: customAiProvider,
+        },
+      });
+      setAiKeys(nextKeys);
+      setAiKeySaved(true);
+      setTimeout(() => setAiKeySaved(false), 2500);
+    } catch (err) {
+      console.error('Failed to save API key to cloud:', err);
+    }
   };
 
-  const handleClearCustomAiKey = () => {
-    setCustomAiKey('');
+  const handleClearCustomAiKey = async () => {
+    const nextKeys = { ...aiKeys, [customAiProvider]: '' };
+    setAiKeys(nextKeys);
     setAiKeyTestResult(null);
     try {
-      localStorage.removeItem('tasksmanager_custom_ai_key');
-      localStorage.removeItem('tasksmanager_custom_ai_provider');
+      await apiFetch('/api/settings', {
+        method: 'PATCH',
+        body: {
+          aiKeys: nextKeys,
+        },
+      });
       setAiKeyCleared(true);
       setTimeout(() => setAiKeyCleared(false), 2500);
-    } catch {}
+    } catch (err) {
+      console.error('Failed to clear API key in cloud:', err);
+    }
   };
 
   const [testingAiKey, setTestingAiKey] = useState(false);
   const [aiKeyTestResult, setAiKeyTestResult] = useState<{ valid: boolean; message: string } | null>(null);
 
   const handleTestCustomAiKey = async () => {
-    const key = customAiKey.trim();
+    const key = aiKeys[customAiProvider].trim();
     if (!key) return;
     setTestingAiKey(true);
     setAiKeyTestResult(null);
@@ -197,8 +245,13 @@ export default function SettingsPage() {
         body: JSON.stringify({ apiKey: key, provider: customAiProvider }),
       });
       const data = await res.json();
+      const providerNames: Record<'gemini' | 'groq' | 'grok', string> = {
+        gemini: 'Google Gemini',
+        groq: 'Groq',
+        grok: 'xAI Grok',
+      };
       if (data.valid) {
-        setAiKeyTestResult({ valid: true, message: `Key verified successfully with ${data.provider}!` });
+        setAiKeyTestResult({ valid: true, message: `Key verified successfully with ${providerNames[customAiProvider]}!` });
       } else {
         setAiKeyTestResult({ valid: false, message: data.message || 'Key verification failed.' });
       }
@@ -1080,24 +1133,24 @@ export default function SettingsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
                       <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
                         <Key size={15} style={{ color: '#38bdf8' }} />
-                        <span>Personal API Key (Google Gemini or xAI Grok)</span>
+                        <span>Personal API Keys (Google Gemini, Groq, xAI Grok)</span>
                       </label>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         {aiKeySaved && (
                           <span style={{ fontSize: 12, color: 'var(--completed)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <CheckCircle2 size={14} /> Key saved to browser
+                            <CheckCircle2 size={14} /> Key saved to cloud
                           </span>
                         )}
                         {aiKeyCleared && (
                           <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-                            Key cleared
+                            Key removed from cloud
                           </span>
                         )}
                       </div>
                     </div>
 
                     <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: 1.4 }}>
-                      Paste your personal Google Gemini or xAI Grok API key to bypass shared workspace limits. Key is saved locally in your browser and used automatically.
+                      Server default .env keys are used by default. Your personal keys are stored securely in the cloud database and only activated if workspace limits are reached. When account features are added, keys will automatically link to your personal profile.
                     </p>
 
                     {/* Provider selector chips & detection tag */}
@@ -1108,7 +1161,10 @@ export default function SettingsPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setCustomAiProvider('gemini')}
+                          onClick={() => {
+                            setCustomAiProvider('gemini');
+                            setAiKeyTestResult(null);
+                          }}
                           style={{
                             padding: '3px 10px',
                             borderRadius: 4,
@@ -1119,13 +1175,22 @@ export default function SettingsPage() {
                             border: customAiProvider === 'gemini' ? '1px solid var(--accent)' : '1px solid var(--border)',
                             color: customAiProvider === 'gemini' ? 'var(--accent)' : 'var(--text-muted)',
                             transition: 'all 0.15s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
                           }}
                         >
-                          Google Gemini
+                          <span>Google Gemini</span>
+                          {aiKeys.gemini.trim() && (
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent, #00ff66)' }} />
+                          )}
                         </button>
                         <button
                           type="button"
-                          onClick={() => setCustomAiProvider('groq')}
+                          onClick={() => {
+                            setCustomAiProvider('groq');
+                            setAiKeyTestResult(null);
+                          }}
                           style={{
                             padding: '3px 10px',
                             borderRadius: 4,
@@ -1136,13 +1201,22 @@ export default function SettingsPage() {
                             border: customAiProvider === 'groq' ? '1px solid #f97316' : '1px solid var(--border)',
                             color: customAiProvider === 'groq' ? '#f97316' : 'var(--text-muted)',
                             transition: 'all 0.15s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
                           }}
                         >
-                          Groq (Fast)
+                          <span>Groq (Fast)</span>
+                          {aiKeys.groq.trim() && (
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316' }} />
+                          )}
                         </button>
                         <button
                           type="button"
-                          onClick={() => setCustomAiProvider('grok')}
+                          onClick={() => {
+                            setCustomAiProvider('grok');
+                            setAiKeyTestResult(null);
+                          }}
                           style={{
                             padding: '3px 10px',
                             borderRadius: 4,
@@ -1153,36 +1227,62 @@ export default function SettingsPage() {
                             border: customAiProvider === 'grok' ? '1px solid #38bdf8' : '1px solid var(--border)',
                             color: customAiProvider === 'grok' ? '#38bdf8' : 'var(--text-muted)',
                             transition: 'all 0.15s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
                           }}
                         >
-                          xAI Grok
+                          <span>xAI Grok</span>
+                          {aiKeys.grok.trim() && (
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8' }} />
+                          )}
                         </button>
                       </div>
 
-                      {customAiKey && (
-                        <span style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          background: customAiKey.startsWith('xai-')
-                            ? 'rgba(56, 189, 248, 0.12)'
-                            : customAiKey.startsWith('gsk_')
-                            ? 'rgba(249, 115, 22, 0.12)'
-                            : 'rgba(0, 255, 102, 0.1)',
-                          color: customAiKey.startsWith('xai-')
-                            ? '#38bdf8'
-                            : customAiKey.startsWith('gsk_')
-                            ? '#f97316'
-                            : 'var(--accent)',
-                          fontWeight: 700,
-                        }}>
-                          {customAiKey.startsWith('xai-')
-                            ? 'Detected: xAI Grok Key'
-                            : customAiKey.startsWith('gsk_')
-                            ? 'Detected: Groq Key'
-                            : 'Detected: Google Gemini Key'}
-                        </span>
-                      )}
+                      {(() => {
+                        const currentKey = aiKeys[customAiProvider].trim();
+                        if (!currentKey) {
+                          return (
+                            <span style={{
+                              fontSize: 11,
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              color: 'var(--text-muted)',
+                              fontWeight: 600,
+                            }}>
+                              {customAiProvider === 'gemini' ? 'Gemini: Not configured (optional)' : customAiProvider === 'groq' ? 'Groq: Not configured (optional)' : 'xAI Grok: Not configured (optional)'}
+                            </span>
+                          );
+                        }
+
+                        const isGrok = customAiProvider === 'grok';
+                        const isGroq = customAiProvider === 'groq';
+                        const badgeColor = isGrok ? '#38bdf8' : isGroq ? '#f97316' : 'var(--accent, #00ff66)';
+                        const badgeBg = isGrok ? 'rgba(56, 189, 248, 0.12)' : isGroq ? 'rgba(249, 115, 22, 0.12)' : 'rgba(0, 255, 102, 0.1)';
+
+                        let label = 'Detected: Custom Key';
+                        if (isGrok) {
+                          label = currentKey.startsWith('xai-') ? 'Detected: Valid xAI Grok Key' : 'Detected: xAI Grok Key';
+                        } else if (isGroq) {
+                          label = currentKey.startsWith('gsk_') ? 'Detected: Valid Groq Key' : 'Detected: Groq Key';
+                        } else {
+                          label = currentKey.startsWith('AIzaSy') ? 'Detected: Valid Google Gemini Key' : 'Detected: Google Gemini Key';
+                        }
+
+                        return (
+                          <span style={{
+                            fontSize: 11,
+                            padding: '2px 8px',
+                            borderRadius: 4,
+                            background: badgeBg,
+                            color: badgeColor,
+                            fontWeight: 700,
+                          }}>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1196,18 +1296,8 @@ export default function SettingsPage() {
                               ? 'gsk_...'
                               : 'AIzaSy... or AQ.Ab8...'
                           }
-                          value={customAiKey}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomAiKey(val);
-                            if (val.trim().startsWith('xai-')) {
-                              setCustomAiProvider('grok');
-                            } else if (val.trim().startsWith('gsk_')) {
-                              setCustomAiProvider('groq');
-                            } else if (val.trim().length > 0 && !val.trim().startsWith('xai-') && !val.trim().startsWith('gsk_')) {
-                              setCustomAiProvider('gemini');
-                            }
-                          }}
+                          value={aiKeys[customAiProvider]}
+                          onChange={(e) => handleKeyInputChange(e.target.value)}
                           style={{
                             width: '100%',
                             background: 'var(--bg-surface)',
@@ -1245,7 +1335,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={handleTestCustomAiKey}
-                        disabled={!customAiKey.trim() || testingAiKey}
+                        disabled={!aiKeys[customAiProvider].trim() || testingAiKey}
                         style={{
                           background: 'var(--bg-surface)',
                           color: 'var(--text-primary)',
@@ -1259,7 +1349,7 @@ export default function SettingsPage() {
                           alignItems: 'center',
                           gap: 6,
                           flexShrink: 0,
-                          opacity: customAiKey.trim() && !testingAiKey ? 1 : 0.5,
+                          opacity: aiKeys[customAiProvider].trim() && !testingAiKey ? 1 : 0.5,
                         }}
                       >
                         <RefreshCw size={13} className={testingAiKey ? 'animate-spin' : ''} />
@@ -1268,7 +1358,7 @@ export default function SettingsPage() {
 
                       <button
                         type="button"
-                        onClick={() => handleSaveCustomAiKey(customAiKey)}
+                        onClick={handleSaveCustomAiKey}
                         style={{
                           background: 'var(--accent, #00ff66)',
                           color: '#000',
@@ -1288,7 +1378,7 @@ export default function SettingsPage() {
                         <Save size={14} /> Save Key
                       </button>
 
-                      {customAiKey && (
+                      {aiKeys[customAiProvider] && (
                         <button
                           type="button"
                           onClick={handleClearCustomAiKey}
@@ -1342,6 +1432,14 @@ export default function SettingsPage() {
                         style={{ fontSize: 12, color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}
                       >
                         Get free Google Gemini API key (Google AI Studio) <ExternalLink size={12} />
+                      </a>
+                      <a
+                        href="https://console.groq.com/keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 12, color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}
+                      >
+                        Get free Groq API key (Groq Console) <ExternalLink size={12} />
                       </a>
                       <a
                         href="https://console.x.ai/"

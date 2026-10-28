@@ -51,36 +51,65 @@ export function useAiDraft() {
   const [customApiKey, setCustomApiKey] = useState<string>('');
   const [customProvider, setCustomProvider] = useState<string>('gemini');
 
-  // Hydrate custom key and preference from localStorage
-  useEffect(() => {
-    try {
-      const savedModel = localStorage.getItem('tasksmanager_preferred_ai_model');
-      if (savedModel) setSelectedModel(savedModel);
+  const getStoredUserKeys = useCallback((): { gemini?: string; groq?: string; grok?: string } => {
+    if (typeof window === 'undefined') return {};
+    const gemini = localStorage.getItem('tasksmanager_ai_key_gemini') || '';
+    const groq = localStorage.getItem('tasksmanager_ai_key_groq') || '';
+    const grok = localStorage.getItem('tasksmanager_ai_key_grok') || '';
+    const legacyKey = localStorage.getItem('tasksmanager_custom_ai_key') || '';
+    const legacyProvider = localStorage.getItem('tasksmanager_custom_ai_provider') || '';
 
-      const savedKey = localStorage.getItem('tasksmanager_custom_ai_key');
-      if (savedKey) setCustomApiKey(savedKey);
+    const keys: { gemini?: string; groq?: string; grok?: string } = {};
+    if (gemini) keys.gemini = gemini;
+    if (groq) keys.groq = groq;
+    if (grok) keys.grok = grok;
 
-      const savedProvider = localStorage.getItem('tasksmanager_custom_ai_provider');
-      if (savedProvider) setCustomProvider(savedProvider);
-    } catch {
-      // ignore storage access errors
+    if (legacyKey) {
+      if (legacyKey.startsWith('xai-') || legacyProvider === 'grok') {
+        if (!keys.grok) keys.grok = legacyKey;
+      } else if (legacyKey.startsWith('gsk_') || legacyProvider === 'groq') {
+        if (!keys.groq) keys.groq = legacyKey;
+      } else {
+        if (!keys.gemini) keys.gemini = legacyKey;
+      }
     }
+    return keys;
+  }, []);
+
+  // Hydrate custom key and preference from cloud settings
+  useEffect(() => {
+    apiFetch<any>('/api/settings')
+      .then((data) => {
+        if (data?.preferredAiModel) setSelectedModel(data.preferredAiModel);
+        const prov = (data?.activeAiProvider || 'gemini') as 'gemini' | 'groq' | 'grok';
+        setCustomProvider(prov);
+        if (data?.aiKeys && typeof data.aiKeys === 'object') {
+          const key = data.aiKeys[prov] || data.aiKeys.gemini || data.aiKeys.groq || data.aiKeys.grok || '';
+          if (key) setCustomApiKey(key);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const updateSelectedModel = useCallback((model: string) => {
     setSelectedModel(model);
-    try {
-      localStorage.setItem('tasksmanager_preferred_ai_model', model);
-    } catch {}
+    apiFetch('/api/settings', {
+      method: 'PATCH',
+      body: { preferredAiModel: model },
+    }).catch(() => {});
   }, []);
 
   const updateCustomApiKey = useCallback((key: string, provider: string = 'gemini') => {
-    setCustomApiKey(key);
+    const trimmed = key.trim();
+    setCustomApiKey(trimmed);
     setCustomProvider(provider);
-    try {
-      localStorage.setItem('tasksmanager_custom_ai_key', key);
-      localStorage.setItem('tasksmanager_custom_ai_provider', provider);
-    } catch {}
+    apiFetch('/api/settings', {
+      method: 'PATCH',
+      body: {
+        aiKeys: { [provider]: trimmed },
+        activeAiProvider: provider,
+      },
+    }).catch(() => {});
   }, []);
 
   const clearRateLimit = useCallback(() => {
@@ -108,6 +137,11 @@ export function useAiDraft() {
     const effectiveKey = (keyOverride ?? (customApiKey || undefined) ?? (storedKey || undefined) ?? '').trim();
     const effectiveProvider = (providerOverride ?? (customProvider || undefined) ?? (storedProvider || undefined) ?? 'gemini').trim();
 
+    const userKeys = getStoredUserKeys();
+    if (effectiveKey) {
+      userKeys[effectiveProvider as 'gemini' | 'groq' | 'grok'] = effectiveKey;
+    }
+
     try {
       const res = await apiFetch<AiDraftResponse>('/api/ai-draft', {
         method: 'POST',
@@ -116,6 +150,7 @@ export function useAiDraft() {
           preferredModel: selectedModel !== 'auto' ? selectedModel : undefined,
           customApiKey: effectiveKey || undefined,
           customProvider: effectiveKey ? effectiveProvider : undefined,
+          userApiKeys: Object.values(userKeys).some(Boolean) ? userKeys : undefined,
         },
       });
 
@@ -185,6 +220,11 @@ export function useAiDraft() {
     const effectiveKey = (keyOverride ?? (customApiKey || undefined) ?? (storedKey || undefined) ?? '').trim();
     const effectiveProvider = (providerOverride ?? (customProvider || undefined) ?? (storedProvider || undefined) ?? 'gemini').trim();
 
+    const userKeys = getStoredUserKeys();
+    if (effectiveKey) {
+      userKeys[effectiveProvider as 'gemini' | 'groq' | 'grok'] = effectiveKey;
+    }
+
     try {
       const res = await apiFetch<AiRegenResponse>('/api/ai-draft/regenerate', {
         method: 'POST',
@@ -195,6 +235,7 @@ export function useAiDraft() {
           preferredModel: selectedModel !== 'auto' ? selectedModel : undefined,
           customApiKey: effectiveKey || undefined,
           customProvider: effectiveKey ? effectiveProvider : undefined,
+          userApiKeys: Object.values(userKeys).some(Boolean) ? userKeys : undefined,
         },
       });
 
