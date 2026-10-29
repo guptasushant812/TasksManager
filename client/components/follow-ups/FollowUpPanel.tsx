@@ -141,26 +141,28 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
         <div className="fu-panel-header">
           <button
             onClick={onClose}
-            className="btn btn-ghost"
-            style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, minHeight: 36 }}
+            className="fu-panel-back-btn"
+            title="Back to workspace"
+            aria-label="Back"
           >
             <ArrowLeft style={{ width: 14, height: 14 }} />
-            Back
+            <span className="fu-panel-back-text">Back</span>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div className="fu-panel-header-actions">
             <ExportMenu filters={{}} selectedIds={[task._id]} isPanel={true} />
 
             <button
-              className="btn btn-primary"
+              className="btn btn-primary fu-add-btn"
               onClick={() => {
                 setEditingFollowUp(null);
                 setShowForm(true);
               }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 13, minHeight: 36 }}
+              title="Add follow-up entry"
             >
               <Plus style={{ width: 14, height: 14, strokeWidth: 2.5 }} />
-              Add Follow-Up
+              <span className="fu-add-text-full">Add Follow-Up</span>
+              <span className="fu-add-text-short">Follow-Up</span>
             </button>
           </div>
         </div>
