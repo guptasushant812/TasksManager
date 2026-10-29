@@ -3652,6 +3652,58 @@ html:not(.dark) .label {
   flex-shrink: 0;
 }
 
+.fu-task-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 28px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.fu-task-details-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-0.5px);
+}
+
+.fu-task-details-btn.is-active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-subtle);
+}
+
+.dark .fu-task-details-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.dark .fu-task-details-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dark .fu-task-details-btn.is-active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--box-shadow-neon-sm);
+}
+
 /* ─── Follow-Up Timeline ──────────────────────────────────────────────────── */
 .fu-overdue-banner {
   margin: 0 20px 12px;
@@ -5055,6 +5107,13 @@ html:not(.dark) .label {
     padding: 6px 11px;
     font-size: 12px;
     gap: 5px;
+  }
+
+  .fu-task-details-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+    min-height: 26px;
+    gap: 4px;
   }
 }
 
