@@ -2,6 +2,7 @@
 import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import {
   getSessionStatus,
@@ -17,14 +18,14 @@ import {
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isPublic = pathname?.startsWith('/status');
+  const isPublic = pathname?.startsWith('/status') || pathname === '/help' || pathname?.startsWith('/help');
 
-  const [isLocked, setIsLocked] = useState(true);
+  const [isLocked, setIsLocked] = useState(!isPublic);
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isPublic);
   const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -497,6 +498,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 {isUnlocking ? 'Resuming...' : isVerifying ? 'Verifying...' : 'Continue Session'}
               </button>
             </form>
+            <div style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+              Need workflow guidance?{' '}
+              <Link href="/help" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+                View Help &amp; FAQ
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -564,9 +571,9 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               >
                 <Lock size={20} />
               </div>
-              <h2 style={{ fontSize: 22, fontWeight: 750, letterSpacing: '-0.02em', marginBottom: 6, color: 'var(--text-primary)' }}>
+              <h1 style={{ fontSize: 22, fontWeight: 750, letterSpacing: '-0.02em', marginBottom: 6, color: 'var(--text-primary)' }}>
                 Secure Workspace
-              </h2>
+              </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.4 }}>
                 Enter your passcode to unlock TasksManager.
               </p>
@@ -652,6 +659,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 {isUnlocking ? 'Unlocking...' : isVerifying ? 'Verifying...' : 'Unlock Workspace'}
               </button>
             </form>
+            <div style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+              Need workflow guidance?{' '}
+              <Link href="/help" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+                View Help &amp; FAQ
+              </Link>
+            </div>
           </div>
         </div>
       )}

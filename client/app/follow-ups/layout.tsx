@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Follow-Ups',
-  description: 'Log and review follow-up conversations, reminders, attachments, and progress milestones on active tasks.',
+  title: 'Follow-Ups Workspace',
+  description: 'Private workspace for logging follow-up communication, interaction logs, reminders, and escalation tracking.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   alternates: {
     canonical: '/follow-ups',
-  },
-  openGraph: {
-    title: 'Follow-Ups | TasksManager',
-    description: 'Log and review follow-up conversations, reminders, attachments, and progress milestones on active tasks.',
-    url: '/follow-ups',
   },
 };
 
