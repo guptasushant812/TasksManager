@@ -161,8 +161,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
               title="Add follow-up entry"
             >
               <Plus style={{ width: 14, height: 14, strokeWidth: 2.5 }} />
-              <span className="fu-add-text-full">Add Follow-Up</span>
-              <span className="fu-add-text-short">Follow-Up</span>
+              <span>Add Follow-Up</span>
             </button>
           </div>
         </div>
