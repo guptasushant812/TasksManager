@@ -3557,9 +3557,87 @@ html:not(.dark) .label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  gap: 10px;
+  flex-wrap: nowrap;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fu-panel-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  min-height: 34px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.fu-panel-back-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.fu-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.fu-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  min-height: 34px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fu-export-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.fu-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 34px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fu-add-text-short {
+  display: none;
+}
+
+.fu-add-text-full {
+  display: inline;
 }
 
 .fu-panel-back {
@@ -4949,6 +5027,11 @@ html:not(.dark) .label {
 @media (max-width: 480px) {
   .fu-panel-header {
     padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .fu-panel-header-actions {
+    gap: 6px;
   }
 
   .fu-panel-task-info {
@@ -4962,6 +5045,65 @@ html:not(.dark) .label {
 
   .fu-timeline-empty {
     padding: 28px 12px;
+  }
+
+  .fu-export-label {
+    display: none !important;
+  }
+
+  .fu-export-btn {
+    padding: 6px 8px;
+  }
+
+  .fu-panel-back-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .fu-add-btn {
+    padding: 6px 11px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .fu-panel-header {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+
+  .fu-panel-header-actions {
+    gap: 4px;
+  }
+
+  .fu-panel-back-btn {
+    padding: 6px 6px;
+  }
+
+  .fu-export-btn {
+    padding: 6px 6px;
+  }
+
+  .fu-add-text-full {
+    display: none !important;
+  }
+
+  .fu-add-text-short {
+    display: inline !important;
+  }
+
+  .fu-add-btn {
+    padding: 6px 9px;
+  }
+}
+
+@media (max-width: 330px) {
+  .fu-panel-back-text {
+    display: none !important;
+  }
+
+  .fu-panel-back-btn {
+    padding: 6px;
   }
 }
 

@@ -207,10 +207,10 @@ export default function ExportMenu({
     <div style={{ position: 'relative' }}>
       <button
         id="btn-export"
-        className="btn btn-ghost"
+        className={isPanel ? "fu-export-btn" : "btn btn-ghost"}
         onClick={() => setOpen(!open)}
         disabled={checking || exportingFormat !== null}
-        style={{ minWidth: 100 }}
+        style={isPanel ? undefined : { minWidth: 100 }}
       >
         {exportingFormat ? (
           <>
@@ -229,7 +229,7 @@ export default function ExportMenu({
         ) : (
           <>
             <Download style={{ width: 14, height: 14 }} />
-            <span>{checking ? 'Checking…' : 'Export'}</span>
+            <span className={isPanel ? "fu-export-label" : undefined}>{checking ? 'Checking…' : 'Export'}</span>
             {selectedIds.length > 0 && (
               <span
                 style={{
