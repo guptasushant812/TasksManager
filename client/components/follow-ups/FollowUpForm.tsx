@@ -109,8 +109,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           </button>
         </div>
 
-        <div style={{ padding: '20px 24px', maxHeight: 'calc(95vh - 130px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ padding: '20px 24px', maxHeight: 'min(78dvh, calc(100dvh - 140px))', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             <div>
               <label className="label" htmlFor="fu-date">Date & Time</label>
               <input
@@ -333,7 +333,7 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                 <div>
                   <label className="label" htmlFor="fu-next-action">Next Action</label>
                   <input

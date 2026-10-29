@@ -29,7 +29,6 @@ export default function FollowUpEntry({ followUp, isLast, displayNumber, onEdit,
       </div>
 
       <div className="fu-entry-content">
-        {/* Header */}
         <div className="fu-entry-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span className="fu-entry-number">#{numToDisplay}</span>
