@@ -8,7 +8,7 @@ import FollowUpTimeline from './FollowUpTimeline';
 import FollowUpForm from './FollowUpForm';
 import EscalationBanner from './EscalationBanner';
 import ExportMenu from '../tasks/ExportMenu';
-import { ArrowLeft, Plus, Trash2, X, ChevronDown, ChevronUp, User, Calendar, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, X, ChevronDown, ChevronUp, User, Calendar, AlertCircle, FileText } from 'lucide-react';
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 
 interface FollowUpPanelProps {
@@ -190,27 +190,21 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
               </span>
             </div>
 
-            {task.description && (
-              <button
-                type="button"
-                onClick={() => setShowFullDesc(!showFullDesc)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: 11,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 3,
-                  cursor: 'pointer',
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                }}
-              >
-                {showFullDesc ? 'Hide Details' : 'Details'}
-                {showFullDesc ? <ChevronUp style={{ width: 12, height: 12 }} /> : <ChevronDown style={{ width: 12, height: 12 }} />}
-              </button>
-            )}
+            <button
+              type="button"
+              className={`fu-task-details-btn ${showFullDesc ? 'is-active' : ''}`}
+              onClick={() => setShowFullDesc(!showFullDesc)}
+              aria-expanded={showFullDesc}
+              title={showFullDesc ? 'Hide task details' : 'View full task details'}
+            >
+              <FileText style={{ width: 12, height: 12 }} />
+              <span>{showFullDesc ? 'Hide Details' : 'Task Details'}</span>
+              {showFullDesc ? (
+                <ChevronUp style={{ width: 12, height: 12 }} />
+              ) : (
+                <ChevronDown style={{ width: 12, height: 12 }} />
+              )}
+            </button>
           </div>
 
           <h3
@@ -227,21 +221,26 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
             {task.title}
           </h3>
 
-          {showFullDesc && task.description && (
+          {showFullDesc && (
             <div
               className="animate-slide-down"
               style={{
                 fontSize: 12,
-                color: 'var(--text-secondary)',
                 lineHeight: 1.5,
-                padding: '8px 12px',
+                padding: '10px 14px',
                 background: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-md)',
-                marginBottom: 8,
-                border: '1px solid var(--border-subtle)',
+                marginBottom: 10,
+                border: '1px solid var(--border)',
+                borderLeft: '3px solid var(--accent)',
               }}
             >
-              {task.description}
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                Task Description
+              </div>
+              <p style={{ margin: 0, color: task.description ? 'var(--text-secondary)' : 'var(--text-muted)', fontStyle: task.description ? 'normal' : 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {task.description || 'No detailed description recorded for this task.'}
+              </p>
             </div>
           )}
 
