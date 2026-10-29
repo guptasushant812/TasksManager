@@ -4,7 +4,9 @@ import { TaskProvider } from '@/context/TaskContext';
 import Sidebar from '@/components/layout/Sidebar';
 import PasswordGate from '@/components/auth/PasswordGate';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tasksmanager.app';
+import { getSiteUrl } from '@/lib/siteUrl';
+
+const siteUrl = getSiteUrl();
 
 export const viewport: Viewport = {
   themeColor: [
@@ -19,7 +21,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'TasksManager',
+    default: 'TasksManager - Intelligent Task Management & Escalation Platform',
     template: '%s | TasksManager',
   },
   description:
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteUrl,
     siteName: 'TasksManager',
-    title: 'TasksManager',
+    title: 'TasksManager - Intelligent Task Management & Escalation Platform',
     description:
       'Manage team workflows, log follow-ups, configure multi-tier escalations, and share real-time public project status with TasksManager.',
     images: [
@@ -72,7 +74,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TasksManager',
+    title: 'TasksManager - Intelligent Task Management & Escalation Platform',
     description:
       'Streamline task tracking, multi-tier team escalations, and client follow-ups in one streamlined platform.',
     images: ['/og-image.png'],
@@ -95,25 +97,55 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'TasksManager',
-  applicationCategory: 'BusinessApplication, Productivity',
-  operatingSystem: 'Any',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  description:
-    'Modern, agile task management with intelligent AI task parsing, automatic multi-tier escalation thresholds, client follow-up tracking, and public status portals.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-  featureList: [
-    'Real-time task tracking with cascading date filters',
-    'Multi-tier escalation rules (Manager, HOD, DyHOD)',
-    'Client follow-up tracking with attachments',
-    'AI voice & text prompt parser for rapid task creation',
-    'Shareable read-only public status portal',
-    'Responsive dark & light mode support',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: 'TasksManager',
+      description: 'Intelligent task management, client follow-up tracking, and multi-tier managerial escalations.',
+      publisher: {
+        '@id': `${siteUrl}/#organization`,
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': `${siteUrl}/#organization`,
+      name: 'TasksManager',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/icon-512.png`,
+        width: 512,
+        height: 512,
+      },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': `${siteUrl}/#software`,
+      name: 'TasksManager',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript. Requires HTML5.',
+      description:
+        'Modern, agile task management with intelligent AI task parsing, automatic multi-tier escalation thresholds, client follow-up tracking, and public status portals.',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+      publisher: {
+        '@id': `${siteUrl}/#organization`,
+      },
+      featureList: [
+        'Real-time task tracking with cascading date filters',
+        'Multi-tier escalation rules (Manager, HOD, DyHOD)',
+        'Client follow-up tracking with attachments',
+        'AI voice & text prompt parser for rapid task creation',
+        'Shareable read-only public status portal',
+        'Responsive dark & light mode support',
+      ],
+    },
   ],
 };
 

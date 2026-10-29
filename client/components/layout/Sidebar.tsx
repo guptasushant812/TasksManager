@@ -1,17 +1,25 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CheckSquare, PhoneCall, Settings, HelpCircle, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-const NAV_ITEMS = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ style?: React.CSSProperties; className?: string }>;
+  nofollow?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { label: 'Tasks', href: '/tasks', icon: CheckSquare },
-  { label: 'Follow-Ups', href: '/follow-ups', icon: PhoneCall },
+  { label: 'Tasks', href: '/tasks', icon: CheckSquare, nofollow: true },
+  { label: 'Follow-Ups', href: '/follow-ups', icon: PhoneCall, nofollow: true },
 ];
 
-const BOTTOM_ITEMS = [
-  { label: 'Settings', href: '/settings', icon: Settings },
+const BOTTOM_ITEMS: NavItem[] = [
+  { label: 'Settings', href: '/settings', icon: Settings, nofollow: true },
   { label: 'Help', href: '/help', icon: HelpCircle },
 ];
 
@@ -86,12 +94,12 @@ export default function Sidebar() {
                 flexShrink: 0,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/icon-192.png"
                 alt="TasksManager Logo"
                 width={26}
                 height={26}
+                priority
                 className="transition-transform duration-300 group-hover/brand:scale-110"
                 style={{
                   width: 26,
@@ -128,11 +136,15 @@ export default function Sidebar() {
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div className={`nav-item ${isActive ? 'active' : ''}`}>
-                    <item.icon style={{ width: 18, height: 18 }} />
-                    {item.label}
-                  </div>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => setMobileOpen(false)}
+                  {...(item.nofollow ? { rel: 'nofollow' } : {})}
+                >
+                  <item.icon style={{ width: 18, height: 18 }} />
+                  {item.label}
                 </Link>
               );
             })}
@@ -144,11 +156,15 @@ export default function Sidebar() {
             {BOTTOM_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
-                  <div className={`nav-item ${isActive ? 'active' : ''}`}>
-                    <item.icon style={{ width: 18, height: 18 }} />
-                    {item.label}
-                  </div>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => setMobileOpen(false)}
+                  {...(item.nofollow ? { rel: 'nofollow' } : {})}
+                >
+                  <item.icon style={{ width: 18, height: 18 }} />
+                  {item.label}
                 </Link>
               );
             })}

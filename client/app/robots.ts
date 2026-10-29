@@ -1,14 +1,15 @@
+import { getSiteUrl } from '@/lib/siteUrl';
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tasksmanager.app';
+  const siteUrl = getSiteUrl();
 
   return {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/tasks', '/follow-ups', '/help'],
-        disallow: ['/api/', '/settings', '/status/'],
+        allow: ['/', '/help', '/tasks', '/follow-ups'],
+        disallow: ['/api/', '/settings/', '/status/'],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

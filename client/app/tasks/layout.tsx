@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Tasks',
-  description: 'View, filter, and manage tasks with real-time status tracking, priority flags, and assignment details.',
+  title: 'Tasks Workspace',
+  description: 'Private workspace for viewing, filtering, and managing daily task timesheets and assignment details.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   alternates: {
     canonical: '/tasks',
-  },
-  openGraph: {
-    title: 'Tasks | TasksManager',
-    description: 'View, filter, and manage tasks with real-time status tracking, priority flags, and assignment details.',
-    url: '/tasks',
   },
 };
 
