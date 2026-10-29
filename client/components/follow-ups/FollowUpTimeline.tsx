@@ -39,7 +39,7 @@ export default function FollowUpTimeline({ followUps, loading, onEdit, onDelete,
       );
     }
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)' }}>
+      <div className="fu-timeline-empty">
         <p style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 500, marginBottom: 4 }}>No follow-ups recorded yet</p>
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Use the button above to start tracking communication.</p>
       </div>

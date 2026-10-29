@@ -42,6 +42,23 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
     fetchFollowUps();
   }, [fetchFollowUps]);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
   const activeCount = followUps.filter((fu) => !fu.isDeleted).length;
 
   // Find the latest active follow-up's nextFollowUpDate
@@ -121,17 +138,17 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
       <div className="fu-panel-backdrop" onClick={onClose} />
 
       <div className="fu-panel fu-panel-redesign" role="dialog" aria-modal="true" aria-label={`Follow-Up History for ${task.taskId}`}>
-        <div className="fu-panel-header" style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="fu-panel-header">
           <button
             onClick={onClose}
             className="btn btn-ghost"
-            style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}
+            style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, minHeight: 36 }}
           >
             <ArrowLeft style={{ width: 14, height: 14 }} />
             Back
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <ExportMenu filters={{}} selectedIds={[task._id]} isPanel={true} />
 
             <button
@@ -140,7 +157,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
                 setEditingFollowUp(null);
                 setShowForm(true);
               }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 13 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 13, minHeight: 36 }}
             >
               <Plus style={{ width: 14, height: 14, strokeWidth: 2.5 }} />
               Add Follow-Up
@@ -148,8 +165,8 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         </div>
 
-        <div className="fu-panel-task-info" style={{ padding: '16px 20px', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+        <div className="fu-panel-task-info" style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span
                 style={{
@@ -197,11 +214,13 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
 
           <h3
             style={{
-              fontSize: 16,
+              fontSize: 'clamp(14px, 3.5vw, 16px)',
               fontWeight: 700,
               color: 'var(--text-primary)',
               margin: '0 0 6px',
               lineHeight: 1.4,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
             }}
           >
             {task.title}
