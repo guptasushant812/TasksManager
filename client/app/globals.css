@@ -3632,14 +3632,6 @@ html:not(.dark) .label {
   flex-shrink: 0;
 }
 
-.fu-add-text-short {
-  display: none;
-}
-
-.fu-add-text-full {
-  display: inline;
-}
-
 .fu-panel-back {
   background: none;
   border: none;
@@ -5047,28 +5039,28 @@ html:not(.dark) .label {
     padding: 28px 12px;
   }
 
-  .fu-export-label {
-    display: none !important;
-  }
-
   .fu-export-btn {
-    padding: 6px 8px;
+    padding: 5px 8px;
+    font-size: 12px;
+    gap: 5px;
   }
 
   .fu-panel-back-btn {
-    padding: 6px 8px;
+    padding: 5px 8px;
     font-size: 12px;
+    gap: 5px;
   }
 
   .fu-add-btn {
     padding: 6px 11px;
     font-size: 12px;
+    gap: 5px;
   }
 }
 
 @media (max-width: 380px) {
   .fu-panel-header {
-    padding: 8px 10px;
+    padding: 8px 8px;
     gap: 4px;
   }
 
@@ -5077,33 +5069,21 @@ html:not(.dark) .label {
   }
 
   .fu-panel-back-btn {
-    padding: 6px 6px;
+    padding: 5px 6px;
+    font-size: 11px;
+    gap: 4px;
   }
 
   .fu-export-btn {
-    padding: 6px 6px;
-  }
-
-  .fu-add-text-full {
-    display: none !important;
-  }
-
-  .fu-add-text-short {
-    display: inline !important;
+    padding: 5px 6px;
+    font-size: 11px;
+    gap: 4px;
   }
 
   .fu-add-btn {
-    padding: 6px 9px;
-  }
-}
-
-@media (max-width: 330px) {
-  .fu-panel-back-text {
-    display: none !important;
-  }
-
-  .fu-panel-back-btn {
-    padding: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+    gap: 4px;
   }
 }
 
