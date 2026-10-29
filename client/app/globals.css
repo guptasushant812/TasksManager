@@ -3648,117 +3648,112 @@ html:not(.dark) .label {
 
 .fu-panel-task-info {
   padding: 16px 20px;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.fu-task-details-btn {
+.fu-task-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fu-task-id-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+}
+
+.fu-task-priority {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.fu-task-priority strong {
+  color: var(--text-primary);
+}
+
+.fu-task-title {
+  font-size: clamp(15px, 3.8vw, 17px);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.fu-task-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  row-gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.fu-meta-item {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px;
-  min-height: 28px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-  white-space: nowrap;
-  flex-shrink: 0;
-  user-select: none;
 }
 
-.fu-task-details-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border);
-  color: var(--text-primary);
-}
-
-.fu-task-details-btn.is-active {
-  background: var(--accent-subtle);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.dark .fu-task-details-btn {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
+.fu-meta-item strong {
   color: var(--text-secondary);
 }
 
-.dark .fu-task-details-btn:hover {
-  background: var(--bg-surface);
-  border-color: var(--border);
-  color: var(--text-primary);
-}
-
-.dark .fu-task-details-btn.is-active {
-  background: var(--accent-subtle);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.fu-desc-card {
-  margin-top: 10px;
+.fu-desc-section {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: border-color var(--duration-fast);
 }
 
-.fu-desc-card:hover {
+.fu-desc-section:hover {
   border-color: var(--border);
 }
 
-.fu-desc-card-header {
+.fu-desc-toggle {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
   user-select: none;
 }
 
-.fu-desc-card-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
-.fu-desc-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-
-.fu-desc-toggle-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+.fu-desc-toggle:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
-.fu-desc-card-body {
+.fu-desc-toggle.is-open {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--accent);
+}
+
+.fu-desc-content {
   padding: 12px 14px;
+  background: var(--bg-surface);
 }
 
 /* ─── Follow-Up Timeline ──────────────────────────────────────────────────── */
@@ -5166,11 +5161,13 @@ html:not(.dark) .label {
     gap: 5px;
   }
 
-  .fu-task-details-btn {
-    padding: 3px 8px;
-    font-size: 11px;
-    min-height: 26px;
-    gap: 4px;
+  .fu-desc-toggle {
+    padding: 7px 10px;
+    font-size: 11.5px;
+  }
+
+  .fu-desc-content {
+    padding: 10px 12px;
   }
 }
 

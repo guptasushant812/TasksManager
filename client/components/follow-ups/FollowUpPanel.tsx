@@ -207,117 +207,74 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
           </div>
         </div>
 
-        <div className="fu-panel-task-info" style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: 12,
-                  color: 'var(--accent)',
-                  fontWeight: 700,
-                  background: 'var(--accent-subtle)',
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                }}
-              >
-                {task.taskId}
-              </span>
-              <span className={`badge ${statusBadgeClass}`} style={{ fontSize: 11 }}>
-                {task.workStatus}
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Priority: <strong style={{ color: 'var(--text-primary)' }}>{task.priority}</strong>
-              </span>
-            </div>
-
-            {task.description && (
-              <button
-                type="button"
-                className={`fu-task-details-btn ${showFullDesc ? 'is-active' : ''}`}
-                onClick={() => setShowFullDesc(!showFullDesc)}
-                aria-expanded={showFullDesc}
-                title={showFullDesc ? 'Hide task description' : 'View full task description'}
-              >
-                <FileText style={{ width: 12, height: 12 }} />
-                <span>{showFullDesc ? 'Hide Details' : 'Task Details'}</span>
-                <ChevronDown
-                  style={{
-                    width: 12,
-                    height: 12,
-                    transform: showFullDesc ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                  }}
-                />
-              </button>
-            )}
-          </div>
-
-          <h3
-            style={{
-              fontSize: 'clamp(15px, 3.8vw, 17px)',
-              fontWeight: 800,
-              color: 'var(--text-primary)',
-              margin: '0 0 8px',
-              lineHeight: 1.35,
-              letterSpacing: '-0.01em',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word',
-            }}
-          >
-            {task.title}
-          </h3>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: 14,
-              rowGap: 6,
-              fontSize: 12,
-              color: 'var(--text-muted)',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-            }}
-          >
-            {task.contactPerson && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <User style={{ width: 12, height: 12, opacity: 0.7 }} />
-                <span>Contact:</span>
-                <strong style={{ color: 'var(--text-secondary)' }}>{task.contactPerson}</strong>
-              </span>
-            )}
-            {task.givenBy && (
-              <span>
-                Given by: <strong style={{ color: 'var(--text-secondary)' }}>{task.givenBy}</strong>
-              </span>
-            )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Calendar style={{ width: 12, height: 12, opacity: 0.7 }} />
-              <span>Created:</span>
-              <strong style={{ color: 'var(--text-secondary)' }}>{formatDate(task.date)}</strong>
+        <div className="fu-panel-task-info">
+          <div className="fu-task-meta-top">
+            <span className="fu-task-id-badge">
+              {task.taskId}
+            </span>
+            <span className={`badge ${statusBadgeClass}`}>
+              {task.workStatus}
+            </span>
+            <span className="fu-task-priority">
+              Priority: <strong>{task.priority}</strong>
             </span>
           </div>
 
-          {task.description && showFullDesc && (
-            <div className="fu-desc-card animate-slide-down">
-              <div className="fu-desc-card-header">
-                <div className="fu-desc-card-title">
-                  <FileText style={{ width: 12, height: 12, color: 'var(--accent)' }} />
-                  <span>Task Brief & Scope</span>
+          <h3 className="fu-task-title">
+            {task.title}
+          </h3>
+
+          <div className="fu-task-meta-row">
+            {task.contactPerson && (
+              <span className="fu-meta-item">
+                <User style={{ width: 12, height: 12, opacity: 0.7 }} />
+                <span>Contact:</span>
+                <strong>{task.contactPerson}</strong>
+              </span>
+            )}
+            {task.givenBy && (
+              <span className="fu-meta-item">
+                <span>Given by:</span>
+                <strong>{task.givenBy}</strong>
+              </span>
+            )}
+            <span className="fu-meta-item">
+              <Calendar style={{ width: 12, height: 12, opacity: 0.7 }} />
+              <span>Created:</span>
+              <strong>{formatDate(task.date)}</strong>
+            </span>
+          </div>
+
+          {task.description && (
+            <div className="fu-desc-section">
+              <button
+                type="button"
+                className={`fu-desc-toggle ${showFullDesc ? 'is-open' : ''}`}
+                onClick={() => setShowFullDesc(!showFullDesc)}
+                aria-expanded={showFullDesc}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FileText style={{ width: 12, height: 12 }} />
+                  <span style={{ fontWeight: 600 }}>Description</span>
                 </div>
-                <button
-                  type="button"
-                  className="fu-desc-toggle-btn"
-                  onClick={() => setShowFullDesc(false)}
-                  title="Close description"
-                >
-                  <span>Close</span>
-                  <X style={{ width: 11, height: 11 }} />
-                </button>
-              </div>
-              <div className="fu-desc-card-body">
-                {renderFormattedDescription(task.description)}
-              </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 11, opacity: 0.8 }}>{showFullDesc ? 'Hide' : 'View'}</span>
+                  <ChevronDown
+                    style={{
+                      width: 12,
+                      height: 12,
+                      transform: showFullDesc ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  />
+                </div>
+              </button>
+
+              {showFullDesc && (
+                <div className="fu-desc-content animate-slide-down">
+                  {renderFormattedDescription(task.description)}
+                </div>
+              )}
             </div>
           )}
         </div>
