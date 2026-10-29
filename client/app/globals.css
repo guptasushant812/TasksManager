@@ -3655,11 +3655,11 @@ html:not(.dark) .label {
 .fu-task-details-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 10px;
   min-height: 28px;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-size: 11.5px;
@@ -3673,35 +3673,92 @@ html:not(.dark) .label {
 
 .fu-task-details-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateY(-0.5px);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
 
 .fu-task-details-btn.is-active {
   background: var(--accent-subtle);
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent-subtle);
 }
 
 .dark .fu-task-details-btn {
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
 }
 
 .dark .fu-task-details-btn:hover {
   background: var(--bg-surface);
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
 
 .dark .fu-task-details-btn.is-active {
   background: var(--accent-subtle);
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: var(--box-shadow-neon-sm);
+}
+
+.fu-desc-card {
+  margin-top: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color var(--duration-fast);
+}
+
+.fu-desc-card:hover {
+  border-color: var(--border);
+}
+
+.fu-desc-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+
+.fu-desc-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.fu-desc-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.fu-desc-toggle-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.fu-desc-card-body {
+  padding: 12px 14px;
 }
 
 /* ─── Follow-Up Timeline ──────────────────────────────────────────────────── */
