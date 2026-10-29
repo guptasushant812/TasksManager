@@ -18,6 +18,47 @@ interface FollowUpPanelProps {
   initialAddMode?: boolean;
 }
 
+function renderFormattedDescription(desc: string) {
+  if (!desc) return null;
+  const lines = desc.split('\n');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, lineHeight: 1.6 }}>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} style={{ height: 4 }} />;
+        }
+        const isBullet = /^[-*•]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed);
+        if (isBullet) {
+          const content = trimmed.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '');
+          return (
+            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingLeft: 4 }}>
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: 'var(--accent)',
+                  marginTop: 8,
+                  flexShrink: 0,
+                  opacity: 0.85,
+                }}
+              />
+              <span style={{ color: 'var(--text-secondary)', flex: 1, wordBreak: 'break-word' }}>{content}</span>
+            </div>
+          );
+        }
+        return (
+          <p key={idx} style={{ margin: 0, color: 'var(--text-primary)', fontWeight: idx === 0 && lines.length > 1 ? 600 : 400, wordBreak: 'break-word' }}>
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAddMode = false }: FollowUpPanelProps) {
   const {
     followUps,
@@ -167,7 +208,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
         </div>
 
         <div className="fu-panel-task-info" style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span
                 style={{
@@ -190,30 +231,36 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
               </span>
             </div>
 
-            <button
-              type="button"
-              className={`fu-task-details-btn ${showFullDesc ? 'is-active' : ''}`}
-              onClick={() => setShowFullDesc(!showFullDesc)}
-              aria-expanded={showFullDesc}
-              title={showFullDesc ? 'Hide task details' : 'View full task details'}
-            >
-              <FileText style={{ width: 12, height: 12 }} />
-              <span>{showFullDesc ? 'Hide Details' : 'Task Details'}</span>
-              {showFullDesc ? (
-                <ChevronUp style={{ width: 12, height: 12 }} />
-              ) : (
-                <ChevronDown style={{ width: 12, height: 12 }} />
-              )}
-            </button>
+            {task.description && (
+              <button
+                type="button"
+                className={`fu-task-details-btn ${showFullDesc ? 'is-active' : ''}`}
+                onClick={() => setShowFullDesc(!showFullDesc)}
+                aria-expanded={showFullDesc}
+                title={showFullDesc ? 'Hide task description' : 'View full task description'}
+              >
+                <FileText style={{ width: 12, height: 12 }} />
+                <span>{showFullDesc ? 'Hide Details' : 'Task Details'}</span>
+                <ChevronDown
+                  style={{
+                    width: 12,
+                    height: 12,
+                    transform: showFullDesc ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                />
+              </button>
+            )}
           </div>
 
           <h3
             style={{
-              fontSize: 'clamp(14px, 3.5vw, 16px)',
-              fontWeight: 700,
+              fontSize: 'clamp(15px, 3.8vw, 17px)',
+              fontWeight: 800,
               color: 'var(--text-primary)',
-              margin: '0 0 6px',
-              lineHeight: 1.4,
+              margin: '0 0 8px',
+              lineHeight: 1.35,
+              letterSpacing: '-0.01em',
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
             }}
@@ -221,33 +268,11 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
             {task.title}
           </h3>
 
-          {showFullDesc && (
-            <div
-              className="animate-slide-down"
-              style={{
-                fontSize: 12,
-                lineHeight: 1.5,
-                padding: '10px 14px',
-                background: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: 10,
-                border: '1px solid var(--border)',
-                borderLeft: '3px solid var(--accent)',
-              }}
-            >
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                Task Description
-              </div>
-              <p style={{ margin: 0, color: task.description ? 'var(--text-secondary)' : 'var(--text-muted)', fontStyle: task.description ? 'normal' : 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {task.description || 'No detailed description recorded for this task.'}
-              </p>
-            </div>
-          )}
-
           <div
             style={{
               display: 'flex',
-              gap: 16,
+              gap: 14,
+              rowGap: 6,
               fontSize: 12,
               color: 'var(--text-muted)',
               flexWrap: 'wrap',
@@ -255,7 +280,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
             }}
           >
             {task.contactPerson && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <User style={{ width: 12, height: 12, opacity: 0.7 }} />
                 <span>Contact:</span>
                 <strong style={{ color: 'var(--text-secondary)' }}>{task.contactPerson}</strong>
@@ -266,12 +291,35 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
                 Given by: <strong style={{ color: 'var(--text-secondary)' }}>{task.givenBy}</strong>
               </span>
             )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Calendar style={{ width: 12, height: 12, opacity: 0.7 }} />
               <span>Created:</span>
               <strong style={{ color: 'var(--text-secondary)' }}>{formatDate(task.date)}</strong>
             </span>
           </div>
+
+          {task.description && showFullDesc && (
+            <div className="fu-desc-card animate-slide-down">
+              <div className="fu-desc-card-header">
+                <div className="fu-desc-card-title">
+                  <FileText style={{ width: 12, height: 12, color: 'var(--accent)' }} />
+                  <span>Task Brief & Scope</span>
+                </div>
+                <button
+                  type="button"
+                  className="fu-desc-toggle-btn"
+                  onClick={() => setShowFullDesc(false)}
+                  title="Close description"
+                >
+                  <span>Close</span>
+                  <X style={{ width: 11, height: 11 }} />
+                </button>
+              </div>
+              <div className="fu-desc-card-body">
+                {renderFormattedDescription(task.description)}
+              </div>
+            </div>
+          )}
         </div>
 
         {isOverdue && (
