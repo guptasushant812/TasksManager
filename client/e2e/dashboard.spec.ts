@@ -67,7 +67,7 @@ test.describe('Dashboard Responsive Layout & Container Queries', () => {
       await expect(viewAllBtn).toBeVisible({ timeout: 5000 });
 
       // Ensure no ChevronLeft/ChevronRight pagination buttons
-      const paginationBtns = page.locator('button.brutalist-hover').filter({ hasText: /^[0-9]+$/ });
+      const paginationBtns = page.locator('button.task-pagination-btn').filter({ hasText: /^[0-9]+$/ });
       expect(await paginationBtns.count()).toBe(0);
     }
   });
