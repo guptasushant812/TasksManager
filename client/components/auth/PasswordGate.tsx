@@ -2,7 +2,6 @@
 import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import {
   getSessionStatus,
@@ -498,12 +497,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 {isUnlocking ? 'Resuming...' : isVerifying ? 'Verifying...' : 'Continue Session'}
               </button>
             </form>
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-              Need workflow guidance?{' '}
-              <Link href="/help" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
-                View Help &amp; FAQ
-              </Link>
-            </div>
+
           </div>
         </div>
       )}
@@ -659,12 +653,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 {isUnlocking ? 'Unlocking...' : isVerifying ? 'Verifying...' : 'Unlock Workspace'}
               </button>
             </form>
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-              Need workflow guidance?{' '}
-              <Link href="/help" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
-                View Help &amp; FAQ
-              </Link>
-            </div>
+
           </div>
         </div>
       )}
