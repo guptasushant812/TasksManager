@@ -1650,7 +1650,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 function PaginationBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {
   return (
     <button
-      className={`brutalist-hover ${active ? 'active' : ''}`}
+      className={`task-pagination-btn brutalist-hover ${active ? 'active' : ''}`}
       onClick={onClick}
       disabled={disabled}
       style={{
