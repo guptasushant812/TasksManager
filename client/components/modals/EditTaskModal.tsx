@@ -174,32 +174,24 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
 
   const instructionValidation = useMemo(() => {
     const trimmed = regenInstruction.trim();
-    const charCount = trimmed.length;
     if (!trimmed) {
       return {
         isValid: false,
-        wordCount: 0,
-        charCount: 0,
-        hint: 'Minimum 2 words required',
+        hint: '',
       };
     }
     const words = trimmed.split(/\s+/).filter(Boolean);
-    const wordCount = words.length;
 
-    if (wordCount < 2 || charCount < 5) {
+    if (words.length < 2 || trimmed.length < 5) {
       return {
         isValid: false,
-        wordCount,
-        charCount,
-        hint: 'Minimum 2 words required (e.g. "Add attendance count")',
+        hint: 'Minimum 2 words required',
       };
     }
 
     return {
       isValid: true,
-      wordCount,
-      charCount,
-      hint: `${wordCount} words (${charCount} characters)`,
+      hint: '',
     };
   }, [regenInstruction]);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
@@ -567,7 +559,12 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const renderRegenModal = () => (
     <div
       className="app-dialog-overlay"
-      style={{ zIndex: 1100 }}
+      style={{
+        zIndex: 1200,
+        background: 'rgba(3, 7, 18, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
       onClick={() => !isRegenerating && setIsRegenOpen(false)}
       role="dialog"
       aria-modal="true"
@@ -577,14 +574,14 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         className="app-dialog-box animate-slide-up"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: 460,
-          width: 'min(460px, calc(100vw - 24px))',
+          maxWidth: 720,
+          width: 'min(720px, calc(100vw - 28px))',
           marginInline: 'clamp(12px, 3vw, 16px)',
           borderRadius: 14,
           overflow: 'hidden',
           background: 'var(--bg-elevated)',
           border: '1px solid var(--border)',
-          boxShadow: '0 20px 48px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+          boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.06)',
         }}
       >
         <div className="app-dialog-accent-bar app-dialog-accent-success" style={{ height: 2.5 }} />
@@ -594,25 +591,28 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '16px 20px 14px',
+            padding: '16px 22px 14px',
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-elevated)',
+            gap: 12,
+            flexWrap: 'wrap',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <div
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
+                width: 36,
+                height: 36,
+                borderRadius: 9,
                 background: 'rgba(16, 185, 129, 0.14)',
                 color: 'var(--accent, #10b981)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              <Sparkles style={{ width: 16, height: 16 }} />
+              <Sparkles style={{ width: 18, height: 18 }} />
             </div>
             <div>
               <h3
@@ -669,19 +669,19 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
               className="app-dialog-close-btn"
               aria-label="Close regeneration dialog"
               disabled={isRegenerating}
-              style={{ padding: 4 }}
+              style={{ padding: 6 }}
             >
               <X style={{ width: 16, height: 16 }} />
             </button>
           </div>
         </div>
 
-        <div style={{ padding: '16px 20px', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: '18px 22px', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
             <label
               htmlFor="regen-instruction-textarea"
               style={{
-                fontSize: 12,
+                fontSize: 12.5,
                 fontWeight: 600,
                 color: 'var(--text-secondary)',
                 margin: 0,
@@ -689,16 +689,18 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             >
               Instructions or Guidance
             </label>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: instructionValidation.isValid ? 'var(--accent, #10b981)' : regenInstruction.trim() ? '#f59e0b' : 'var(--text-muted)',
-                transition: 'color 0.15s ease',
-              }}
-            >
-              {instructionValidation.hint}
-            </span>
+            {instructionValidation.hint ? (
+              <span
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 500,
+                  color: '#f59e0b',
+                  transition: 'color 0.15s ease',
+                }}
+              >
+                {instructionValidation.hint}
+              </span>
+            ) : null}
           </div>
 
           <textarea
@@ -712,15 +714,15 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
               }
             }}
             placeholder="Please note add the point of counting, clarify next steps..."
-            rows={4}
+            rows={6}
             className="input"
             style={{
               width: '100%',
-              minHeight: 100,
-              maxHeight: 220,
-              fontSize: 13,
-              lineHeight: 1.5,
-              padding: '10px 12px',
+              minHeight: 160,
+              maxHeight: 'min(45vh, 340px)',
+              fontSize: 13.5,
+              lineHeight: 1.55,
+              padding: '12px 14px',
               borderRadius: 8,
               border: `1px solid ${regenInstruction.trim() && !instructionValidation.isValid ? 'rgba(245, 158, 11, 0.45)' : 'var(--border)'}`,
               background: 'var(--bg-elevated)',
@@ -731,18 +733,18 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             autoFocus
           />
 
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
-            Tip: Press <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Ctrl</kbd> + <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Enter</kbd> to regenerate quickly.
+          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+            Tip: Press <kbd style={{ padding: '2px 6px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Ctrl</kbd> + <kbd style={{ padding: '2px 6px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Enter</kbd> to regenerate quickly.
           </p>
 
           {aiError && (
             <div
               style={{
-                padding: '8px 12px',
+                padding: '10px 14px',
                 background: 'var(--high-bg)',
                 border: '1px solid rgba(239, 68, 68, 0.25)',
                 borderRadius: 8,
-                fontSize: 12,
+                fontSize: 12.5,
                 color: 'var(--high)',
               }}
             >
@@ -757,7 +759,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             alignItems: 'center',
             justifyContent: 'flex-end',
             gap: 10,
-            padding: '12px 20px 16px',
+            padding: '14px 22px 18px',
             borderTop: '1px solid var(--border-subtle)',
             background: 'var(--bg-elevated)',
           }}
@@ -770,7 +772,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             style={{
               height: 38,
               minHeight: 38,
-              padding: '0 16px',
+              padding: '0 18px',
               fontSize: 13,
               borderRadius: 8,
               cursor: isRegenerating ? 'not-allowed' : 'pointer',
@@ -786,7 +788,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             style={{
               height: 38,
               minHeight: 38,
-              padding: '0 18px',
+              padding: '0 20px',
               fontSize: 13,
               fontWeight: 600,
               background: canRegenerate ? 'var(--accent, #10b981)' : 'var(--bg-hover, #242738)',
@@ -800,7 +802,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
               gap: 6,
               transition: 'all 0.15s ease',
             }}
-            title={!instructionValidation.isValid ? instructionValidation.hint : 'Regenerate with AI'}
+            title={!canRegenerate ? (instructionValidation.hint || 'Minimum 2 words required') : 'Regenerate with AI'}
           >
             {isRegenerating ? (
               <>
