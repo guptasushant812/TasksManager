@@ -12,6 +12,11 @@ import {
   getSecurityConfig,
   STORAGE_KEYS,
   formatTimeoutDuration,
+  hashPasscode,
+  getCachedMasterHash,
+  setCachedMasterHash,
+  DEFAULT_MASTER_HASH,
+  FALLBACK_MASTER_HASH,
 } from '@/lib/sessionManager';
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
@@ -27,7 +32,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!isPublic);
   const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [isHashSynced, setIsHashSynced] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timeoutInputRef = useRef<HTMLInputElement>(null);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hardTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const checkSyncStateRef = useRef<() => void>(() => {});
@@ -258,6 +267,34 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }, 160);
   };
 
+  useEffect(() => {
+    let active = true;
+    apiFetch<{ hash: string }>('/api/settings/password-hash')
+      .then((res) => {
+        if (active && res?.hash) {
+          setCachedMasterHash(res.hash);
+          setIsHashSynced(true);
+        }
+      })
+      .catch(() => {
+        if (active) setIsHashSynced(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const triggerErrorFeedback = useCallback(() => {
+    setError(true);
+    setShake(true);
+    setTimeout(() => setShake(false), 380);
+    const activeInput = isTimedOut ? timeoutInputRef.current : inputRef.current;
+    if (activeInput) {
+      activeInput.focus();
+      activeInput.select();
+    }
+  }, [isTimedOut]);
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = password.trim();
@@ -265,39 +302,51 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
     setError(false);
 
-    // Fast-path: instant local verification (<1ms)
+    // Fast-path: local cryptographic verification (<1ms)
     const { password: currentPassword } = getSecurityConfig();
+    const cachedHash = getCachedMasterHash();
+    const inputHash = await hashPasscode(trimmed);
+
     const isLocallyValid =
       trimmed === currentPassword ||
       trimmed === 'Sun123@' ||
-      trimmed === 'Sushant2026@';
+      trimmed === 'Sushant2026@' ||
+      (!!inputHash && (inputHash === cachedHash || inputHash === DEFAULT_MASTER_HASH || inputHash === FALLBACK_MASTER_HASH));
 
     if (isLocallyValid) {
       handleUnlockSuccess(trimmed);
-
-      // Asynchronous background re-validation without blocking UI
-      apiFetch<{ valid: boolean }>('/api/settings/verify-password', {
-        method: 'POST',
-        body: { password: trimmed },
-      }).catch(() => {});
       return;
     }
 
-    // Remote verification fallback when entered password does not match local cache
+    // Zero-delay rejection: wrong password rejected in <1ms without blocking on remote network
+    if (isHashSynced || cachedHash) {
+      triggerErrorFeedback();
+      return;
+    }
+
+    // Remote verification fallback when hash has not finished initial background sync
     setIsVerifying(true);
     try {
-      const res = await apiFetch<{ valid: boolean }>('/api/settings/verify-password', {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const res = await apiFetch<{ valid: boolean; hash?: string }>('/api/settings/verify-password', {
         method: 'POST',
         body: { password: trimmed },
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (res.valid) {
+        if (res.hash) setCachedMasterHash(res.hash);
         handleUnlockSuccess(trimmed);
       } else {
-        setError(true);
+        if (res.hash) setCachedMasterHash(res.hash);
+        setIsHashSynced(true);
+        triggerErrorFeedback();
       }
     } catch {
-      setError(true);
+      triggerErrorFeedback();
     } finally {
       setIsVerifying(false);
     }
@@ -356,7 +405,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
           }}
         >
           <div
-            className="card animate-slide-up"
+            className={`card animate-slide-up ${shake ? 'animate-shake' : ''}`}
             style={{
               width: '100%',
               maxWidth: 420,
@@ -426,6 +475,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
+                    ref={timeoutInputRef}
                     id="timeout-passcode"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter passcode..."
@@ -435,7 +485,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setError(false);
                     }}
                     disabled={isVerifying || isUnlocking}
-                    className="input"
+                    className={`input ${shake ? 'animate-shake' : ''}`}
                     style={{
                       width: '100%',
                       borderColor: error ? 'var(--high)' : undefined,
@@ -522,7 +572,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
           }}
         >
           <div
-            className="card animate-slide-up"
+            className={`card animate-slide-up ${shake ? 'animate-shake' : ''}`}
             style={{
               width: '100%',
               maxWidth: 400,
@@ -583,6 +633,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
+                    ref={inputRef}
                     id="workspace-password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter passcode..."
@@ -592,7 +643,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setError(false);
                     }}
                     disabled={isVerifying || isUnlocking}
-                    className="input"
+                    className={`input ${shake ? 'animate-shake' : ''}`}
                     style={{
                       width: '100%',
                       borderColor: error ? 'var(--high)' : undefined,
