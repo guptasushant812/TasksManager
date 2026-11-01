@@ -6,9 +6,10 @@ import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
 import TaskFormFields from './TaskFormFields';
 import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
-import { X, Save, Sparkles, RefreshCw, Check } from 'lucide-react';
+import { X, Save, Sparkles, RefreshCw, Check, CloudCheck, CheckCircle2 } from 'lucide-react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import AiQuotaModal from './AiQuotaModal';
+import { fetchTaskInstruction, saveTaskInstruction } from '@/lib/aiDraftService';
 
 interface EditTaskModalProps {
   task: Task;
@@ -63,7 +64,144 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const { updateTask } = useTasks();
 
   const [isRegenOpen, setIsRegenOpen] = useState(false);
-  const [regenInstruction, setRegenInstruction] = useState('');
+  const taskKey = task.taskId || task._id;
+  const [regenInstruction, setRegenInstruction] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return sessionStorage.getItem(`tasksmanager_regen_inst_${taskKey}`) || '';
+  });
+  const [isRestoringInstruction, setIsRestoringInstruction] = useState(true);
+  const [instructionSyncStatus, setInstructionSyncStatus] = useState<'idle' | 'saving' | 'synced' | 'local_only'>('idle');
+  const lastSavedInstructionRef = useRef<string>('');
+  const saveInstructionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInstructionHydratedRef = useRef(false);
+
+  useEffect(() => {
+    const key = task.taskId || task._id;
+    let active = true;
+    setIsRestoringInstruction(true);
+    isInstructionHydratedRef.current = false;
+
+    const cached = typeof window !== 'undefined' ? sessionStorage.getItem(`tasksmanager_regen_inst_${key}`) || '' : '';
+    setRegenInstruction(cached);
+    if (cached) {
+      setInstructionSyncStatus('local_only');
+    }
+
+    fetchTaskInstruction(key)
+      .then((cloudInstruction) => {
+        if (!active) return;
+        if (typeof cloudInstruction === 'string' && cloudInstruction) {
+          setRegenInstruction(cloudInstruction);
+          lastSavedInstructionRef.current = cloudInstruction;
+          setInstructionSyncStatus('synced');
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(`tasksmanager_regen_inst_${key}`, cloudInstruction);
+          }
+        } else {
+          if (!cached) {
+            setRegenInstruction('');
+            lastSavedInstructionRef.current = '';
+            setInstructionSyncStatus('idle');
+          }
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        if (!cached) setInstructionSyncStatus('idle');
+      })
+      .finally(() => {
+        if (active) {
+          setIsRestoringInstruction(false);
+          isInstructionHydratedRef.current = true;
+        }
+      });
+
+    return () => {
+      active = false;
+      if (saveInstructionTimerRef.current) {
+        clearTimeout(saveInstructionTimerRef.current);
+      }
+    };
+  }, [task.taskId, task._id]);
+
+  useEffect(() => {
+    if (!isInstructionHydratedRef.current || isRestoringInstruction) return;
+
+    const key = task.taskId || task._id;
+    const trimmed = regenInstruction.trim();
+
+    if (!trimmed) {
+      if (lastSavedInstructionRef.current) {
+        saveTaskInstruction(key, '');
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(`tasksmanager_regen_inst_${key}`);
+        }
+        lastSavedInstructionRef.current = '';
+      }
+      setInstructionSyncStatus('idle');
+      return;
+    }
+
+    if (trimmed === lastSavedInstructionRef.current) {
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`tasksmanager_regen_inst_${key}`, regenInstruction);
+    }
+
+    setInstructionSyncStatus('saving');
+    if (saveInstructionTimerRef.current) {
+      clearTimeout(saveInstructionTimerRef.current);
+    }
+
+    saveInstructionTimerRef.current = setTimeout(async () => {
+      const saved = await saveTaskInstruction(key, trimmed);
+      if (saved) {
+        lastSavedInstructionRef.current = trimmed;
+        setInstructionSyncStatus('synced');
+      } else {
+        setInstructionSyncStatus('local_only');
+      }
+    }, 700);
+
+    return () => {
+      if (saveInstructionTimerRef.current) {
+        clearTimeout(saveInstructionTimerRef.current);
+      }
+    };
+  }, [regenInstruction, task.taskId, task._id, isRestoringInstruction]);
+
+  const instructionValidation = useMemo(() => {
+    const trimmed = regenInstruction.trim();
+    const charCount = trimmed.length;
+    if (!trimmed) {
+      return {
+        isValid: false,
+        wordCount: 0,
+        charCount: 0,
+        hint: 'Minimum 2 words required',
+      };
+    }
+    const words = trimmed.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+
+    if (wordCount < 2 || charCount < 5) {
+      return {
+        isValid: false,
+        wordCount,
+        charCount,
+        hint: 'Minimum 2 words required (e.g. "Add attendance count")',
+      };
+    }
+
+    return {
+      isValid: true,
+      wordCount,
+      charCount,
+      hint: `${wordCount} words (${charCount} characters)`,
+    };
+  }, [regenInstruction]);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
   const aiNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -76,6 +214,9 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   savingRef.current = saving;
   const showUpdateConfirmRef = useRef(showUpdateConfirm);
   showUpdateConfirmRef.current = showUpdateConfirm;
+  const isRegenOpenRef = useRef(isRegenOpen);
+  isRegenOpenRef.current = isRegenOpen;
+  const isRegeneratingRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -87,8 +228,10 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !savingRef.current) {
-        if (showUpdateConfirmRef.current) {
+      if (e.key === 'Escape' && !savingRef.current && !isRegeneratingRef.current) {
+        if (isRegenOpenRef.current) {
+          setIsRegenOpen(false);
+        } else if (showUpdateConfirmRef.current) {
           setShowUpdateConfirm(false);
         } else {
           onCloseRef.current();
@@ -118,6 +261,8 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   } = useAiDraft();
 
   const isRegenerating = regeneratingIndex === 0;
+  isRegeneratingRef.current = isRegenerating;
+  const canRegenerate = instructionValidation.isValid && !isRegenerating;
 
   function handleChange(field: string, value: string) {
     setData((d) => ({ ...d, [field]: value }));
@@ -133,10 +278,21 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   }
 
   async function handleRegenerate(keyOverride?: string, providerOverride?: string) {
+    if (!canRegenerate) return;
+    const key = task.taskId || task._id;
+    const trimmed = regenInstruction.trim();
+
+    saveTaskInstruction(key, trimmed);
+    lastSavedInstructionRef.current = trimmed;
+    setInstructionSyncStatus('synced');
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`tasksmanager_regen_inst_${key}`, trimmed);
+    }
+
     const result = await regenerateSingleDraft(
       data,
       0,
-      regenInstruction,
+      trimmed,
       data.description,
       keyOverride,
       providerOverride
@@ -149,7 +305,6 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         dueDate: result.dueDate ? toIsoDate(result.dueDate) : prev.dueDate,
       }));
       setIsRegenOpen(false);
-      setRegenInstruction('');
       setAiNotice('AI suggestions applied');
       if (aiNoticeTimeoutRef.current) clearTimeout(aiNoticeTimeoutRef.current);
       aiNoticeTimeoutRef.current = setTimeout(() => {
@@ -185,6 +340,15 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         date: new Date(data.date).toISOString(),
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
       });
+
+      const key = task.taskId || task._id;
+      saveTaskInstruction(key, '');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`tasksmanager_regen_inst_${key}`);
+      }
+      setRegenInstruction('');
+      lastSavedInstructionRef.current = '';
+      setInstructionSyncStatus('idle');
 
       setShowUpdateConfirm(false);
       onSaved(`Task ${task.taskId} updated successfully`);
@@ -400,11 +564,267 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
     </div>
   );
 
+  const renderRegenModal = () => (
+    <div
+      className="app-dialog-overlay"
+      style={{ zIndex: 1100 }}
+      onClick={() => !isRegenerating && setIsRegenOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="regen-dialog-title"
+    >
+      <div
+        className="app-dialog-box animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: 460,
+          width: 'min(460px, calc(100vw - 24px))',
+          marginInline: 'clamp(12px, 3vw, 16px)',
+          borderRadius: 14,
+          overflow: 'hidden',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 20px 48px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        }}
+      >
+        <div className="app-dialog-accent-bar app-dialog-accent-success" style={{ height: 2.5 }} />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px 14px',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'var(--bg-elevated)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'rgba(16, 185, 129, 0.14)',
+                color: 'var(--accent, #10b981)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Sparkles style={{ width: 16, height: 16 }} />
+            </div>
+            <div>
+              <h3
+                id="regen-dialog-title"
+                style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Regenerate with AI
+              </h3>
+              <p style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>
+                {task.taskId}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            {isRestoringInstruction ? (
+              <span className="ai-sync-chip saving">
+                <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                Checking cloud draft…
+              </span>
+            ) : regenInstruction.trim().length > 0 ? (
+              <span
+                className={`ai-sync-chip ${instructionSyncStatus === 'saving' ? 'saving' : instructionSyncStatus === 'synced' ? 'synced' : 'local'}`}
+                title={instructionSyncStatus === 'synced' ? 'Instruction synced across devices' : undefined}
+              >
+                {instructionSyncStatus === 'saving' ? (
+                  <>
+                    <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                    Syncing to cloud…
+                  </>
+                ) : instructionSyncStatus === 'synced' ? (
+                  <>
+                    <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
+                    Synced across devices
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
+                    Draft saved locally
+                  </>
+                )}
+              </span>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => !isRegenerating && setIsRegenOpen(false)}
+              className="app-dialog-close-btn"
+              aria-label="Close regeneration dialog"
+              disabled={isRegenerating}
+              style={{ padding: 4 }}
+            >
+              <X style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ padding: '16px 20px', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <label
+              htmlFor="regen-instruction-textarea"
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+                margin: 0,
+              }}
+            >
+              Instructions or Guidance
+            </label>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                color: instructionValidation.isValid ? 'var(--accent, #10b981)' : regenInstruction.trim() ? '#f59e0b' : 'var(--text-muted)',
+                transition: 'color 0.15s ease',
+              }}
+            >
+              {instructionValidation.hint}
+            </span>
+          </div>
+
+          <textarea
+            id="regen-instruction-textarea"
+            value={regenInstruction}
+            onChange={(e) => setRegenInstruction(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                if (canRegenerate) handleRegenerate();
+              }
+            }}
+            placeholder="Please note add the point of counting, clarify next steps..."
+            rows={4}
+            className="input"
+            style={{
+              width: '100%',
+              minHeight: 100,
+              maxHeight: 220,
+              fontSize: 13,
+              lineHeight: 1.5,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: `1px solid ${regenInstruction.trim() && !instructionValidation.isValid ? 'rgba(245, 158, 11, 0.45)' : 'var(--border)'}`,
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-primary)',
+              resize: 'vertical',
+            }}
+            disabled={isRegenerating}
+            autoFocus
+          />
+
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+            Tip: Press <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Ctrl</kbd> + <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Enter</kbd> to regenerate quickly.
+          </p>
+
+          {aiError && (
+            <div
+              style={{
+                padding: '8px 12px',
+                background: 'var(--high-bg)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 8,
+                fontSize: 12,
+                color: 'var(--high)',
+              }}
+            >
+              {aiError}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 10,
+            padding: '12px 20px 16px',
+            borderTop: '1px solid var(--border-subtle)',
+            background: 'var(--bg-elevated)',
+          }}
+        >
+          <button
+            type="button"
+            className="app-dialog-btn-cancel"
+            onClick={() => setIsRegenOpen(false)}
+            disabled={isRegenerating}
+            style={{
+              height: 38,
+              minHeight: 38,
+              padding: '0 16px',
+              fontSize: 13,
+              borderRadius: 8,
+              cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="app-dialog-btn-action"
+            onClick={() => canRegenerate && handleRegenerate()}
+            disabled={!canRegenerate}
+            style={{
+              height: 38,
+              minHeight: 38,
+              padding: '0 18px',
+              fontSize: 13,
+              fontWeight: 600,
+              background: canRegenerate ? 'var(--accent, #10b981)' : 'var(--bg-hover, #242738)',
+              color: canRegenerate ? '#042416' : 'var(--text-muted, #8b92a5)',
+              borderRadius: 8,
+              border: 'none',
+              cursor: canRegenerate ? 'pointer' : 'not-allowed',
+              opacity: canRegenerate ? 1 : 0.45,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.15s ease',
+            }}
+            title={!instructionValidation.isValid ? instructionValidation.hint : 'Regenerate with AI'}
+          >
+            {isRegenerating ? (
+              <>
+                <RefreshCw className="animate-spin" style={{ width: 14, height: 14 }} />
+                <span>Regenerating…</span>
+              </>
+            ) : (
+              <>
+                <Sparkles style={{ width: 14, height: 14 }} />
+                <span>Regenerate</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (!mounted || typeof document === 'undefined') return null;
 
   return createPortal(
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}>
       {showUpdateConfirm && renderUpdateConfirmModal()}
+      {isRegenOpen && renderRegenModal()}
       
       <div 
         className="modal-box animate-slide-up" 
@@ -420,9 +840,9 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           marginInline: 0,
         }}
       >
-        <div style={{ paddingBlock: 16, paddingInline: 24, borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0 }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingInlineEnd: 16, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ paddingBlock: 16, paddingInline: 'clamp(14px, 3.5vw, 24px)', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)', flexShrink: 0, gap: 12 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingInlineEnd: 8, flexWrap: 'wrap', gap: 10, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
                 <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{task.taskId}</p>
@@ -435,76 +855,50 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
               )}
             </div>
             
-            <div style={{ position: 'relative' }}>
-              {isRegenOpen ? (
-                <div 
-                  className="animate-slide-up"
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 8, 
-                    background: 'var(--bg-surface)', 
-                    border: '1px solid var(--accent)', 
-                    padding: '6px 8px', 
-                    borderRadius: 'var(--radius-md)' 
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={regenInstruction}
-                    onChange={(e) => setRegenInstruction(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleRegenerate(); }}
-                    placeholder="Instructions (optional)..."
-                    className="input"
-                    style={{ flex: 1, minWidth: 'min(220px, 100%)', height: 32, fontSize: 12, paddingInline: 10, margin: 0, border: 'none', background: 'transparent' }}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsRegenOpen(false)}
-                    className="btn btn-ghost"
-                    style={{ padding: '4px 8px', height: 28, fontSize: 11 }}
-                    disabled={isRegenerating}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRegenerate()}
-                    className="btn btn-primary"
-                    style={{ padding: '4px 12px', height: 28, fontSize: 11, background: 'var(--accent)', color: '#000' }}
-                    disabled={isRegenerating}
-                  >
-                    {isRegenerating ? <RefreshCw className="animate-spin" style={{ width: 12, height: 12 }} /> : <Sparkles style={{ width: 12, height: 12 }} />}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsRegenOpen(true)}
-                  className="btn btn-ghost"
-                  style={{ 
-                    fontSize: 12, 
-                    color: 'var(--accent)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 6,
-                    padding: '6px 12px',
-                    border: '1px dashed var(--accent)',
-                  }}
-                >
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsRegenOpen(true)}
+                className="btn btn-ghost"
+                style={{ 
+                  fontSize: 12, 
+                  color: 'var(--accent)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 6,
+                  padding: '6px 12px',
+                  border: '1px dashed var(--accent)',
+                  borderRadius: 6,
+                  cursor: isRegenerating ? 'not-allowed' : 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                disabled={isRegenerating}
+                title="Regenerate task fields with AI"
+              >
+                {isRegenerating ? (
+                  <RefreshCw className="animate-spin" style={{ width: 14, height: 14 }} />
+                ) : (
                   <Sparkles style={{ width: 14, height: 14 }} />
-                  Regenerate with AI
-                </button>
-              )}
+                )}
+                <span>Regenerate with AI</span>
+              </button>
             </div>
           </div>
 
           <button
             onClick={onClose}
+            aria-label="Close edit task modal"
             style={{
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', display: 'flex', padding: 4
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 6,
+              borderRadius: 6,
+              flexShrink: 0,
             }}
           >
             <X style={{ width: 18, height: 18 }} />

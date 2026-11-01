@@ -407,6 +407,58 @@ export async function deleteAiDraftState(req: Request, res: Response, next: Next
   }
 }
 
+export async function getTaskInstruction(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const { taskId } = req.params;
+    if (!taskId) {
+      return res.json({ instruction: '' });
+    }
+
+    const state = await AiDraftState.findOne({ userId }).lean();
+    const instructions: any = state?.taskInstructions || {};
+    const instruction = typeof instructions?.get === 'function' 
+      ? instructions.get(taskId) 
+      : instructions[taskId] || '';
+
+    return res.json({ instruction: typeof instruction === 'string' ? instruction : '' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function saveTaskInstruction(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const { taskId } = req.params;
+    const { instruction = '' } = req.body;
+    if (!taskId) {
+      return res.status(400).json({ error: 'taskId is required' });
+    }
+
+    const clean = typeof instruction === 'string' ? instruction.trim() : '';
+    const key = `taskInstructions.${taskId}`;
+
+    if (!clean) {
+      await AiDraftState.findOneAndUpdate(
+        { userId },
+        { $unset: { [key]: '' } },
+        { upsert: true }
+      );
+      return res.json({ success: true, instruction: '' });
+    }
+
+    await AiDraftState.findOneAndUpdate(
+      { userId },
+      { $set: { [key]: clean } },
+      { upsert: true }
+    );
+    return res.json({ success: true, instruction: clean });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function validateAiKey(req: Request, res: Response) {
   let detectedProvider: 'gemini' | 'groq' | 'grok' = 'gemini';
   try {

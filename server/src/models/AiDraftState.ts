@@ -5,6 +5,7 @@ export interface IAiDraftState extends Document {
   rawText: string;
   step: 'input' | 'preview';
   drafts: any[];
+  taskInstructions?: Map<string, string>;
   clearedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -16,6 +17,7 @@ const AiDraftStateSchema: Schema = new Schema(
     rawText: { type: String, default: '' },
     step: { type: String, enum: ['input', 'preview'], default: 'input' },
     drafts: { type: [Schema.Types.Mixed], default: [] },
+    taskInstructions: { type: Map, of: String, default: {} },
     clearedAt: { type: Date, default: null },
   },
   { timestamps: true }
