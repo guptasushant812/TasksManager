@@ -75,6 +75,16 @@ export async function regenerateToken(req: Request, res: Response, next: NextFun
   }
 }
 
+export async function getMasterPasswordHash(req: Request, res: Response, next: NextFunction) {
+  try {
+    const settings = await Settings.findOne({}, 'masterPasswordHash').lean();
+    const hash = settings?.masterPasswordHash || hashMasterPassword('Sun123@');
+    res.json({ hash });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function verifyMasterPassword(req: Request, res: Response, next: NextFunction) {
   try {
     const { password } = req.body;
@@ -87,15 +97,16 @@ export async function verifyMasterPassword(req: Request, res: Response, next: Ne
     const inputHash = hashMasterPassword(trimmed);
 
     const settings = await Settings.findOne({}, 'masterPasswordHash').lean();
+    const masterHash = settings?.masterPasswordHash || hashMasterPassword('Sun123@');
 
     if (settings && settings.masterPasswordHash) {
-      res.json({ valid: settings.masterPasswordHash === inputHash });
+      res.json({ valid: settings.masterPasswordHash === inputHash, hash: masterHash });
       return;
     }
 
     // Fall back to default passcode if no custom password was set yet
     const isDefault = trimmed === 'Sun123@' || trimmed === 'Sushant2026@';
-    res.json({ valid: isDefault });
+    res.json({ valid: isDefault, hash: masterHash });
   } catch (err) {
     next(err);
   }
@@ -114,11 +125,12 @@ export async function updateMasterPassword(req: Request, res: Response, next: Ne
       settings = new Settings();
     }
 
-    settings.masterPasswordHash = hashMasterPassword(newPassword);
+    const newHash = hashMasterPassword(newPassword);
+    settings.masterPasswordHash = newHash;
     settings.passwordUpdatedAt = new Date();
     await settings.save();
 
-    res.json({ success: true, message: 'Master application password updated successfully' });
+    res.json({ success: true, message: 'Master application password updated successfully', hash: newHash });
   } catch (err) {
     next(err);
   }

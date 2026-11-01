@@ -33,11 +33,49 @@ export const STORAGE_KEYS = {
   SESSION_TOKEN: 'sessionAuthToken',
   LOCKED_RETURN_URL: 'lockedReturnUrl',
   VISIT_ACTIVE: 'tasksmanager_visit_active',
+  MASTER_HASH: 'tasksmanager_master_hash',
 } as const;
 
 export const DEFAULT_TIMEOUT_MS = 900000; // 15 minutes
 export const DEFAULT_PASSWORD = 'Sun123@';
+export const DEFAULT_MASTER_HASH = 'f4d6a7273d3bf5ce2bbfc9f771bb1aba0c272b40287709a61c3e0f4d584cbd35';
+export const FALLBACK_MASTER_HASH = 'bf9c9c2f0da5fb372e656b0e5fb811d47cbc3a6d85d5f9e1a4ecacb0eac7ab7e';
 const BROADCAST_CHANNEL_NAME = 'tasksmanager_session_sync';
+
+export async function hashPasscode(passcode: string): Promise<string> {
+  if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
+    return '';
+  }
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`tasksmanager_salt_${passcode.trim()}`);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
+export function getCachedMasterHash(): string {
+  if (typeof window === 'undefined') return DEFAULT_MASTER_HASH;
+  try {
+    const cached = localStorage.getItem(STORAGE_KEYS.MASTER_HASH);
+    if (cached && typeof cached === 'string' && cached.length === 64) {
+      return cached;
+    }
+  } catch {}
+  return DEFAULT_MASTER_HASH;
+}
+
+export function setCachedMasterHash(hash: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (hash && typeof hash === 'string' && hash.length === 64) {
+      localStorage.setItem(STORAGE_KEYS.MASTER_HASH, hash);
+    }
+  } catch {}
+}
 
 export function getMaxAvailableTimeout(): number {
   return Math.max(...TIMEOUT_OPTIONS.map((opt) => opt.value));
@@ -243,6 +281,9 @@ export function unlockSession(updatedPassword?: string): string {
       const config = getSecurityConfig();
       config.password = updatedPassword;
       localStorage.setItem(STORAGE_KEYS.SECURITY_CONFIG, JSON.stringify(config));
+      hashPasscode(updatedPassword).then((hash) => {
+        if (hash) setCachedMasterHash(hash);
+      }).catch(() => {});
     }
   } catch {}
 

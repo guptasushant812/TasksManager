@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
 import { apiFetch } from '@/lib/api';
-import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration, DEFAULT_TIMEOUT_MS } from '@/lib/sessionManager';
+import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration, DEFAULT_TIMEOUT_MS, setCachedMasterHash } from '@/lib/sessionManager';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import { RecipientItem } from '@/types/escalation';
 import { 
@@ -481,7 +481,7 @@ export default function SettingsPage() {
       const trimmed = newPassword.trim();
 
       // Update in database so all devices and sessions enforce the new passcode and invalidate previous ones
-      await apiFetch('/api/settings/update-password', {
+      const res = await apiFetch<{ success: boolean; hash?: string }>('/api/settings/update-password', {
         method: 'POST',
         body: { newPassword: trimmed },
       });
@@ -489,6 +489,9 @@ export default function SettingsPage() {
       const current = JSON.parse(localStorage.getItem('securityConfig') || `{"password":"Sun123@","timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
       current.password = trimmed;
       localStorage.setItem('securityConfig', JSON.stringify(current));
+      if (res?.hash) {
+        setCachedMasterHash(res.hash);
+      }
       setTimeout(() => {
         window.dispatchEvent(new Event('storage'));
       }, 0);

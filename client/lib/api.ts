@@ -16,10 +16,11 @@ type FetchOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  signal?: AbortSignal;
 };
 
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, signal } = options;
 
   const sessionToken = typeof window !== 'undefined' ? localStorage.getItem('sessionAuthToken') : null;
   const isFormData = body instanceof FormData;
@@ -30,6 +31,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
       ...(sessionToken && { 'x-session-token': sessionToken }),
       ...headers,
     },
+    signal,
   };
 
   if (body !== undefined) {
