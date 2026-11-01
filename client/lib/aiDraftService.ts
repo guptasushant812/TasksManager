@@ -51,3 +51,26 @@ export async function deleteAiDraftState(): Promise<boolean> {
     return false;
   }
 }
+
+export async function fetchTaskInstruction(taskId: string): Promise<string> {
+  if (!taskId) return '';
+  try {
+    const res = await apiFetch<{ instruction?: string }>(`/api/ai-draft/instruction/${encodeURIComponent(taskId)}`);
+    return typeof res?.instruction === 'string' ? res.instruction : '';
+  } catch {
+    return '';
+  }
+}
+
+export async function saveTaskInstruction(taskId: string, instruction: string): Promise<boolean> {
+  if (!taskId) return false;
+  try {
+    await apiFetch(`/api/ai-draft/instruction/${encodeURIComponent(taskId)}`, {
+      method: 'PUT',
+      body: { instruction },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}

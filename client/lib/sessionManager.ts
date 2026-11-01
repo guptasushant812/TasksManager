@@ -138,7 +138,7 @@ export function getSessionStatus(isPublicRoute: boolean = false): SessionStatus 
   // Support fresh initialization from programmatic unlocks and automated test runs
   const rawVisitActive = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEYS.VISIT_ACTIVE) : null;
   let isVisitActive = rawVisitActive === 'true';
-  if (!isVisitActive && lockedFlag === 'false' && !isNaN(lastActive) && now - lastActive < 10000) {
+  if (!isVisitActive && lockedFlag === 'false' && !isNaN(lastActive) && now - lastActive < 60000) {
     isVisitActive = true;
     try {
       sessionStorage.setItem(STORAGE_KEYS.VISIT_ACTIVE, 'true');

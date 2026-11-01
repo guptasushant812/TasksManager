@@ -7,6 +7,8 @@ import {
   saveAiDraftState,
   deleteAiDraftState,
   validateAiKey,
+  getTaskInstruction,
+  saveTaskInstruction,
 } from '../controllers/aiDraftController';
 
 const router = Router();
@@ -14,6 +16,8 @@ router.get('/providers', getAiProviders);
 router.get('/state', getAiDraftState);
 router.put('/state', saveAiDraftState);
 router.delete('/state', deleteAiDraftState);
+router.get('/instruction/:taskId', getTaskInstruction);
+router.put('/instruction/:taskId', saveTaskInstruction);
 router.post('/validate-key', validateAiKey);
 router.post('/', createAiDraft);
 router.post('/regenerate', regenerateSingleAiDraft);
