@@ -589,21 +589,20 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
-            padding: '16px 22px 14px',
+            padding: '16px 20px 14px',
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-elevated)',
             gap: 12,
-            flexWrap: 'wrap',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
             <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 9,
+                width: 38,
+                height: 38,
+                borderRadius: 10,
                 background: 'rgba(16, 185, 129, 0.14)',
                 color: 'var(--accent, #10b981)',
                 display: 'flex',
@@ -614,7 +613,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             >
               <Sparkles style={{ width: 18, height: 18 }} />
             </div>
-            <div>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <h3
                 id="regen-dialog-title"
                 style={{
@@ -623,60 +622,79 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
                   color: 'var(--text-primary)',
                   margin: 0,
                   letterSpacing: '-0.01em',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 Regenerate with AI
               </h3>
-              <p style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>
-                {task.taskId}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--accent)',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontWeight: 600,
+                  }}
+                >
+                  {task.taskId}
+                </span>
+
+                {isRestoringInstruction ? (
+                  <span className="ai-sync-chip saving">
+                    <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                    Checking cloud draft…
+                  </span>
+                ) : regenInstruction.trim().length > 0 ? (
+                  <span
+                    className={`ai-sync-chip ${instructionSyncStatus === 'saving' ? 'saving' : instructionSyncStatus === 'synced' ? 'synced' : 'local'}`}
+                    title={instructionSyncStatus === 'synced' ? 'Instruction synced across devices' : undefined}
+                  >
+                    {instructionSyncStatus === 'saving' ? (
+                      <>
+                        <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                        Syncing to cloud…
+                      </>
+                    ) : instructionSyncStatus === 'synced' ? (
+                      <>
+                        <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
+                        Synced across devices
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
+                        Draft saved locally
+                      </>
+                    )}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            {isRestoringInstruction ? (
-              <span className="ai-sync-chip saving">
-                <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
-                Checking cloud draft…
-              </span>
-            ) : regenInstruction.trim().length > 0 ? (
-              <span
-                className={`ai-sync-chip ${instructionSyncStatus === 'saving' ? 'saving' : instructionSyncStatus === 'synced' ? 'synced' : 'local'}`}
-                title={instructionSyncStatus === 'synced' ? 'Instruction synced across devices' : undefined}
-              >
-                {instructionSyncStatus === 'saving' ? (
-                  <>
-                    <RefreshCw style={{ width: 11, height: 11, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
-                    Syncing to cloud…
-                  </>
-                ) : instructionSyncStatus === 'synced' ? (
-                  <>
-                    <CloudCheck style={{ width: 12, height: 12, flexShrink: 0 }} />
-                    Synced across devices
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 style={{ width: 11, height: 11, flexShrink: 0 }} />
-                    Draft saved locally
-                  </>
-                )}
-              </span>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={() => !isRegenerating && setIsRegenOpen(false)}
-              className="app-dialog-close-btn"
-              aria-label="Close regeneration dialog"
-              disabled={isRegenerating}
-              style={{ padding: 6 }}
-            >
-              <X style={{ width: 16, height: 16 }} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => !isRegenerating && setIsRegenOpen(false)}
+            className="app-dialog-close-btn"
+            aria-label="Close regeneration dialog"
+            disabled={isRegenerating}
+            style={{
+              padding: 8,
+              borderRadius: 8,
+              minWidth: 36,
+              minHeight: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
         </div>
 
-        <div style={{ padding: '18px 22px', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: '18px 20px', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
             <label
               htmlFor="regen-instruction-textarea"
@@ -718,9 +736,9 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             className="input"
             style={{
               width: '100%',
-              minHeight: 160,
-              maxHeight: 'min(45vh, 340px)',
-              fontSize: 13.5,
+              minHeight: 'clamp(120px, 24vh, 180px)',
+              maxHeight: 'min(42vh, 320px)',
+              fontSize: 14,
               lineHeight: 1.55,
               padding: '12px 14px',
               borderRadius: 8,
@@ -733,7 +751,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
             autoFocus
           />
 
-          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+          <p className="regen-desktop-tip" style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
             Tip: Press <kbd style={{ padding: '2px 6px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Ctrl</kbd> + <kbd style={{ padding: '2px 6px', borderRadius: 4, background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 10 }}>Enter</kbd> to regenerate quickly.
           </p>
 
@@ -753,17 +771,7 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
           )}
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 10,
-            padding: '14px 22px 18px',
-            borderTop: '1px solid var(--border-subtle)',
-            background: 'var(--bg-elevated)',
-          }}
-        >
+        <div className="regen-modal-footer">
           <button
             type="button"
             className="app-dialog-btn-cancel"
