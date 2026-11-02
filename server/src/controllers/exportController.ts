@@ -100,6 +100,18 @@ function formatDateTimeStr(dateVal: Date | string | null | undefined): string {
   return `${day}-${month}-${year}, ${hour}:${minute} ${dayPeriod}`;
 }
 
+function hasValidDueDate(val: unknown): boolean {
+  if (!val) return false;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === '—' || trimmed === '--' || trimmed === '-' || trimmed === 'null' || trimmed === 'undefined') {
+      return false;
+    }
+  }
+  const d = val instanceof Date ? val : new Date(val as string | number);
+  return !isNaN(d.getTime());
+}
+
 // Formats reasons and remarks across statuses
 function formatTaskReasonAndRemarks(task: any): string {
   const pending = (task.pendingReason || (task.workStatus === 'Pending' ? task.reason : '') || '').trim();
@@ -275,7 +287,7 @@ function generatePdfBuffer(
       doc.on('error', (err: any) => reject(err));
 
       const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
-      const hasDueDates = tasks.some(t => Boolean(t.dueDate));
+      const hasDueDates = tasks.some(t => hasValidDueDate(t.dueDate));
       const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
       const showDateCol = uniqueDates.size > 0;
 
@@ -325,7 +337,7 @@ function generatePdfBuffer(
           header: 'Due Date',
           baseWidth: 58,
           align: 'center',
-          getValue: (t) => (t.dueDate ? formatDateStr(t.dueDate) : '—')
+          getValue: (t) => (hasValidDueDate(t.dueDate) ? formatDateStr(t.dueDate) : '—')
         });
       }
 
@@ -748,7 +760,7 @@ async function generateExcelBuffer(
   });
 
   const hasFollowUps = tasks.some(t => (summaryMap.get(t._id.toString()) || 0) > 0);
-  const hasDueDates = tasks.some(t => Boolean(t.dueDate));
+  const hasDueDates = tasks.some(t => hasValidDueDate(t.dueDate));
   const uniqueDates = new Set(tasks.map(t => formatDateStr(t.date)).filter(d => d && d !== '—'));
   const showDateCol = uniqueDates.size > 0;
 
@@ -797,7 +809,7 @@ async function generateExcelBuffer(
       header: 'Due Date',
       key: 'dueDate',
       width: 14,
-      getValue: (t) => (t.dueDate ? formatDateStr(t.dueDate) : '—'),
+      getValue: (t) => (hasValidDueDate(t.dueDate) ? formatDateStr(t.dueDate) : '—'),
     });
   }
 
