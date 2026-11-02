@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { TaskFilters, WorkStatus, Summary } from '@/types/task';
 import { useSummary } from '@/hooks/useSummary';
-import { getYearRange, toIsoDate } from '@/lib/dates';
+import { getYearRange } from '@/lib/dates';
 import { BASE_URL } from '@/lib/api';
 import { subscribeToSessionEvents } from '@/lib/sessionManager';
 
@@ -10,6 +10,12 @@ interface TaskContextValue {
   filters: TaskFilters;
   setFilters: React.Dispatch<React.SetStateAction<TaskFilters>>;
   handleFiltersChange: (partial: Partial<TaskFilters>) => void;
+  dashboardFilters: TaskFilters;
+  setDashboardFilters: React.Dispatch<React.SetStateAction<TaskFilters>>;
+  handleDashboardFiltersChange: (partial: Partial<TaskFilters>) => void;
+  taskFilters: TaskFilters;
+  setTaskFilters: React.Dispatch<React.SetStateAction<TaskFilters>>;
+  handleTaskFiltersChange: (partial: Partial<TaskFilters>) => void;
   summary: Summary;
   summaryLoading: boolean;
   refreshKey: number;
@@ -25,27 +31,49 @@ const START_YEAR = 2022;
 
 export function TaskProvider({ children }: { children: ReactNode }) {
   const today = new Date();
-  const [filters, setFilters] = useState<TaskFilters>({
-    year: today.getFullYear().toString(),
-    month: (today.getMonth() + 1).toString(),
+  const defaultYear = today.getFullYear().toString();
+  const defaultMonth = (today.getMonth() + 1).toString();
+
+  const [dashboardFilters, setDashboardFilters] = useState<TaskFilters>(() => ({
+    year: defaultYear,
+    month: defaultMonth,
     sort: 'taskId',
     order: 'desc',
     page: 1,
     limit: 10,
-  });
-  
+  }));
+
+  const [taskFilters, setTaskFilters] = useState<TaskFilters>(() => ({
+    year: defaultYear,
+    month: defaultMonth,
+    sort: 'taskId',
+    order: 'desc',
+    page: 1,
+    limit: 10,
+  }));
+
   const [refreshKey, setRefreshKey] = useState(0);
   const { summary, loading: summaryLoading, fetchSummary } = useSummary();
   const availableYears = getYearRange(START_YEAR);
 
+  // Time-scope query params for dashboard metrics (excludes status/text search to keep cards intact)
   const summaryFilters: TaskFilters = useMemo(() => ({
-    year: filters.year,
-    month: filters.month,
-    day: filters.day,
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
-    status: filters.status,
-  }), [filters.year, filters.month, filters.day, filters.dateFrom, filters.dateTo, filters.status]);
+    year: dashboardFilters.year,
+    month: dashboardFilters.month,
+    day: dashboardFilters.day,
+    weekIndex: dashboardFilters.weekIndex,
+    weekStart: dashboardFilters.weekStart,
+    dateFrom: dashboardFilters.dateFrom,
+    dateTo: dashboardFilters.dateTo,
+  }), [
+    dashboardFilters.year,
+    dashboardFilters.month,
+    dashboardFilters.day,
+    dashboardFilters.weekIndex,
+    dashboardFilters.weekStart,
+    dashboardFilters.dateFrom,
+    dashboardFilters.dateTo,
+  ]);
 
   useEffect(() => {
     // Initial silent warm-up ping to wake up backend if asleep on Render free tier
@@ -70,12 +98,16 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [summaryFilters, fetchSummary]);
 
-  const handleFiltersChange = useCallback((partial: Partial<TaskFilters>) => {
-    setFilters((prev) => ({ ...prev, ...partial, page: partial.page ?? 1 }));
+  const handleDashboardFiltersChange = useCallback((partial: Partial<TaskFilters>) => {
+    setDashboardFilters((prev) => ({ ...prev, ...partial, page: partial.page ?? 1 }));
+  }, []);
+
+  const handleTaskFiltersChange = useCallback((partial: Partial<TaskFilters>) => {
+    setTaskFilters((prev) => ({ ...prev, ...partial, page: partial.page ?? 1 }));
   }, []);
 
   const handleStatusClick = useCallback((status: WorkStatus | '') => {
-    setFilters((prev) => ({
+    setDashboardFilters((prev) => ({
       ...prev,
       status,
       overdueOnly: undefined,
@@ -85,7 +117,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleSecondaryFilterClick = useCallback((type: 'overdue' | 'escalated') => {
-    setFilters((prev) => {
+    setDashboardFilters((prev) => {
       if (type === 'overdue') {
         const isCurrentlyActive = prev.overdueOnly === 'true';
         return {
@@ -117,9 +149,22 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   return (
     <TaskContext.Provider value={{
-      filters, setFilters, handleFiltersChange,
-      summary, summaryLoading, refreshKey, handleTaskCreated,
-      availableYears, handleStatusClick, handleSecondaryFilterClick
+      filters: dashboardFilters,
+      setFilters: setDashboardFilters,
+      handleFiltersChange: handleDashboardFiltersChange,
+      dashboardFilters,
+      setDashboardFilters,
+      handleDashboardFiltersChange,
+      taskFilters,
+      setTaskFilters,
+      handleTaskFiltersChange,
+      summary,
+      summaryLoading,
+      refreshKey,
+      handleTaskCreated,
+      availableYears,
+      handleStatusClick,
+      handleSecondaryFilterClick,
     }}>
       {children}
     </TaskContext.Provider>
