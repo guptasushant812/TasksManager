@@ -9,7 +9,7 @@ import {
   getDayName,
   getShortDayName,
 } from '@/lib/dates';
-import { Calendar, ChevronDown, Check, ArrowRight } from 'lucide-react';
+import { Calendar, ChevronDown, Check, ArrowRight, RotateCw } from 'lucide-react';
 
 interface ScopeDropdownOption {
   value: string;
@@ -147,6 +147,8 @@ interface TaskScopeNavProps {
   onFiltersChange: (partial: Partial<TaskFilters>) => void;
   availableYears: number[];
   entityName?: string;
+  onRefresh?: () => void | Promise<void>;
+  isRefreshing?: boolean;
 }
 
 export default function TaskScopeNav({
@@ -154,7 +156,23 @@ export default function TaskScopeNav({
   onFiltersChange,
   availableYears,
   entityName = 'tasks',
+  onRefresh,
+  isRefreshing = false,
 }: TaskScopeNavProps) {
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+
+  const handleSyncClick = async () => {
+    setInternalRefreshing(true);
+    if (onRefresh) {
+      await onRefresh();
+    }
+    setTimeout(() => {
+      setInternalRefreshing(false);
+    }, 600);
+  };
+
+  const isSpinning = isRefreshing || internalRefreshing;
+
   const today = new Date();
   const currentYearStr = today.getFullYear().toString();
   const currentMonthStr = (today.getMonth() + 1).toString();
@@ -422,6 +440,21 @@ export default function TaskScopeNav({
             >
               Reset
             </button>
+
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={handleSyncClick}
+                disabled={isSpinning}
+                className="scope-btn-sync brutalist-hover"
+                title="Refresh task metrics"
+              >
+                <RotateCw
+                  className={`scope-sync-icon ${isSpinning ? 'animate-spin' : ''}`}
+                />
+                <span>Sync</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

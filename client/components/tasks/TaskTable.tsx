@@ -806,34 +806,7 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   const isCustomSort = Boolean((filters.sort && filters.sort !== 'taskId') || (filters.order && filters.order === 'asc'));
 
-  const viewAllHref = useMemo(() => {
-    const isOverdue = filters.overdueOnly === 'true';
-    const basePath = isOverdue ? '/follow-ups' : '/tasks';
-    const params = new URLSearchParams();
-
-    const isAllTime = !filters.year && !filters.month && !filters.day && !filters.dateFrom && !filters.dateTo;
-    if (isAllTime) {
-      params.set('allTime', 'true');
-    } else {
-      if (filters.year) params.set('year', filters.year);
-      if (filters.month) params.set('month', filters.month);
-      if (filters.day) params.set('day', filters.day);
-      if (filters.weekIndex !== undefined) params.set('weekIndex', String(filters.weekIndex));
-      if (filters.weekStart) params.set('weekStart', filters.weekStart);
-      if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
-      if (filters.dateTo) params.set('dateTo', filters.dateTo);
-    }
-
-    if (filters.status) params.set('status', filters.status);
-    if (filters.priority) params.set('priority', filters.priority);
-    if (filters.overdueOnly) params.set('overdueOnly', filters.overdueOnly);
-    if (filters.escalatedOnly) params.set('escalatedOnly', filters.escalatedOnly);
-    if (filters.search) params.set('search', filters.search);
-    if (filters.givenBy) params.set('givenBy', filters.givenBy);
-
-    const query = params.toString();
-    return query ? `${basePath}?${query}` : basePath;
-  }, [filters]);
+  const viewAllHref = filters.overdueOnly === 'true' ? '/follow-ups' : '/tasks';
 
   const activeFiltersCount = [
     filters.status,

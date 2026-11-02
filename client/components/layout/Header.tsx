@@ -123,11 +123,8 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     }
   };
 
-  const handleStatusFilter = (status: WorkStatus) => {
+  const handleStatusFilter = (_status?: WorkStatus) => {
     setNotifOpen(false);
-    if (taskContext?.handleStatusClick) {
-      taskContext.handleStatusClick(status);
-    }
   };
 
   // Close dropdowns on outside click or Escape
