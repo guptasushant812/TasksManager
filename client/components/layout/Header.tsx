@@ -511,61 +511,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
     </header>
 
       {showShareModal && (
-        <div
-          className="modal-overlay share-modal-overlay"
-          onClick={() => setShowShareModal(false)}
-        >
-          <div
-            className="modal-box share-modal-box"
-            style={{
-              width: '100%',
-              maxWidth: 520,
-              maxHeight: 'min(92dvh, 760px)',
-              margin: 'auto 0',
-              marginInline: 0,
-              overflowY: 'auto',
-              overscrollBehavior: 'contain',
-              padding: '24px 26px',
-              borderRadius: 'var(--radius-xl)',
-              background: 'var(--bg-surface)',
-              border: 'var(--border-width-layout, 1px) solid var(--border)',
-              borderTop: '1px solid var(--accent)',
-              boxShadow: 'var(--shadow-taste-lg, 0 24px 64px -12px rgba(0, 0, 0, 0.75))',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                  Share Public Link
-                </h3>
-                <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  Anyone with this link will be able to view this page.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowShareModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 'var(--radius-sm)',
-                  transition: 'color 0.15s ease',
-                }}
-                aria-label="Close"
-              >
-                <X style={{ width: 18, height: 18 }} />
-              </button>
-            </div>
-            <ShareModal onClose={() => setShowShareModal(false)} />
-          </div>
-        </div>
+        <ShareModal onClose={() => setShowShareModal(false)} />
       )}
 
       {showModal && (
