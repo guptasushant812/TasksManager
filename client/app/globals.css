@@ -8253,6 +8253,8 @@ body {
   font-size: 13.5px;
   line-height: 1.55;
   color: var(--text-secondary);
+  hyphens: none;
+  overflow-wrap: break-word;
 }
 
 .dark .app-dialog-desc {
