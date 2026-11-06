@@ -58,7 +58,7 @@ interface ThemeOption {
   isLight?: boolean;
 }
 
-const LIGHT_THEMES = ['light', 'sketch'];
+const LIGHT_THEMES = ['light', 'sketch', 'kanso'];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
@@ -107,6 +107,18 @@ const THEME_OPTIONS: ThemeOption[] = [
     bgColor: '#fdfbf7',
     palette: ['#fdfbf7', '#2d2d2d', '#ff4d4d', '#2d5da1', '#fff9c4'],
     gradient: 'linear-gradient(135deg, #2d2d2d 0%, #ff4d4d 50%, #2d5da1 100%)',
+    isLight: true,
+  },
+  {
+    id: 'kanso',
+    name: 'Kyoto Kanso',
+    subtitle: 'Zen Washi & Sumi Ink',
+    description: 'Japanese architectural minimalism with warm washi paper, artisan sumi ink typography, urushi vermilion accents, and kintsugi gold highlights.',
+    font: 'Zen Kaku Gothic',
+    primaryColor: '#dc3522',
+    bgColor: '#f7f5f0',
+    palette: ['#f7f5f0', '#dc3522', '#23201d', '#c59b27', '#2e7d47'],
+    gradient: 'linear-gradient(135deg, #dc3522 0%, #c59b27 35%, #2e7d47 70%, #23201d 100%)',
     isLight: true,
   },
 ];
@@ -399,7 +411,7 @@ export default function SettingsPage() {
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.classList.add('dark');
-      } else if (saved === 'light' || saved === 'sketch') {
+      } else if (LIGHT_THEMES.includes(saved)) {
         document.documentElement.classList.remove('dark');
       }
       setCurrentTheme(saved);
