@@ -23,8 +23,11 @@ export default function ShareModal({ onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [justRegenerated, setJustRegenerated] = useState(false);
   const [mounted, setMounted] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const regenTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -39,6 +42,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (isRegenerating) return;
         if (showRegenerateConfirm) {
           setShowRegenerateConfirm(false);
         } else {
@@ -48,12 +52,15 @@ export default function ShareModal({ onClose }: ShareModalProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showRegenerateConfirm, onClose]);
+  }, [showRegenerateConfirm, onClose, isRegenerating]);
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+      }
+      if (regenTimeoutRef.current) {
+        clearTimeout(regenTimeoutRef.current);
       }
     };
   }, []);
@@ -83,12 +90,22 @@ export default function ShareModal({ onClose }: ShareModalProps) {
   };
 
   const executeRegenerate = async () => {
-    setShowRegenerateConfirm(false);
-    setIsToggling(true);
+    setIsRegenerating(true);
     try {
-      await regenerateToken();
+      await Promise.all([
+        regenerateToken(),
+        new Promise((resolve) => setTimeout(resolve, 900)),
+      ]);
+      setShowRegenerateConfirm(false);
+      setJustRegenerated(true);
+      if (regenTimeoutRef.current) clearTimeout(regenTimeoutRef.current);
+      regenTimeoutRef.current = setTimeout(() => {
+        setJustRegenerated(false);
+      }, 3200);
+    } catch {
+      // Keep dialog open if request failed so user can retry
     } finally {
-      setIsToggling(false);
+      setIsRegenerating(false);
     }
   };
 
@@ -196,24 +213,46 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                         gap: 12,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Link2 style={{ width: 13, height: 13, color: 'var(--text-muted)' }} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          Direct URL
-                        </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Link2 style={{ width: 13, height: 13, color: 'var(--text-muted)' }} />
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                            Direct URL
+                          </span>
+                        </div>
+                        {justRegenerated && (
+                          <span
+                            className="share-access-badge active animate-fade-in"
+                            style={{
+                              padding: '2px 8px',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              lineHeight: 1.2,
+                              color: 'var(--completed, #10b981)',
+                              borderColor: 'rgba(16, 185, 129, 0.3)',
+                              background: 'rgba(16, 185, 129, 0.1)',
+                            }}
+                          >
+                            <span
+                              className="share-access-badge-dot"
+                              style={{ background: 'var(--completed, #10b981)' }}
+                            />
+                            New link generated
+                          </span>
+                        )}
                       </div>
 
                       <button
                         type="button"
                         onClick={() => setShowRegenerateConfirm(true)}
-                        disabled={isToggling}
+                        disabled={isToggling || isRegenerating}
                         className="share-regen-btn"
                         title="Generate a new secure link (invalidates the existing link)"
                         aria-label="Regenerate link"
                       >
                         <RefreshCw
                           style={{ width: 12, height: 12 }}
-                          className={isToggling ? 'animate-spin' : ''}
+                          className={isToggling || isRegenerating ? 'animate-spin' : ''}
                         />
                         <span>Regenerate</span>
                       </button>
@@ -227,6 +266,18 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                         tabIndex={0}
                         aria-label="Public board share URL. Click to copy."
                         title="Click to copy link"
+                        style={
+                          justRegenerated
+                            ? {
+                                borderColor: 'var(--completed, #10b981)',
+                                boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.25), 0 0 16px rgba(16, 185, 129, 0.15)',
+                                background: 'rgba(16, 185, 129, 0.05)',
+                                transition: 'all 0.35s ease',
+                              }
+                            : {
+                                transition: 'all 0.35s ease',
+                              }
+                        }
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
@@ -234,8 +285,15 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                           }
                         }}
                       >
-                        <Link2 className="share-url-icon" />
-                        <div className="share-url-text">
+                        <Link2
+                          className="share-url-icon"
+                          style={
+                            justRegenerated
+                              ? { color: 'var(--completed, #10b981)', transition: 'color 0.35s ease' }
+                              : { transition: 'color 0.35s ease' }
+                          }
+                        />
+                        <div key={shareUrl} className="share-url-text animate-fade-in">
                           {shareUrl}
                         </div>
                       </div>
@@ -319,7 +377,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
           <div
             className="app-dialog-overlay"
             style={{ zIndex: 1100 }}
-            onClick={() => setShowRegenerateConfirm(false)}
+            onClick={() => !isRegenerating && setShowRegenerateConfirm(false)}
           >
             <div
               className="app-dialog-box"
@@ -351,6 +409,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                   type="button"
                   className="app-dialog-close-btn"
                   onClick={() => setShowRegenerateConfirm(false)}
+                  disabled={isRegenerating}
                   aria-label="Close dialog"
                 >
                   <X style={{ width: 18, height: 18 }} />
@@ -359,7 +418,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
 
               <div className="app-dialog-body">
                 <p id="share-regen-desc" className="app-dialog-desc" style={{ margin: 0 }}>
-                  Your current share link will stop working immediately. A new link will be created for your board.
+                  Anyone with the existing public link will <strong>immediately lose access</strong> to your tasks board. A brand-new secure link will be created.
                 </p>
               </div>
 
@@ -368,6 +427,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                   type="button"
                   className="app-dialog-btn-cancel"
                   onClick={() => setShowRegenerateConfirm(false)}
+                  disabled={isRegenerating}
+                  style={isRegenerating ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
                 >
                   Cancel
                 </button>
@@ -375,9 +436,14 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                   type="button"
                   className="app-dialog-btn-action app-dialog-btn-amber"
                   onClick={executeRegenerate}
+                  disabled={isRegenerating}
+                  style={isRegenerating ? { opacity: 0.9, cursor: 'wait' } : undefined}
                 >
-                  <RefreshCw style={{ width: 14, height: 14 }} />
-                  Yes, Regenerate
+                  <RefreshCw
+                    style={{ width: 14, height: 14 }}
+                    className={isRegenerating ? 'animate-spin' : ''}
+                  />
+                  {isRegenerating ? 'Regenerating…' : 'Yes, Regenerate'}
                 </button>
               </div>
             </div>
