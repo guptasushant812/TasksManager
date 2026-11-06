@@ -329,8 +329,8 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               aria-describedby="share-regen-desc"
               onClick={(e) => e.stopPropagation()}
               style={{
-                maxWidth: 440,
-                width: 'min(440px, calc(100vw - 28px))',
+                maxWidth: 420,
+                width: 'min(420px, calc(100vw - 28px))',
                 margin: 'auto',
               }}
             >
@@ -342,9 +342,6 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                     <AlertTriangle style={{ width: 20, height: 20 }} />
                   </div>
                   <div>
-                    <div className="app-dialog-eyebrow app-dialog-eyebrow-amber">
-                      SECURITY NOTICE
-                    </div>
                     <h3 id="share-regen-title" className="app-dialog-title">
                       Regenerate Link?
                     </h3>
@@ -361,20 +358,9 @@ export default function ShareModal({ onClose }: ShareModalProps) {
               </div>
 
               <div className="app-dialog-body">
-                <p id="share-regen-desc" className="app-dialog-desc">
-                  Anyone with the existing public link will <strong>immediately lose access</strong> to your tasks board. A brand-new secure link will be created.
+                <p id="share-regen-desc" className="app-dialog-desc" style={{ margin: 0 }}>
+                  Your current share link will stop working immediately. A new link will be created for your board.
                 </p>
-
-                <div className="app-dialog-card">
-                  <div className="app-dialog-row">
-                    <span className="app-dialog-label">Status</span>
-                    <span className="app-dialog-value" style={{ color: '#fbbf24' }}>Old link invalidated</span>
-                  </div>
-                  <div className="app-dialog-row">
-                    <span className="app-dialog-label">Action</span>
-                    <span className="app-dialog-value">New token created</span>
-                  </div>
-                </div>
               </div>
 
               <div className="app-dialog-footer">
@@ -391,7 +377,7 @@ export default function ShareModal({ onClose }: ShareModalProps) {
                   onClick={executeRegenerate}
                 >
                   <RefreshCw style={{ width: 14, height: 14 }} />
-                  Regenerate Link
+                  Yes, Regenerate
                 </button>
               </div>
             </div>
