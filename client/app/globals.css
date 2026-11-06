@@ -117,7 +117,7 @@
 }
 
 /* Ambient Background and Frosted Glass Blur for Light Mode */
-html:not(.dark):not([data-theme="sketch"]) body, html[data-theme="light"] body {
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) body, html[data-theme="light"] body {
   background: 
     radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.07) 0px, transparent 50%),
@@ -127,12 +127,12 @@ html:not(.dark):not([data-theme="sketch"]) body, html[data-theme="light"] body {
   background-attachment: fixed !important;
 }
 
-html:not(.dark):not([data-theme="sketch"]) .header,
-html:not(.dark):not([data-theme="sketch"]) .settings-card,
-html:not(.dark):not([data-theme="sketch"]) .settings-theme-card,
-html:not(.dark):not([data-theme="sketch"]) .table-wrapper,
-html:not(.dark):not([data-theme="sketch"]) .modal-box,
-html:not(.dark):not([data-theme="sketch"]) .card,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .header,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .settings-card,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .settings-theme-card,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .table-wrapper,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .modal-box,
+html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .card,
 html[data-theme="light"] .header,
 html[data-theme="light"] .settings-card,
 html[data-theme="light"] .settings-theme-card,
@@ -487,6 +487,344 @@ html[data-theme="sketch"] .app-sidebar,
 html[data-theme="sketch"] .sidebar {
   background: #fdfbf7 !important;
   border-right: 2px solid #2d2d2d !important;
+}
+
+[data-theme="kanso"] {
+  color-scheme: light;
+
+  --bg-base: #f7f5f0;
+  --bg-surface: #ffffff;
+  --bg-elevated: #faf8f5;
+  --bg-card: #ffffff;
+  --bg-hover: #f0ebe1;
+  --bg-active: #e5ded2;
+
+  --border: #e6e0d4;
+  --border-subtle: #eee9de;
+  --border-focus: #dc3522;
+  --border-width-layout: 1px;
+
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  --text-muted: #8c857b;
+  --font-sans: "Zen Kaku Gothic New", "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Zen Kaku Gothic New", "Plus Jakarta Sans", sans-serif;
+  --font-inter: var(--font-sans);
+
+  --accent: #dc3522;
+  --accent-hover: #b92b1a;
+  --accent-subtle: rgba(220, 53, 34, 0.08);
+  --accent-glow: rgba(220, 53, 34, 0.25);
+  --accent-secondary: #c59b27;
+  --accent-tertiary: #2e7d47;
+  --accent-quaternary: #1e3a5f;
+  --accent-gradient: linear-gradient(135deg, #dc3522 0%, #c59b27 35%, #2e7d47 70%, #1c1917 100%);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(220, 53, 34, 0.08) 0%, rgba(197, 155, 39, 0.08) 50%, rgba(46, 125, 71, 0.06) 100%);
+
+  --btn-new-task-bg: #1c1917;
+  --btn-new-task-bg-hover: #000000;
+  --btn-new-task-gradient: linear-gradient(135deg, #262320 0%, #141210 100%);
+  --btn-new-task-text: #ffffff;
+  --btn-new-task-border: #1c1917;
+  --btn-new-task-glow: 0 4px 14px -2px rgba(28, 25, 23, 0.25);
+  --btn-new-task-glow-hover: 0 6px 20px -2px rgba(28, 25, 23, 0.35);
+
+  --high: #dc3522;
+  --high-bg: rgba(220, 53, 34, 0.09);
+  --medium: #d97706;
+  --medium-bg: rgba(217, 119, 6, 0.1);
+  --low: #1e3a5f;
+  --low-bg: rgba(30, 58, 95, 0.08);
+  --inprogress: #2563eb;
+  --inprogress-bg: rgba(37, 99, 235, 0.08);
+  --pending: #c59b27;
+  --pending-bg: rgba(197, 155, 39, 0.1);
+  --completed: #2e7d47;
+  --completed-bg: rgba(46, 125, 71, 0.1);
+
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 11px;
+  --radius-xl: 15px;
+
+  --box-shadow-brutalist: 0 4px 20px -4px rgba(45, 41, 38, 0.06), 0 1px 3px 0 rgba(45, 41, 38, 0.04);
+  --box-shadow-brutalist-sm: 0 2px 8px -2px rgba(45, 41, 38, 0.04), 0 1px 2px 0 rgba(45, 41, 38, 0.02);
+  --shadow-taste-sm: 0 1px 3px rgba(45, 41, 38, 0.04);
+  --shadow-taste-md: 0 8px 24px -4px rgba(45, 41, 38, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --shadow-taste-lg: 0 16px 36px -8px rgba(45, 41, 38, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="kanso"] body {
+  background-color: #f7f5f0 !important;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(220, 53, 34, 0.035) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(197, 155, 39, 0.03) 0px, transparent 50%),
+    linear-gradient(to right, rgba(45, 41, 38, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(45, 41, 38, 0.02) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px !important;
+  background-attachment: fixed !important;
+  font-family: var(--font-sans) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-theme="kanso"] .header,
+html[data-theme="kanso"] .settings-card,
+html[data-theme="kanso"] .settings-theme-card,
+html[data-theme="kanso"] .table-wrapper,
+html[data-theme="kanso"] .modal-box,
+html[data-theme="kanso"] .card,
+html[data-theme="kanso"] .app-dialog-box {
+  background: #ffffff !important;
+  border: 1px solid #e6e0d4 !important;
+  box-shadow: 0 4px 20px -4px rgba(45, 41, 38, 0.05), 0 1px 2px 0 rgba(45, 41, 38, 0.03) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="kanso"] .settings-theme-card.active {
+  border-color: #dc3522 !important;
+  box-shadow: 0 0 0 1px #dc3522, 0 6px 20px rgba(220, 53, 34, 0.12) !important;
+}
+
+html[data-theme="kanso"] .new-task-modal-box {
+  background: #ffffff !important;
+  border: 1px solid #e6e0d4 !important;
+  box-shadow: 0 24px 48px -12px rgba(45, 41, 38, 0.14), 0 0 0 1px #e6e0d4 !important;
+}
+
+html[data-theme="kanso"] .saas-success-modal {
+  background: #ffffff !important;
+  border: 1px solid #e6e0d4 !important;
+  box-shadow: 0 20px 48px -12px rgba(45, 41, 38, 0.12) !important;
+}
+
+html[data-theme="kanso"] .app-header {
+  background: rgba(247, 245, 240, 0.94) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid #e6e0d4 !important;
+}
+
+html[data-theme="kanso"] .app-sidebar,
+html[data-theme="kanso"] .sidebar {
+  background: #fdfcf9 !important;
+  border-right: 1px solid #e6e0d4 !important;
+}
+
+html[data-theme="kanso"] tbody tr:hover {
+  background-color: #f4efe4 !important;
+}
+
+html[data-theme="kanso"] th {
+  border-bottom: 1px solid #e6e0d4 !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+}
+
+html[data-theme="kanso"] tr {
+  border-bottom: 1px solid #eee9de !important;
+}
+
+html[data-theme="kanso"] input,
+html[data-theme="kanso"] select,
+html[data-theme="kanso"] textarea {
+  background: #ffffff !important;
+  border: 1px solid #e0d9cc !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-theme="kanso"] input:focus,
+html[data-theme="kanso"] select:focus,
+html[data-theme="kanso"] textarea:focus {
+  border-color: #dc3522 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 34, 0.12) !important;
+  outline: none !important;
+}
+
+html[data-theme="kanso"] .pill,
+html[data-theme="kanso"] .header-btn,
+html[data-theme="kanso"] .btn-secondary {
+  border: 1px solid #e0d9cc !important;
+  background: #ffffff;
+  color: var(--text-primary);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+html[data-theme="kanso"] .pill:hover,
+html[data-theme="kanso"] .header-btn:hover,
+html[data-theme="kanso"] .btn-secondary:hover {
+  background: #f2ede3 !important;
+  border-color: #d6cdbe !important;
+}
+
+html[data-theme="kanso"] .pill:active,
+html[data-theme="kanso"] .header-btn:active,
+html[data-theme="kanso"] .btn-secondary:active {
+  transform: scale(0.985) !important;
+}
+
+[data-theme="kanso"] ::-webkit-scrollbar-track {
+  background: rgba(45, 41, 38, 0.03);
+}
+
+[data-theme="kanso"] ::-webkit-scrollbar-thumb {
+  background-color: rgba(45, 41, 38, 0.2);
+  border-radius: 9999px;
+}
+
+[data-theme="kanso"] ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(45, 41, 38, 0.35);
+}
+
+/* Kyoto Kanso: Component refinements */
+[data-theme="kanso"] .summary-card.active-inprogress {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%) !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px -4px rgba(37, 99, 235, 0.32), 0 0 0 1px rgba(37, 99, 235, 0.2) !important;
+}
+
+[data-theme="kanso"] .summary-card.active-pending {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%) !important;
+  border-color: #d97706 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px -4px rgba(217, 119, 6, 0.32), 0 0 0 1px rgba(217, 119, 6, 0.2) !important;
+}
+
+[data-theme="kanso"] .summary-card.active-completed {
+  background: linear-gradient(135deg, #166534 0%, #2e7d47 100%) !important;
+  border-color: #2e7d47 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px -4px rgba(46, 125, 71, 0.32), 0 0 0 1px rgba(46, 125, 71, 0.2) !important;
+}
+
+[data-theme="kanso"] .summary-card.active-inprogress *,
+[data-theme="kanso"] .summary-card.active-pending *,
+[data-theme="kanso"] .summary-card.active-completed * {
+  color: #ffffff !important;
+}
+
+[data-theme="kanso"] .summary-action-card {
+  box-shadow: 0 2px 8px -2px rgba(45, 41, 38, 0.05), 0 1px 2px 0 rgba(45, 41, 38, 0.03) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="kanso"] .summary-action-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: #dc3522 !important;
+    box-shadow: 0 10px 24px -4px rgba(45, 41, 38, 0.08), 0 2px 6px -1px rgba(45, 41, 38, 0.04) !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  [data-theme="kanso"] .summary-action-card:active {
+    transform: scale(0.985) !important;
+    box-shadow: 0 1px 3px rgba(45, 41, 38, 0.04) !important;
+  }
+}
+
+[data-theme="kanso"] .badge-high {
+  color: #b91c1c !important;
+  background: rgba(220, 38, 38, 0.08) !important;
+  border: 1px solid rgba(220, 38, 38, 0.25) !important;
+}
+
+[data-theme="kanso"] .badge-medium {
+  color: #b45309 !important;
+  background: rgba(217, 119, 6, 0.09) !important;
+  border: 1px solid rgba(217, 119, 6, 0.25) !important;
+}
+
+[data-theme="kanso"] .badge-low {
+  color: #1e3a5f !important;
+  background: rgba(30, 58, 95, 0.08) !important;
+  border: 1px solid rgba(30, 58, 95, 0.22) !important;
+}
+
+[data-theme="kanso"] .badge-inprogress {
+  color: #1d4ed8 !important;
+  background: rgba(37, 99, 235, 0.08) !important;
+  border: 1px solid rgba(37, 99, 235, 0.25) !important;
+}
+
+[data-theme="kanso"] .badge-pending {
+  color: #b45309 !important;
+  background: rgba(217, 119, 6, 0.09) !important;
+  border: 1px solid rgba(217, 119, 6, 0.25) !important;
+}
+
+[data-theme="kanso"] .badge-completed {
+  color: #15803d !important;
+  background: rgba(22, 163, 74, 0.09) !important;
+  border: 1px solid rgba(22, 163, 74, 0.25) !important;
+}
+
+[data-theme="kanso"] .nav-item.active {
+  background: rgba(220, 53, 34, 0.07) !important;
+  color: #dc3522 !important;
+  border-color: rgba(220, 53, 34, 0.18) !important;
+}
+
+[data-theme="kanso"] .nav-item.active::before {
+  background: #dc3522 !important;
+}
+
+[data-theme="kanso"] .nav-item:hover {
+  background: #f2ece1 !important;
+  color: var(--text-primary) !important;
+  transform: translateX(2px) !important;
+  box-shadow: none !important;
+}
+
+[data-theme="kanso"] .brutalist-hover {
+  box-shadow: none !important;
+  border-color: #e6e0d4 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-theme="kanso"] .brutalist-hover:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px -1px rgba(45, 41, 38, 0.06) !important;
+  border-color: #d6cdbe !important;
+}
+
+[data-theme="kanso"] .brutalist-hover:active {
+  transform: scale(0.985) !important;
+}
+
+[data-theme="kanso"] .header-notif-dropdown {
+  background: #ffffff !important;
+  border: 1px solid #e6e0d4 !important;
+  box-shadow: 0 16px 36px -6px rgba(45, 41, 38, 0.12), 0 2px 6px rgba(45, 41, 38, 0.04) !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme="kanso"] .header-notif-item:hover {
+  background: #f5f0e6 !important;
+}
+
+[data-theme="kanso"] .header-notif-digest-pill:hover {
+  background: #ede7dc !important;
+}
+
+html[data-theme="kanso"] .modal-backdrop,
+html[data-theme="kanso"] div[style*="rgba(0, 0, 0, 0.75)"],
+html[data-theme="kanso"] div[style*="rgba(0, 0, 0, 0.8)"] {
+  background-color: rgba(28, 25, 23, 0.48) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+[data-theme="kanso"] input::placeholder,
+[data-theme="kanso"] textarea::placeholder {
+  color: #9e978e !important;
+}
+
+html[data-theme="kanso"] ::selection {
+  background: rgba(220, 53, 34, 0.18) !important;
+  color: #1c1917 !important;
 }
 
 

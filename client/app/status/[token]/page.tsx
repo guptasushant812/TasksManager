@@ -109,7 +109,7 @@ export default function PublicStatusPage() {
         const themeToApply = savedTheme || 'dark';
 
         document.documentElement.setAttribute('data-theme', themeToApply);
-        if (themeToApply === 'light') {
+        if (themeToApply === 'light' || themeToApply === 'sketch' || themeToApply === 'kanso') {
           document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.add('dark');
