@@ -282,7 +282,7 @@ const FAQS: FaqItem[] = [
     answer: (
       <ul>
         <li><strong>Auto-Lock:</strong> Automatically locks the workspace after 5 minutes to 1 hour of inactivity.</li>
-        <li><strong>Themes:</strong> Choose between <strong>Dark Mode</strong>, <strong>Midnight Slate</strong>, <strong>Sketch</strong>, or <strong>Kyoto Kanso</strong> in Settings.</li>
+        <li><strong>Themes:</strong> Choose between <strong>Dark Mode</strong>, <strong>Midnight Slate</strong>, <strong>Sketch</strong>, or <strong>Light Mode</strong> in Settings.</li>
         <li><strong>Keyboard Shortcuts:</strong> Press <kbd>/</kbd> to jump straight to search, and <kbd>Esc</kbd> to clear filters or close modals.</li>
       </ul>
     ),

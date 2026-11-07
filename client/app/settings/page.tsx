@@ -99,7 +99,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   },
   {
     id: 'kanso',
-    name: 'Kyoto Kanso',
+    name: 'Light Mode',
     subtitle: 'Zen Washi & Sumi Ink',
     description: 'Japanese architectural minimalism with warm washi paper, artisan sumi ink typography, urushi vermilion accents, and kintsugi gold highlights.',
     font: 'Zen Kaku Gothic',

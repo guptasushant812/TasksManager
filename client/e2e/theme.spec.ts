@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Theme System & Kyoto Kanso Integration', () => {
+test.describe('Theme System & Light Mode Integration', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('lastActiveTime', Date.now().toString());
@@ -8,7 +8,7 @@ test.describe('Theme System & Kyoto Kanso Integration', () => {
     });
   });
 
-  test('settings page displays all 4 themes including Kyoto Kanso', async ({ page }) => {
+  test('settings page displays all 4 themes including Light Mode', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.locator('.settings-theme-grid')).toBeVisible({ timeout: 15000 });
 
@@ -19,17 +19,16 @@ test.describe('Theme System & Kyoto Kanso Integration', () => {
     await expect(page.locator('.settings-theme-card:has-text("Dark Mode")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Midnight Slate")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Sketch")')).toBeVisible();
-    await expect(page.locator('.settings-theme-card:has-text("Kyoto Kanso")')).toBeVisible();
-    await expect(page.locator('.settings-theme-card:has-text("Light Mode")')).toHaveCount(0);
+    await expect(page.locator('.settings-theme-card:has-text("Light Mode")')).toBeVisible();
   });
 
-  test('switching to Kyoto Kanso updates theme attribute, styles and persists across reload', async ({ page }) => {
+  test('switching to Light Mode updates theme attribute, styles and persists across reload', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.locator('.settings-theme-grid')).toBeVisible({ timeout: 15000 });
 
-    // Click Kyoto Kanso theme card
-    const kansoCard = page.locator('.settings-theme-card:has-text("Kyoto Kanso")');
-    await kansoCard.click();
+    // Click Light Mode theme card
+    const lightCard = page.locator('.settings-theme-card:has-text("Light Mode")');
+    await lightCard.click();
 
     // Verify confirmation modal appears
     const confirmBtn = page.locator('button:has-text("Apply Theme")');
