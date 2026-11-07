@@ -58,21 +58,9 @@ interface ThemeOption {
   isLight?: boolean;
 }
 
-const LIGHT_THEMES = ['light', 'sketch', 'kanso'];
+const LIGHT_THEMES = ['sketch', 'kanso'];
 
 const THEME_OPTIONS: ThemeOption[] = [
-  {
-    id: 'light',
-    name: 'Light Mode',
-    subtitle: 'Translucent Frosted Glass',
-    description: 'Ultra-clean frosted glass surfaces with an electric violet, magenta, rose, and emerald gradient mixer.',
-    font: 'Plus Jakarta Sans',
-    primaryColor: '#7c3aed',
-    bgColor: '#ffffff',
-    palette: ['#ffffff', '#7c3aed', '#d946ef', '#f43f5e', '#10b981'],
-    gradient: 'linear-gradient(135deg, #7c3aed 0%, #d946ef 35%, #f43f5e 70%, #10b981 100%)',
-    isLight: true,
-  },
   {
     id: 'dark',
     name: 'Dark Mode',
@@ -405,8 +393,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      if (saved === 'botanical' || saved === 'warm' || saved === 'emerald' || saved === 'aurora' || saved === 'prism' || saved === 'frost') {
+      let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || 'dark';
+      if (saved === 'light' || saved === 'botanical' || saved === 'warm' || saved === 'emerald' || saved === 'aurora' || saved === 'prism' || saved === 'frost' || !THEME_OPTIONS.some(t => t.id === saved)) {
         saved = 'dark';
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');

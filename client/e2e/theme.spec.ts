@@ -8,19 +8,19 @@ test.describe('Theme System & Kyoto Kanso Integration', () => {
     });
   });
 
-  test('settings page displays all 5 themes including Kyoto Kanso', async ({ page }) => {
+  test('settings page displays all 4 themes including Kyoto Kanso', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.locator('.settings-theme-grid')).toBeVisible({ timeout: 15000 });
 
     const themeCards = page.locator('.settings-theme-card');
-    await expect(themeCards).toHaveCount(5);
+    await expect(themeCards).toHaveCount(4);
 
-    // Verify all 5 theme titles exist
-    await expect(page.locator('.settings-theme-card:has-text("Light Mode")')).toBeVisible();
+    // Verify all 4 theme titles exist
     await expect(page.locator('.settings-theme-card:has-text("Dark Mode")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Midnight Slate")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Sketch")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Kyoto Kanso")')).toBeVisible();
+    await expect(page.locator('.settings-theme-card:has-text("Light Mode")')).toHaveCount(0);
   });
 
   test('switching to Kyoto Kanso updates theme attribute, styles and persists across reload', async ({ page }) => {

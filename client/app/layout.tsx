@@ -10,8 +10,8 @@ const siteUrl = getSiteUrl();
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0f' },
+    { media: '(prefers-color-scheme: light)', color: '#090a10' },
+    { media: '(prefers-color-scheme: dark)', color: '#090a10' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -143,7 +143,7 @@ const jsonLd = {
         'Client follow-up tracking with attachments',
         'AI voice & text prompt parser for rapid task creation',
         'Shareable read-only public status portal',
-        'Responsive dark & light mode support',
+        'Custom theme engine support',
       ],
     },
   ],
@@ -151,19 +151,19 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                let t = localStorage.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                if (t === 'botanical' || t === 'warm' || t === 'emerald' || t === 'aurora' || t === 'prism' || t === 'frost') {
+                let t = localStorage.theme || 'dark';
+                if (t === 'light' || t === 'botanical' || t === 'warm' || t === 'emerald' || t === 'aurora' || t === 'prism' || t === 'frost') {
                   t = 'dark';
                   localStorage.theme = 'dark';
                 }
                 document.documentElement.setAttribute('data-theme', t);
-                if (t === 'light' || t === 'sketch' || t === 'kanso') {
+                if (t === 'sketch' || t === 'kanso') {
                   document.documentElement.classList.remove('dark');
                 } else {
                   document.documentElement.classList.add('dark');

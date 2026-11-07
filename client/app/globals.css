@@ -1,11 +1,7 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   DESIGN SYSTEM — Neo-brutalism
-   ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  color-scheme: light;
-  /* Spatial scale (8pt grid) */
+  color-scheme: dark;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -15,145 +11,6 @@
   --space-7: 32px;
   --space-8: 40px;
 
-  /* Surface colors — Frosted Translucent Glass (Light Mode) */
-  --bg-base: #f9fafb;
-  --bg-surface: rgba(255, 255, 255, 0.78);
-  --bg-elevated: rgba(255, 255, 255, 0.88);
-  --bg-card: rgba(255, 255, 255, 0.82);
-  --bg-hover: rgba(243, 232, 255, 0.55);
-  --bg-active: rgba(233, 213, 255, 0.75);
-
-  /* Border system — Crisp Polished Micro-Borders */
-  --border: rgba(229, 231, 235, 0.85);
-  --border-subtle: rgba(243, 244, 246, 0.9);
-  --border-focus: #7c3aed;
-
-  /* Typography — WCAG AA High Contrast */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-
-  /* Accent colors — Gradient Mixer: Violet, Magenta, Rose & Mint (No Blue, No Orange) */
-  --accent: #7c3aed; /* Electric Violet */
-  --accent-hover: #6d28d9;
-  --accent-subtle: rgba(124, 58, 237, 0.12);
-  --accent-glow: rgba(124, 58, 237, 0.35);
-  --accent-secondary: #d946ef; /* Vivid Magenta */
-  --accent-tertiary: #f43f5e; /* Radiant Rose */
-  --accent-quaternary: #10b981; /* Emerald Mint */
-  --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #d946ef 35%, #f43f5e 70%, #10b981 100%);
-  --accent-gradient-subtle: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(217, 70, 239, 0.08) 50%, rgba(16, 185, 129, 0.06) 100%);
-
-  /* Green highlight variables for new task button */
-  --btn-new-task-bg: #10b981;
-  --btn-new-task-bg-hover: #059669;
-  --btn-new-task-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --btn-new-task-text: #ffffff;
-  --btn-new-task-border: rgba(52, 211, 153, 0.6);
-  --btn-new-task-glow: 0 0 16px -2px rgba(16, 185, 129, 0.45), 0 4px 12px -2px rgba(16, 185, 129, 0.35);
-  --btn-new-task-glow-hover: 0 0 24px -1px rgba(16, 185, 129, 0.65), 0 6px 18px -2px rgba(16, 185, 129, 0.45);
-
-  /* Semantic colors */
-  --high: #f43f5e;
-  --high-bg: rgba(244, 63, 94, 0.1);
-  --medium: #d946ef;
-  --medium-bg: rgba(217, 70, 239, 0.1);
-  --low: #2563eb;
-  --low-bg: rgba(37, 99, 235, 0.1);
-  --inprogress: #7c3aed;
-  --inprogress-bg: rgba(124, 58, 237, 0.1);
-  --pending: #ec4899;
-  --pending-bg: rgba(236, 72, 153, 0.1);
-  --completed: #10b981;
-  --completed-bg: rgba(16, 185, 129, 0.1);
-
-  /* Layout structural variables */
-  --border-width-layout: 1px;
-  --box-shadow-brutalist: 0 10px 25px -5px rgba(124, 58, 237, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-  --box-shadow-brutalist-sm: 0 4px 12px -2px rgba(124, 58, 237, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
-
-  /* Radii — Smooth & Modern */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-full: 9999px;
-
-  /* Transitions — Taste Skill Physics */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 0.18s;
-  --duration-normal: 0.28s;
-  --duration-slow: 0.45s;
-
-  /* Taste Skill — Surface Sheen & Tinted Shadows */
-  --shadow-taste-sm: 0 1px 3px rgba(124, 58, 237, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
-  --shadow-taste-md: 0 10px 24px -6px rgba(124, 58, 237, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  --shadow-taste-lg: 0 18px 36px -8px rgba(124, 58, 237, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  /* Sidebar */
-  --sidebar-width: 240px;
-  --public-sidebar-width: 260px;
-
-  /* Typography — Plus Jakarta Sans */
-  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Plus Jakarta Sans", sans-serif;
-  --font-inter: var(--font-sans);
-  --font-serif: "source-serif-pro", "Source Serif 4", Georgia, Cambria, serif;
-
-  /* Type scale */
-  --text-ui: 14px;
-  --text-body: 16px;
-  --text-reading: 20px;
-  --leading-reading: 32px;
-  --tracking-reading: -0.003em;
-  --text-h1: 42px;
-  --leading-h1: 52px;
-  --text-h2: 24px;
-  --leading-h2: 30px;
-  --tracking-heading: -0.016em;
-}
-
-/* Ambient Background and Frosted Glass Blur for Light Mode */
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) body, html[data-theme="light"] body {
-  background: 
-    radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.07) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-    #f9fafb !important;
-  background-attachment: fixed !important;
-}
-
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .header,
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .settings-card,
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .settings-theme-card,
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .table-wrapper,
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .modal-box,
-html:not(.dark):not([data-theme="sketch"]):not([data-theme="kanso"]) .card,
-html[data-theme="light"] .header,
-html[data-theme="light"] .settings-card,
-html[data-theme="light"] .settings-theme-card,
-html[data-theme="light"] .table-wrapper,
-html[data-theme="light"] .modal-box,
-html[data-theme="light"] .card {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   DESIGN SYSTEM — Dark Mode (Obsidian Frosted Glass & Gradient Mixer)
-   ───────────────────────────────────────────────────────────────────────────── */
-.dark, [data-theme="dark"] {
-  color-scheme: dark;
-  /* Typography */
-  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Plus Jakarta Sans", sans-serif;
-  --font-inter: var(--font-sans);
-
-  /* Surface colors — Translucent Deep Obsidian Glass */
   --bg-base: #090a10;
   --bg-surface: rgba(17, 18, 28, 0.78);
   --bg-elevated: rgba(25, 27, 42, 0.88);
@@ -161,28 +18,24 @@ html[data-theme="light"] .card {
   --bg-hover: rgba(35, 38, 58, 0.75);
   --bg-active: rgba(45, 49, 75, 0.85);
 
-  /* Border system — Polished Subtle Glow */
   --border: rgba(255, 255, 255, 0.1);
   --border-subtle: rgba(255, 255, 255, 0.05);
   --border-focus: #10b981;
 
-  /* Typography */
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
 
-  /* Accent colors — Gradient Mixer: Emerald Jade, Electric Violet, Fuchsia (No Blue, No Orange) */
-  --accent: #10b981; /* Refined Emerald Jade */
+  --accent: #10b981;
   --accent-hover: #059669;
   --accent-subtle: rgba(16, 185, 129, 0.14);
   --accent-glow: rgba(16, 185, 129, 0.35);
-  --accent-secondary: #a855f7; /* Electric Violet */
-  --accent-tertiary: #ec4899; /* Radiant Fuchsia */
-  --accent-quaternary: #6366f1; /* Deep Purple Indigo */
+  --accent-secondary: #a855f7;
+  --accent-tertiary: #ec4899;
+  --accent-quaternary: #6366f1;
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #a855f7 50%, #ec4899 100%);
   --accent-gradient-subtle: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(236, 72, 153, 0.06) 100%);
 
-  /* Green highlight variables for new task button */
   --btn-new-task-bg: #10b981;
   --btn-new-task-bg-hover: #059669;
   --btn-new-task-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
@@ -191,7 +44,6 @@ html[data-theme="light"] .card {
   --btn-new-task-glow: 0 0 20px -2px rgba(16, 185, 129, 0.55), 0 4px 14px -2px rgba(16, 185, 129, 0.35);
   --btn-new-task-glow-hover: 0 0 28px -1px rgba(16, 185, 129, 0.75), 0 6px 20px -2px rgba(16, 185, 129, 0.45);
 
-  /* Semantic colors */
   --high: #ec4899;
   --high-bg: rgba(236, 72, 153, 0.12);
   --medium: #a855f7;
@@ -205,26 +57,55 @@ html[data-theme="light"] .card {
   --completed: #10b981;
   --completed-bg: rgba(16, 185, 129, 0.14);
 
-  /* Layout structural variables */
   --border-width-layout: 1px;
   --box-shadow-brutalist: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --box-shadow-brutalist-sm: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
 
-  /* Radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+  --radius-full: 9999px;
 
-  /* Taste Skill — Surface Sheen & Tinted Shadows */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 0.18s;
+  --duration-normal: 0.28s;
+  --duration-slow: 0.45s;
+
   --shadow-taste-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-taste-md: 0 10px 28px -6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-taste-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   --sheen-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --sidebar-width: 240px;
+  --public-sidebar-width: 260px;
+
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+  --font-inter: var(--font-sans);
+  --font-serif: "source-serif-pro", "Source Serif 4", Georgia, Cambria, serif;
+
+  --text-ui: 14px;
+  --text-body: 16px;
+  --text-reading: 20px;
+  --leading-reading: 32px;
+  --tracking-reading: -0.003em;
+  --text-h1: 42px;
+  --leading-h1: 52px;
+  --text-h2: 24px;
+  --leading-h2: 30px;
+  --tracking-heading: -0.016em;
 }
 
-/* Ambient Background and Frosted Glass Blur for Dark Mode */
-html.dark:not([data-theme="slate"]) body, html[data-theme="dark"] body {
+.dark, [data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html.dark:not([data-theme="slate"]) body,
+html[data-theme="dark"] body,
+html:not([data-theme="sketch"]):not([data-theme="kanso"]):not([data-theme="slate"]) body {
   background: 
     radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.10) 0px, transparent 50%),
@@ -868,7 +749,6 @@ html h6 {
   letter-spacing: var(--tracking-heading);
 }
 
-/* Dark Mode Font — same Medium typography as light mode */
 html.dark {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -2461,7 +2341,6 @@ html:not(.dark) .brutalist-hover:active {
   background: #ff4d4d;
 }
 
-/* Minimalist Premium Light Mode Button Overrides */
 html:not(.dark) .btn {
   font-family: var(--font-sans);
   font-size: 14px;

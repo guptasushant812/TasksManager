@@ -106,10 +106,13 @@ export default function PublicStatusPage() {
     try {
       const applyTheme = () => {
         const savedTheme = localStorage.getItem('theme');
-        const themeToApply = savedTheme || 'dark';
+        let themeToApply = savedTheme || 'dark';
+        if (themeToApply === 'light') {
+          themeToApply = 'dark';
+        }
 
         document.documentElement.setAttribute('data-theme', themeToApply);
-        if (themeToApply === 'light' || themeToApply === 'sketch' || themeToApply === 'kanso') {
+        if (themeToApply === 'sketch' || themeToApply === 'kanso') {
           document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.add('dark');
