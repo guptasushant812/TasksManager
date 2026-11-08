@@ -570,32 +570,32 @@ html[data-theme="kanso"] .btn-secondary:active {
 }
 
 html[data-theme="kanso"] .header-btn-new-task {
-  background: linear-gradient(180deg, #2c2825 0%, #181614 100%) !important;
+  background: linear-gradient(180deg, #221f1d 0%, #151311 100%) !important;
   color: #ffffff !important;
-  border: 1px solid #181614 !important;
-  box-shadow: 0 3px 8px -1px rgba(28, 25, 23, 0.25), 0 1px 3px rgba(28, 25, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 3px 8px -1px rgba(0, 0, 0, 0.22), 0 1px 3px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  transition: transform 0.22s var(--ease-out),
-              box-shadow 0.22s var(--ease-out),
-              background 0.22s var(--ease-out),
-              border-color 0.22s var(--ease-out) !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 html[data-theme="kanso"] .header-btn-new-task:hover {
-  background: linear-gradient(180deg, #4d443e 0%, #302b26 100%) !important;
+  background: linear-gradient(180deg, #2a2724 0%, #191715 100%) !important;
   color: #ffffff !important;
-  border-color: #635850 !important;
-  box-shadow: 0 6px 18px -2px rgba(28, 25, 23, 0.35), 0 2px 6px rgba(28, 25, 23, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
-  transform: translateY(-1px) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.35), 0 3px 8px -2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
+  transform: translateY(-1.5px) !important;
   filter: none !important;
 }
 
 html[data-theme="kanso"] .header-btn-new-task:active {
-  background: #141210 !important;
+  background: #0d0c0b !important;
   color: #ffffff !important;
-  border-color: #0d0c0b !important;
-  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  transform: translateY(0) scale(0.97) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+  transform: translateY(0.5px) scale(0.97) !important;
   filter: none !important;
 }
 
