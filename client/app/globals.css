@@ -570,29 +570,33 @@ html[data-theme="kanso"] .btn-secondary:active {
 }
 
 html[data-theme="kanso"] .header-btn-new-task {
-  background: linear-gradient(135deg, #2a2622 0%, #151311 100%) !important;
+  background: linear-gradient(180deg, #2c2825 0%, #181614 100%) !important;
   color: #ffffff !important;
-  border: 1px solid #1c1917 !important;
-  box-shadow: 0 4px 12px -2px rgba(28, 25, 23, 0.28), 0 1px 3px rgba(28, 25, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid #181614 !important;
+  box-shadow: 0 3px 8px -1px rgba(28, 25, 23, 0.25), 0 1px 3px rgba(28, 25, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 html[data-theme="kanso"] .header-btn-new-task:hover {
-  background: linear-gradient(135deg, #38332e 0%, #1f1c19 100%) !important;
+  background: linear-gradient(180deg, #4d443e 0%, #302b26 100%) !important;
   color: #ffffff !important;
-  border-color: #0d0c0b !important;
-  box-shadow: 0 6px 18px -2px rgba(28, 25, 23, 0.38), 0 2px 6px rgba(28, 25, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-1px) !important;
-  filter: brightness(1.06) !important;
+  border-color: #635850 !important;
+  box-shadow: 0 8px 22px -3px rgba(28, 25, 23, 0.35), 0 3px 8px rgba(28, 25, 23, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+  transform: translateY(-2px) !important;
+  filter: none !important;
 }
 
 html[data-theme="kanso"] .header-btn-new-task:active {
   background: #141210 !important;
   color: #ffffff !important;
   border-color: #0d0c0b !important;
-  box-shadow: 0 2px 6px -1px rgba(28, 25, 23, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.35) !important;
-  transform: translateY(0) scale(0.98) !important;
-  filter: brightness(0.96) !important;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(0) scale(0.97) !important;
+  filter: none !important;
 }
 
 [data-theme="kanso"] ::-webkit-scrollbar-track {
@@ -4644,6 +4648,14 @@ html:not(.dark) .label {
 .header-btn-new-task:active {
   transform: translateY(0px) scale(0.98);
   filter: brightness(0.96) !important;
+}
+
+.header-btn-new-task .header-new-task-icon {
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.header-btn-new-task:hover .header-new-task-icon {
+  transform: scale(1.15) rotate(90deg);
 }
 
 /* 3. Notification Bell Button */

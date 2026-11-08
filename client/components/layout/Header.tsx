@@ -178,7 +178,7 @@ export default function Header({ filters, onTaskCreated }: HeaderProps) {
               onClick={() => setShowModal(true)}
               title="Create New Task"
             >
-              <Plus style={{ width: 16, height: 16, strokeWidth: 3, flexShrink: 0 }} />
+              <Plus className="header-new-task-icon" style={{ width: 16, height: 16, strokeWidth: 3, flexShrink: 0 }} />
               <span className="header-new-task-text">
                 <span className="header-new-task-word">New </span>Task
               </span>
