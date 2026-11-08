@@ -5240,10 +5240,6 @@ html:not(.dark) .label {
     font-size: 12px !important;
   }
 
-  .header-btn-new-task .header-new-task-word {
-    display: none !important;
-  }
-
   .header-btn-share {
     padding: 0 10px !important;
     font-size: 12px !important;
