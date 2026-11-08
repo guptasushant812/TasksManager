@@ -3518,6 +3518,263 @@ html:not(.dark) .label {
   height: 13px;
 }
 
+.scope-weeks-header {
+  padding: 14px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scope-weeks-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scope-weeks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 14px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scope-week-btn {
+  background: var(--bg-surface);
+  border: var(--border-width-layout) solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background-color 0.18s var(--ease-out), border-color 0.18s var(--ease-out);
+}
+
+.scope-week-btn:hover {
+  background: var(--bg-hover);
+  border-color: color-mix(in srgb, var(--border) 70%, var(--accent));
+  transform: translateY(-1px);
+}
+
+.scope-week-btn.active {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 12px -2px var(--accent-glow, rgba(220, 53, 34, 0.35));
+}
+
+.scope-week-label {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.scope-week-dates {
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0.8;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.scope-week-dates-compact {
+  display: none;
+}
+
+.scope-week-dates-full {
+  display: block;
+}
+
+.scope-days-section {
+  border-top: var(--border-width-layout) solid var(--border);
+  padding: 14px 20px;
+  background: var(--bg-hover);
+  box-sizing: border-box;
+}
+
+.scope-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scope-day-btn {
+  background: var(--bg-surface);
+  border: var(--border-width-layout) solid var(--border);
+  padding: 8px 4px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background-color 0.18s var(--ease-out);
+}
+
+.scope-day-btn:hover {
+  background: var(--bg-card);
+  transform: translateY(-1px);
+}
+
+.scope-day-btn.active {
+  background: var(--text-primary) !important;
+  color: var(--bg-base) !important;
+  border-color: var(--text-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.scope-day-name {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scope-day-num {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .scope-week-dates-full {
+    display: none;
+  }
+  .scope-week-dates-compact {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .scope-weeks-header {
+    padding: 12px 14px 0;
+  }
+  .scope-weeks-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px 14px 14px;
+  }
+  .scope-days-section {
+    padding: 10px 14px;
+  }
+  .scope-days-grid {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 540px) {
+  .scope-weeks-header {
+    padding: 10px 12px 0;
+  }
+  .scope-weeks-title {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+  .scope-weeks-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 8px 12px 12px;
+  }
+  .scope-week-btn {
+    padding: 7px 4px;
+    border-radius: 6px;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+  }
+  .scope-week-label {
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .scope-week-dates {
+    font-size: 10px;
+    text-align: center;
+  }
+  .scope-days-section {
+    padding: 8px 12px;
+  }
+  .scope-days-grid {
+    gap: 4px;
+  }
+  .scope-day-btn {
+    padding: 6px 2px;
+    border-radius: 6px;
+  }
+  .scope-day-name {
+    font-size: 9px;
+  }
+  .scope-day-num {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .scope-weeks-header {
+    padding: 8px 8px 0;
+  }
+  .scope-weeks-title {
+    font-size: 10.5px;
+  }
+  .scope-weeks-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    padding: 6px 8px 8px;
+  }
+  .scope-week-btn {
+    padding: 6px 2px;
+    border-radius: 5px;
+    gap: 2px;
+  }
+  .scope-week-label {
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .scope-week-dates {
+    font-size: 9.5px;
+    text-align: center;
+  }
+  .scope-days-section {
+    padding: 6px 8px;
+  }
+  .scope-days-grid {
+    gap: 3px;
+  }
+  .scope-day-btn {
+    padding: 5px 1px;
+    border-radius: 4px;
+  }
+  .scope-day-name {
+    font-size: 8px;
+  }
+  .scope-day-num {
+    font-size: 12px;
+  }
+}
+
 /* ── Container Query: Tablet / Narrow Desktop (MediaQueryPrompt.md Sec. 8, 12) ── */
 @container scope-bar (max-width: 780px) {
   .dashboard-scope-bar {

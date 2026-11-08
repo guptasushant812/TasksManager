@@ -1,7 +1,7 @@
 'use client';
 import { useMemo } from 'react';
 import { TaskFilters } from '@/types/task';
-import { SHORT_MONTHS, getWeeksInMonth, toIsoDate, formatDate, getShortDayName } from '@/lib/dates';
+import { SHORT_MONTHS, getWeeksInMonth, toIsoDate, formatDate, formatWeekRange, getShortDayName } from '@/lib/dates';
 
 interface CascadingFilterNavProps {
   filters: TaskFilters;
@@ -154,7 +154,7 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
             </span>
             {selectedWeek && (
               <span style={{ padding: '2px 8px', borderRadius: 4, background: 'var(--bg-surface)', border: '1px solid var(--border)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Week {selectedWeek.index} ({formatDate(selectedWeek.start)} – {formatDate(selectedWeek.end)})
+                Week {selectedWeek.index} ({formatWeekRange(selectedWeek.start, selectedWeek.end)})
               </span>
             )}
             {filters.day && (
@@ -189,83 +189,57 @@ export default function CascadingFilterNav({ filters, onFiltersChange, available
 
       {filters.month && (
         <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)' }}>
-          <div style={{ padding: '12px 20px 0' }}>
-            <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="scope-weeks-header">
+            <span className="scope-weeks-title">
               Select a Week (Optional)
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, padding: '16px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <div className="scope-weeks-grid">
             {weeks.map((week) => {
               const isSelected = filters.weekIndex === week.index;
               const dateRange = `${formatDate(week.start)} – ${formatDate(week.end)}`;
+              const conciseRange = formatWeekRange(week.start, week.end);
 
               return (
                 <button
                   key={week.index}
-                  className={`brutalist-hover ${isSelected ? 'active' : ''}`}
+                  className={`scope-week-btn brutalist-hover ${isSelected ? 'active' : ''}`}
                   onClick={() => handleWeekSelect(week.index, week.start, week.end)}
                   aria-pressed={isSelected}
-                  style={{
-                    background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
-                    border: 'var(--border-width-layout) solid var(--border)',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: 4,
-                    minWidth: 160,
-                    cursor: 'pointer',
-                    color: isSelected ? '#fff' : 'var(--text-primary)',
-                    flexShrink: 0,
-                  }}
                 >
-                  <span style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>Week {week.index}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>{dateRange}</span>
+                  <span className="scope-week-label">Week {week.index}</span>
+                  <span className="scope-week-dates scope-week-dates-full">{dateRange}</span>
+                  <span className="scope-week-dates scope-week-dates-compact">{conciseRange}</span>
                 </button>
               );
             })}
           </div>
-        </div>
-      )}
 
-      {selectedWeek && (
-        <div className="animate-slide-down" style={{ borderTop: 'var(--border-width-layout) solid var(--border)', padding: '16px 20px', background: 'var(--bg-hover)' }}>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
-            {selectedWeek.days.map((day) => {
-              const iso = toIsoDate(day);
-              const isSelected = filters.day === iso;
-              const dayNum = day.getDate();
-              const dayName = getShortDayName(day);
+          {selectedWeek && (
+            <div className="scope-days-section animate-slide-down">
+              <div className="scope-days-grid">
+                {selectedWeek.days.map((day) => {
+                  const iso = toIsoDate(day);
+                  const isSelected = filters.day === iso;
+                  const dayNum = day.getDate();
+                  const dayName = getShortDayName(day);
 
-              return (
-                <button
-                  key={iso}
-                  className={`brutalist-hover ${isSelected ? 'active' : ''}`}
-                  onClick={() => handleDaySelect(iso)}
-                  aria-pressed={isSelected}
-                  style={{
-                    background: isSelected ? 'var(--text-primary)' : 'var(--bg-surface)',
-                    border: 'var(--border-width-layout) solid var(--border)',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    cursor: 'pointer',
-                    color: isSelected ? 'var(--bg-base)' : 'var(--text-primary)',
-                    minWidth: 56,
-                    flexShrink: 0,
-                  }}
-                >
-                  <span style={{ fontSize: 10, fontWeight: 900, opacity: 0.7, textTransform: 'uppercase' }}>{dayName}</span>
-                  <span style={{ fontSize: 18, fontWeight: 900 }}>{dayNum}</span>
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={iso}
+                      className={`scope-day-btn brutalist-hover ${isSelected ? 'active' : ''}`}
+                      onClick={() => handleDaySelect(iso)}
+                      aria-pressed={isSelected}
+                    >
+                      <span className="scope-day-name">{dayName}</span>
+                      <span className="scope-day-num">{dayNum}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -40,6 +40,24 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
+ * Formats a week date range concisely (e.g. "1 Nov", "2 – 8 Nov", "28 Oct – 3 Nov").
+ */
+export function formatWeekRange(start: Date, end: Date): string {
+  const sDay = start.getDate();
+  const eDay = end.getDate();
+  const sMonth = SHORT_MONTHS[start.getMonth()];
+  const eMonth = SHORT_MONTHS[end.getMonth()];
+
+  if (start.toDateString() === end.toDateString()) {
+    return `${sDay} ${sMonth}`;
+  }
+  if (start.getMonth() === end.getMonth()) {
+    return `${sDay} \u2013 ${eDay} ${sMonth}`;
+  }
+  return `${sDay} ${sMonth} \u2013 ${eDay} ${eMonth}`;
+}
+
+/**
  * Formats a Date as "YYYY-MM-DD" (for API/input[type=date]).
  */
 export function toIsoDate(date: Date | string): string {
