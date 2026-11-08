@@ -304,7 +304,7 @@ html[data-theme="sketch"] .app-dialog-box {
 }
 
 html[data-theme="sketch"] .pill,
-html[data-theme="sketch"] .header-btn,
+html[data-theme="sketch"] .header-btn:not(.header-btn-new-task),
 html[data-theme="sketch"] button.brutalist-hover,
 html[data-theme="sketch"] .btn-primary,
 html[data-theme="sketch"] .btn-secondary {
@@ -315,15 +315,38 @@ html[data-theme="sketch"] .btn-secondary {
 }
 
 html[data-theme="sketch"] .pill:hover,
-html[data-theme="sketch"] .header-btn:hover,
+html[data-theme="sketch"] .header-btn:not(.header-btn-new-task):hover,
 html[data-theme="sketch"] button.brutalist-hover:hover {
   transform: translate(1px, 1px) !important;
   box-shadow: 2px 2px 0px 0px #2d2d2d !important;
 }
 
 html[data-theme="sketch"] .pill:active,
-html[data-theme="sketch"] .header-btn:active,
+html[data-theme="sketch"] .header-btn:not(.header-btn-new-task):active,
 html[data-theme="sketch"] button.brutalist-hover:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 0px 0px 0px 0px #2d2d2d !important;
+}
+
+html[data-theme="sketch"] .header-btn-new-task {
+  background: #2d2d2d !important;
+  color: #ffffff !important;
+  border: 2px solid #2d2d2d !important;
+  border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px !important;
+  box-shadow: 3px 3px 0px 0px #2d2d2d !important;
+}
+
+html[data-theme="sketch"] .header-btn-new-task:hover {
+  background: #ff4d4d !important;
+  color: #ffffff !important;
+  border-color: #2d2d2d !important;
+  transform: translate(1px, 1px) !important;
+  box-shadow: 2px 2px 0px 0px #2d2d2d !important;
+}
+
+html[data-theme="sketch"] .header-btn-new-task:active {
+  background: #e63939 !important;
+  color: #ffffff !important;
   transform: translate(3px, 3px) !important;
   box-shadow: 0px 0px 0px 0px #2d2d2d !important;
 }
@@ -525,7 +548,7 @@ html[data-theme="kanso"] textarea:focus {
 }
 
 html[data-theme="kanso"] .pill,
-html[data-theme="kanso"] .header-btn,
+html[data-theme="kanso"] .header-btn:not(.header-btn-new-task),
 html[data-theme="kanso"] .btn-secondary {
   border: 1px solid #e0d9cc !important;
   background: #ffffff;
@@ -534,16 +557,42 @@ html[data-theme="kanso"] .btn-secondary {
 }
 
 html[data-theme="kanso"] .pill:hover,
-html[data-theme="kanso"] .header-btn:hover,
+html[data-theme="kanso"] .header-btn:not(.header-btn-new-task):hover,
 html[data-theme="kanso"] .btn-secondary:hover {
   background: #f2ede3 !important;
   border-color: #d6cdbe !important;
 }
 
 html[data-theme="kanso"] .pill:active,
-html[data-theme="kanso"] .header-btn:active,
+html[data-theme="kanso"] .header-btn:not(.header-btn-new-task):active,
 html[data-theme="kanso"] .btn-secondary:active {
   transform: scale(0.985) !important;
+}
+
+html[data-theme="kanso"] .header-btn-new-task {
+  background: linear-gradient(135deg, #2a2622 0%, #151311 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #1c1917 !important;
+  box-shadow: 0 4px 12px -2px rgba(28, 25, 23, 0.28), 0 1px 3px rgba(28, 25, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="kanso"] .header-btn-new-task:hover {
+  background: linear-gradient(135deg, #38332e 0%, #1f1c19 100%) !important;
+  color: #ffffff !important;
+  border-color: #0d0c0b !important;
+  box-shadow: 0 6px 18px -2px rgba(28, 25, 23, 0.38), 0 2px 6px rgba(28, 25, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-1px) !important;
+  filter: brightness(1.06) !important;
+}
+
+html[data-theme="kanso"] .header-btn-new-task:active {
+  background: #141210 !important;
+  color: #ffffff !important;
+  border-color: #0d0c0b !important;
+  box-shadow: 0 2px 6px -1px rgba(28, 25, 23, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(0) scale(0.98) !important;
+  filter: brightness(0.96) !important;
 }
 
 [data-theme="kanso"] ::-webkit-scrollbar-track {
@@ -4585,6 +4634,8 @@ html:not(.dark) .label {
 }
 
 .header-btn-new-task:hover {
+  background: var(--btn-new-task-gradient) !important;
+  color: var(--btn-new-task-text) !important;
   filter: brightness(1.08) !important;
   box-shadow: var(--btn-new-task-glow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transform: translateY(-1px);
