@@ -3,7 +3,7 @@ import { BASE_URL, buildQueryString } from '@/lib/api';
 import { TaskFilters } from '@/types/task';
 import { useState } from 'react';
 import { formatDate, SHORT_MONTHS } from '@/lib/dates';
-import NewTaskModal from '../modals/NewTaskModal';
+import NewTaskModal from './NewTaskModal';
 import {
   Download,
   FileText,

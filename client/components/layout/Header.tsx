@@ -1,8 +1,8 @@
 'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { TaskFilters, WorkStatus } from '@/types/task';
-import NewTaskModal from '../modals/NewTaskModal';
-import ShareModal from '../modals/ShareModal';
+import NewTaskModal from '@/components/tasks/NewTaskModal';
+import ShareModal from '@/components/tasks/ShareModal';
 import { 
   Bell, 
   Plus, 

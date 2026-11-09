@@ -10,7 +10,12 @@ export const FOLLOW_UP_METHODS: { value: FollowUpMethod; label: string; icon: st
   { value: 'Other',      label: 'Other',       icon: '📝' },
 ];
 
-import { FollowUpAttachment } from './followUpAttachment';
+export interface FollowUpAttachment {
+  _id: string;
+  url: string;
+  public_id: string;
+  filename: string;
+}
 
 export interface FollowUp {
   _id: string;
