@@ -1,577 +1,561 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
-import { 
-  Search, 
-  ChevronDown, 
-  X, 
-  Mail, 
-  ExternalLink, 
-  HelpCircle,
-  Info,
+import {
+  Search,
+  X,
+  Calendar,
   CheckSquare,
   Sparkles,
+  PhoneCall,
+  Shield,
+  ArrowRight,
+  Lightbulb,
+  FileSpreadsheet,
+  Layers,
+  HelpCircle,
+  Keyboard,
+  Clock,
+  ExternalLink,
+  Mail,
   Zap,
-  Shield
+  Settings,
 } from 'lucide-react';
 
-interface FaqItem {
+interface HelpTopic {
   id: string;
-  category: 'tasks' | 'ai' | 'followups' | 'security';
-  q: string;
-  keywords?: string[];
-  answer: React.ReactNode;
+  category: 'dashboard' | 'tasks' | 'ai' | 'followups' | 'reports';
+  title: string;
+  summary: string;
+  steps: string[];
+  tip: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  action: {
+    label: string;
+    href: string;
+  };
+  keywords: string[];
 }
 
-interface CategoryCard {
-  id: 'tasks' | 'ai' | 'followups' | 'security';
-  title: string;
-  desc: string;
+interface CategoryOption {
+  id: 'all' | 'dashboard' | 'tasks' | 'ai' | 'followups' | 'reports';
+  label: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
-const CATEGORIES: CategoryCard[] = [
+const CATEGORIES: CategoryOption[] = [
+  { id: 'all', label: 'All Topics', icon: Layers },
+  { id: 'dashboard', label: 'Dashboard & Time Scope', icon: Calendar },
+  { id: 'tasks', label: 'Task Management', icon: CheckSquare },
+  { id: 'ai', label: 'AI Quick-Add', icon: Sparkles },
+  { id: 'followups', label: 'Follow-Ups & Escalations', icon: PhoneCall },
+  { id: 'reports', label: 'Reports & Security', icon: Shield },
+];
+
+const HELP_TOPICS: HelpTopic[] = [
   {
-    id: 'tasks',
-    title: 'Task Lifecycle',
-    desc: 'Creation, priorities, status & bidirectional reasons.',
-    icon: CheckSquare,
+    id: 'cascading-calendar',
+    category: 'dashboard',
+    title: 'Cascading Calendar Navigation',
+    summary: 'Drill down from Year to Month, 6-day Work Week (Monday to Saturday), or single days to focus your active deliverables.',
+    steps: [
+      'Choose a Year from the dropdown in the scope bar above your task table.',
+      'Select any Month or Work Week tab to filter tasks to that operational cycle.',
+      'Click a specific day date or choose "All Time" to view your complete backlog.',
+    ],
+    tip: 'Your active date scope synchronizes across the Dashboard, Tasks view, and Follow-Up workspace automatically.',
+    icon: Calendar,
+    action: {
+      label: 'Open Dashboard',
+      href: '/',
+    },
+    keywords: ['year', 'month', 'week', 'day', 'calendar', 'scope', 'dates', 'cascading', 'filter', 'all time'],
   },
   {
-    id: 'ai',
-    title: 'AI Prompt Engine',
-    desc: 'Multilingual parsing, regeneration & auto-recovery.',
-    icon: Sparkles,
-  },
-  {
-    id: 'followups',
-    title: 'Follow-ups & Alerts',
-    desc: 'Interaction logs, next steps & HOD escalations.',
+    id: 'metrics-and-filters',
+    category: 'dashboard',
+    title: 'Metrics & Attention Filters',
+    summary: 'Monitor live counts across Total, In Progress, Pending, and Completed states with one-click attention cards.',
+    steps: [
+      'Check top summary counters for total volume and status distribution.',
+      'Click the Overdue card to immediately isolate delayed follow-up touchpoints.',
+      'Click the Escalated card to surface tasks requiring urgent managerial intervention.',
+    ],
+    tip: 'Click an active filter card a second time to clear it and restore your full period view.',
     icon: Zap,
+    action: {
+      label: 'View Metrics',
+      href: '/',
+    },
+    keywords: ['summary', 'metrics', 'cards', 'counter', 'overdue', 'escalated', 'filters', 'attention'],
   },
   {
-    id: 'security',
-    title: 'Security & Reports',
-    desc: 'Excel/PDF exports, master password & themes.',
+    id: 'creating-tasks',
+    category: 'tasks',
+    title: 'Creating Tasks & Checklists',
+    summary: 'Add deliverables with target departments, contact persons, priority levels, and actionable subtask checklists.',
+    steps: [
+      'Click "+ New Task" in the top navigation bar to open the creation dialog.',
+      'Enter the Title, Task Date, optional Due Date, and set Priority to High, Medium, or Low.',
+      'Add checklist subtasks to break down complex multi-step jobs into checkable items.',
+    ],
+    tip: 'You can draft and save multiple tasks in a single modal session without closing the dialog.',
+    icon: CheckSquare,
+    action: {
+      label: 'Create Tasks',
+      href: '/tasks',
+    },
+    keywords: ['new task', 'create', 'priority', 'high', 'medium', 'low', 'department', 'given by', 'contact', 'subtasks', 'checklist'],
+  },
+  {
+    id: 'status-and-notes',
+    category: 'tasks',
+    title: 'Status Sync & Reason Notes',
+    summary: 'Transition tasks between Pending, In Progress, and Completed states while preserving context notes for each stage.',
+    steps: [
+      'Toggle a task status directly in the table or inside the task details dialog.',
+      'Document obstacles under "Reason (Pending)" or active progress under "Reason (InProgress)".',
+      'Finalize completed deliverables by recording sign-off notes under "Remarks (Completed)".',
+    ],
+    tip: 'Notes written for each status are preserved across switches so historical handover context is never lost.',
+    icon: Clock,
+    action: {
+      label: 'Manage Tasks',
+      href: '/tasks',
+    },
+    keywords: ['status', 'pending', 'inprogress', 'completed', 'reason', 'remarks', 'audit', 'notes', 'blockers'],
+  },
+  {
+    id: 'ai-multilingual-parsing',
+    category: 'ai',
+    title: 'Voice & Multilingual AI Parsing',
+    summary: 'Convert informal voice dictation or freeform notes into structured task records with intelligent field detection.',
+    steps: [
+      'Open "+ New Task" in the header and switch to the "AI Assistant" tab.',
+      'Type or speak natural language notes in English, Hindi, Marathi, or Hinglish.',
+      'Click "Extract Tasks" to auto-populate titles, dates, departments, and priority levels.',
+    ],
+    tip: 'Spoken dialect notes (e.g. mixed Hinglish or Marathi) are parsed and converted into clean, professional task drafts.',
+    icon: Sparkles,
+    action: {
+      label: 'Try AI Assistant',
+      href: '/tasks',
+    },
+    keywords: ['ai', 'voice', 'speech', 'marathi', 'hindi', 'hinglish', 'prompt', 'extract', 'dictate', 'natural language'],
+  },
+  {
+    id: 'ai-draft-refinement',
+    category: 'ai',
+    title: 'Reviewing & Refining Drafts',
+    summary: 'Inspect, edit, or regenerate individual AI task drafts before committing them to your live workbench.',
+    steps: [
+      'Review the extracted draft cards to verify deadlines, departments, and subtasks.',
+      'Click "Improve This Task" on any draft card to provide targeted revision instructions.',
+      'Click "Save All Tasks" to commit all approved drafts to your task register.',
+    ],
+    tip: 'Unsaved draft text and cards stay intact even if your browser tab is closed or reloaded.',
+    icon: Sparkles,
+    action: {
+      label: 'Open Task Workspace',
+      href: '/tasks',
+    },
+    keywords: ['ai draft', 'improve', 'regenerate', 'draft card', 'refine', 'autosave', 'save all'],
+  },
+  {
+    id: 'logging-followups',
+    category: 'followups',
+    title: 'Logging Communications & Proofs',
+    summary: 'Record phone calls, WhatsApp messages, emails, and meetings with next action dates and verification proofs.',
+    steps: [
+      'Click "⚡ Zap" on any task row or open the dedicated Follow-Up Workspace.',
+      'Select the interaction channel: Phone Call, WhatsApp, Email, In-Person Meeting, or Internal Note.',
+      'Record the contact name, conversation outcome, next follow-up date, and attach proofs.',
+    ],
+    tip: 'Upcoming follow-up dates appear color-coded in your timeline so scheduled callbacks are never missed.',
+    icon: PhoneCall,
+    action: {
+      label: 'Open Follow-Ups',
+      href: '/follow-ups',
+    },
+    keywords: ['followups', 'zap', 'calls', 'whatsapp', 'email', 'meetings', 'proofs', 'attachments', 'timeline', 'next date'],
+  },
+  {
+    id: 'managerial-escalations',
+    category: 'followups',
+    title: 'Managerial Escalation Alerts',
+    summary: 'Automated warnings flag stalled items and notify department heads when communication limits are reached.',
+    steps: [
+      'Set touchpoint thresholds in "Settings → Escalation" (e.g. notify after 3 follow-ups).',
+      'When follow-up attempts hit this limit, an "Escalated" warning badge triggers automatically.',
+      'Automated email notifications alert managers and department heads to resolve blockers.',
+    ],
+    tip: 'The Notification Bell in the top header displays a live counter whenever items enter escalated status.',
+    icon: Zap,
+    action: {
+      label: 'Configure Escalation',
+      href: '/settings?tab=escalation',
+    },
+    keywords: ['escalation', 'threshold', 'hod', 'dyhod', 'manager', 'alerts', 'notifications', 'email', 'touchpoints'],
+  },
+  {
+    id: 'exports-and-registers',
+    category: 'reports',
+    title: 'Exporting Registers & Archives',
+    summary: 'Generate formatted spreadsheets, printable registers, and media archives directly from your active scope.',
+    steps: [
+      'Filter your workspace by the desired operational period, department, or status.',
+      'Click "Export" in the header and choose Excel (.xlsx), PDF Register, or ZIP bundle.',
+      'Download color-coded registers featuring complete task descriptions and reason history.',
+    ],
+    tip: 'ZIP exports bundle your task register alongside all uploaded proof documents and images.',
+    icon: FileSpreadsheet,
+    action: {
+      label: 'Export Records',
+      href: '/tasks',
+    },
+    keywords: ['export', 'excel', 'xlsx', 'pdf', 'register', 'zip', 'archive', 'download', 'report'],
+  },
+  {
+    id: 'sharing-and-security',
+    category: 'reports',
+    title: 'Public Status Links & Auto-Lock',
+    summary: 'Share read-only project dashboards with stakeholders and protect your workspace with inactivity timeouts.',
+    steps: [
+      'Click "Share" in the header or visit Settings to generate a secure read-only portal link.',
+      'Share the link with external clients or managers to view progress without login accounts.',
+      'Configure a master passcode and set the auto-lock timer (5 to 60 minutes) in "Settings → Security".',
+    ],
+    tip: 'Lock your workstation immediately at any time by clicking your user profile avatar in the header.',
     icon: Shield,
+    action: {
+      label: 'Security Settings',
+      href: '/settings?tab=security',
+    },
+    keywords: ['share', 'public link', 'status portal', 'token', 'security', 'master password', 'pin', 'lock', 'timeout', 'auto-lock'],
   },
 ];
 
-const FAQS: FaqItem[] = [
+const WORKFLOW_STEPS = [
   {
-    id: 'create-and-prioritize',
-    category: 'tasks',
-    q: 'How do I create and prioritize tasks?',
-    keywords: ['create', 'new task', 'priority', 'high', 'medium', 'low', 'manual', 'due date'],
-    answer: (
-      <>
-        <ul>
-          <li>Click <code>+ New Task</code> in the header to add tasks manually or generate them with AI.</li>
-          <li>Set priority to <strong>High</strong> (urgent blockers), <strong>Medium</strong> (standard deliverables), or <strong>Low</strong> (routine maintenance).</li>
-          <li>Assign <strong>Task Date</strong>, optional <strong>Due Date</strong>, <strong>Given By</strong> department, and <strong>Contact Person</strong>.</li>
-        </ul>
-        <div className="faq-tip-box">
-          <Info size={14} />
-          <span>You can draft and save multiple tasks simultaneously in a single modal session.</span>
-        </div>
-      </>
-    ),
+    step: '1',
+    title: 'Set Period',
+    desc: 'Select Year, Month, 6-day Work Week, or Day on the scope bar.',
   },
   {
-    id: 'status-and-reasons',
-    category: 'tasks',
-    q: 'How does Work Status connect to Reason and Remarks tabs?',
-    keywords: ['work status', 'reason', 'remarks', 'inprogress', 'pending', 'completed', 'bidirectional', 'tabs'],
-    answer: (
-      <>
-        <ul>
-          <li>Tasks support three active states: <strong>Pending</strong>, <strong>InProgress</strong>, and <strong>Completed</strong>.</li>
-          <li>Clicking directly on <code>Reason (InProgress)</code>, <code>Reason (Pending)</code>, or <code>Reason (Completed)</code> automatically updates the <strong>Work Status</strong> field and moves the <strong>Current</strong> badge.</li>
-          <li>Changing the <strong>Work Status</strong> dropdown automatically highlights the corresponding reason tab and opens the notes editor.</li>
-          <li>Notes previously entered for each status are preserved across switches so context is never lost.</li>
-        </ul>
-        <div className="faq-tip-box">
-          <Info size={14} />
-          <span>Status updates and their accompanying reasons sync with the audit history upon saving.</span>
-        </div>
-      </>
-    ),
+    step: '2',
+    title: 'Capture Tasks',
+    desc: 'Add deliverables manually or dictate via Multilingual AI.',
   },
   {
-    id: 'lifecycle-notes',
-    category: 'tasks',
-    q: 'What is the difference between Description, Reason, and Remarks?',
-    keywords: ['description', 'reason', 'remarks', 'blockers', 'scope', 'wrap-up'],
-    answer: (
-      <ul>
-        <li><strong>Description:</strong> The task scope, specifications, instructions, or deliverables.</li>
-        <li><strong>Reason for Pending:</strong> Explains delays, external dependencies, or waiting periods.</li>
-        <li><strong>Reason for InProgress:</strong> Active progress notes, current blockers, or sprint focus.</li>
-        <li><strong>Remarks for Completed:</strong> Final delivery links, resolution notes, and closure summary.</li>
-      </ul>
-    ),
+    step: '3',
+    title: 'Track & Follow Up',
+    desc: 'Check off subtasks, update status reasons, and log call proofs.',
   },
   {
-    id: 'subtasks-checklists',
-    category: 'tasks',
-    q: 'How do Subtasks and Checklists work?',
-    keywords: ['subtasks', 'checklist', 'checkbox', 'progress', 'steps'],
-    answer: (
-      <ul>
-        <li>Add granular action items directly to tasks to break down multi-step work.</li>
-        <li>Check off items in real-time from the task table or modal dialog.</li>
-        <li>Track completion with live indicator badges (e.g., <code>2/4 Subtasks</code>) displayed directly in the table.</li>
-      </ul>
-    ),
+    step: '4',
+    title: 'Report & Share',
+    desc: 'Download Excel/PDF registers or generate read-only public links.',
   },
-  {
-    id: 'date-filters-and-dues',
-    category: 'tasks',
-    q: 'How do Task Dates, Due Dates, and Date Filters work?',
-    keywords: ['date', 'filter', 'due date', 'overdue', 'calendar', 'today'],
-    answer: (
-      <ul>
-        <li><strong>Task Date:</strong> When the task was scheduled or assigned. Use the date bar in the header to switch between days.</li>
-        <li><strong>Due Date:</strong> The hard deadline for completion. Tasks nearing or passing this date show warning highlights.</li>
-        <li>Use <strong>Reset Filters</strong> at any time to return to today&apos;s active tasks.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'ai-assistant-languages',
-    category: 'ai',
-    q: 'What languages and input formats does the AI Assistant understand?',
-    keywords: ['ai', 'languages', 'marathi', 'hinglish', 'english', 'voice', 'speech', 'prompt'],
-    answer: (
-      <>
-        <ul>
-          <li>Type or paste natural language notes in <strong>English</strong>, <strong>Marathi</strong>, or <strong>Hinglish</strong>.</li>
-          <li>Examples like <em>&ldquo;Aaj 3 PM la client meeting ahe and audit report finalize karaychi ahe&rdquo;</em> are automatically parsed.</li>
-          <li>The AI engine extracts clean English titles, organized descriptions, suggested priorities, and target dates.</li>
-        </ul>
-        <div className="faq-tip-box">
-          <Info size={14} />
-          <span>Voice dictation is supported—speak in Hinglish or Marathi and convert notes to structured cards.</span>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: 'ai-single-card-regen',
-    category: 'ai',
-    q: 'Can I customize or regenerate individual AI task drafts?',
-    keywords: ['improve', 'regenerate', 'single card', 'ai draft', 'prompt instruction'],
-    answer: (
-      <ul>
-        <li>Click <strong>Improve This Task</strong> on any individual AI draft card.</li>
-        <li>Supply targeted instructions (e.g., <em>&ldquo;Set priority to High and split into 3 subtasks&rdquo;</em>).</li>
-        <li>Only the selected task is updated, leaving all your other drafts untouched.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'ai-draft-recovery',
-    category: 'ai',
-    q: 'How does AI draft auto-recovery and background sync work?',
-    keywords: ['recovery', 'autosave', 'draft', 'sync', 'mongodb', 'offline'],
-    answer: (
-      <ul>
-        <li>AI input text and uncommitted task drafts are continuously synchronized to MongoDB in the background.</li>
-        <li>If your browser tab closes or reloads, reopening the AI modal immediately restores your in-progress work.</li>
-        <li>Click <strong>Discard</strong> when you want to clear cached drafts and start fresh.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'ai-models-and-byok',
-    category: 'ai',
-    q: 'Can I bring my own API key (BYOK) or switch AI models?',
-    keywords: ['byok', 'api key', 'gemini', 'openai', 'models', 'rate limit'],
-    answer: (
-      <>
-        <ul>
-          <li>Switch between models like <strong>Gemini 2.5 Flash</strong>, <strong>Gemini 1.5 Pro</strong>, or OpenAI from the model selector.</li>
-          <li>Provide your own API key under AI settings for dedicated quotas and higher concurrency.</li>
-          <li>Custom API keys are stored locally in your browser session and never sent to third-party trackers.</li>
-        </ul>
-        <div className="faq-tip-box">
-          <Info size={14} />
-          <span>If rate limits are hit, a countdown banner alerts you when standard quotas reset.</span>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: 'followups-logging',
-    category: 'followups',
-    q: 'How do Follow-ups (⚡ Zap) work?',
-    keywords: ['followups', 'zap', 'log', 'call', 'whatsapp', 'email', 'meeting'],
-    answer: (
-      <ul>
-        <li>Click <code>⚡ Zap</code> on any task row or navigate to the <strong>Follow-ups</strong> workspace.</li>
-        <li>Log interaction channels: <strong>Phone Call</strong>, <strong>WhatsApp</strong>, <strong>Email</strong>, <strong>In-Person Meeting</strong>, or <strong>Internal Note</strong>.</li>
-        <li>Record contact name, conversation outcome, and set the next follow-up schedule date.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'automatic-escalation',
-    category: 'followups',
-    q: 'How do automatic HOD & Management escalations trigger?',
-    keywords: ['escalation', 'hod', 'dyhod', 'manager', 'alerts', 'threshold'],
-    answer: (
-      <>
-        <ul>
-          <li>Configure an attempt threshold in <code>Settings → Escalation</code> (e.g., 3 follow-ups).</li>
-          <li>When follow-up attempts reach this limit, an <strong>Escalated</strong> warning flag triggers on the task.</li>
-          <li>Automated email alerts are dispatched to the configured <strong>Manager</strong>, <strong>HOD</strong>, and <strong>DyHOD</strong> email addresses.</li>
-        </ul>
-        <div className="faq-tip-box">
-          <Info size={14} />
-          <span>Escalation policies ensure overdue critical tasks receive management visibility before deadlines pass.</span>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: 'followup-workspace',
-    category: 'followups',
-    q: 'Where can I track overdue or pending follow-ups?',
-    keywords: ['workspace', 'timeline', 'overdue', 'pending follow-ups'],
-    answer: (
-      <ul>
-        <li>Open <strong>Follow-ups</strong> in the sidebar to view the consolidated interaction timeline.</li>
-        <li>Filter by upcoming, completed, or overdue follow-up dates.</li>
-        <li>Quickly resolve or reschedule next contact dates directly from the timeline cards.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'exports-and-reports',
-    category: 'security',
-    q: 'How do I export tasks to Excel (.xlsx) or PDF?',
-    keywords: ['export', 'excel', 'xlsx', 'pdf', 'report', 'summary'],
-    answer: (
-      <ul>
-        <li>Click <strong>Export</strong> in the header to download <strong>Excel (.xlsx)</strong> spreadsheets or formatted <strong>PDF</strong> documents.</li>
-        <li>Export files include color-coded priority indicators, complete descriptions, and distinct reason columns.</li>
-        <li>A date-validation check warns if the selected filter contains zero tasks to prevent empty downloads.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'master-password',
-    category: 'security',
-    q: 'How does Master Password protection work?',
-    keywords: ['master password', 'pin', 'lock', 'security', 'unlock'],
-    answer: (
-      <ul>
-        <li>Set a master password in <code>Settings → Security</code> to guard sensitive operations and workspace access.</li>
-        <li>When locked, task cards and follow-up data remain shielded until the password or PIN is verified.</li>
-        <li>Session locks can also be engaged manually via the user profile menu.</li>
-      </ul>
-    ),
-  },
-  {
-    id: 'auto-lock-and-themes',
-    category: 'security',
-    q: 'How do Auto-Lock timers, Themes, and Shortcuts work?',
-    keywords: ['auto-lock', 'inactivity', 'themes', 'dark mode', 'cyberpunk', 'shortcuts', 'keyboard'],
-    answer: (
-      <ul>
-        <li><strong>Auto-Lock:</strong> Automatically locks the workspace after 5 minutes to 1 hour of inactivity.</li>
-        <li><strong>Themes:</strong> Choose between <strong>Dark Mode</strong>, <strong>Midnight Slate</strong>, <strong>Sketch</strong>, or <strong>Light Mode</strong> in Settings.</li>
-        <li><strong>Keyboard Shortcuts:</strong> Press <kbd>/</kbd> to jump straight to search, and <kbd>Esc</kbd> to clear filters or close modals.</li>
-      </ul>
-    ),
-  },
+];
+
+const KEYBOARD_SHORTCUTS = [
+  { key: '/', desc: 'Jump to search bar' },
+  { key: 'Esc', desc: 'Clear search or dismiss dialog' },
+  { key: '+ New Task', desc: 'Open task creation modal' },
+  { key: 'Space', desc: 'Check or uncheck subtask item' },
 ];
 
 export default function HelpPage() {
   const { filters, handleTaskCreated } = useTaskContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
-    'create-and-prioritize': true,
-  });
+  const [activeCategory, setActiveCategory] = useState<CategoryOption['id']>('all');
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      const activeTag = document.activeElement?.tagName;
+      const isInput = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+
+      if (e.key === '/' && !isInput) {
         e.preventDefault();
         searchInputRef.current?.focus();
       } else if (e.key === 'Escape') {
         if (searchQueryRef.current) {
           setSearchQuery('');
         } else {
-          setOpenItems({});
+          setActiveCategory('all');
         }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const filteredFaqs = useMemo(() => {
+  const filteredTopics = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return FAQS.filter(item => {
-      const matchesCategory = !activeCategory || item.category === activeCategory;
+
+    return HELP_TOPICS.filter((topic) => {
+      const matchesCategory = activeCategory === 'all' || topic.category === activeCategory;
       if (!matchesCategory) return false;
+
       if (!q) return true;
-      const inTitle = item.q.toLowerCase().includes(q);
-      const inKeywords = item.keywords?.some(k => k.toLowerCase().includes(q));
-      return inTitle || inKeywords;
+
+      const inTitle = topic.title.toLowerCase().includes(q);
+      const inSummary = topic.summary.toLowerCase().includes(q);
+      const inKeywords = topic.keywords.some((k) => k.toLowerCase().includes(q));
+      const inSteps = topic.steps.some((s) => s.toLowerCase().includes(q));
+      const inTip = topic.tip.toLowerCase().includes(q);
+
+      return inTitle || inSummary || inKeywords || inSteps || inTip;
     });
   }, [activeCategory, searchQuery]);
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const cat of CATEGORIES) {
-      counts[cat.id] = FAQS.filter(f => f.category === cat.id).length;
+    const counts: Record<string, number> = { all: HELP_TOPICS.length };
+    for (const topic of HELP_TOPICS) {
+      counts[topic.category] = (counts[topic.category] || 0) + 1;
     }
     return counts;
   }, []);
-
-  const toggleItem = (id: string) => {
-    setOpenItems(prev => (prev[id] ? {} : { [id]: true }));
-  };
-
-  const areAllOpen = useMemo(() => {
-    if (filteredFaqs.length === 0) return false;
-    return filteredFaqs.every(item => !!openItems[item.id]);
-  }, [filteredFaqs, openItems]);
-
-  const handleToggleAll = () => {
-    const nextState = !areAllOpen;
-    if (!nextState) {
-      setOpenItems({});
-    } else {
-      const updated: Record<string, boolean> = {};
-      filteredFaqs.forEach(item => {
-        updated[item.id] = true;
-      });
-      setOpenItems(updated);
-    }
-  };
-
-  const handleSelectCategory = (catId: string) => {
-    if (activeCategory === catId) {
-      setActiveCategory(null);
-    } else {
-      setActiveCategory(catId);
-    }
-  };
-
-  const activeCategoryMeta = CATEGORIES.find(c => c.id === activeCategory);
 
   return (
     <div className="page-layout">
       <Header filters={filters} onTaskCreated={handleTaskCreated} />
 
-      <main className="page-content" style={{ maxWidth: 940 }}>
-        <div className="faq-hub-wrap">
-          <header className="faq-hero">
-            <span className="faq-hero-badge">
+      <main className="page-content">
+        <div className="help-hub-wrap">
+          <header className="help-hero">
+            <div className="help-hero-badge">
               <HelpCircle size={13} />
-              Help &amp; FAQ
-            </span>
-            <h1 className="faq-hero-title">Frequently Asked Questions</h1>
-            <p className="faq-hero-subtitle">
-              Quick answers about task workflows, AI features, follow-ups, and security.
+              <span>User Documentation &amp; Guide</span>
+            </div>
+            <h1 className="help-hero-title">How to use TasksManager</h1>
+            <p className="help-hero-subtitle">
+              Clear, step-by-step guidance for time navigation, task workflows, multilingual AI quick-add, follow-ups, and reports.
             </p>
 
-            <div className="faq-search-wrapper">
-              <Search size={16} className="faq-search-icon" />
+            <div className="help-search-box">
+              <Search size={16} className="help-search-icon" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by keyword (e.g. AI, follow-up, excel, password...)"
-                className="faq-search-input"
-                aria-label="Search FAQs"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search features (e.g. AI quick-add, follow-up, excel, status reasons...)"
+                className="help-search-input"
+                aria-label="Search help topics"
               />
               {searchQuery ? (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="faq-search-clear"
+                  className="help-search-clear"
                   title="Clear search"
                 >
                   <X size={12} />
                   <span>Clear</span>
                 </button>
               ) : (
-                <div className="faq-search-shortcut" title="Press / to search">
-                  <span>/</span>
-                </div>
+                <span className="help-search-shortcut" title="Press / to search">
+                  /
+                </span>
               )}
             </div>
           </header>
 
-          <section className="faq-grid-section" aria-label="Browse by Category">
-            <div className="faq-grid-header">
-              <h2 className="faq-grid-title">Browse by Category</h2>
-              <button
-                type="button"
-                onClick={() => setActiveCategory(null)}
-                className={`faq-all-pill-btn ${activeCategory === null ? 'active' : ''}`}
-              >
-                All Topics ({FAQS.length})
-              </button>
+          <section className="help-workflow-section" aria-label="Quick Start Workflow">
+            <div className="help-workflow-header">
+              <span className="help-section-eyebrow">Quick-Start Overview</span>
+              <h2 className="help-workflow-title">The TasksManager Daily Workflow</h2>
             </div>
-
-            <div className="faq-category-grid">
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                const isActive = activeCategory === cat.id;
-                const count = categoryCounts[cat.id] || 0;
-
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => handleSelectCategory(cat.id)}
-                    className={`faq-category-card ${isActive ? 'active' : ''}`}
-                    aria-pressed={isActive}
-                  >
-                    <div className="faq-category-card-top">
-                      <div className="faq-category-icon-box">
-                        <Icon size={16} />
-                      </div>
-                      <span className="faq-category-count">{count}</span>
-                    </div>
-                    <h3 className="faq-category-card-title">{cat.title}</h3>
-                    <p className="faq-category-card-desc">{cat.desc}</p>
-                  </button>
-                );
-              })}
+            <div className="help-workflow-grid">
+              {WORKFLOW_STEPS.map((item) => (
+                <div key={item.step} className="help-workflow-card">
+                  <div className="help-workflow-step-badge">{item.step}</div>
+                  <div className="help-workflow-card-body">
+                    <h3 className="help-workflow-card-title">{item.title}</h3>
+                    <p className="help-workflow-card-desc">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 
-          <section className="faq-list-section" ref={listRef} aria-label="Questions and Answers">
-            <div className="faq-section-header">
-              <div className="faq-section-title-wrap">
-                <h2 className="faq-section-title">
-                  {searchQuery 
-                    ? `Results for "${searchQuery}"` 
-                    : activeCategoryMeta 
-                      ? activeCategoryMeta.title 
-                      : 'Common Questions'}
-                </h2>
-                <span className="faq-section-count">
-                  ({filteredFaqs.length} {filteredFaqs.length === 1 ? 'item' : 'items'})
-                </span>
+          <section className="help-topics-section" aria-label="Browse Topics">
+            <div className="help-category-bar">
+              <div className="help-category-pills" role="tablist">
+                {CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  const isActive = activeCategory === cat.id;
+                  const count = categoryCounts[cat.id] || 0;
+
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => setActiveCategory(cat.id)}
+                      className={`help-category-pill ${isActive ? 'active' : ''}`}
+                    >
+                      <Icon size={14} />
+                      <span>{cat.label}</span>
+                      <span className="help-category-pill-count">{count}</span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {filteredFaqs.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleToggleAll}
-                  className="faq-expand-btn"
-                >
-                  {areAllOpen ? 'Collapse all' : 'Expand all'}
-                </button>
+              {searchQuery && (
+                <div className="help-search-results-label">
+                  Showing {filteredTopics.length} result{filteredTopics.length === 1 ? '' : 's'} for &ldquo;{searchQuery}&rdquo;
+                </div>
               )}
             </div>
 
-            {filteredFaqs.length > 0 ? (
-              <div className="faq-accordion-list" role="region">
-                {filteredFaqs.map(faq => {
-                  const isOpen = !!openItems[faq.id];
-                  return (
-                    <article 
-                      key={faq.id} 
-                      className={`faq-item-card ${isOpen ? 'open' : ''}`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleItem(faq.id)}
-                        className="faq-item-trigger"
-                        aria-expanded={isOpen}
-                        aria-controls={`faq-answer-${faq.id}`}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                          <span className="faq-item-tag">{CATEGORIES.find(c => c.id === faq.category)?.title.split(' ')[0]}</span>
-                          <h3 className="faq-item-question">{faq.q}</h3>
-                        </div>
-                        <div className="faq-item-chevron-wrap">
-                          <ChevronDown size={14} className="faq-item-chevron" />
-                        </div>
-                      </button>
+            {filteredTopics.length > 0 ? (
+              <div className="help-cards-grid">
+                {filteredTopics.map((topic) => {
+                  const TopicIcon = topic.icon;
+                  const categoryMeta = CATEGORIES.find((c) => c.id === topic.category);
 
-                      <div
-                        id={`faq-answer-${faq.id}`}
-                        className="faq-item-collapse"
-                        role="region"
-                        aria-hidden={!isOpen}
-                      >
-                        <div className="faq-item-collapse-inner">
-                          <div className="faq-item-body">
-                            {faq.answer}
+                  return (
+                    <article key={topic.id} className="help-guide-card">
+                      <div className="help-guide-header">
+                        <div className="help-guide-title-row">
+                          <div className="help-guide-icon-box">
+                            <TopicIcon size={16} />
                           </div>
+                          <span className="help-guide-category-badge">
+                            {categoryMeta?.label.split(' ')[0] || 'Guide'}
+                          </span>
                         </div>
+                        <h3 className="help-guide-title">{topic.title}</h3>
+                        <p className="help-guide-summary">{topic.summary}</p>
+                      </div>
+
+                      <div className="help-guide-steps-wrap">
+                        <span className="help-guide-steps-heading">How to use it:</span>
+                        <ol className="help-guide-steps-list">
+                          {topic.steps.map((step, idx) => (
+                            <li key={idx} className="help-guide-step-item">
+                              <span className="help-guide-step-number">{idx + 1}</span>
+                              <span className="help-guide-step-text">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      <div className="help-guide-tip-box">
+                        <Lightbulb size={14} className="help-guide-tip-icon" />
+                        <span className="help-guide-tip-text">
+                          <strong>Pro Tip:</strong> {topic.tip}
+                        </span>
+                      </div>
+
+                      <div className="help-guide-footer">
+                        <Link href={topic.action.href} className="help-guide-action-link">
+                          <span>{topic.action.label}</span>
+                          <ArrowRight size={13} />
+                        </Link>
                       </div>
                     </article>
                   );
                 })}
               </div>
             ) : (
-              <div className="faq-empty-state">
-                <Search size={24} className="text-muted" />
-                <h3 className="faq-empty-title">No matching questions found</h3>
-                <p className="faq-empty-desc">
-                  We couldn&apos;t find anything matching &ldquo;{searchQuery}&rdquo;. Try another search term or reset filters.
+              <div className="help-empty-state">
+                <Search size={26} className="help-empty-icon" />
+                <h3 className="help-empty-title">No matching guides found</h3>
+                <p className="help-empty-desc">
+                  No topics matched &ldquo;{searchQuery}&rdquo;. Try another term or reset your search.
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setSearchQuery('');
-                    setActiveCategory(null);
+                    setActiveCategory('all');
                   }}
-                  className="faq-empty-btn"
+                  className="help-empty-reset-btn"
                 >
-                  Reset Filters
+                  Reset Search &amp; Filters
                 </button>
               </div>
             )}
           </section>
 
-          <footer className="faq-contact-card">
-            <div className="faq-contact-text">
-              <h3 className="faq-contact-title">Still have questions?</h3>
-              <p className="faq-contact-desc">
-                Our support team is here to help with escalation policies, custom workflows, or account inquiries.
+          <section className="help-utilities-grid" aria-label="Reference and Support">
+            <div className="help-utility-card">
+              <div className="help-utility-header">
+                <Keyboard size={16} className="help-utility-icon" />
+                <h3 className="help-utility-title">Keyboard Shortcuts</h3>
+              </div>
+              <p className="help-utility-desc">
+                Quick actions to accelerate your daily workflow across the workbench.
+              </p>
+              <div className="help-shortcuts-list">
+                {KEYBOARD_SHORTCUTS.map((item) => (
+                  <div key={item.key} className="help-shortcut-row">
+                    <kbd className="help-shortcut-key">{item.key}</kbd>
+                    <span className="help-shortcut-desc">{item.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="help-utility-card">
+              <div className="help-utility-header">
+                <Shield size={16} className="help-utility-icon" />
+                <h3 className="help-utility-title">Security &amp; Privacy</h3>
+              </div>
+              <p className="help-utility-desc">
+                Your workspace credentials, master passcode, and data exports remain securely under your control.
+              </p>
+              <div className="help-security-points">
+                <div className="help-security-item">
+                  <span className="help-security-bullet" />
+                  <span>Public links provide strictly read-only visibility without write permissions.</span>
+                </div>
+                <div className="help-security-item">
+                  <span className="help-security-bullet" />
+                  <span>Auto-lock protects unattended workstations after inactive intervals.</span>
+                </div>
+                <div className="help-security-item">
+                  <span className="help-security-bullet" />
+                  <span>Session access can be engaged instantly via your user profile avatar.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <footer className="help-support-footer">
+            <div className="help-support-text">
+              <h3 className="help-support-title">Need additional guidance?</h3>
+              <p className="help-support-desc">
+                Have questions regarding team escalation thresholds, report formats, or workflow setup?
               </p>
             </div>
-            <div className="faq-contact-actions">
-              <a 
-                href="mailto:support@tasksmanager.local" 
-                className="faq-contact-btn"
+            <div className="help-support-actions">
+              <a
+                href="mailto:support@tasksmanager.local"
+                className="help-support-btn"
               >
-                <Mail size={13} />
+                <Mail size={14} />
                 <span>Email Support</span>
               </a>
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="faq-contact-btn"
-              >
-                <ExternalLink size={13} />
-                <span>GitHub Issues</span>
-              </a>
+              <Link href="/settings" className="help-support-btn">
+                <Settings size={14} />
+                <span>Workbench Settings</span>
+              </Link>
             </div>
           </footer>
-
         </div>
       </main>
     </div>
