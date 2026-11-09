@@ -118,27 +118,18 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const handleSecondaryFilterClick = useCallback((type: 'overdue' | 'escalated') => {
     setDashboardFilters((prev) => {
-      if (type === 'overdue') {
-        const isCurrentlyActive = prev.overdueOnly === 'true';
-        return {
-          ...prev,
-          overdueOnly: isCurrentlyActive ? undefined : 'true',
-          escalatedOnly: undefined,
-          status: '',
-          day: '',
-          page: 1,
-        };
-      } else {
-        const isCurrentlyActive = prev.escalatedOnly === 'true';
-        return {
-          ...prev,
-          escalatedOnly: isCurrentlyActive ? undefined : 'true',
-          overdueOnly: undefined,
-          status: '',
-          day: '',
-          page: 1,
-        };
-      }
+      const isOverdue = type === 'overdue';
+      const key = isOverdue ? 'overdueOnly' : 'escalatedOnly';
+      const isCurrentlyActive = prev[key] === 'true';
+
+      return {
+        ...prev,
+        overdueOnly: isOverdue && !isCurrentlyActive ? 'true' : undefined,
+        escalatedOnly: !isOverdue && !isCurrentlyActive ? 'true' : undefined,
+        status: '',
+        day: '',
+        page: 1,
+      };
     });
   }, []);
 

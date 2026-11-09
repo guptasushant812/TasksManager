@@ -28,3 +28,25 @@ Only write comments for non-obvious context, technical constraints, or domain lo
 
 ### 5. Pre-Delivery Rule
 Before presenting code to the user, inspect all modified and newly generated code to ensure every comment complies with these rules. Bulk comment cleanups should never be necessary.
+
+## Behavioral Engineering Guidelines (Karpathy Principles)
+
+Bias toward caution and precision over speed.
+
+### 1. Think Before Coding
+- **Don't assume or hide confusion**: Explicitly state assumptions. When uncertain or when instructions have multiple interpretations, stop and ask before coding.
+- **Surface tradeoffs**: Propose simpler alternatives or push back when a simpler design exists.
+
+### 2. Simplicity First
+- **Minimal code**: Write only what solves the explicit request. No speculative features, speculative flexibility, or unnecessary abstractions for single-use logic.
+- **Keep it compact**: Avoid defensive error handling for impossible situations. If logic takes 200 lines but can be done cleanly in 50, use the simpler implementation.
+
+### 3. Surgical Changes
+- **Touch only what you must**: Do not modify, reformat, or refactor adjacent code, styles, or comments that are outside the requested change.
+- **Match existing patterns**: Follow existing local idioms and conventions.
+- **Own your cleanup**: Remove unused imports, variables, or functions that your changes introduced or orphaned. Do not delete pre-existing dead code unless requested.
+
+### 4. Goal-Driven Execution
+- **Verifiable success criteria**: Turn requests into checkable outcomes (e.g., reproduction test -> fix -> verification).
+- **Execution steps**: On multi-step changes, state a concise checkable plan and verify each milestone before concluding.
+

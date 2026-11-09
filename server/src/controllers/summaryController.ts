@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
+import { PipelineStage } from 'mongoose';
 import Task from '../models/Task';
+import EscalationSettings from '../models/EscalationSettings';
 import { buildQuery } from '../utils/buildQuery';
 
 export async function getSummary(req: Request, res: Response, next: NextFunction) {
@@ -11,19 +12,17 @@ export async function getSummary(req: Request, res: Response, next: NextFunction
       { $match: filter },
       { $group: { _id: '$workStatus', count: { $sum: 1 } } }
     ]);
-    
-    let inProgress = 0, pending = 0, completed = 0, total = 0;
-    let overdueFollowUps = 0, escalatedTasks = 0;
-    statusCounts.forEach(s => {
-      if (s._id === 'InProgress') inProgress = s.count;
-      if (s._id === 'Pending') pending = s.count;
-      if (s._id === 'Completed') completed = s.count;
+
+    const counts: Record<string, number> = {};
+    let total = 0;
+    for (const s of statusCounts) {
+      if (s._id) counts[s._id] = s.count;
       total += s.count;
-    });
+    }
 
     const now = new Date();
 
-    const activePipeline: any[] = [
+    const activePipeline: PipelineStage[] = [
       { $match: { isDeleted: { $ne: true }, workStatus: { $ne: 'Completed' } } },
       {
         $lookup: {
@@ -65,24 +64,33 @@ export async function getSummary(req: Request, res: Response, next: NextFunction
       }
     ];
 
-    const activeTasksData = await Task.aggregate(activePipeline);
+    const [activeTasksData, settings] = await Promise.all([
+      Task.aggregate(activePipeline),
+      EscalationSettings.findOne().lean(),
+    ]);
 
-    const settings = await mongoose.model('EscalationSettings').findOne().lean() as any;
-    const threshold = settings?.threshold || 3;
-    const escalationsEnabled = settings?.enabled || false;
+    const threshold = settings?.threshold ?? 3;
+    const escalationsEnabled = settings?.enabled ?? false;
 
-    activeTasksData.forEach(t => {
-      const isFuOverdue = Boolean(t.hasOverdueFu || (t.lastFu?.nextFollowUpDate && new Date(t.lastFu.nextFollowUpDate) < now));
-      const isDueOverdue = Boolean(t.dueDate && new Date(t.dueDate) < now);
-      if (isFuOverdue || isDueOverdue) {
-        overdueFollowUps++;
-      }
-      if (escalationsEnabled && t.fuCount >= threshold) {
-        escalatedTasks++;
-      }
+    let overdueFollowUps = 0;
+    let escalatedTasks = 0;
+
+    for (const task of activeTasksData) {
+      const isFuOverdue = Boolean(task.hasOverdueFu || (task.lastFu?.nextFollowUpDate && new Date(task.lastFu.nextFollowUpDate) < now));
+      const isDueOverdue = Boolean(task.dueDate && new Date(task.dueDate) < now);
+
+      if (isFuOverdue || isDueOverdue) overdueFollowUps++;
+      if (escalationsEnabled && task.fuCount >= threshold) escalatedTasks++;
+    }
+
+    res.json({
+      inProgress: counts.InProgress || 0,
+      pending: counts.Pending || 0,
+      completed: counts.Completed || 0,
+      total,
+      overdueFollowUps,
+      escalatedTasks,
     });
-
-    res.json({ inProgress, pending, completed, total, overdueFollowUps, escalatedTasks });
   } catch (err) {
     next(err);
   }
