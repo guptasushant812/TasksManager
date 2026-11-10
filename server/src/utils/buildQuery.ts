@@ -31,17 +31,47 @@ export function buildQuery(query: ParsedQs): TaskQuery {
 
   // Text search across task fields
   if (query.search && typeof query.search === 'string' && query.search.trim()) {
-    const term = query.search.trim();
-    const regex = new RegExp(escapeRegex(term), 'i');
-    filter.$or = [
-      { taskId: regex },
-      { title: regex },
-      { description: regex },
-      { givenBy: regex },
-      { contactPerson: regex },
-      { reason: regex },
-      { remarks: regex },
-    ];
+    const rawSearch = query.search.trim();
+    const words = rawSearch.split(/\s+/).filter(Boolean);
+
+    if (words.length > 0) {
+      const hasFollowUps = query.hasFollowUps === 'true';
+
+      const wordFilters = words.map((word) => {
+        const escapedWord = escapeRegex(word);
+        const wordRegex = new RegExp(escapedWord, 'i');
+
+        const tkMatch = word.match(/^tk\s*[-]?\s*(\d+)$/i);
+        const taskIdRegex = tkMatch
+          ? new RegExp(`^TK-${escapeRegex(tkMatch[1])}`, 'i')
+          : wordRegex;
+
+        const orClauses: Record<string, unknown>[] = [
+          { taskId: taskIdRegex },
+          { title: wordRegex },
+          { description: wordRegex },
+          { givenBy: wordRegex },
+          { reason: wordRegex },
+          { remarks: wordRegex },
+          { inProgressReason: wordRegex },
+          { pendingReason: wordRegex },
+          { completedRemarks: wordRegex },
+        ];
+
+        // contactPerson is only searched when querying in follow-ups context where it is displayed
+        if (hasFollowUps) {
+          orClauses.push({ contactPerson: wordRegex });
+        }
+
+        return { $or: orClauses };
+      });
+
+      if (wordFilters.length === 1) {
+        filter.$or = wordFilters[0].$or;
+      } else {
+        filter.$and = wordFilters;
+      }
+    }
   }
 
   if (query.status && typeof query.status === 'string' && ALLOWED_STATUSES.includes(query.status)) {

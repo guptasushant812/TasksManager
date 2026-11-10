@@ -1274,7 +1274,13 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
               gap: 12,
             }}>
               <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 700 }}>
-                Showing top {Math.min(5, tasks.length)} latest tasks of {pagination.total} total
+                {filters.search?.trim() ? (
+                  <>
+                    Showing top {Math.min(5, tasks.length)} of {pagination.total} {pagination.total === 1 ? 'task' : 'tasks'} matching &ldquo;<span style={{ color: 'var(--text-primary)' }}>{filters.search.trim()}</span>&rdquo;
+                  </>
+                ) : (
+                  `Showing top ${Math.min(5, tasks.length)} latest tasks of ${pagination.total} total`
+                )}
               </span>
               <Link href={viewAllHref} style={{ textDecoration: 'none' }}>
                 <button
@@ -1304,6 +1310,11 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
             }}>
               <span>
                 {(pagination.page - 1) * (filters.limit || 10) + 1}–{Math.min(pagination.page * (filters.limit || 10), pagination.total)} of {pagination.total}
+                {filters.search?.trim() && (
+                  <span style={{ marginLeft: 6, fontWeight: 500, color: 'var(--text-muted)', fontSize: 13 }}>
+                    matching &ldquo;<span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{filters.search.trim()}</span>&rdquo;
+                  </span>
+                )}
               </span>
               <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                 <PaginationBtn
