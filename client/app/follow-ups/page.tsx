@@ -53,6 +53,8 @@ export default function FollowUpsPage() {
       if (params.has('escalatedOnly')) updated.escalatedOnly = params.get('escalatedOnly') || '';
       if (params.has('search')) updated.search = params.get('search') || '';
       if (params.has('givenBy')) updated.givenBy = params.get('givenBy') || '';
+      if (params.has('sort')) updated.sort = params.get('sort') || 'taskId';
+      if (params.has('order')) updated.order = (params.get('order') as 'asc' | 'desc') || 'desc';
 
       return updated;
     });

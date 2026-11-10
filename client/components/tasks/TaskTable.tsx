@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, Fragment } from 'react';
 import { Task, TaskFilters, Pagination } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
+import { buildQueryString } from '@/lib/api';
 import TaskRow from './TaskRow';
 import SearchBar from './SearchBar';
 import FilterSortPanel from './FilterSortPanel';
@@ -806,7 +807,65 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   const isCustomSort = Boolean((filters.sort && filters.sort !== 'taskId') || (filters.order && filters.order === 'asc'));
 
-  const viewAllHref = filters.overdueOnly === 'true' ? '/follow-ups' : '/tasks';
+  const viewAllHref = useMemo(() => {
+    const isOverdue = filters.overdueOnly === 'true';
+    const basePath = isOverdue ? '/follow-ups' : '/tasks';
+
+    const hasSearch = Boolean(filters.search?.trim());
+    const isAllTime = filters.year === '' && filters.month === '';
+    const now = new Date();
+    const currentYearStr = now.getFullYear().toString();
+    const currentMonthStr = (now.getMonth() + 1).toString();
+
+    const hasTimeScope = Boolean(
+      filters.day ||
+      filters.weekIndex !== undefined ||
+      filters.dateFrom ||
+      filters.dateTo ||
+      isAllTime ||
+      (filters.year && filters.year !== currentYearStr) ||
+      (filters.month && filters.month !== currentMonthStr)
+    );
+
+    const hasFilters = Boolean(
+      filters.status ||
+      filters.priority ||
+      filters.givenBy?.trim() ||
+      filters.escalatedOnly === 'true' ||
+      isCustomSort ||
+      hasTimeScope
+    );
+
+    if (!hasSearch && !hasFilters && !isOverdue) {
+      return basePath;
+    }
+
+    const p: Record<string, string | number | undefined | null> = {};
+
+    if (hasSearch) p.search = filters.search!.trim();
+    if (filters.status) p.status = filters.status;
+    if (filters.priority) p.priority = filters.priority;
+    if (filters.givenBy?.trim()) p.givenBy = filters.givenBy.trim();
+    if (filters.overdueOnly === 'true') p.overdueOnly = 'true';
+    if (filters.escalatedOnly === 'true') p.escalatedOnly = 'true';
+
+    if (isAllTime) {
+      p.allTime = 'true';
+    } else {
+      if (filters.year) p.year = filters.year;
+      if (filters.month) p.month = filters.month;
+      if (filters.weekIndex !== undefined) p.weekIndex = filters.weekIndex;
+      if (filters.weekStart) p.weekStart = filters.weekStart;
+      if (filters.day) p.day = filters.day;
+      if (filters.dateFrom) p.dateFrom = filters.dateFrom;
+      if (filters.dateTo) p.dateTo = filters.dateTo;
+    }
+
+    if (filters.sort && filters.sort !== 'taskId') p.sort = filters.sort;
+    if (filters.order && filters.order !== 'desc') p.order = filters.order;
+
+    return `${basePath}${buildQueryString(p)}`;
+  }, [filters, isCustomSort]);
 
   const activeFiltersCount = [
     filters.status,
