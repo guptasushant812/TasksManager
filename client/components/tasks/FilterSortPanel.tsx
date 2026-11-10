@@ -67,14 +67,14 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
         boxShadow: '-8px 0px 0px 0px var(--border)',
       }} className="animate-slide-left">
         
-        <div style={{ padding: '24px', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
+        <div style={{ padding: 'clamp(16px, 4vw, 24px)', borderBottom: 'var(--border-width-layout) solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: 0, fontWeight: 900, fontSize: 18, color: 'var(--text-primary)', textTransform: 'uppercase' }}>Filter & Sort</h3>
           <button onClick={onClose} style={{ padding: '8px', cursor: 'pointer', border: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', boxShadow: 'var(--box-shadow-brutalist-sm)' }} className="btn">
             <X style={{ width: 16, height: 16, strokeWidth: 3 }} />
           </button>
         </div>
 
-        <div style={{ padding: '24px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ padding: 'clamp(16px, 4vw, 24px)', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <label className="label">Priority</label>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -311,7 +311,14 @@ export default function FilterSortPanel({ filters, onFiltersChange, onClose }: F
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 16, padding: '24px', borderTop: 'var(--border-width-layout) solid var(--border)', background: 'var(--bg-elevated)' }}>
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          padding: 'clamp(14px, 4vw, 20px)',
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+          borderTop: 'var(--border-width-layout) solid var(--border)',
+          background: 'var(--bg-elevated)',
+        }}>
           <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={reset}>Reset</button>
           <button className="btn btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={apply}>Apply Filters</button>
         </div>

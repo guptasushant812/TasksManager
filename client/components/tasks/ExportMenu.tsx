@@ -207,10 +207,10 @@ export default function ExportMenu({
     <div style={{ position: 'relative' }}>
       <button
         id="btn-export"
-        className={isPanel ? "fu-export-btn" : "btn btn-ghost"}
+        className={isPanel ? "fu-export-btn" : "task-export-btn"}
         onClick={() => setOpen(!open)}
         disabled={checking || exportingFormat !== null}
-        style={isPanel ? undefined : { minWidth: 100 }}
+        aria-label="Export tasks"
       >
         {exportingFormat ? (
           <>
@@ -228,27 +228,14 @@ export default function ExportMenu({
           </>
         ) : (
           <>
-            <Download style={{ width: 14, height: 14 }} />
+            <Download style={{ width: 14, height: 14, flexShrink: 0 }} />
             <span className={isPanel ? "fu-export-label" : undefined}>{checking ? 'Checking…' : 'Export'}</span>
             {selectedIds.length > 0 && (
-              <span
-                style={{
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  width: 16,
-                  height: 16,
-                  fontSize: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                }}
-              >
+              <span className="task-toolbar-badge">
                 {selectedIds.length}
               </span>
             )}
-            <ChevronDown style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+            <ChevronDown style={{ width: 13, height: 13, opacity: 0.7, flexShrink: 0, marginLeft: -1 }} />
           </>
         )}
       </button>
@@ -265,9 +252,10 @@ export default function ExportMenu({
               border: 'var(--border-width-layout) solid var(--border)',
               borderRadius: 'var(--radius-md)',
               overflow: 'hidden',
-              boxShadow: 'var(--box-shadow-brutalist)',
+              boxShadow: 'var(--shadow-taste-lg, 0 10px 25px -5px rgba(0, 0, 0, 0.5))',
               zIndex: 20,
               minWidth: 180,
+              maxWidth: 'calc(100vw - 24px)',
             }}
             className="animate-slide-down"
           >
