@@ -21,7 +21,13 @@ import {
 
 const isPublicPath = (path?: string | null): boolean => {
   if (!path) return false;
-  return path === '/status' || path.startsWith('/status/') || path === '/status/';
+  return (
+    path === '/status' ||
+    path.startsWith('/status/') ||
+    path === '/status/' ||
+    path === '/_not-found' ||
+    path.startsWith('/_not-found')
+  );
 };
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
