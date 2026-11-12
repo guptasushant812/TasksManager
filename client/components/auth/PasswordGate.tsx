@@ -22,7 +22,7 @@ import {
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isPublic = pathname?.startsWith('/status') || pathname === '/help' || pathname?.startsWith('/help');
+  const isPublic = pathname === '/status' || pathname?.startsWith('/status/');
 
   const [isLocked, setIsLocked] = useState(!isPublic);
   const [isTimedOut, setIsTimedOut] = useState(false);
@@ -34,6 +34,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [shake, setShake] = useState(false);
   const [isHashSynced, setIsHashSynced] = useState(false);
+
+  // Synchronous lock status check for protected routes to eliminate navigation flash
+  const syncStatus = typeof window !== 'undefined' && !isPublic ? getSessionStatus(false) : null;
+  const effectiveLocked = !isPublic && (isLocked || (syncStatus ? syncStatus.isLocked : true));
+  const effectiveTimedOut = effectiveLocked && (syncStatus ? syncStatus.isTimedOut : isTimedOut);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutInputRef = useRef<HTMLInputElement>(null);
@@ -220,10 +225,10 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       window.removeEventListener('pageshow', checkSyncState);
       window.removeEventListener('focus', onFocus);
     };
-  }, [isPublic, handleUserActivity, checkSyncState, isLocked]);
+  }, [pathname, isPublic, handleUserActivity, checkSyncState, isLocked]);
 
   useEffect(() => {
-    if (isLocked && !isPublic) {
+    if (effectiveLocked && !isPublic) {
       saveCurrentReturnUrl();
       if (typeof window !== 'undefined') {
         document.body.style.overflow = 'hidden';
@@ -231,7 +236,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     } else if (typeof window !== 'undefined') {
       document.body.style.overflow = '';
     }
-  }, [isLocked, isPublic, saveCurrentReturnUrl]);
+  }, [effectiveLocked, isPublic, saveCurrentReturnUrl]);
 
   const handleUnlockSuccess = (updatedPassword?: string) => {
     setIsUnlocking(true);
@@ -288,12 +293,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     setError(true);
     setShake(true);
     setTimeout(() => setShake(false), 380);
-    const activeInput = isTimedOut ? timeoutInputRef.current : inputRef.current;
+    const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
     if (activeInput) {
       activeInput.focus();
       activeInput.select();
     }
-  }, [isTimedOut]);
+  }, [effectiveTimedOut]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -355,7 +360,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   if (isPublic) return <>{children}</>;
 
-  if (loading) {
+  if (loading && !effectiveLocked) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 99999 }} />
     );
@@ -368,22 +373,22 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     <>
       <div
         style={{
-          display: 'flex',
+          display: effectiveLocked ? 'none' : 'flex',
           width: '100%',
           height: '100dvh',
           minWidth: 0,
-          visibility: isLocked ? 'hidden' : 'visible',
-          pointerEvents: isLocked ? 'none' : 'auto',
-          userSelect: isLocked ? 'none' : 'auto',
+          visibility: effectiveLocked ? 'hidden' : 'visible',
+          pointerEvents: effectiveLocked ? 'none' : 'auto',
+          userSelect: effectiveLocked ? 'none' : 'auto',
           transition: 'opacity 0.2s var(--ease-out)',
         }}
-        {...(isLocked ? { 'aria-hidden': 'true', tabIndex: -1 } : {})}
+        {...(effectiveLocked ? { 'aria-hidden': 'true', tabIndex: -1 } : {})}
       >
         {children}
       </div>
 
       {/* Session Timeout Modal */}
-      {isLocked && isTimedOut && (
+      {effectiveLocked && effectiveTimedOut && (
         <div
           role="alertdialog"
           aria-modal="true"
@@ -553,7 +558,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       )}
 
       {/* Manual Workspace Lock Screen */}
-      {isLocked && !isTimedOut && (
+      {effectiveLocked && !effectiveTimedOut && (
         <div
           role="dialog"
           aria-modal="true"

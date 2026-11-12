@@ -44,8 +44,8 @@ export default function Sidebar() {
     };
   }, [mobileOpen]);
 
-  // Hide sidebar on public status pages
-  if (pathname?.startsWith('/status/')) return null;
+  // Hide sidebar on public status pages and status 404s
+  if (pathname === '/status' || pathname?.startsWith('/status/')) return null;
 
   return (
     <>
