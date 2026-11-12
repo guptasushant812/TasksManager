@@ -19,17 +19,28 @@ import {
   FALLBACK_MASTER_HASH,
 } from '@/lib/sessionManager';
 
+const isPublicPath = (path?: string | null): boolean => {
+  if (!path) return false;
+  return path === '/status' || path.startsWith('/status/') || path === '/status/';
+};
+
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isPublic = pathname === '/status' || pathname?.startsWith('/status/');
+  const isPublic = isPublicPath(pathname) || (typeof window !== 'undefined' && isPublicPath(window.location.pathname));
 
-  const [isLocked, setIsLocked] = useState(!isPublic);
+  const [isLocked, setIsLocked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (isPublicPath(window.location.pathname)) return false;
+      return getSessionStatus(false).isLocked;
+    }
+    return !isPublicPath(pathname);
+  });
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(!isPublic);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [shake, setShake] = useState(false);
@@ -37,7 +48,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   // Synchronous lock status check for protected routes to eliminate navigation flash
   const syncStatus = typeof window !== 'undefined' && !isPublic ? getSessionStatus(false) : null;
-  const effectiveLocked = !isPublic && (isLocked || (syncStatus ? syncStatus.isLocked : true));
+  const effectiveLocked = !isPublic && (syncStatus ? syncStatus.isLocked : isLocked);
   const effectiveTimedOut = effectiveLocked && (syncStatus ? syncStatus.isTimedOut : isTimedOut);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -225,7 +236,12 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       window.removeEventListener('pageshow', checkSyncState);
       window.removeEventListener('focus', onFocus);
     };
-  }, [pathname, isPublic, handleUserActivity, checkSyncState, isLocked]);
+  }, [isPublic, handleUserActivity, checkSyncState, isLocked]);
+
+  // Synchronize lock state on route navigation
+  useEffect(() => {
+    checkSyncState();
+  }, [pathname, checkSyncState]);
 
   useEffect(() => {
     if (effectiveLocked && !isPublic) {
