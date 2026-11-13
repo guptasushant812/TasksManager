@@ -80,9 +80,10 @@ server/uploads/*
 !server/uploads/.gitkeep
 
 # Agent & AI tooling
-.agents/
 .serena/
 .cursor/
+scratch/
+*review*.json
 skills-lock.json
 client/AGENTS.md
 client/CLAUDE.md
