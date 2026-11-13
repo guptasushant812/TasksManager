@@ -1,0 +1,51 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "d:\\CodingProjectsByMe\\TasksManager"
+      ]
+    },
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "-r",
+        "d:\\CodingProjectsByMe\\TasksManager"
+      ]
+    },
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project",
+        "d:\\CodingProjectsByMe\\TasksManager",
+        "--enable-web-dashboard",
+        "false"
+      ]
+    },
+    "context7": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "seo-monster": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/avansaber/seo-monster",
+        "seo-monster"
+      ],
+      "env": {
+        "SSL_CERT_FILE": "C:\\Users\\gupta\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\certifi\\cacert.pem"
+      }
+    }
+  }
+}
