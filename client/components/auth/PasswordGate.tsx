@@ -35,13 +35,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const isPublic = isPublicPath(pathname) || (typeof window !== 'undefined' && isPublicPath(window.location.pathname));
 
-  const [isLocked, setIsLocked] = useState(() => {
-    if (typeof window !== 'undefined') {
-      if (isPublicPath(window.location.pathname)) return false;
-      return getSessionStatus(false).isLocked;
-    }
-    return !isPublicPath(pathname);
-  });
+  const [mounted, setMounted] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [password, setPassword] = useState('');
@@ -52,9 +47,9 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [shake, setShake] = useState(false);
   const [isHashSynced, setIsHashSynced] = useState(false);
 
-  // Synchronous lock status check for protected routes to eliminate navigation flash
-  const syncStatus = typeof window !== 'undefined' && !isPublic ? getSessionStatus(false) : null;
-  const effectiveLocked = !isPublic && (syncStatus ? syncStatus.isLocked : isLocked);
+  // Synchronize lock status for protected routes without SSR hydration mismatches
+  const syncStatus = mounted && !isPublic ? getSessionStatus(false) : null;
+  const effectiveLocked = mounted && !isPublic && (syncStatus ? syncStatus.isLocked : isLocked);
   const effectiveTimedOut = effectiveLocked && (syncStatus ? syncStatus.isTimedOut : isTimedOut);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -178,6 +173,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   }, [isLocked, isTimedOut, isPublic, checkSyncState]);
 
   useEffect(() => {
+    setMounted(true);
     if (isPublic) {
       setLoading(false);
       setIsLocked(false);
@@ -394,6 +390,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   return (
     <>
       <div
+        suppressHydrationWarning
         style={{
           display: effectiveLocked ? 'none' : 'flex',
           width: '100%',
