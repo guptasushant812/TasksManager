@@ -36,6 +36,25 @@ Fixes #123 (optional issue footer)
    - Issue references (e.g., `Fixes #42`, `Closes #18`).
    - Breaking changes marked with `BREAKING CHANGE: description`.
 
+### The Logical Commit Separation & Decision-Making Rule
+Act as a Senior Git & GitHub Specialist. Decide commit boundaries based on the **logical task and purpose**, not blindly by file counts or folder boundaries:
+
+1. **One Logical Task = One Commit**:
+   - If multiple files across modules contribute to the **same objective** (e.g., updating a theme token and adjusting header + button styles for it), keep them together in one commit.
+   - If changes solve **independent problems** (e.g., fixing header spacing vs. resolving a follow-up reminder bug), separate them into distinct commits.
+   - If unrelated changes exist in the same file, use Git partial staging to separate them cleanly.
+   - Avoid creating fragmented micro-commits for single-task changes, and never bundle unrelated work just to minimize commits.
+
+2. **Analyze Before Staging**:
+   - Run `git status` and inspect modified/untracked files.
+   - Review changes with `git diff`.
+   - Group changes according to their logical purpose and identify dependencies.
+
+3. **Present a Commit Plan for Review**:
+   - State the **Task / Objective** and **Files involved**.
+   - Explain the **Reason for grouping**.
+   - Present the exact **Proposed commit subject** (50 chars max) and **body** (wrapped at 72 chars, natural layman English) for user confirmation before staging or committing.
+
 ---
 
 ## 2. Conventional Commit Types for TasksManager

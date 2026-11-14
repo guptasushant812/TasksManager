@@ -67,12 +67,22 @@ Every commit message must follow the structure detailed in [`.agents/git/commit-
 - **Blank Line**: Exactly one blank line separating subject and body.
 - **Body**: Wrapped at 72 characters or fewer per line. Written in **simple everyday words (layman terms)** explaining what changed and why.
 - **Zero Artifacts & Buzzwords**: Never include prompt filenames (`MediaQueryPrompt.md`), test image names, or corporate hype (`MNC`, `Poka-Yoke`, `Enterprise`). Replace technical jargon with plain English.
+- **Pre-Commit Verification**: Always verify the proposed commit title and body with the user in chat before committing and pushing.
 
-### 3. Secret & Repository Hygiene
+### 3. Logical Commit Separation & Decision-Making Rule
+- **One Logical Task = One Commit**: Group changes by their objective, not blindly by file counts, folders, or modules.
+  - If multiple files/modules contribute to the *same* objective, keep them together in one commit.
+  - If changes solve *independent* problems, separate them into distinct commits.
+  - If unrelated changes exist in the same file, use partial staging to separate them cleanly.
+- **Analyze Before Staging**: Inspect `git status` and `git diff`, group changes by purpose, identify dependencies, and explain the reasoning behind the proposed commit groups.
+- **Present a Commit Plan**: Before staging or committing, present the task objective, files involved, grouping rationale, and the exact 50/72 layman subject and body for review.
+- **Goal**: Maintain a clean, understandable, and traceable Git history—never bundling unrelated work, nor creating fragmented micro-commits for single-task changes.
+
+### 4. Secret & Repository Hygiene
 - **Never Commit Secrets**: Strictly protect `.env`, `.env.local`, API keys, MongoDB URIs, and auth tokens.
 - **Ignore Scratch Files**: Never commit files in `scratch/`, review JSON files, build outputs (`client/.next/`, `server/dist/`), or test artifacts.
 
-### 4. Supporting Documentation Manuals
+### 5. Supporting Documentation Manuals
 - [Overview & Quick Reference](.agents/git/README.md)
 - [Commit Message Standards](.agents/git/commit-standards.md)
 - [Branching & Workflow Guide](.agents/git/branching-and-workflows.md)
