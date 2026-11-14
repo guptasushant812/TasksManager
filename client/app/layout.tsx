@@ -158,12 +158,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `
               try {
                 let t = localStorage.theme || 'dark';
-                if (t === 'light' || t === 'botanical' || t === 'warm' || t === 'emerald' || t === 'aurora' || t === 'prism' || t === 'frost') {
+                const validThemes = ['dark', 'kanso'];
+                if (!validThemes.includes(t)) {
                   t = 'dark';
                   localStorage.theme = 'dark';
                 }
                 document.documentElement.setAttribute('data-theme', t);
-                if (t === 'sketch' || t === 'kanso') {
+                if (t === 'kanso') {
                   document.documentElement.classList.remove('dark');
                 } else {
                   document.documentElement.classList.add('dark');

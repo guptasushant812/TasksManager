@@ -50,7 +50,7 @@ interface ThemeOption {
   isLight?: boolean;
 }
 
-const LIGHT_THEMES = ['sketch', 'kanso'];
+const LIGHT_THEMES = ['kanso'];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
@@ -64,30 +64,6 @@ const THEME_OPTIONS: ThemeOption[] = [
     palette: ['#090a10', '#00ff9d', '#a855f7', '#ec4899', '#6366f1'],
     gradient: 'linear-gradient(135deg, #00ff9d 0%, #a855f7 50%, #ec4899 100%)',
     isLight: false,
-  },
-  {
-    id: 'slate',
-    name: 'Midnight Slate',
-    subtitle: 'Oceanic Navy & Sky',
-    description: 'Deep oceanic navy slate with sky blue highlights, cobalt undertones, and subtle borders.',
-    font: 'Inter',
-    primaryColor: '#38bdf8',
-    bgColor: '#0b1120',
-    palette: ['#0b1120', '#38bdf8', '#60a5fa', '#818cf8', '#1e293b'],
-    gradient: 'linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #818cf8 100%)',
-    isLight: false,
-  },
-  {
-    id: 'sketch',
-    name: 'Sketch',
-    subtitle: 'Hand-Drawn & Paper',
-    description: 'Authentic hand-drawn paper aesthetic with warm paper grain, soft pencil lines, hard offset shadows, and marker accents.',
-    font: 'Patrick Hand',
-    primaryColor: '#ff4d4d',
-    bgColor: '#fdfbf7',
-    palette: ['#fdfbf7', '#2d2d2d', '#ff4d4d', '#2d5da1', '#fff9c4'],
-    gradient: 'linear-gradient(135deg, #2d2d2d 0%, #ff4d4d 50%, #2d5da1 100%)',
-    isLight: true,
   },
   {
     id: 'kanso',
@@ -243,13 +219,15 @@ export default function SettingsPage() {
   useEffect(() => {
     try {
       let saved = localStorage.theme || document.documentElement.getAttribute('data-theme') || 'dark';
-      if (saved === 'light' || saved === 'botanical' || saved === 'warm' || saved === 'emerald' || saved === 'aurora' || saved === 'prism' || saved === 'frost' || !THEME_OPTIONS.some(t => t.id === saved)) {
+      if (!THEME_OPTIONS.some(t => t.id === saved)) {
         saved = 'dark';
         localStorage.theme = 'dark';
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.classList.add('dark');
       } else if (LIGHT_THEMES.includes(saved)) {
         document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
       }
       setCurrentTheme(saved);
     } catch {}

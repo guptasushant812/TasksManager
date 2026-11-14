@@ -107,12 +107,13 @@ export default function PublicStatusPage() {
       const applyTheme = () => {
         const savedTheme = localStorage.getItem('theme');
         let themeToApply = savedTheme || 'dark';
-        if (themeToApply === 'light') {
+        const validThemes = ['dark', 'kanso'];
+        if (!validThemes.includes(themeToApply)) {
           themeToApply = 'dark';
         }
 
         document.documentElement.setAttribute('data-theme', themeToApply);
-        if (themeToApply === 'sketch' || themeToApply === 'kanso') {
+        if (themeToApply === 'kanso') {
           document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.add('dark');

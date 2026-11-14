@@ -8,17 +8,14 @@ test.describe('Theme System & Light Mode Integration', () => {
     });
   });
 
-  test('settings page displays all 4 themes including Light Mode', async ({ page }) => {
+  test('settings page displays Dark Mode and Light Mode', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.locator('.settings-theme-grid')).toBeVisible({ timeout: 15000 });
 
     const themeCards = page.locator('.settings-theme-card');
-    await expect(themeCards).toHaveCount(4);
+    await expect(themeCards).toHaveCount(2);
 
-    // Verify all 4 theme titles exist
     await expect(page.locator('.settings-theme-card:has-text("Dark Mode")')).toBeVisible();
-    await expect(page.locator('.settings-theme-card:has-text("Midnight Slate")')).toBeVisible();
-    await expect(page.locator('.settings-theme-card:has-text("Sketch")')).toBeVisible();
     await expect(page.locator('.settings-theme-card:has-text("Light Mode")')).toBeVisible();
   });
 
