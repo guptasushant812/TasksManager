@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FollowUp, FollowUpFormData, FollowUpMethod, FOLLOW_UP_METHODS } from '@/types/followUp';
 import { toIsoDate } from '@/lib/dates';
 import { X, Paperclip, ChevronDown, ChevronUp, Save, Edit3, Volume2, Video } from 'lucide-react';
@@ -45,6 +46,29 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and close on Escape
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onCancel]);
 
   // Resync state when editing target changes
   useEffect(() => {
@@ -96,39 +120,53 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
     }
   }
 
-  return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }} style={{ zIndex: 100 }}>
-      <div className="modal-box animate-slide-up" style={{ padding: 0, width: '100%', maxWidth: 520 }}>
-        
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-elevated)' }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="modal-overlay fu-modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="fu-modal-title"
+    >
+      <div className="modal-box fu-modal-box animate-slide-up">
+        <div className="fu-modal-header">
+          <div id="fu-modal-title" className="fu-modal-title">
             {isEditing ? `Edit Follow-Up #${editingFollowUp.followUpNumber}` : 'New Follow-Up'}
           </div>
-          <button onClick={onCancel} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 4 }}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="fu-modal-close-btn"
+            aria-label="Close modal"
+          >
             <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
 
-        <div style={{ padding: '20px 24px', maxHeight: 'min(78dvh, calc(100dvh - 140px))', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-            <div>
+        <div className="fu-modal-body">
+          <div className="fu-modal-grid">
+            <div className="fu-field-group">
               <label className="label" htmlFor="fu-date">Date & Time</label>
               <input
                 id="fu-date"
-                className="input"
+                className="input fu-input"
                 type="datetime-local"
                 value={data.followUpDate}
                 onChange={(e) => handleChange('followUpDate', e.target.value)}
                 onClick={(e) => 'showPicker' in e.currentTarget && (e.currentTarget as any).showPicker()}
                 style={{ borderColor: errors.followUpDate ? 'var(--high)' : undefined }}
               />
-              {errors.followUpDate && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.followUpDate}</span>}
+              {errors.followUpDate && <span className="fu-error-text">{errors.followUpDate}</span>}
             </div>
-            <div>
+            <div className="fu-field-group">
               <label className="label" htmlFor="fu-method">Method</label>
               <select
                 id="fu-method"
-                className="input"
+                className="input fu-input"
                 value={data.method}
                 onChange={(e) => handleChange('method', e.target.value as FollowUpMethod)}
               >
@@ -140,11 +178,11 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           </div>
 
           {data.method === 'Other' && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in fu-field-group">
               <label className="label" htmlFor="fu-method-other">Specify Method</label>
               <input
                 id="fu-method-other"
-                className="input"
+                className="input fu-input"
                 type="text"
                 placeholder="e.g., Slack, Letter, etc."
                 value={data.methodOther}
@@ -153,11 +191,11 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             </div>
           )}
 
-          <div>
+          <div className="fu-field-group">
             <label className="label" htmlFor="fu-contact">Person Contacted</label>
             <input
               id="fu-contact"
-              className="input"
+              className="input fu-input"
               type="text"
               placeholder="Who was contacted"
               value={data.contactPerson}
@@ -165,167 +203,146 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
             />
           </div>
 
-          <div>
-            <label className="label" htmlFor="fu-communicated">What I Communicated <span style={{ color: 'var(--high)' }}>*</span></label>
+          <div className="fu-field-group">
+            <label className="label" htmlFor="fu-communicated">
+              What I Communicated <span style={{ color: 'var(--high)' }}>*</span>
+            </label>
             <AutoResizeTextarea
               id="fu-communicated"
+              className="fu-textarea"
               placeholder="What did you say or write?"
               value={data.communicated}
               onChange={(e) => handleChange('communicated', e.target.value)}
-              minHeight={64}
-              maxHeight={240}
+              minHeight={56}
+              maxHeight={200}
               allowManualResize={true}
               style={{ borderColor: errors.communicated ? 'var(--high)' : undefined }}
             />
-            {errors.communicated && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.communicated}</span>}
+            {errors.communicated && <span className="fu-error-text">{errors.communicated}</span>}
           </div>
 
-          <div>
+          <div className="fu-field-group">
             <label className="label" htmlFor="fu-response">Response Received</label>
             <AutoResizeTextarea
               id="fu-response"
-              placeholder='What was the response?'
+              className="fu-textarea"
+              placeholder="What was the response?"
               value={data.responseReceived}
               onChange={(e) => handleChange('responseReceived', e.target.value)}
-              minHeight={54}
-              maxHeight={200}
+              minHeight={50}
+              maxHeight={180}
               allowManualResize={true}
             />
           </div>
 
-          <div>
+          <div className="fu-field-group">
             <label className="label">Attachments (Max 5)</label>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                {existingAttachments.map((att: any, i) => {
-                  const filename = att?.filename || att?.originalName || 'File';
-                  const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
-                  const isImage = /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url);
-                  const isVideo = /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(filename) || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(url);
-                  const isAudio = /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(url);
-                  
-                  return (
-                    <div key={att?.public_id || att?._id || i} style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '4px 10px', background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                      fontSize: 12, color: 'var(--text-secondary)'
-                    }}>
-                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'inherit', textDecoration: 'none' }}>
-                        {isImage && url !== '#' ? (
-                          <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
-                            <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                        ) : isVideo ? (
-                          <Video style={{ width: 14, height: 14, color: 'var(--accent)' }} />
-                        ) : isAudio ? (
-                          <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
-                        ) : (
-                          <Paperclip style={{ width: 14, height: 14 }} />
-                        )}
-                        <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {filename}
-                        </span>
-                      </a>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); removeExistingFile(i); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', marginLeft: 4 }}
-                        title="Remove"
-                      >
-                        <X style={{ width: 14, height: 14 }} />
-                      </button>
-                    </div>
-                  );
-                })}
+            <div className="fu-attachments-list">
+              {existingAttachments.map((att: any, i) => {
+                const filename = att?.filename || att?.originalName || 'File';
+                const url = att?.url || (att?._id ? `/api/f/${att._id}/${encodeURIComponent(filename)}` : '#');
+                const isImage = /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(filename) || /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url);
+                const isVideo = /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(filename) || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(url);
+                const isAudio = /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(filename) || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(url);
 
-                {files.map((file, i) => {
-                  const isImage = file.type.startsWith('image/');
-                  const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(file.name);
-                  const isAudio = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(file.name);
-                  if (isImage && !(file as any).previewUrl) {
-                    (file as any).previewUrl = URL.createObjectURL(file);
-                  }
-                  const previewUrl = (file as any).previewUrl;
-
-                  return (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '4px 10px', background: 'var(--bg-elevated)',
-                      border: '1px dashed var(--accent)', borderRadius: 'var(--radius-md)',
-                      fontSize: 12, color: 'var(--text-secondary)'
-                    }}>
-                      {previewUrl ? (
-                        <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
-                          <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                return (
+                  <div key={att?.public_id || att?._id || i} className="fu-attachment-pill">
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="fu-attachment-link">
+                      {isImage && url !== '#' ? (
+                        <div className="fu-attachment-thumb">
+                          <img src={url} alt={filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       ) : isVideo ? (
-                        <Video style={{ width: 14, height: 14, color: 'var(--accent)' }} />
+                        <Video style={{ width: 14, height: 14, color: 'var(--accent)', flexShrink: 0 }} />
                       ) : isAudio ? (
-                        <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)' }} />
+                        <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)', flexShrink: 0 }} />
                       ) : (
-                        <Paperclip style={{ width: 14, height: 14 }} />
+                        <Paperclip style={{ width: 14, height: 14, flexShrink: 0 }} />
                       )}
-                      <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {file.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); removeFile(i); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', marginLeft: 4 }}
-                        title="Remove"
-                      >
-                        <X style={{ width: 14, height: 14 }} />
-                      </button>
-                    </div>
-                  );
-                })}
+                      <span className="fu-attachment-filename">{filename}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); removeExistingFile(i); }}
+                      className="fu-attachment-remove-btn"
+                      title="Remove"
+                      aria-label={`Remove ${filename}`}
+                    >
+                      <X style={{ width: 14, height: 14 }} />
+                    </button>
+                  </div>
+                );
+              })}
 
-                {(existingAttachments.length + files.length) < 5 && (
-                  <label style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '6px 12px', background: 'transparent',
-                    border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)',
-                    fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer',
-                    transition: 'all 0.15s'
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  >
-                    <Paperclip style={{ width: 14, height: 14 }} />
-                    <span>Add File</span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
-                      style={{ display: 'none' }}
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                )}
+              {files.map((file, i) => {
+                const isImage = file.type.startsWith('image/');
+                const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|avi|mkv|3gp|m4v|wmv)$/i.test(file.name);
+                const isAudio = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|wma)$/i.test(file.name);
+                if (isImage && !(file as any).previewUrl) {
+                  (file as any).previewUrl = URL.createObjectURL(file);
+                }
+                const previewUrl = (file as any).previewUrl;
+
+                return (
+                  <div key={i} className="fu-attachment-pill fu-attachment-pill-new">
+                    {previewUrl ? (
+                      <div className="fu-attachment-thumb">
+                        <img src={previewUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    ) : isVideo ? (
+                      <Video style={{ width: 14, height: 14, color: 'var(--accent)', flexShrink: 0 }} />
+                    ) : isAudio ? (
+                      <Volume2 style={{ width: 14, height: 14, color: 'var(--accent)', flexShrink: 0 }} />
+                    ) : (
+                      <Paperclip style={{ width: 14, height: 14, flexShrink: 0 }} />
+                    )}
+                    <span className="fu-attachment-filename">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); removeFile(i); }}
+                      className="fu-attachment-remove-btn"
+                      title="Remove"
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X style={{ width: 14, height: 14 }} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {(existingAttachments.length + files.length) < 5 && (
+                <label className="fu-add-file-btn">
+                  <Paperclip style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <span>Add File</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                </label>
+              )}
             </div>
-            {errors.files && <span style={{ fontSize: 11, color: 'var(--high)', display: 'block', marginTop: 4 }}>{errors.files}</span>}
+            {errors.files && <span className="fu-error-text">{errors.files}</span>}
           </div>
 
           <button
             type="button"
             onClick={() => setShowMore(!showMore)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, color: 'var(--text-muted)',
-              display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-            }}
+            className="fu-show-more-btn"
           >
             {showMore ? <ChevronUp style={{ width: 14, height: 14 }} /> : <ChevronDown style={{ width: 14, height: 14 }} />}
             {showMore ? 'Show less' : 'Show more options'}
           </button>
 
           {showMore && (
-            <div className="animate-slide-down" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
+            <div className="animate-slide-down fu-more-options">
+              <div className="fu-field-group">
                 <label className="label" htmlFor="fu-notes">Notes</label>
                 <textarea
                   id="fu-notes"
-                  className="input"
+                  className="input fu-input fu-notes-textarea"
                   placeholder="Any additional observations or context"
                   value={data.notes}
                   onChange={(e) => handleChange('notes', e.target.value)}
@@ -333,23 +350,23 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                <div>
+              <div className="fu-modal-grid">
+                <div className="fu-field-group">
                   <label className="label" htmlFor="fu-next-action">Next Action</label>
                   <input
                     id="fu-next-action"
-                    className="input"
+                    className="input fu-input"
                     type="text"
                     placeholder="What should happen next"
                     value={data.nextAction}
                     onChange={(e) => handleChange('nextAction', e.target.value)}
                   />
                 </div>
-                <div>
+                <div className="fu-field-group">
                   <label className="label" htmlFor="fu-next-date">Next Follow-Up Date</label>
                   <input
                     id="fu-next-date"
-                    className="input"
+                    className="input fu-input"
                     type="date"
                     value={data.nextFollowUpDate}
                     onChange={(e) => handleChange('nextFollowUpDate', e.target.value)}
@@ -361,18 +378,17 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           )}
 
           {errors.submit && (
-            <div style={{ padding: '10px 14px', background: 'var(--high-bg)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--high)' }}>
+            <div className="fu-submit-error">
               {errors.submit}
             </div>
           )}
-
         </div>
 
-        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" onClick={onCancel} disabled={saving}>
+        <div className="fu-modal-footer">
+          <button type="button" className="btn btn-ghost fu-modal-btn" onClick={onCancel} disabled={saving}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
+          <button type="button" className="btn btn-primary fu-modal-btn fu-modal-btn-primary" onClick={handleSubmit} disabled={saving}>
             {saving ? (
               <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} /> Saving…</>
             ) : isEditing ? (
@@ -383,6 +399,8 @@ export default function FollowUpForm({ defaultContactPerson, editingFollowUp, on
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
+
