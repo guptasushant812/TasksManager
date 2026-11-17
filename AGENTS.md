@@ -66,6 +66,7 @@ Every commit message must follow the structure detailed in [`.agents/git/commit-
 - **Subject Line**: Maximum 50 characters, imperative mood, capitalized, no trailing period. Conventional prefix (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `perf:`, `docs:`).
 - **Blank Line**: Exactly one blank line separating subject and body.
 - **Body**: Wrapped at 72 characters or fewer per line. Written in **simple everyday words (layman terms)** explaining what changed and why.
+- **Strictly DRY & No Padding**: Never repeat words, rephrase ideas, or add filler sentences just to make the body longer or reach character limits. State what was wrong and what was fixed in 1 to 2 short, crisp, professional sentences.
 - **Zero Artifacts & Buzzwords**: Never include prompt filenames (`MediaQueryPrompt.md`), test image names, or corporate hype (`MNC`, `Poka-Yoke`, `Enterprise`). Replace technical jargon with plain English.
 - **Pre-Commit Verification**: Always verify the proposed commit title and body with the user in chat before committing and pushing.
 

@@ -32,6 +32,7 @@ Fixes #123 (optional issue footer)
    - Does not explain the code line-by-line (the diff already shows that).
    - Written in **everyday layman terms** (plain English).
    - Wrapped cleanly at 72 characters so it renders comfortably across terminals, emails, and web interfaces.
+   - **Strictly DRY & No Padding**: Never repeat words, restate the subject, or add filler sentences just to make paragraphs longer. State the problem and the fix in 1 to 2 crisp, direct sentences. If it can be explained in 2 lines, never stretch it to 4 lines.
 4. **Footer (Optional)**:
    - Issue references (e.g., `Fixes #42`, `Closes #18`).
    - Breaking changes marked with `BREAKING CHANGE: description`.
