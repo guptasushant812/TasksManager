@@ -36,7 +36,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const isPublic = isPublicPath(pathname) || (typeof window !== 'undefined' && isPublicPath(window.location.pathname));
 
   const [mounted, setMounted] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(!isPublic);
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [password, setPassword] = useState('');
@@ -49,7 +49,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   // Synchronize lock status for protected routes without SSR hydration mismatches
   const syncStatus = mounted && !isPublic ? getSessionStatus(false) : null;
-  const effectiveLocked = mounted && !isPublic && (syncStatus ? syncStatus.isLocked : isLocked);
+  const effectiveLocked = !isPublic && (mounted && syncStatus ? syncStatus.isLocked : isLocked);
   const effectiveTimedOut = effectiveLocked && (syncStatus ? syncStatus.isTimedOut : isTimedOut);
 
   const inputRef = useRef<HTMLInputElement>(null);
