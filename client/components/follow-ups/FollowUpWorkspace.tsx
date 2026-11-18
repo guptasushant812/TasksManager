@@ -499,55 +499,34 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
     filters.givenBy,
     filters.dateFrom,
     filters.dateTo,
+    filters.overdueOnly === 'true' ? 'overdue' : '',
+    filters.escalatedOnly === 'true' ? 'escalated' : '',
     isCustomSort ? 'customSort' : '',
   ].filter(Boolean).length;
 
   return (
-    <div className="follow-up-workspace">
-      <div
-        className="fu-toolbar"
-        style={{
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          marginBottom: 14,
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', flex: 1, minWidth: 260 }}>
+    <div className="follow-up-workspace task-table-root">
+      <div className="task-toolbar">
+        <div className="task-toolbar-search">
           <SearchBar value={searchInput} onChange={setSearchInput} />
+        </div>
 
-          <div ref={filterRef} style={{ position: 'relative' }}>
+        <div className="task-toolbar-actions">
+          <div ref={filterRef} className="task-toolbar-filter">
             <button
               id="btn-filter-sort"
-              className={`btn ${activeFiltersCount > 0 ? 'btn-primary' : 'btn-ghost'}`}
+              className={`task-toolbar-btn ${activeFiltersCount > 0 ? 'btn-primary' : ''}`}
               onClick={() => setShowFilter(!showFilter)}
-              style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              aria-label="Filter and sort follow-ups"
             >
-              <Filter style={{ width: 14, height: 14 }} />
+              <Filter style={{ width: 14, height: 14, flexShrink: 0 }} />
               <span>Filter</span>
               {activeFiltersCount > 0 && (
-                <span
-                  style={{
-                    background: 'var(--bg-base)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '50%',
-                    width: 18,
-                    height: 18,
-                    fontSize: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 900,
-                    border: '1px solid var(--border)',
-                  }}
-                >
+                <span className="task-toolbar-badge">
                   {activeFiltersCount}
                 </span>
               )}
             </button>
-
             {showFilter && (
               <FilterSortPanel
                 filters={filters}
@@ -561,41 +540,50 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
 
           <button
             id="btn-select-mode"
-            className={`btn ${selectMode ? 'btn-primary' : 'btn-ghost'}`}
+            className={`task-toolbar-btn ${selectMode ? 'btn-primary' : ''}`}
             onClick={() => {
               setSelectMode(!selectMode);
               setSelectedIds([]);
             }}
+            aria-label={selectMode ? 'Exit select mode' : 'Enter select mode'}
           >
-            <CheckSquare style={{ width: 14, height: 14 }} />
-            Select
-            {selectedIds.length > 0 && ` (${selectedIds.length})`}
+            <CheckSquare style={{ width: 14, height: 14, flexShrink: 0 }} />
+            <span>Select</span>
+            {selectedIds.length > 0 && (
+              <span className="task-toolbar-badge">
+                {selectedIds.length}
+              </span>
+            )}
           </button>
 
           {selectMode && selectedIds.length > 0 && (
-            <button className="btn btn-danger" onClick={handleDeleteSelected}>
-              <Trash2 style={{ width: 14, height: 14 }} />
-              Delete {selectedIds.length}
+            <button
+              className="task-toolbar-btn btn-danger"
+              onClick={handleDeleteSelected}
+              aria-label={`Delete ${selectedIds.length} selected follow-up tasks`}
+            >
+              <Trash2 style={{ width: 14, height: 14, flexShrink: 0 }} />
+              <span>Delete ({selectedIds.length})</span>
             </button>
           )}
-        </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <ExportMenu
-            filters={{ ...filters, hasFollowUps: 'true' }}
-            selectedIds={selectedIds}
-            totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
-          />
+          <div className="task-toolbar-export">
+            <ExportMenu
+              filters={{ ...filters, hasFollowUps: 'true' }}
+              selectedIds={selectedIds}
+              totalTasks={selectedIds.length > 0 ? selectedIds.length : (pagination?.total ?? tasks.length)}
+            />
+          </div>
         </div>
       </div>
 
       {activeFiltersCount > 0 && (
-        <div style={{
+        <div className="task-active-filters" style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
           flexWrap: 'wrap',
-          marginBottom: 14,
+          marginBottom: 12,
           padding: '8px 12px',
           background: 'var(--bg-surface)',
           border: 'var(--border-width-layout) solid var(--border)',
@@ -617,6 +605,34 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
                 onClick={() => onFiltersChange({ status: '', page: 1 })}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'inline-flex' }}
                 title="Remove status filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.overdueOnly === 'true' && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid var(--high)', padding: '3px 8px', color: 'var(--high)' }}>
+              <span>Filter: <strong>Overdue Follow-Ups</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ overdueOnly: undefined, page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--high)', padding: 0, display: 'inline-flex' }}
+                title="Remove overdue filter"
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </span>
+          )}
+
+          {filters.escalatedOnly === 'true' && (
+            <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(234, 179, 8, 0.12)', border: '1px solid var(--medium)', padding: '3px 8px', color: 'var(--medium)' }}>
+              <span>Filter: <strong>Escalated Tasks</strong></span>
+              <button
+                type="button"
+                onClick={() => onFiltersChange({ escalatedOnly: undefined, page: 1 })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--medium)', padding: 0, display: 'inline-flex' }}
+                title="Remove escalation filter"
               >
                 <X style={{ width: 12, height: 12 }} />
               </button>
@@ -681,7 +697,7 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
 
           <button
             type="button"
-            onClick={() => onFiltersChange({ status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', sort: 'taskId', order: 'desc', page: 1 })}
+            onClick={() => onFiltersChange({ status: '', priority: '', givenBy: '', dateFrom: '', dateTo: '', overdueOnly: undefined, escalatedOnly: undefined, sort: 'taskId', order: 'desc', page: 1 })}
             style={{
               background: 'transparent',
               border: 'none',
