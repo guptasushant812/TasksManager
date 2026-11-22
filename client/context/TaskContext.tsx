@@ -84,7 +84,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     return subscribeToSessionEvents((type) => {
       if (type === 'unlock') {
         setRefreshKey((k) => k + 1);
-        fetchSummary(summaryFilters);
+        fetchSummary(summaryFilters, true);
       }
     });
   }, [summaryFilters, fetchSummary]);

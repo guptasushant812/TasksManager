@@ -2,7 +2,7 @@
 import { useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { Eye, EyeOff, Clock, Lock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, BASE_URL } from '@/lib/api';
 import {
   getSessionStatus,
   persistActivityTimestamps,
@@ -292,6 +292,10 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    // Wake up backend and database connection pool immediately upon landing
+    fetch(`${BASE_URL}/api/health`).catch(() => {});
+
     apiFetch<{ hash: string }>('/api/settings/password-hash')
       .then((res) => {
         if (active && res?.hash) {

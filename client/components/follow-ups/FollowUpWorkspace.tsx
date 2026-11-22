@@ -415,16 +415,21 @@ export default function FollowUpWorkspace({ filters, onFiltersChange, refreshKey
 
   const filterRef = useRef<HTMLDivElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const prevFiltersRef = useRef(filters);
 
   // Fetch tasks when filters or refreshKey changes
   useEffect(() => {
-    fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 });
+    const filtersChanged = prevFiltersRef.current !== filters;
+    prevFiltersRef.current = filters;
+    const isSilent = !filtersChanged && tasks.length > 0;
+
+    fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 }, isSilent);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       fetchTasks({ ...filters, hasFollowUps: 'true', limit: filters.limit || 15 }, true);
     }, 5000);
     return () => clearInterval(interval);
-  }, [filters, refreshKey, fetchTasks]);
+  }, [filters, refreshKey, fetchTasks, tasks.length]);
 
   // Keep searchInput in sync when reset or changed by parent filters
   useEffect(() => {

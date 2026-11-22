@@ -703,15 +703,20 @@ export default function TaskTable({ filters, onFiltersChange, refreshKey, mode =
 
   const tableLimit = isDashboard ? 5 : (filters.limit || 20);
   const displayedTasks = isDashboard ? tasks.slice(0, 5) : tasks;
+  const prevFiltersRef = useRef(filters);
 
   useEffect(() => {
-    fetchTasks({ ...filters, limit: tableLimit });
+    const filtersChanged = prevFiltersRef.current !== filters;
+    prevFiltersRef.current = filters;
+    const isSilent = !filtersChanged && tasks.length > 0;
+
+    fetchTasks({ ...filters, limit: tableLimit }, isSilent);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       fetchTasks({ ...filters, limit: tableLimit }, true);
     }, 5000);
     return () => clearInterval(interval);
-  }, [filters, refreshKey, fetchTasks, tableLimit]);
+  }, [filters, refreshKey, fetchTasks, tableLimit, tasks.length]);
 
   useEffect(() => {
     return () => {

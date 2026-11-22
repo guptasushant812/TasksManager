@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db';
 import taskRoutes from './routes/tasks';
 import summaryRoutes from './routes/summary';
@@ -71,9 +72,14 @@ app.use('/api/escalations', escalationRoutes);
 app.use('/api/public', publicRoutes);
 app.get('/api/f/:id/:filename?', downloadAttachment);
 
-// Health check
+// Health check with database readiness status
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const isDbConnected = mongoose.connection.readyState === 1;
+  res.json({
+    status: 'ok',
+    db: isDbConnected ? 'connected' : 'connecting',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use(errorHandler);
