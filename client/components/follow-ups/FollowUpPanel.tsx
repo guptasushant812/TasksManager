@@ -89,6 +89,15 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (deleteTarget) {
+          if (!deleting) setDeleteTarget(null);
+          return;
+        }
+        if (showForm) {
+          setShowForm(false);
+          setEditingFollowUp(null);
+          return;
+        }
         onClose();
       }
     };
@@ -98,7 +107,7 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, deleteTarget, deleting, showForm]);
 
   const activeCount = followUps.filter((fu) => !fu.isDeleted).length;
 
@@ -338,51 +347,86 @@ export default function FollowUpPanel({ task, onClose, onTaskUpdated, initialAdd
 
       {deleteTarget && (
         <div
-          className="modal-overlay"
+          className="app-dialog-overlay"
           style={{ zIndex: 200 }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setDeleteTarget(null);
+            if (e.target === e.currentTarget && !deleting) setDeleteTarget(null);
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-followup-title"
         >
-          <div className="modal-box" style={{ maxWidth: 420 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Delete Follow-Up #{deleteTarget.followUpNumber}
-              </h3>
+          <div
+            className="app-dialog-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 440 }}
+          >
+            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+            <div className="app-dialog-header">
+              <div className="app-dialog-header-left">
+                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                  <Trash2 style={{ width: 20, height: 20 }} />
+                </div>
+                <div>
+                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                    CONFIRM DELETION
+                  </div>
+                  <h3 id="delete-followup-title" className="app-dialog-title">
+                    Delete Follow-Up #{deleteTarget.followUpNumber}
+                  </h3>
+                </div>
+              </div>
               <button
-                onClick={() => setDeleteTarget(null)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                type="button"
+                className="app-dialog-close-btn"
+                onClick={() => !deleting && setDeleteTarget(null)}
+                aria-label="Close dialog"
+                disabled={deleting}
               >
-                <X style={{ width: 16, height: 16 }} />
+                <X style={{ width: 18, height: 18 }} />
               </button>
             </div>
 
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
-              This will remove the follow-up log from the active count and exports. Please provide a reason:
-            </p>
+            <div className="app-dialog-body">
+              <p className="app-dialog-desc">
+                This will remove the follow-up log from the active count and exports. Please provide a reason:
+              </p>
 
-            <div style={{ marginBottom: 18 }}>
-              <label className="label" htmlFor="delete-reason">
-                Deletion Reason <span style={{ color: 'var(--high)' }}>*</span>
-              </label>
-              <AutoResizeTextarea
-                id="delete-reason"
-                placeholder="e.g. Duplicate communication entry, logged under wrong task..."
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                minHeight={64}
-                maxHeight={200}
-                allowManualResize={true}
-                autoFocus
-              />
+              <div>
+                <label
+                  className="label"
+                  htmlFor="delete-reason"
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, fontSize: 12, fontWeight: 600 }}
+                >
+                  Deletion Reason <span style={{ color: 'var(--high)' }}>*</span>
+                </label>
+                <AutoResizeTextarea
+                  id="delete-reason"
+                  className="textarea"
+                  placeholder="e.g. Duplicate communication entry, logged under wrong task..."
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  minHeight={64}
+                  maxHeight={160}
+                  allowManualResize={true}
+                  autoFocus
+                />
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button className="btn btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            <div className="app-dialog-footer">
+              <button
+                type="button"
+                className="app-dialog-btn-cancel"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
                 Cancel
               </button>
               <button
-                className="btn btn-danger"
+                type="button"
+                className="app-dialog-btn-action app-dialog-btn-danger"
                 onClick={handleDeleteConfirm}
                 disabled={deleting || !deleteReason.trim()}
               >

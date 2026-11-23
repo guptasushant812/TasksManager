@@ -9737,6 +9737,35 @@ body {
   }
 }
 
+@media (max-height: 560px) {
+  .app-dialog-box {
+    max-height: calc(100dvh - 16px) !important;
+  }
+
+  .app-dialog-header {
+    padding: 10px 16px 8px !important;
+  }
+
+  .app-dialog-icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .app-dialog-body {
+    padding: 10px 16px !important;
+  }
+
+  .app-dialog-card {
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .app-dialog-footer {
+    padding: 8px 16px 10px !important;
+  }
+}
+
 /* Touch & Pointer Precision (MediaQueryPrompt.md Sec. 6) */
 @media (hover: none),
 (pointer: coarse) {
