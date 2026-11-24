@@ -1,11 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import { toIsoDate } from '@/lib/dates';
 import { Priority, WorkStatus, TaskFilters, TaskDraft } from '@/types/task';
 import TaskFormFields from './TaskFormFields';
 import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { validateSingleField, validateTaskForm } from '@/lib/taskValidation';
 import {
   Save,
   Plus,
@@ -13,7 +14,6 @@ import {
   RefreshCw,
   Sparkles,
   X,
-  AlertTriangle,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
@@ -22,6 +22,7 @@ interface ManualTaskFormProps {
   defaultFilters: TaskFilters;
   onSaved: () => void;
   onCancel: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 interface DraftTask extends TaskDraft {
@@ -53,11 +54,36 @@ function createEmptyDraft(defaultFilters?: TaskFilters): DraftTask {
   };
 }
 
-export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: ManualTaskFormProps) {
+function isDraftDirty(d: DraftTask, defaultFilters?: TaskFilters): boolean {
+  const defaultDate = defaultFilters?.day ? toIsoDate(defaultFilters.day) : toIsoDate(new Date());
+  const defaultPriority = (defaultFilters?.priority as Priority) || 'Medium';
+  const defaultStatus = (defaultFilters?.status as WorkStatus) || 'Pending';
+  const defaultGivenBy = (defaultFilters?.givenBy || '').trim();
+
+  if (d.title.trim().length > 0) return true;
+  if (d.description.trim().length > 0) return true;
+  if (d.contactPerson.trim().length > 0) return true;
+  if ((d.givenBy || '').trim() !== defaultGivenBy) return true;
+  if (d.priority && d.priority !== defaultPriority) return true;
+  if (d.workStatus && d.workStatus !== defaultStatus) return true;
+  if (d.dueDate && d.dueDate.trim().length > 0) return true;
+  if (d.date && d.date !== defaultDate) return true;
+  if (
+    (d.inProgressReason && d.inProgressReason.trim().length > 0) ||
+    (d.pendingReason && d.pendingReason.trim().length > 0) ||
+    (d.completedRemarks && d.completedRemarks.trim().length > 0) ||
+    (d.reason && d.reason.trim().length > 0) ||
+    (d.remarks && d.remarks.trim().length > 0)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDirtyChange }: ManualTaskFormProps) {
   const [drafts, setDrafts] = useState<DraftTask[]>([createEmptyDraft(defaultFilters)]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   // Single-task AI refinement state
   const [activeRegenId, setActiveRegenId] = useState<string | null>(null);
@@ -73,17 +99,72 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     setError: setAiError,
   } = useAiDraft();
 
+  const isDirty = drafts.length > 1 || drafts.some((d) => isDraftDirty(d, defaultFilters));
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    return () => {
+      onDirtyChange?.(false);
+    };
+  }, [isDirty, onDirtyChange]);
+
   function handleDraftChange(id: string, field: string, value: string) {
+    if (field === 'dueDate') {
+      const currentDraft = drafts.find((d) => d.id === id);
+      if (value && currentDraft?.date && value < currentDraft.date) {
+        setDrafts((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, dueDate: '' } : d))
+        );
+        setErrors((prev) => ({
+          ...prev,
+          [`${id}-dueDate`]: 'Cannot be before task date',
+        }));
+        return;
+      }
+    }
+    if (field === 'date') {
+      const currentDraft = drafts.find((d) => d.id === id);
+      if (value && currentDraft?.dueDate && currentDraft.dueDate < value) {
+        setDrafts((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, date: value, dueDate: '' } : d))
+        );
+        setErrors((prev) => ({
+          ...prev,
+          [`${id}-dueDate`]: 'Cannot be before task date',
+        }));
+        return;
+      }
+    }
+
     setDrafts((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
     );
-    if (errors[`${id}-${field}`]) {
-      setErrors((e) => {
-        const next = { ...e };
+
+    const currentDraft = drafts.find((d) => d.id === id);
+    const updatedDraft = currentDraft ? { ...currentDraft, [field]: value } : { [field]: value };
+    const fieldErr = validateSingleField(field, value, updatedDraft as any);
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (fieldErr) {
+        next[`${id}-${field}`] = fieldErr;
+        if (field === 'pendingReason' && updatedDraft.workStatus === 'Pending') next[`${id}-reason`] = fieldErr;
+        if (field === 'inProgressReason' && updatedDraft.workStatus === 'InProgress') next[`${id}-reason`] = fieldErr;
+        if (field === 'completedRemarks' && updatedDraft.workStatus === 'Completed') next[`${id}-remarks`] = fieldErr;
+      } else {
         delete next[`${id}-${field}`];
-        return next;
-      });
-    }
+        if (field === 'pendingReason') delete next[`${id}-reason`];
+        if (field === 'inProgressReason') delete next[`${id}-reason`];
+        if (field === 'completedRemarks') delete next[`${id}-remarks`];
+      }
+      if (field === 'dueDate' && !fieldErr) {
+        delete next[`${id}-dueDate`];
+      }
+      if (field === 'date' && (!updatedDraft.dueDate || (value && updatedDraft.dueDate >= value))) {
+        delete next[`${id}-dueDate`];
+      }
+      return next;
+    });
   }
 
   function handleAddAnotherTask() {
@@ -98,16 +179,6 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
       setActiveRegenId(null);
       setRegenInstruction('');
     }
-  }
-
-  function handleConfirmDiscard() {
-    setDrafts([createEmptyDraft(defaultFilters)]);
-    setErrors({});
-    setShowDiscardConfirm(false);
-    setActiveRegenId(null);
-    setRegenInstruction('');
-    if (setAiError) setAiError(null);
-    onCancel();
   }
 
   async function handleImproveWithAi(draft: DraftTask, index: number) {
@@ -159,13 +230,11 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
 
   function validateDrafts(): boolean {
     const errs: Record<string, string> = {};
-    drafts.forEach((d, i) => {
-      if (!d.title.trim()) {
-        errs[`${d.id}-title`] = `Task ${i + 1}: Title is required`;
-      }
-      if (!d.date) {
-        errs[`${d.id}-date`] = `Task ${i + 1}: Date is required`;
-      }
+    drafts.forEach((d) => {
+      const fieldErrs = validateTaskForm(d);
+      Object.entries(fieldErrs).forEach(([field, msg]) => {
+        errs[`${d.id}-${field}`] = msg;
+      });
     });
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -204,74 +273,8 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
     }
   }
 
-  const hasDirtyContent = drafts.some(
-    (d) => d.title.trim().length > 0 || d.description.trim().length > 0
-  );
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
-      {showDiscardConfirm && (
-        <div
-          className="app-dialog-overlay"
-          onClick={() => setShowDiscardConfirm(false)}
-        >
-          <div
-            className="app-dialog-box"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 420 }}
-          >
-            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
-
-            <div className="app-dialog-header">
-              <div className="app-dialog-header-left">
-                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
-                  <AlertTriangle style={{ width: 22, height: 22 }} />
-                </div>
-                <div>
-                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
-                    Warning
-                  </div>
-                  <h3 className="app-dialog-title">Discard Unsaved Tasks?</h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDiscardConfirm(false)}
-                className="app-dialog-close-btn"
-                aria-label="Close"
-              >
-                <X style={{ width: 18, height: 18 }} />
-              </button>
-            </div>
-
-            <div className="app-dialog-body">
-              <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
-                {drafts.length > 1
-                  ? `Are you sure you want to discard all ${drafts.length} unsaved task drafts? All entered content will be lost.`
-                  : 'Are you sure you want to discard this unsaved task? All entered content will be lost.'}
-              </p>
-            </div>
-
-            <div className="app-dialog-footer">
-              <button
-                type="button"
-                className="app-dialog-btn-cancel"
-                onClick={() => setShowDiscardConfirm(false)}
-              >
-                Keep Editing
-              </button>
-              <button
-                type="button"
-                className="app-dialog-btn-action app-dialog-btn-danger"
-                onClick={handleConfirmDiscard}
-              >
-                Yes, Discard All
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div 
         className="manual-task-form-body" 
         style={{ 
@@ -307,9 +310,27 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
         )}
 
         {drafts.map((draft, i) => {
+          const fieldNames = [
+            'title',
+            'description',
+            'givenBy',
+            'contactPerson',
+            'date',
+            'dueDate',
+            'priority',
+            'workStatus',
+            'reason',
+            'remarks',
+            'pendingReason',
+            'inProgressReason',
+            'completedRemarks',
+          ];
           const draftErrors: Record<string, string> = {};
-          if (errors[`${draft.id}-title`]) draftErrors.title = errors[`${draft.id}-title`];
-          if (errors[`${draft.id}-date`]) draftErrors.date = errors[`${draft.id}-date`];
+          fieldNames.forEach((f) => {
+            if (errors[`${draft.id}-${f}`]) {
+              draftErrors[f] = errors[`${draft.id}-${f}`];
+            }
+          });
 
           const isThisRegenerating = regeneratingIndex === i;
           const isRegenBoxOpen = activeRegenId === draft.id;
@@ -631,11 +652,11 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel }: Ma
             Cancel
           </button>
 
-          {(drafts.length > 1 || hasDirtyContent) && (
+          {isDirty && (
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => setShowDiscardConfirm(true)}
+              onClick={onCancel}
               disabled={saving || regeneratingIndex !== null}
               style={{ color: 'var(--high)' }}
             >

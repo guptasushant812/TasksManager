@@ -12,6 +12,7 @@ import {
 import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 import { fetchAiDraftState, saveAiDraftState, deleteAiDraftState } from '@/lib/aiDraftService';
 import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { validateSingleField, validateTaskForm } from '@/lib/taskValidation';
 
 function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
@@ -178,21 +179,77 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   }
 
   function handleDraftChange(index: number, field: string, value: string) {
+    if (field === 'dueDate') {
+      const currentDraft = drafts[index];
+      if (value && currentDraft?.date && value < currentDraft.date) {
+        setDrafts((prev) => {
+          const next = [...prev];
+          next[index] = { ...next[index], dueDate: '' };
+          return next;
+        });
+        setErrors((prev) => ({
+          ...prev,
+          [`${index}-dueDate`]: 'Cannot be before task date',
+        }));
+        return;
+      }
+    }
+    if (field === 'date') {
+      const currentDraft = drafts[index];
+      if (value && currentDraft?.dueDate && currentDraft.dueDate < value) {
+        setDrafts((prev) => {
+          const next = [...prev];
+          next[index] = { ...next[index], date: value, dueDate: '' };
+          return next;
+        });
+        setErrors((prev) => ({
+          ...prev,
+          [`${index}-dueDate`]: 'Cannot be before task date',
+        }));
+        return;
+      }
+    }
+
     setDrafts((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
       return next;
     });
-    if (errors[`${index}-${field}`]) {
-      setErrors((e) => { const n = { ...e }; delete n[`${index}-${field}`]; return n; });
-    }
+
+    const currentDraft = drafts[index];
+    const updatedDraft = currentDraft ? { ...currentDraft, [field]: value } : { [field]: value };
+    const fieldErr = validateSingleField(field, value, updatedDraft as any);
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (fieldErr) {
+        next[`${index}-${field}`] = fieldErr;
+        if (field === 'pendingReason' && updatedDraft.workStatus === 'Pending') next[`${index}-reason`] = fieldErr;
+        if (field === 'inProgressReason' && updatedDraft.workStatus === 'InProgress') next[`${index}-reason`] = fieldErr;
+        if (field === 'completedRemarks' && updatedDraft.workStatus === 'Completed') next[`${index}-remarks`] = fieldErr;
+      } else {
+        delete next[`${index}-${field}`];
+        if (field === 'pendingReason') delete next[`${index}-reason`];
+        if (field === 'inProgressReason') delete next[`${index}-reason`];
+        if (field === 'completedRemarks') delete next[`${index}-remarks`];
+      }
+      if (field === 'dueDate' && !fieldErr) {
+        delete next[`${index}-dueDate`];
+      }
+      if (field === 'date' && (!updatedDraft.dueDate || (value && updatedDraft.dueDate >= value))) {
+        delete next[`${index}-dueDate`];
+      }
+      return next;
+    });
   }
 
   function validateDrafts(): boolean {
     const errs: Record<string, string> = {};
     drafts.forEach((d, i) => {
-      if (!d.title.trim()) errs[`${i}-title`] = 'Title is required';
-      if (!d.date) errs[`${i}-date`] = 'Task date is required';
+      const fieldErrs = validateTaskForm(d);
+      Object.entries(fieldErrs).forEach(([field, msg]) => {
+        errs[`${i}-${field}`] = msg;
+      });
     });
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -768,9 +825,27 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
         {drafts.map((draft, i) => {
+          const fieldNames = [
+            'title',
+            'description',
+            'givenBy',
+            'contactPerson',
+            'date',
+            'dueDate',
+            'priority',
+            'workStatus',
+            'reason',
+            'remarks',
+            'pendingReason',
+            'inProgressReason',
+            'completedRemarks',
+          ];
           const draftErrors: Record<string, string> = {};
-          if (errors[`${i}-title`]) draftErrors.title = errors[`${i}-title`];
-          if (errors[`${i}-date`]) draftErrors.date = errors[`${i}-date`];
+          fieldNames.forEach((f) => {
+            if (errors[`${i}-${f}`]) {
+              draftErrors[f] = errors[`${i}-${f}`];
+            }
+          });
 
           const isThisRegenerating = regeneratingIndex === i;
           const isRegenBoxOpen = activeRegenIndex === i;

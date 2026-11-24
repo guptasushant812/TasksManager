@@ -6,6 +6,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { toIsoDate } from '@/lib/dates';
 import TaskFormFields from './TaskFormFields';
 import { normalizeGivenBy } from '@/lib/normalizeGivenBy';
+import { validateSingleField, validateTaskForm } from '@/lib/taskValidation';
 import { X, Save, Sparkles, RefreshCw, Check, CloudCheck, CheckCircle2 } from 'lucide-react';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import AiQuotaModal from './AiQuotaModal';
@@ -257,14 +258,46 @@ export default function EditTaskModal({ task, onClose, onSaved }: EditTaskModalP
   const canRegenerate = instructionValidation.isValid && !isRegenerating;
 
   function handleChange(field: string, value: string) {
+    if (field === 'dueDate' && value && data.date && value < data.date) {
+      setData((d) => ({ ...d, dueDate: '' }));
+      setErrors((e) => ({ ...e, dueDate: 'Cannot be before task date' }));
+      return;
+    }
+    if (field === 'date' && value && data.dueDate && data.dueDate < value) {
+      setData((d) => ({ ...d, date: value, dueDate: '' }));
+      setErrors((e) => ({ ...e, dueDate: 'Cannot be before task date' }));
+      return;
+    }
+
     setData((d) => ({ ...d, [field]: value }));
-    if (errors[field]) setErrors((e) => { const n = { ...e }; delete n[field]; return n; });
+
+    const updatedData = { ...data, [field]: value };
+    const err = validateSingleField(field, value, updatedData);
+    setErrors((e) => {
+      const n = { ...e };
+      if (err) {
+        n[field] = err;
+        if (field === 'pendingReason' && updatedData.workStatus === 'Pending') n.reason = err;
+        if (field === 'inProgressReason' && updatedData.workStatus === 'InProgress') n.reason = err;
+        if (field === 'completedRemarks' && updatedData.workStatus === 'Completed') n.remarks = err;
+      } else {
+        delete n[field];
+        if (field === 'pendingReason') delete n.reason;
+        if (field === 'inProgressReason') delete n.reason;
+        if (field === 'completedRemarks') delete n.remarks;
+      }
+      if (field === 'dueDate' && !err) {
+        delete n.dueDate;
+      }
+      if (field === 'date' && (!updatedData.dueDate || (value && updatedData.dueDate >= value))) {
+        delete n.dueDate;
+      }
+      return n;
+    });
   }
 
   function validate(): boolean {
-    const errs: Record<string, string> = {};
-    if (!data.title.trim()) errs.title = 'Title is required';
-    if (!data.date) errs.date = 'Task date is required';
+    const errs = validateTaskForm(data);
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }

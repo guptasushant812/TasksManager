@@ -67,6 +67,30 @@ interface TaskFormFieldsProps {
 }
 
 export default function TaskFormFields({ data, onChange, errors = {} }: TaskFormFieldsProps) {
+  const [localDueDateError, setLocalDueDateError] = useState<string | null>(null);
+
+  const handleDueDateChange = (val: string) => {
+    if (val && data.date && val < data.date) {
+      setLocalDueDateError('Cannot be before task date');
+      onChange('dueDate', '');
+      return;
+    }
+    setLocalDueDateError(null);
+    onChange('dueDate', val);
+  };
+
+  const handleDateChange = (val: string) => {
+    onChange('date', val);
+    if (val && data.dueDate && data.dueDate < val) {
+      setLocalDueDateError('Cannot be before task date');
+      onChange('dueDate', '');
+    } else if (localDueDateError && (!data.dueDate || (val && data.dueDate >= val))) {
+      setLocalDueDateError(null);
+    }
+  };
+
+  const effectiveDueDateError = errors.dueDate || localDueDateError;
+
   const initialStatus = data.workStatus === 'Completed' || data.workStatus === 'InProgress' || data.workStatus === 'Pending' 
     ? data.workStatus 
     : 'Pending';
@@ -180,7 +204,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
       </div>
 
       <div>
-        <label className="label" htmlFor="field-description" style={{ marginBottom: 4 }}>Description</label>
+        <label className="label" htmlFor="field-description" style={{ marginBottom: 4 }}>Description *</label>
         <AutoResizeTextarea
           id="field-description"
           placeholder="Full task description — what needs to be done, references, etc."
@@ -189,12 +213,14 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
           minHeight={58}
           maxHeight={260}
           allowManualResize={true}
+          style={{ borderColor: errors.description ? 'var(--high)' : undefined }}
         />
+        {errors.description && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.description}</span>}
       </div>
 
       <div className="task-form-grid-2col">
         <div>
-          <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By</label>
+          <label className="label" htmlFor="field-givenBy" style={{ marginBottom: 4 }}>Given By *</label>
           <input
             id="field-givenBy"
             className="input hide-datalist-arrow"
@@ -210,12 +236,14 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
                 onChange('givenBy', normalizeGivenBy(data.givenBy));
               }
             }}
+            style={{ borderColor: errors.givenBy ? 'var(--high)' : undefined }}
           />
           <datalist id="given-by-options">
             {matchingSuggestions.map((name) => (
               <option key={name} value={name} />
             ))}
           </datalist>
+          {errors.givenBy && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.givenBy}</span>}
         </div>
         <div>
           <label className="label" htmlFor="field-contactPerson" style={{ marginBottom: 4 }}>Contact Person</label>
@@ -226,7 +254,9 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             placeholder="Person to follow up with"
             value={data.contactPerson}
             onChange={(e) => onChange('contactPerson', e.target.value)}
+            style={{ borderColor: errors.contactPerson ? 'var(--high)' : undefined }}
           />
+          {errors.contactPerson && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.contactPerson}</span>}
         </div>
       </div>
 
@@ -238,7 +268,7 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             className="input"
             type="date"
             value={data.date}
-            onChange={(e) => onChange('date', e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
             style={{ borderColor: errors.date ? 'var(--high)' : undefined }}
           />
           {errors.date && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.date}</span>}
@@ -249,12 +279,19 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
             id="field-dueDate"
             className="input"
             type="date"
+            min={data.date || undefined}
             value={data.dueDate}
-            onChange={(e) => onChange('dueDate', e.target.value)}
+            onChange={(e) => handleDueDateChange(e.target.value)}
+            style={{ borderColor: effectiveDueDateError ? 'var(--high)' : undefined }}
           />
+          {effectiveDueDateError && (
+            <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>
+              {effectiveDueDateError}
+            </span>
+          )}
         </div>
         <div className="task-form-field-priority">
-          <label className="label" style={{ marginBottom: 4 }}>Priority</label>
+          <label className="label" style={{ marginBottom: 4 }}>Priority *</label>
           <div className="priority-button-group" style={{ display: 'flex', gap: 6, width: '100%', minWidth: 0, height: 42, alignItems: 'stretch' }}>
             {PRIORITIES.map((p) => {
               const isSelected = data.priority === p;
@@ -294,18 +331,21 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               );
             })}
           </div>
+          {errors.priority && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.priority}</span>}
         </div>
         <div className="task-form-field-status">
-          <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work Status</label>
+          <label className="label" htmlFor="field-workStatus" style={{ marginBottom: 4 }}>Work Status *</label>
           <select
             id="field-workStatus"
             className="input"
             value={data.workStatus}
             onChange={(e) => handleStatusChange(e.target.value as WorkStatus | '')}
+            style={{ borderColor: errors.workStatus ? 'var(--high)' : undefined }}
           >
             <option value="">Select status…</option>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+          {errors.workStatus && <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>{errors.workStatus}</span>}
         </div>
       </div>
 
@@ -425,8 +465,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
-              style={{ borderColor: 'var(--pending)' }}
+              style={{
+                borderColor: (errors.pendingReason || (data.workStatus === 'Pending' && errors.reason))
+                  ? 'var(--high)'
+                  : 'var(--pending)',
+              }}
             />
+            {(errors.pendingReason || (data.workStatus === 'Pending' && errors.reason)) && (
+              <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>
+                {errors.pendingReason || errors.reason}
+              </span>
+            )}
           </div>
         )}
 
@@ -443,8 +492,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
-              style={{ borderColor: 'var(--inprogress)' }}
+              style={{
+                borderColor: (errors.inProgressReason || (data.workStatus === 'InProgress' && errors.reason))
+                  ? 'var(--high)'
+                  : 'var(--inprogress)',
+              }}
             />
+            {(errors.inProgressReason || (data.workStatus === 'InProgress' && errors.reason)) && (
+              <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>
+                {errors.inProgressReason || errors.reason}
+              </span>
+            )}
           </div>
         )}
 
@@ -461,8 +519,17 @@ export default function TaskFormFields({ data, onChange, errors = {} }: TaskForm
               minHeight={50}
               maxHeight={200}
               allowManualResize={true}
-              style={{ borderColor: 'var(--completed)' }}
+              style={{
+                borderColor: (errors.completedRemarks || (data.workStatus === 'Completed' && errors.remarks))
+                  ? 'var(--high)'
+                  : 'var(--completed)',
+              }}
             />
+            {(errors.completedRemarks || (data.workStatus === 'Completed' && errors.remarks)) && (
+              <span style={{ fontSize: 11, color: 'var(--high)', marginTop: 4, display: 'block' }}>
+                {errors.completedRemarks || errors.remarks}
+              </span>
+            )}
           </div>
         )}
 
