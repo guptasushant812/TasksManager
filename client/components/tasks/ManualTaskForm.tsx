@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAiDraft } from '@/hooks/useAiDraft';
 import { toIsoDate } from '@/lib/dates';
@@ -15,14 +15,20 @@ import {
   Sparkles,
   X,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
 } from 'lucide-react';
+import { fetchManualDraftState, saveManualDraftState, deleteManualDraftState } from '@/lib/aiDraftService';
+
+export type SyncStatus = 'idle' | 'saving' | 'synced' | 'local_only';
 
 interface ManualTaskFormProps {
   defaultFilters: TaskFilters;
   onSaved: () => void;
   onCancel: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
+  onSyncStatusChange?: (status: SyncStatus, isRestoring: boolean) => void;
+  onProcessingChange?: (isProcessing: boolean) => void;
 }
 
 interface DraftTask extends TaskDraft {
@@ -80,15 +86,31 @@ function isDraftDirty(d: DraftTask, defaultFilters?: TaskFilters): boolean {
   return false;
 }
 
-export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDirtyChange }: ManualTaskFormProps) {
+export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDirtyChange, onSyncStatusChange, onProcessingChange }: ManualTaskFormProps) {
   const [drafts, setDrafts] = useState<DraftTask[]>([createEmptyDraft(defaultFilters)]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [isRestoring, setIsRestoring] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedPayloadRef = useRef<string>('');
+  const isDeletingRef = useRef(false);
 
-  // Single-task AI refinement state
   const [activeRegenId, setActiveRegenId] = useState<string | null>(null);
   const [regenInstruction, setRegenInstruction] = useState('');
   const [justImprovedId, setJustImprovedId] = useState<string | null>(null);
+
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    cancelText: string;
+    confirmText: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const { createTask } = useTasks();
   const {
@@ -100,6 +122,104 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
   } = useAiDraft();
 
   const isDirty = drafts.length > 1 || drafts.some((d) => isDraftDirty(d, defaultFilters));
+  const isProcessing = saving || regeneratingIndex !== null;
+  const firstIncompleteIndex = drafts.findIndex((d) => Object.keys(validateTaskForm(d)).length > 0);
+  const canAddAnother = firstIncompleteIndex === -1;
+  const incompleteTaskNum = firstIncompleteIndex !== -1 ? firstIncompleteIndex + 1 : 1;
+
+  useEffect(() => {
+    onProcessingChange?.(isProcessing);
+    return () => {
+      onProcessingChange?.(false);
+    };
+  }, [isProcessing, onProcessingChange]);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsRestoring(true);
+
+    fetchManualDraftState()
+      .then((res) => {
+        if (!isMounted || isDeletingRef.current) return;
+        const manualDrafts = res?.drafts;
+
+        if (Array.isArray(manualDrafts) && manualDrafts.length > 0) {
+          const restoredDrafts: DraftTask[] = manualDrafts.map((d: any) => ({
+            id: d.id || generateId(),
+            title: d.title || '',
+            description: d.description || '',
+            givenBy: d.givenBy || defaultFilters?.givenBy || '',
+            contactPerson: d.contactPerson || '',
+            priority: (d.priority as Priority) || 'Medium',
+            workStatus: (d.workStatus as WorkStatus) || 'Pending',
+            reason: d.reason || '',
+            remarks: d.remarks || '',
+            pendingReason: d.pendingReason || '',
+            inProgressReason: d.inProgressReason || '',
+            completedRemarks: d.completedRemarks || '',
+            date: d.date || (defaultFilters?.day ? toIsoDate(defaultFilters.day) : toIsoDate(new Date())),
+            dueDate: d.dueDate || '',
+          }));
+
+          setDrafts(restoredDrafts);
+          lastSavedPayloadRef.current = JSON.stringify(restoredDrafts.map(({ id, ...rest }) => rest));
+          setSyncStatus('synced');
+        } else {
+          setSyncStatus('idle');
+        }
+      })
+      .catch((e) => {
+        console.error('Failed to load manual draft from cloud:', e);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsRestoring(false);
+          setIsHydrated(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || isRestoring || isDeletingRef.current) return;
+
+    if (!isDirty) {
+      deleteManualDraftState();
+      lastSavedPayloadRef.current = '';
+      setSyncStatus('idle');
+      return;
+    }
+
+    const cleanDrafts = drafts.map(({ id, ...rest }) => rest);
+    const currentPayload = JSON.stringify(cleanDrafts);
+    if (currentPayload === lastSavedPayloadRef.current) {
+      return;
+    }
+
+    setSyncStatus('saving');
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(async () => {
+      if (isDeletingRef.current) return;
+      const success = await saveManualDraftState(cleanDrafts as TaskDraft[]);
+      if (success) {
+        lastSavedPayloadRef.current = currentPayload;
+        setSyncStatus('synced');
+      } else {
+        setSyncStatus('local_only');
+      }
+    }, 700);
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [drafts, isDirty, isHydrated, isRestoring]);
 
   useEffect(() => {
     onDirtyChange?.(isDirty);
@@ -107,6 +227,10 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
       onDirtyChange?.(false);
     };
   }, [isDirty, onDirtyChange]);
+
+  useEffect(() => {
+    onSyncStatusChange?.(syncStatus, isRestoring);
+  }, [syncStatus, isRestoring, onSyncStatusChange]);
 
   function handleDraftChange(id: string, field: string, value: string) {
     if (field === 'dueDate') {
@@ -167,18 +291,112 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
     });
   }
 
+  useEffect(() => {
+    if (drafts.length <= 1 && isSelectMode) {
+      setIsSelectMode(false);
+      setSelectedTaskIds(new Set());
+    }
+  }, [drafts.length, isSelectMode]);
+
   function handleAddAnotherTask() {
+    if (!canAddAnother) return;
     setDrafts((prev) => [...prev, createEmptyDraft(defaultFilters)]);
   }
 
-  function handleRemoveDraft(id: string) {
+  function handleDiscardClick() {
+    if (drafts.length === 1) {
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Discard this draft?',
+        description: 'All unsaved details you entered in this form will be permanently cleared.',
+        cancelText: 'Keep Draft',
+        confirmText: 'Yes, Discard',
+        onConfirm: () => {
+          isDeletingRef.current = true;
+          deleteManualDraftState();
+          setDrafts([createEmptyDraft(defaultFilters)]);
+          setErrors({});
+          setActiveRegenId(null);
+          setRegenInstruction('');
+          setSyncStatus('idle');
+          lastSavedPayloadRef.current = '';
+          setTimeout(() => {
+            isDeletingRef.current = false;
+          }, 500);
+        },
+      });
+    } else {
+      setIsSelectMode(true);
+      setSelectedTaskIds(new Set());
+    }
+  }
+
+  function handlePromptDiscardSelected() {
+    const count = selectedTaskIds.size;
+    if (count === 0) return;
+
+    const isAll = count === drafts.length;
+
+    setConfirmDialog({
+      isOpen: true,
+      title: isAll
+        ? 'Discard all drafts?'
+        : count === 1
+        ? 'Discard selected task?'
+        : `Discard ${count} selected tasks?`,
+      description: isAll
+        ? 'All unsaved tasks and entered details will be cleared and reset.'
+        : count === 1
+        ? 'The selected task and its entered details will be removed from your list.'
+        : `The ${count} selected tasks and their entered details will be removed from your list.`,
+      cancelText: count === 1 ? 'Keep Task' : 'Keep Tasks',
+      confirmText: 'Yes, Discard',
+      onConfirm: () => {
+        if (isAll) {
+          isDeletingRef.current = true;
+          deleteManualDraftState();
+          setDrafts([createEmptyDraft(defaultFilters)]);
+          setErrors({});
+          setActiveRegenId(null);
+          setRegenInstruction('');
+          setSyncStatus('idle');
+          lastSavedPayloadRef.current = '';
+          setIsSelectMode(false);
+          setSelectedTaskIds(new Set());
+          setTimeout(() => {
+            isDeletingRef.current = false;
+          }, 500);
+        } else {
+          setDrafts((prev) => prev.filter((d) => !selectedTaskIds.has(d.id)));
+          setIsSelectMode(false);
+          setSelectedTaskIds(new Set());
+        }
+      },
+    });
+  }
+
+  function promptRemoveDraft(draft: DraftTask, index: number) {
     if (drafts.length <= 1) return;
 
-    setDrafts((prev) => prev.filter((d) => d.id !== id));
-    if (activeRegenId === id) {
-      setActiveRegenId(null);
-      setRegenInstruction('');
-    }
+    const taskNum = index + 1;
+    const taskTitle = draft.title.trim();
+
+    setConfirmDialog({
+      isOpen: true,
+      title: `Remove Task ${taskNum}?`,
+      description: taskTitle
+        ? `Task ${taskNum} ("${taskTitle}") and its entered details will be removed from your list.`
+        : `Task ${taskNum} and its entered details will be removed from your list.`,
+      cancelText: 'Keep Task',
+      confirmText: 'Yes, Remove',
+      onConfirm: () => {
+        setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
+        if (activeRegenId === draft.id) {
+          setActiveRegenId(null);
+          setRegenInstruction('');
+        }
+      },
+    });
   }
 
   async function handleImproveWithAi(draft: DraftTask, index: number) {
@@ -265,6 +483,8 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
           userId: null,
         });
       }
+      isDeletingRef.current = true;
+      await deleteManualDraftState();
       onSaved();
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'Failed to save tasks' });
@@ -272,6 +492,75 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
       setSaving(false);
     }
   }
+
+  const renderConfirmDialog = () => {
+    if (!confirmDialog || !confirmDialog.isOpen) return null;
+
+    return (
+      <div
+        className="app-dialog-overlay"
+        style={{ zIndex: 1000 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="app-dialog-box"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 420 }}
+        >
+          <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+          <div className="app-dialog-header">
+            <div className="app-dialog-header-left">
+              <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                <AlertTriangle style={{ width: 22, height: 22 }} />
+              </div>
+              <div>
+                <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                  Warning
+                </div>
+                <h3 className="app-dialog-title">{confirmDialog.title}</h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setConfirmDialog(null)}
+              className="app-dialog-close-btn"
+              aria-label="Close"
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
+          </div>
+
+          <div className="app-dialog-body">
+            <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+              {confirmDialog.description}
+            </p>
+          </div>
+
+          <div className="app-dialog-footer">
+            <button
+              type="button"
+              className="app-dialog-btn-cancel"
+              onClick={() => setConfirmDialog(null)}
+            >
+              {confirmDialog.cancelText}
+            </button>
+            <button
+              type="button"
+              className="app-dialog-btn-action app-dialog-btn-danger"
+              onClick={() => {
+                const action = confirmDialog.onConfirm;
+                setConfirmDialog(null);
+                action();
+              }}
+            >
+              {confirmDialog.confirmText}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -335,6 +624,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
           const isThisRegenerating = regeneratingIndex === i;
           const isRegenBoxOpen = activeRegenId === draft.id;
           const wasJustImproved = justImprovedId === draft.id;
+          const isSelectedForDiscard = isSelectMode && selectedTaskIds.has(draft.id);
 
           return (
             <div
@@ -344,7 +634,9 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
                 position: 'relative',
                 borderTop: '1px solid var(--accent)',
                 borderLeft: isThisRegenerating ? '2px solid var(--accent)' : wasJustImproved ? '2px solid var(--completed)' : undefined,
-                transition: 'border 0.2s ease',
+                border: isSelectedForDiscard ? '1px solid rgba(239, 68, 68, 0.45)' : undefined,
+                boxShadow: isSelectedForDiscard ? '0 0 12px -2px rgba(239, 68, 68, 0.2)' : undefined,
+                transition: 'border 0.2s ease, box-shadow 0.2s ease',
                 width: '100%',
                 maxWidth: '100%',
                 boxSizing: 'border-box',
@@ -354,6 +646,49 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
             >
               <div className="manual-task-card-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {isSelectMode && (
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        padding: '4px',
+                        borderRadius: 'var(--radius-sm, 4px)',
+                        background: isSelectedForDiscard ? 'var(--high-bg)' : 'rgba(255, 255, 255, 0.03)',
+                        border: isSelectedForDiscard ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid var(--border-subtle)',
+                        transition: 'all 0.15s ease',
+                      }}
+                      title="Select task to discard"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelectedForDiscard}
+                        onChange={() => {
+                          setSelectedTaskIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(draft.id)) {
+                              next.delete(draft.id);
+                            } else {
+                              next.add(draft.id);
+                            }
+                            return next;
+                          });
+                        }}
+                        style={{
+                          accentColor: 'var(--high)',
+                          cursor: 'pointer',
+                          width: 16,
+                          height: 16,
+                          margin: 0,
+                          display: 'block',
+                        }}
+                        aria-label={`Select Task ${i + 1} to discard`}
+                      />
+                    </label>
+                  )}
+
                   <h3
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
@@ -431,7 +766,7 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
                   {drafts.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => handleRemoveDraft(draft.id)}
+                      onClick={() => promptRemoveDraft(draft, i)}
                       disabled={isThisRegenerating || saving}
                       style={{
                         background: 'none',
@@ -587,41 +922,61 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
           );
         })}
 
-        <button
-          type="button"
-          onClick={handleAddAnotherTask}
+        <div
+          title={
+            !canAddAnother
+              ? `Fill in required fields (*) in Task ${incompleteTaskNum} before adding another task`
+              : 'Add another task card'
+          }
           style={{
             width: '100%',
             maxWidth: '100%',
-            boxSizing: 'border-box',
-            padding: '14px 20px',
-            background: 'var(--bg-surface)',
-            border: '2px dashed var(--border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: '0.04em',
-            fontFamily: "'JetBrains Mono', monospace",
-            textTransform: 'uppercase',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent)';
-            e.currentTarget.style.color = 'var(--accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border)';
-            e.currentTarget.style.color = 'var(--text-secondary)';
+            cursor: !canAddAnother ? 'not-allowed' : 'pointer',
           }}
         >
-          <Plus style={{ width: 16, height: 16 }} /> Add Another Task
-        </button>
+          <button
+            type="button"
+            onClick={handleAddAnotherTask}
+            disabled={!canAddAnother}
+            style={{
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              padding: '14px 20px',
+              background: canAddAnother ? 'var(--bg-surface)' : 'transparent',
+              border: canAddAnother ? '2px dashed var(--border)' : '1.5px dashed var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              color: canAddAnother ? 'var(--text-secondary)' : 'var(--text-muted)',
+              cursor: canAddAnother ? 'pointer' : 'not-allowed',
+              opacity: canAddAnother ? 1 : 0.45,
+              pointerEvents: canAddAnother ? 'auto' : 'none',
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              fontFamily: "'JetBrains Mono', monospace",
+              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (canAddAnother) {
+                e.currentTarget.style.borderColor = 'var(--accent)';
+                e.currentTarget.style.color = 'var(--accent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (canAddAnother) {
+                e.currentTarget.style.borderColor = 'var(--border)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }
+            }}
+          >
+            <Plus style={{ width: 16, height: 16 }} /> Add Another Task
+          </button>
+        </div>
 
       {errors.submit && (
         <div
@@ -641,60 +996,128 @@ export default function ManualTaskForm({ defaultFilters, onSaved, onCancel, onDi
 
       </div>
 
-      <div className="manual-task-footer">
-        <div className="manual-task-footer-secondary">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={onCancel}
-            disabled={saving || regeneratingIndex !== null}
-          >
-            Cancel
-          </button>
+      <div 
+        className="manual-task-footer"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 10,
+        }}
+      >
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          {isSelectMode
+            ? `Select tasks above to discard (${selectedTaskIds.size} selected)`
+            : 'Closing will preserve your draft automatically.'}
+        </span>
 
-          {isDirty && (
+        {isSelectMode ? (
+          <div className="manual-task-footer-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={onCancel}
+              onClick={() => {
+                setIsSelectMode(false);
+                setSelectedTaskIds(new Set());
+              }}
               disabled={saving || regeneratingIndex !== null}
-              style={{ color: 'var(--high)' }}
+              style={{ fontSize: 13 }}
             >
-              Discard All
+              Cancel
             </button>
-          )}
-        </div>
 
-        <div className="manual-task-footer-primary">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={saving || regeneratingIndex !== null}
-          >
-            {saving ? (
-              <>
-                <div
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    borderTopColor: '#fff',
-                    borderRadius: '50%',
-                  }}
-                />
-                <span>Saving {drafts.length > 1 ? `${drafts.length} Tasks` : 'Task'}…</span>
-              </>
-            ) : (
-              <>
-                <Save style={{ width: 14, height: 14 }} />
-                <span>Save {drafts.length > 1 ? `${drafts.length} Tasks` : 'Task'}</span>
-              </>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                if (selectedTaskIds.size === drafts.length) {
+                  setSelectedTaskIds(new Set());
+                } else {
+                  setSelectedTaskIds(new Set(drafts.map((d) => d.id)));
+                }
+              }}
+              disabled={saving || regeneratingIndex !== null}
+              style={{ fontSize: 13 }}
+            >
+              {selectedTaskIds.size === drafts.length ? 'Deselect All' : 'Select All'}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={handlePromptDiscardSelected}
+              disabled={saving || regeneratingIndex !== null || selectedTaskIds.size === 0}
+              style={{
+                color: 'var(--high)',
+                background: selectedTaskIds.size > 0 ? 'var(--high-bg)' : 'transparent',
+                border: selectedTaskIds.size > 0 ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid transparent',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.2s ease',
+                opacity: selectedTaskIds.size === 0 ? 0.45 : 1,
+                cursor: selectedTaskIds.size === 0 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <Trash2 style={{ width: 14, height: 14 }} />
+              <span>Discard{selectedTaskIds.size > 0 ? ` (${selectedTaskIds.size})` : ''}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="manual-task-footer-primary">
+            {isDirty && (
+              <button
+                type="button"
+                className="btn btn-ghost animate-fade-in"
+                onClick={handleDiscardClick}
+                disabled={saving || regeneratingIndex !== null}
+                style={{
+                  color: 'var(--high)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s ease',
+                }}
+                title="Discard entered task details"
+              >
+                <Trash2 style={{ width: 14, height: 14 }} />
+                <span>Discard</span>
+              </button>
             )}
-          </button>
-        </div>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmit}
+              disabled={saving || regeneratingIndex !== null}
+            >
+              {saving ? (
+                <>
+                  <div
+                    className="animate-spin"
+                    style={{
+                      width: 14,
+                      height: 14,
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      borderTopColor: '#fff',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <span>Saving {drafts.length > 1 ? `${drafts.length} Tasks` : 'Task'}…</span>
+                </>
+              ) : (
+                <>
+                  <Save style={{ width: 14, height: 14 }} />
+                  <span>Save {drafts.length > 1 ? `${drafts.length} Tasks` : 'Task'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
+
+      {renderConfirmDialog()}
     </div>
   );
 }
