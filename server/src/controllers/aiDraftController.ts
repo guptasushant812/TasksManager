@@ -407,6 +407,49 @@ export async function deleteAiDraftState(req: Request, res: Response, next: Next
   }
 }
 
+export async function getManualDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const draft = await AiDraftState.findOne({ userId }).lean();
+    if (!draft || !Array.isArray(draft.manualDrafts) || draft.manualDrafts.length === 0) {
+      return res.json({ drafts: [] });
+    }
+    return res.json({ drafts: draft.manualDrafts });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function saveManualDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    const { drafts = [] } = req.body;
+    const hasData = Array.isArray(drafts) && drafts.length > 0;
+
+    await AiDraftState.findOneAndUpdate(
+      { userId },
+      { $set: { manualDrafts: hasData ? drafts : [] } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    return res.json({ success: true, drafts: hasData ? drafts : [] });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteManualDraftState(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.headers['x-user-id'] as string) || 'default';
+    await AiDraftState.findOneAndUpdate(
+      { userId },
+      { $set: { manualDrafts: [] } }
+    );
+    return res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getTaskInstruction(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default';
@@ -542,6 +585,3 @@ export async function validateAiKey(req: Request, res: Response) {
     });
   }
 }
-
-
-

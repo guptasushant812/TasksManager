@@ -52,6 +52,41 @@ export async function deleteAiDraftState(): Promise<boolean> {
   }
 }
 
+export async function fetchManualDraftState(): Promise<{ drafts: TaskDraft[] } | null> {
+  try {
+    const res = await apiFetch<{ drafts: TaskDraft[] }>('/api/ai-draft/manual-state');
+    return res;
+  } catch (err) {
+    console.warn('Could not fetch manual draft state from server:', err);
+    return null;
+  }
+}
+
+export async function saveManualDraftState(drafts: TaskDraft[]): Promise<boolean> {
+  try {
+    const res = await apiFetch<{ success: boolean; drafts: TaskDraft[] }>('/api/ai-draft/manual-state', {
+      method: 'PUT',
+      body: { drafts },
+    });
+    return !!res?.success;
+  } catch (err) {
+    console.warn('Could not sync manual draft state to server:', err);
+    return false;
+  }
+}
+
+export async function deleteManualDraftState(): Promise<boolean> {
+  try {
+    await apiFetch('/api/ai-draft/manual-state', {
+      method: 'DELETE',
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not delete manual draft state from server:', err);
+    return false;
+  }
+}
+
 export async function fetchTaskInstruction(taskId: string): Promise<string> {
   if (!taskId) return '';
   try {

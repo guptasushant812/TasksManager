@@ -6,6 +6,9 @@ import {
   getAiDraftState,
   saveAiDraftState,
   deleteAiDraftState,
+  getManualDraftState,
+  saveManualDraftState,
+  deleteManualDraftState,
   validateAiKey,
   getTaskInstruction,
   saveTaskInstruction,
@@ -16,6 +19,9 @@ router.get('/providers', getAiProviders);
 router.get('/state', getAiDraftState);
 router.put('/state', saveAiDraftState);
 router.delete('/state', deleteAiDraftState);
+router.get('/manual-state', getManualDraftState);
+router.put('/manual-state', saveManualDraftState);
+router.delete('/manual-state', deleteManualDraftState);
 router.get('/instruction/:taskId', getTaskInstruction);
 router.put('/instruction/:taskId', saveTaskInstruction);
 router.post('/validate-key', validateAiKey);
