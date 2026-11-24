@@ -61,13 +61,14 @@ Always follow safe, professional, and disciplined version control practices. Det
 - **No Force-Pushes on Protected Branches**: Never run `git push --force` or `--force-with-lease` on `main` unless the user explicitly requested a history rewrite.
 - **Targeted Staging Only**: Avoid `git add .` or `git add -A` when untracked scratch or unrelated files are present. Stage only task-specific files and inspect with `git diff --staged`.
 
-### 2. Commit Message Standards (The 50/72 Layman Rule)
-Every commit message must follow the structure detailed in [`.agents/git/commit-standards.md`](.agents/git/commit-standards.md):
-- **Subject Line**: Maximum 50 characters, imperative mood, capitalized, no trailing period. Conventional prefix (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `perf:`, `docs:`).
+### 2. Commit Message Standards (Layman DRY Standard)
+Every commit message must follow clean, meaningful everyday English:
+<!-- NOTE: Strict character limit rule (50/72) is suspended/relaxed per user instruction. Focus on DRY and simple words. -->
+- **Subject Line**: Imperative mood, capitalized, conventional prefix (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `perf:`, `docs:`). Clear and concise without artificial length limits.
 - **Blank Line**: Exactly one blank line separating subject and body.
-- **Body**: Wrapped at 72 characters or fewer per line. Written in **simple everyday words (layman terms)** explaining what changed and why.
-- **Strictly DRY & No Padding**: Never repeat words, rephrase ideas, or add filler sentences just to make the body longer or reach character limits. State what was wrong and what was fixed in 1 to 2 short, crisp, professional sentences.
-- **Zero Artifacts & Buzzwords**: Never include prompt filenames (`MediaQueryPrompt.md`), test image names, or corporate hype (`MNC`, `Poka-Yoke`, `Enterprise`). Replace technical jargon with plain English.
+- **Body**: Written in **simple everyday words (layman terms)** explaining what changed and why. No fancy jargon or hard words.
+- **Strictly DRY & No Padding**: Never repeat words, ideas, or restate the subject in the body. State what was wrong and what was fixed in short, crisp, natural sentences.
+- **Zero Artifacts & Buzzwords**: Never include prompt filenames, test image names, or corporate hype. Replace technical jargon with plain everyday English.
 - **Pre-Commit Verification**: Always verify the proposed commit title and body with the user in chat before committing and pushing.
 
 ### 3. Logical Commit Separation & Decision-Making Rule
