@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { TaskFilters } from '@/types/task';
-import ManualTaskForm from './ManualTaskForm';
+import ManualTaskForm, { SyncStatus } from './ManualTaskForm';
 import AiInputForm from './AiInputForm';
-import { PenLine, Sparkles, X, ArrowLeft, AlertTriangle } from 'lucide-react';
-import { fetchAiDraftState } from '@/lib/aiDraftService';
+import { PenLine, Sparkles, X, ArrowLeft, RefreshCw, CloudCheck, CheckCircle2 } from 'lucide-react';
+import { fetchAiDraftState, fetchManualDraftState } from '@/lib/aiDraftService';
 
 interface NewTaskModalProps {
   defaultFilters: TaskFilters;
@@ -17,30 +17,27 @@ type Mode = null | 'manual' | 'ai';
 
 export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTaskModalProps) {
   const [mode, setMode] = useState<Mode>(null);
+  const [manualDraftCount, setManualDraftCount] = useState<number>(0);
   const [hasAiDraft, setHasAiDraft] = useState(false);
   const [draftCount, setDraftCount] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [isManualDirty, setIsManualDirty] = useState(false);
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'close' | 'back' | null>(null);
+  const [manualSyncStatus, setManualSyncStatus] = useState<SyncStatus>('idle');
+  const [isManualRestoring, setIsManualRestoring] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false);
+  isProcessingRef.current = isProcessing;
 
   const handleCloseModal = useCallback(() => {
-    if (mode === 'manual' && isManualDirty) {
-      setPendingAction('close');
-      setShowDiscardConfirm(true);
-      return;
-    }
+    if (isProcessingRef.current) return;
     onClose();
-  }, [mode, isManualDirty, onClose]);
+  }, [onClose]);
 
   const handleBackToSelection = useCallback(() => {
-    if (mode === 'manual' && isManualDirty) {
-      setPendingAction('back');
-      setShowDiscardConfirm(true);
-      return;
-    }
+    if (isProcessingRef.current) return;
     setMode(null);
-  }, [mode, isManualDirty]);
+    setManualSyncStatus('idle');
+    setIsProcessing(false);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -49,12 +46,10 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showDiscardConfirm) {
-          e.preventDefault();
-          return;
-        }
         e.preventDefault();
-        handleCloseModal();
+        if (!isProcessingRef.current) {
+          handleCloseModal();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -63,24 +58,20 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
       document.body.style.overflow = prev;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleCloseModal, showDiscardConfirm]);
-
-  const handleConfirmDiscard = () => {
-    setShowDiscardConfirm(false);
-    const action = pendingAction;
-    setPendingAction(null);
-    setIsManualDirty(false);
-    if (action === 'close') {
-      onClose();
-    } else {
-      setMode(null);
-    }
-  };
+  }, [handleCloseModal]);
 
   useEffect(() => {
     try {
       localStorage.removeItem('tasksmanager_ai_draft_state_v1');
     } catch {}
+
+    fetchManualDraftState().then((res) => {
+      if (res && Array.isArray(res.drafts) && res.drafts.length > 0) {
+        setManualDraftCount(res.drafts.length);
+      } else {
+        setManualDraftCount(0);
+      }
+    });
 
     fetchAiDraftState().then((res) => {
       const serverDraft = res?.draft;
@@ -126,8 +117,9 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
               <button
                 type="button"
                 onClick={handleBackToSelection}
+                disabled={isProcessing}
                 className="new-task-back-btn"
-                title="Back to selection"
+                title={isProcessing ? 'Please wait, request is processing…' : 'Back to selection'}
                 aria-label="Back to selection"
               >
                 <ArrowLeft style={{ width: 14, height: 14 }} />
@@ -141,14 +133,50 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
             </div>
           )}
 
-          <button
-            onClick={handleCloseModal}
-            className="new-task-close-btn"
-            title="Close modal"
-            aria-label="Close modal"
-          >
-            <X style={{ width: 16, height: 16 }} />
-          </button>
+          <div className="new-task-modal-header-actions">
+            {mode === 'manual' && (isManualRestoring || manualSyncStatus === 'saving' || manualSyncStatus === 'synced' || manualSyncStatus === 'local_only') && (
+              <div 
+                className={`new-task-sync-badge ${manualSyncStatus === 'saving' || isManualRestoring ? 'saving' : manualSyncStatus === 'synced' ? 'synced' : 'local'}`}
+                title={manualSyncStatus === 'synced' ? 'Draft synced across devices' : undefined}
+              >
+                {isManualRestoring ? (
+                  <>
+                    <RefreshCw style={{ width: 12, height: 12, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                    <span className="sync-text-full">Checking cloud draft…</span>
+                    <span className="sync-text-short">Checking…</span>
+                  </>
+                ) : manualSyncStatus === 'saving' ? (
+                  <>
+                    <RefreshCw style={{ width: 12, height: 12, flexShrink: 0, animation: 'spin 1s linear infinite' }} />
+                    <span className="sync-text-full">Syncing to cloud…</span>
+                    <span className="sync-text-short">Syncing…</span>
+                  </>
+                ) : manualSyncStatus === 'synced' ? (
+                  <>
+                    <CloudCheck style={{ width: 13, height: 13, flexShrink: 0 }} />
+                    <span className="sync-text-full">Synced across devices</span>
+                    <span className="sync-text-short">Synced</span>
+                  </>
+                ) : manualSyncStatus === 'local_only' ? (
+                  <>
+                    <CheckCircle2 style={{ width: 12, height: 12, flexShrink: 0 }} />
+                    <span className="sync-text-full">Draft saved locally</span>
+                    <span className="sync-text-short">Saved</span>
+                  </>
+                ) : null}
+              </div>
+            )}
+
+            <button
+              onClick={handleCloseModal}
+              disabled={isProcessing}
+              className="new-task-close-btn"
+              title={isProcessing ? 'Please wait, request is processing…' : 'Close modal'}
+              aria-label="Close modal"
+            >
+              <X style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
         </div>
 
         <div 
@@ -221,7 +249,11 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 defaultFilters={defaultFilters}
                 onSaved={onSaved}
                 onCancel={handleBackToSelection}
-                onDirtyChange={setIsManualDirty}
+                onSyncStatusChange={(status, restoring) => {
+                  setManualSyncStatus(status);
+                  setIsManualRestoring(restoring);
+                }}
+                onProcessingChange={setIsProcessing}
               />
             </div>
           )}
@@ -232,84 +264,12 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                 onSaved={onSaved}
                 onCancel={onClose}
                 onSwitchToManual={() => setMode('manual')}
+                onProcessingChange={setIsProcessing}
               />
             </div>
           )}
         </div>
       </div>
-
-      {showDiscardConfirm && (
-        <div
-          className="app-dialog-overlay"
-          style={{ zIndex: 1200 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            className="app-dialog-box animate-slide-up"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="new-task-discard-title"
-            aria-describedby="new-task-discard-desc"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 420 }}
-          >
-            <div className="app-dialog-accent-bar app-dialog-accent-danger" />
-
-            <div className="app-dialog-header">
-              <div className="app-dialog-header-left">
-                <div className="app-dialog-icon-wrap app-dialog-icon-danger">
-                  <AlertTriangle style={{ width: 22, height: 22 }} />
-                </div>
-                <div>
-                  <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
-                    Warning
-                  </div>
-                  <h3 id="new-task-discard-title" className="app-dialog-title">
-                    Discard unsaved changes?
-                  </h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDiscardConfirm(false);
-                  setPendingAction(null);
-                }}
-                className="app-dialog-close-btn"
-                aria-label="Close"
-              >
-                <X style={{ width: 18, height: 18 }} />
-              </button>
-            </div>
-
-            <div className="app-dialog-body">
-              <p id="new-task-discard-desc" className="app-dialog-desc" style={{ marginBottom: 0 }}>
-                You have unsaved changes. Are you sure you want to close without saving?
-              </p>
-            </div>
-
-            <div className="app-dialog-footer">
-              <button
-                type="button"
-                className="app-dialog-btn-cancel"
-                onClick={() => {
-                  setShowDiscardConfirm(false);
-                  setPendingAction(null);
-                }}
-              >
-                Keep Editing
-              </button>
-              <button
-                type="button"
-                className="app-dialog-btn-action app-dialog-btn-danger"
-                onClick={handleConfirmDiscard}
-              >
-                Discard Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>,
     document.body
   );
