@@ -206,7 +206,14 @@ export default function NewTaskModal({ defaultFilters, onClose, onSaved }: NewTa
                   <div className="new-task-card-content">
                     <div className="new-task-card-top">
                       <span className="new-task-card-title">Manual Form</span>
-                      <span className="new-task-card-chip manual">Standard</span>
+                      {manualDraftCount > 0 ? (
+                        <span className="new-task-card-chip manual-saved">
+                          <Sparkles className="new-task-chip-sparkle" />
+                          {manualDraftCount} Draft{manualDraftCount !== 1 ? 's' : ''}
+                        </span>
+                      ) : (
+                        <span className="new-task-card-chip manual">Standard</span>
+                      )}
                     </div>
                     <p className="new-task-card-desc">
                       Fill in task details yourself with full field controls.
