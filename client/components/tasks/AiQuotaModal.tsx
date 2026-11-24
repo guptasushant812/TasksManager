@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Clock, Key, ArrowRight, ExternalLink, RefreshCw, X, Check, ShieldCheck, Cpu } from 'lucide-react';
 import { RateLimitState } from '@/hooks/useAiDraft';
 
@@ -29,6 +29,17 @@ export default function AiQuotaModal({
   const [keySaved, setKeySaved] = useState(false);
   const [validating, setValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleSaveKey = async () => {
     const key = apiKeyInput.trim();
@@ -84,9 +95,7 @@ export default function AiQuotaModal({
         padding: '16px',
         animation: 'fadeIn 0.2s ease-out',
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div
         style={{

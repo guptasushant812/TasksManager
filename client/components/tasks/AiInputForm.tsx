@@ -382,7 +382,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     <div
       className="app-dialog-overlay"
       style={{ zIndex: 1000 }}
-      onClick={() => setShowDiscardConfirm(false)}
+      onClick={(e) => e.stopPropagation()}
     >
       <div
         className="app-dialog-box"
@@ -446,7 +446,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     <div
       className="app-dialog-overlay"
       style={{ zIndex: 1000 }}
-      onClick={() => setShowConfirmGenerate(false)}
+      onClick={(e) => e.stopPropagation()}
     >
       <div
         className="app-dialog-box"
@@ -668,9 +668,6 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             Closing will preserve your draft automatically.
           </span>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-ghost" onClick={onCancel} disabled={aiLoading} style={{ minHeight: 40, padding: '8px 16px' }}>
-              Close
-            </button>
             <button 
               className="btn btn-primary" 
               onClick={handleGenerate} 
@@ -1091,17 +1088,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           flexShrink: 0
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button 
-            type="button" 
-            className="btn btn-ghost" 
-            onClick={onCancel} 
-            disabled={saving || regeneratingIndex !== null}
-            title="Close modal without losing your draft"
-          >
-            Close
-          </button>
-        </div>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          Closing will preserve your draft automatically.
+        </span>
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button 
