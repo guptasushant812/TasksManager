@@ -61,15 +61,32 @@ Always follow safe, professional, and disciplined version control practices. Det
 - **No Force-Pushes on Protected Branches**: Never run `git push --force` or `--force-with-lease` on `main` unless the user explicitly requested a history rewrite.
 - **Targeted Staging Only**: Avoid `git add .` or `git add -A` when untracked scratch or unrelated files are present. Stage only task-specific files and inspect with `git diff --staged`.
 
-### 2. Commit Message Standards (Layman DRY Standard)
-Every commit message must follow clean, meaningful everyday English:
-<!-- NOTE: Strict character limit rule (50/72) is suspended/relaxed per user instruction. Focus on DRY and simple words. -->
-- **Subject Line**: Imperative mood, capitalized, conventional prefix (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `perf:`, `docs:`). Clear and concise without artificial length limits.
+### 2. Commit Message Standards (The 50/72 Layman DRY Standard)
+Every commit message must follow clean, meaningful everyday English in a professional developer tone, strictly adhering to the 50/72 rule and DRY principles:
+- **Subject Line**: $\le 50$ characters (up to 72 max if necessary for clarity), imperative mood, capitalized, conventional prefix (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `perf:`, `docs:`), no trailing period.
 - **Blank Line**: Exactly one blank line separating subject and body.
-- **Body**: Written in **simple everyday words (layman terms)** explaining what changed and why. No fancy jargon or hard words.
-- **Strictly DRY & No Padding**: Never repeat words, ideas, or restate the subject in the body. State what was wrong and what was fixed in short, crisp, natural sentences.
-- **Zero Artifacts & Buzzwords**: Never include prompt filenames, test image names, or corporate hype. Replace technical jargon with plain everyday English.
-- **Pre-Commit Verification**: Always verify the proposed commit title and body with the user in chat before committing and pushing.
+- **Body**: Wrapped at $\le 72$ characters per line. Written in **simple everyday words (layman terms)** explaining what changed and why.
+- **Strictly DRY Structure (Problem + Fix in 2 Sentences)**:
+  - **Sentence 1 (The Problem)**: What was wrong, missing, or happening by mistake.
+  - **Sentence 2 (The Fix)**: What is done now and what changed for the user.
+  - Never repeat words, ideas, or restate the subject. No filler padding.
+- **Simple Everyday Words Only**: Never use hard words, design jargon, or formal academic terms.
+  - Avoid: `dismissal`, `distorted`, `mitigate`, `orchestrate`, `leverage`.
+  - Use: `closing accidentally`, `broke the layout / stretched`, `fix / stop`, `set up`, `use`.
+- **Reference Examples (Gold Standard)**:
+  ```text
+  fix(tasks): stop accidental modal close on click and escape
+
+  Clicking outside or pressing Escape closed the modal and lost unsaved work.
+  Now the dialog stays open, asks before discarding changes, and adds clear header navigation.
+  ```
+  ```text
+  feat(tasks): add input validation, minimum text limits, and fix date layout
+
+  Empty forms or single letters were accepted, and date errors broke the row layout.
+  Now required fields show a star (*), inputs check minimum letters as you type, and date rows stay aligned.
+  ```
+- **Pre-Commit Verification**: Always present the exact proposed commit title and body to the user in chat for confirmation before committing and pushing.
 
 ### 3. Logical Commit Separation & Decision-Making Rule
 - **One Logical Task = One Commit**: Group changes by their objective, not blindly by file counts, folders, or modules.

@@ -78,6 +78,8 @@ Never use difficult design jargon, high English, or raw implementation mechanics
 
 | Avoid (High English / Jargon) | Use Instead (Everyday Layman Terms) | Why |
 | :--- | :--- | :--- |
+| *dismissal / dismissed* | *closing accidentally / closed by mistake* | Plain, clear words describing the problem. |
+| *distorted / warping* | *stretched / broke the layout / misaligned* | Simple everyday words describing visual misalignment. |
 | *harmonize geometry, sheen, aesthetic* | *update button colors, borders, and hover look* | Everyday users and teammates understand visual elements, not design buzzwords. |
 | *prune private routes from sitemap* | *remove private pages from public search listings* | Plain words clearly explain what happened to search listings. |
 | *schema markup / structured JSON-LD* | *search preview details / search engine info* | Focuses on the user outcome (search results) rather than technical tags. |
@@ -158,6 +160,32 @@ Commit messages must **never** contain:
 
   Clean up AI task generation so fields are not repeated and duplicate
   tasks are avoided. Keep each task input clear and organized.
+  ```
+
+### Example 5: Modal Protection & Safe Exit (DRY 2-Sentence Standard)
+- ❌ **Bad (High English & Vague)**:
+  ```text
+  fix(tasks): mitigate backdrop dismissal anomalies and orchestrate stateful confirmation
+  ```
+- ✅ **Good (Clean Layman Terms & Strictly DRY)**:
+  ```text
+  fix(tasks): stop accidental modal close on click and escape
+
+  Clicking outside or pressing Escape closed the modal and lost unsaved work.
+  Now the dialog stays open, asks before discarding changes, and adds clear header navigation.
+  ```
+
+### Example 6: Form Validation & Field Limits (DRY 2-Sentence Standard)
+- ❌ **Bad (Jargon & Redundant)**:
+  ```text
+  feat(tasks): enforce input constraints and rectify distorted grid topology
+  ```
+- ✅ **Good (Clean Layman Terms & Strictly DRY)**:
+  ```text
+  feat(tasks): add input validation, minimum text limits, and fix date layout
+
+  Empty forms or single letters were accepted, and date errors broke the row layout.
+  Now required fields show a star (*), inputs check minimum letters as you type, and date rows stay aligned.
   ```
 
 ---
