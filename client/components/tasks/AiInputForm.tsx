@@ -24,11 +24,12 @@ interface AiInputFormProps {
   onSaved: () => void;
   onCancel: () => void;
   onSwitchToManual?: () => void;
+  onProcessingChange?: (isProcessing: boolean) => void;
 }
 
 type Step = 'input' | 'preview';
 
-export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiInputFormProps) {
+export default function AiInputForm({ onSaved, onCancel, onSwitchToManual, onProcessingChange }: AiInputFormProps) {
   const [step, setStep] = useState<Step>('input');
   const [rawText, setRawText] = useState('');
   const [drafts, setDrafts] = useState<TaskDraft[]>([]);
@@ -37,6 +38,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   const [isHydrated, setIsHydrated] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showConfirmGenerate, setShowConfirmGenerate] = useState(false);
+  const [removeCardIndex, setRemoveCardIndex] = useState<number | null>(null);
 
   // Single-task regeneration state
   const [activeRegenIndex, setActiveRegenIndex] = useState<number | null>(null);
@@ -70,6 +72,15 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   const lastSavedPayloadRef = useRef<string>('');
   const isDeletingRef = useRef<boolean>(false);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isProcessing = aiLoading || regeneratingIndex !== null || saving;
+
+  useEffect(() => {
+    onProcessingChange?.(isProcessing);
+    return () => {
+      onProcessingChange?.(false);
+    };
+  }, [isProcessing, onProcessingChange]);
 
   // Restore draft exclusively from MongoDB on mount
   useEffect(() => {
@@ -416,8 +427,10 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
         <div className="app-dialog-body">
           <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
             {step === 'preview' 
-              ? `Any unsaved changes across ${drafts.length} generated task${drafts.length !== 1 ? 's' : ''} will be permanently removed.` 
-              : 'Your entered task description text will be permanently cleared.'}
+              ? (drafts.length > 1
+                  ? 'All unsaved task drafts and entered details will be cleared.'
+                  : 'All unsaved details for this task will be cleared.')
+              : 'All entered task notes will be permanently cleared.'}
           </p>
         </div>
 
@@ -427,7 +440,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
             className="app-dialog-btn-cancel" 
             onClick={() => setShowDiscardConfirm(false)}
           >
-            Keep Draft
+            {step === 'preview' && drafts.length > 1 ? 'Keep Tasks' : 'Keep Draft'}
           </button>
           <button 
             type="button" 
@@ -441,7 +454,79 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     </div>
   );
 
-  // Generation confirmation dialog
+  const renderRemoveConfirmModal = () => {
+    if (removeCardIndex === null || !drafts[removeCardIndex]) return null;
+    const taskNum = removeCardIndex + 1;
+    const taskTitle = drafts[removeCardIndex].title?.trim();
+
+    return (
+      <div
+        className="app-dialog-overlay"
+        style={{ zIndex: 1000 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="app-dialog-box"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 420 }}
+        >
+          <div className="app-dialog-accent-bar app-dialog-accent-danger" />
+
+          <div className="app-dialog-header">
+            <div className="app-dialog-header-left">
+              <div className="app-dialog-icon-wrap app-dialog-icon-danger">
+                <AlertTriangle style={{ width: 22, height: 22 }} />
+              </div>
+              <div>
+                <div className="app-dialog-eyebrow app-dialog-eyebrow-danger">
+                  Warning
+                </div>
+                <h3 className="app-dialog-title">Remove Task {taskNum}?</h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRemoveCardIndex(null)}
+              className="app-dialog-close-btn"
+              aria-label="Close"
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
+          </div>
+
+          <div className="app-dialog-body">
+            <p className="app-dialog-desc" style={{ marginBottom: 0 }}>
+              {taskTitle
+                ? `Task ${taskNum} ("${taskTitle}") and its entered details will be removed from your list.`
+                : `Task ${taskNum} and its entered details will be removed from your list.`}
+            </p>
+          </div>
+
+          <div className="app-dialog-footer">
+            <button
+              type="button"
+              className="app-dialog-btn-cancel"
+              onClick={() => setRemoveCardIndex(null)}
+            >
+              Keep Task
+            </button>
+            <button
+              type="button"
+              className="app-dialog-btn-action app-dialog-btn-danger"
+              onClick={() => {
+                const idx = removeCardIndex;
+                setRemoveCardIndex(null);
+                removeDraft(idx);
+              }}
+            >
+              Yes, Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderGenerateConfirmModal = () => (
     <div
       className="app-dialog-overlay"
@@ -599,10 +684,11 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           <div style={{ marginBottom: 4, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 6, flexShrink: 0 }}>
               <label className="label" htmlFor="ai-raw-input" style={{ margin: 0 }}>Describe your task(s)</label>
-              {!isRestoring && rawText.trim().length > 0 && (
+              {!isRestoring && !aiLoading && rawText.trim().length > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowDiscardConfirm(true)}
+                  disabled={aiLoading}
                   style={{
                     background: 'none', border: 'none', color: 'var(--text-muted)',
                     fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
@@ -670,7 +756,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <button 
               className="btn btn-primary" 
-              onClick={handleGenerate} 
+              onClick={() => handleGenerate()} 
               disabled={aiLoading || isRestoring} 
               style={{ 
                 background: 'var(--accent, #00ff66)',
@@ -698,6 +784,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {showDiscardConfirm && renderDiscardModal()}
+      {renderRemoveConfirmModal()}
 
       {rateLimitInfo && (
         <AiQuotaModal
@@ -801,9 +888,9 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
               color: 'var(--high)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4,
               whiteSpace: 'nowrap',
             }}
-            title="Discard this entire draft"
+            title="Discard this draft"
           >
-            <Trash2 style={{ width: 12, height: 12 }} /> Discard All
+            <Trash2 style={{ width: 12, height: 12 }} /> Discard
           </button>
         </div>
       </div>
@@ -942,7 +1029,7 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
                   {drafts.length > 1 && (
                     <button 
                       type="button"
-                      onClick={() => removeDraft(i)}
+                      onClick={() => setRemoveCardIndex(i)}
                       disabled={isThisRegenerating || saving}
                       style={{ 
                         background: 'none', 
@@ -1119,4 +1206,3 @@ export default function AiInputForm({ onSaved, onCancel, onSwitchToManual }: AiI
     </div>
   );
 }
-
