@@ -1,12 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { Home, ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
 export default function NotFound() {
-  const router = useRouter();
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -85,60 +79,11 @@ export default function NotFound() {
         <p style={{
           fontSize: 'clamp(16px, 2vw, 18px)',
           color: 'var(--text-secondary)',
-          marginBottom: 40,
           lineHeight: 1.6,
           maxWidth: 400
         }}>
           The page you are looking for doesn't exist or has been moved. Let's get you back on track.
         </p>
-
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button 
-            onClick={() => router.back()}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '12px 24px',
-              borderRadius: 8,
-              background: 'transparent',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border)',
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-surface)';
-              e.currentTarget.style.borderColor = 'var(--text-muted)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = 'var(--border)';
-            }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go Back
-          </button>
-
-          <Link href="/">
-            <button style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '12px 24px',
-              borderRadius: 8,
-              background: 'var(--accent)',
-              color: '#fff',
-              border: 'none',
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 14px 0 rgba(79, 70, 229, 0.39)',
-            }}>
-              <Home className="w-4 h-4" />
-              Return Home
-            </button>
-          </Link>
-        </div>
       </main>
 
       {/* Global Animation Styles for Floating Elements */}
