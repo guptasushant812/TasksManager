@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import { useTaskContext } from '@/context/TaskContext';
 import { useEscalation } from '@/hooks/useEscalation';
 import { apiFetch } from '@/lib/api';
-import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration, DEFAULT_TIMEOUT_MS, setCachedMasterHash } from '@/lib/sessionManager';
+import { lockSession, broadcastSessionEvent, TIMEOUT_OPTIONS, formatTimeoutDuration, DEFAULT_TIMEOUT_MS } from '@/lib/sessionManager';
 import EscalationRecipientsManager from '@/components/follow-ups/EscalationRecipientsManager';
 import AiEngineConfig from '@/components/settings/AiEngineConfig';
 import { RecipientItem } from '@/types/escalation';
@@ -27,7 +27,8 @@ import {
   ChevronRight,
   SlidersHorizontal,
   LayoutGrid,
-  Key
+  Key,
+  Loader2
 } from 'lucide-react';
 
 const TABS = [
@@ -196,7 +197,7 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
-  const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   // Escalation confirmation & success state
   const [showEscalationConfirmModal, setShowEscalationConfirmModal] = useState(false);
@@ -283,10 +284,13 @@ export default function SettingsPage() {
     } catch {}
   };
 
-  const handleInitiatePasswordUpdate = (e?: React.FormEvent) => {
+  const handlePasswordUpdate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isUpdatingPassword) return;
+
     const trimmed = newPassword.trim();
     const trimmedConfirm = confirmPassword.trim();
+
     if (!trimmed) {
       setPasswordError('Please enter a new password first.');
       return;
@@ -299,39 +303,41 @@ export default function SettingsPage() {
       setPasswordError('Passwords do not match. Please ensure both fields are identical.');
       return;
     }
+
     setPasswordError('');
-    setShowPasswordConfirmModal(true);
-  };
+    setIsUpdatingPassword(true);
 
-  const handleConfirmPasswordUpdate = async () => {
     try {
-      const trimmed = newPassword.trim();
-
-      // Update in database so all devices and sessions enforce the new passcode and invalidate previous ones
-      const res = await apiFetch<{ success: boolean; hash?: string }>('/api/settings/update-password', {
+      const res = await apiFetch<{ success: boolean; passwordUpdatedAt?: string }>('/api/settings/update-password', {
         method: 'POST',
         body: { newPassword: trimmed },
       });
 
-      const current = JSON.parse(localStorage.getItem('securityConfig') || `{"password":"Sun123@","timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
-      current.password = trimmed;
-      localStorage.setItem('securityConfig', JSON.stringify(current));
-      if (res?.hash) {
-        setCachedMasterHash(res.hash);
+      localStorage.removeItem('tasksmanager_master_hash');
+      const rawConf = localStorage.getItem('securityConfig');
+      if (rawConf) {
+        try {
+          const parsed = JSON.parse(rawConf);
+          delete parsed.password;
+          localStorage.setItem('securityConfig', JSON.stringify(parsed));
+        } catch {}
       }
-      setTimeout(() => {
-        window.dispatchEvent(new Event('storage'));
-      }, 0);
-      
-      setPasswordSaved(true);
-      setPasswordError('');
+
       setNewPassword('');
       setConfirmPassword('');
-      setShowPasswordConfirmModal(false);
-      setTimeout(() => setPasswordSaved(false), 5000);
+      setPasswordSaved(true);
+      setPasswordError('');
+
+      // Lock current session and require re-authenticating with the new password across all devices
+      setTimeout(() => {
+        lockSession('manual');
+        localStorage.removeItem('sessionPasswordUpdatedAt');
+        sessionStorage.removeItem('tasksmanager_visit_active');
+      }, 1200);
     } catch (err: any) {
       setPasswordError(err instanceof Error ? err.message : 'Could not save password to server.');
-      setShowPasswordConfirmModal(false);
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -1155,16 +1161,16 @@ export default function SettingsPage() {
                     </div>
                     
                     <form 
-                      onSubmit={handleInitiatePasswordUpdate} 
+                      onSubmit={handlePasswordUpdate} 
                       className="settings-password-form"
                     >
-                      {/* New Password Input */}
                       <div className="settings-password-input-wrap">
                         <input
                           type={showPassword ? "text" : "password"}
                           placeholder="New password (min 4 characters)…"
                           className="input"
                           value={newPassword}
+                          disabled={isUpdatingPassword}
                           style={{ width: '100%', fontSize: 14, padding: '9px 36px 9px 12px' }}
                           onChange={(e) => {
                             setNewPassword(e.target.value);
@@ -1194,13 +1200,13 @@ export default function SettingsPage() {
                         </button>
                       </div>
 
-                      {/* Confirm New Password Input */}
                       <div className="settings-password-input-wrap">
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm new password…"
                           className="input"
                           value={confirmPassword}
+                          disabled={isUpdatingPassword}
                           style={{ width: '100%', fontSize: 14, padding: '9px 36px 9px 12px' }}
                           onChange={(e) => {
                             setConfirmPassword(e.target.value);
@@ -1232,10 +1238,28 @@ export default function SettingsPage() {
 
                       <button
                         type="submit"
+                        disabled={isUpdatingPassword}
                         className="btn btn-primary"
-                        style={{ fontSize: 13, padding: '9px 20px', whiteSpace: 'nowrap', alignSelf: 'flex-start' }}
+                        style={{
+                          fontSize: 13,
+                          padding: '9px 20px',
+                          whiteSpace: 'nowrap',
+                          alignSelf: 'flex-start',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          opacity: isUpdatingPassword ? 0.75 : 1,
+                          cursor: isUpdatingPassword ? 'not-allowed' : 'pointer',
+                        }}
                       >
-                        Update Password
+                        {isUpdatingPassword ? (
+                          <>
+                            <Loader2 size={15} className="animate-spin" />
+                            <span>Updating Password…</span>
+                          </>
+                        ) : (
+                          'UPDATE PASSWORD'
+                        )}
                       </button>
                     </form>
                   </div>
@@ -1256,7 +1280,8 @@ export default function SettingsPage() {
                         style={{ width: 'min(200px, 100%)', fontSize: 14, padding: '8px 12px' }}
                         onChange={(e) => {
                           const val = parseInt(e.target.value);
-                          const current = JSON.parse(localStorage.getItem('securityConfig') || `{"password":"Sun123@","timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
+                          const current = JSON.parse(localStorage.getItem('securityConfig') || `{"timeoutMs":${DEFAULT_TIMEOUT_MS}}`);
+                          delete current.password;
                           current.timeoutMs = val;
                           localStorage.setItem('securityConfig', JSON.stringify(current));
                           const lastActive = parseInt(localStorage.getItem('lastActiveTime') || Date.now().toString(), 10);
@@ -1516,75 +1541,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Password Update Confirmation Modal */}
-      {showPasswordConfirmModal && (
-        <div
-          className="app-dialog-overlay"
-          onClick={() => setShowPasswordConfirmModal(false)}
-        >
-          <div
-            className="app-dialog-box"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 440 }}
-          >
-            <div className="app-dialog-accent-bar app-dialog-accent-primary" />
-
-            <div className="app-dialog-header">
-              <div className="app-dialog-header-left">
-                <div className="app-dialog-icon-wrap app-dialog-icon-primary">
-                  <Shield style={{ width: 20, height: 20 }} />
-                </div>
-                <div>
-                  <div className="app-dialog-eyebrow app-dialog-eyebrow-primary">
-                    Security Verification
-                  </div>
-                  <h3 className="app-dialog-title">Confirm Password Update</h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPasswordConfirmModal(false)}
-                className="app-dialog-close-btn"
-                aria-label="Close"
-              >
-                <X style={{ width: 18, height: 18 }} />
-              </button>
-            </div>
-
-            <div className="app-dialog-body">
-              <p className="app-dialog-desc">
-                Are you sure you want to update your Master Application Password? You will need this new password to unlock your workspace.
-              </p>
-
-              <div className="app-dialog-card" style={{ margin: 0 }}>
-                <div className="app-dialog-row">
-                  <span className="app-dialog-label">New Password:</span>
-                  <span style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 700, color: 'var(--accent)' }}>
-                    {newPassword}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="app-dialog-footer">
-              <button
-                type="button"
-                className="app-dialog-btn-cancel"
-                onClick={() => setShowPasswordConfirmModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="app-dialog-btn-action app-dialog-btn-primary"
-                onClick={handleConfirmPasswordUpdate}
-              >
-                Update Password
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Escalation Policies Confirmation Modal */}
       {showEscalationConfirmModal && (

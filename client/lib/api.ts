@@ -1,3 +1,5 @@
+import { lockSession, STORAGE_KEYS } from './sessionManager';
+
 function resolveBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.trim()) {
@@ -22,13 +24,15 @@ type FetchOptions = {
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {}, signal } = options;
 
-  const sessionToken = typeof window !== 'undefined' ? localStorage.getItem('sessionAuthToken') : null;
+  const sessionToken = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN) : null;
+  const passwordUpdatedAt = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.PASSWORD_UPDATED_AT) : null;
   const isFormData = body instanceof FormData;
   const config: RequestInit = {
     method,
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(sessionToken && { 'x-session-token': sessionToken }),
+      ...(passwordUpdatedAt && { 'x-password-updated-at': passwordUpdatedAt }),
       ...headers,
     },
     signal,
@@ -42,6 +46,13 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
+    if (res.status === 401 && err.error === 'PASSWORD_CHANGED') {
+      if (typeof window !== 'undefined') {
+        lockSession('manual');
+        localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+        sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
+      }
+    }
     const errorMessage = err.message || err.error || (res.statusText ? `${res.status} ${res.statusText}` : `Request failed with status ${res.status}`);
     throw new Error(errorMessage);
   }

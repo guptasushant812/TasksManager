@@ -14,6 +14,7 @@ import attachmentRoutes from './routes/attachments';
 import escalationRoutes from './routes/escalations';
 import { downloadAttachment } from './controllers/attachmentController';
 import { errorHandler } from './middleware/errorHandler';
+import { sessionValidator } from './middleware/sessionValidator';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -59,6 +60,7 @@ app.use((_req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use('/api', sessionValidator);
 
 // ai-draft must be mounted before tasks router to avoid route conflicts
 app.use('/api/ai-draft', aiDraftRoutes);

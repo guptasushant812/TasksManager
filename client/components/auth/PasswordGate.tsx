@@ -12,11 +12,6 @@ import {
   getSecurityConfig,
   STORAGE_KEYS,
   formatTimeoutDuration,
-  hashPasscode,
-  getCachedMasterHash,
-  setCachedMasterHash,
-  DEFAULT_MASTER_HASH,
-  FALLBACK_MASTER_HASH,
 } from '@/lib/sessionManager';
 
 const isPublicPath = (path?: string | null): boolean => {
@@ -45,7 +40,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [shake, setShake] = useState(false);
-  const [isHashSynced, setIsHashSynced] = useState(false);
 
   // Synchronize lock status for protected routes without SSR hydration mismatches
   const syncStatus = mounted && !isPublic ? getSessionStatus(false) : null;
@@ -256,11 +250,11 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }
   }, [effectiveLocked, isPublic, saveCurrentReturnUrl]);
 
-  const handleUnlockSuccess = (updatedPassword?: string) => {
+  const handleUnlockSuccess = (passwordUpdatedAt?: string | null) => {
     setIsUnlocking(true);
 
     setTimeout(() => {
-      unlockSession(updatedPassword);
+      unlockSession(passwordUpdatedAt);
 
       if (hardTimeoutTimerRef.current) {
         clearTimeout(hardTimeoutTimerRef.current);
@@ -296,18 +290,61 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     // Wake up backend and database connection pool immediately upon landing
     fetch(`${BASE_URL}/api/health`).catch(() => {});
 
-    apiFetch<{ hash: string }>('/api/settings/password-hash')
-      .then((res) => {
-        if (active && res?.hash) {
-          setCachedMasterHash(res.hash);
-          setIsHashSynced(true);
+    // Clean up any legacy sensitive plain data from browser storage
+    try {
+      localStorage.removeItem('tasksmanager_master_hash');
+      localStorage.removeItem('tasksmanager_custom_ai_key');
+      localStorage.removeItem('tasksmanager_custom_ai_provider');
+      localStorage.removeItem('tasksmanager_ai_key_gemini');
+      localStorage.removeItem('tasksmanager_ai_key_groq');
+      localStorage.removeItem('tasksmanager_ai_key_grok');
+
+      const rawConfig = localStorage.getItem(STORAGE_KEYS.SECURITY_CONFIG);
+      if (rawConfig) {
+        const parsed = JSON.parse(rawConfig);
+        if (parsed.password) {
+          delete parsed.password;
+          localStorage.setItem(STORAGE_KEYS.SECURITY_CONFIG, JSON.stringify(parsed));
         }
-      })
-      .catch(() => {
-        if (active) setIsHashSynced(true);
-      });
+      }
+    } catch {}
+
+    const checkPasswordSession = async () => {
+      try {
+        const res = await apiFetch<{ passwordUpdatedAt: string | null }>('/api/settings/password-status');
+        if (!active || !res) return;
+
+        const localUpdatedAt = localStorage.getItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+        if (
+          res.passwordUpdatedAt &&
+          localUpdatedAt &&
+          new Date(res.passwordUpdatedAt).getTime() > new Date(localUpdatedAt).getTime() + 1000
+        ) {
+          lockSession('manual');
+          localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+          sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
+          setIsLocked(true);
+        }
+      } catch {}
+    };
+
+    checkPasswordSession();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkPasswordSession();
+      }
+    };
+
+    const interval = setInterval(checkPasswordSession, 30000);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
     return () => {
       active = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
     };
   }, []);
 
@@ -328,36 +365,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     if (!trimmed || isVerifying || isUnlocking) return;
 
     setError(false);
-
-    // Fast-path: local cryptographic verification (<1ms)
-    const { password: currentPassword } = getSecurityConfig();
-    const cachedHash = getCachedMasterHash();
-    const inputHash = await hashPasscode(trimmed);
-
-    const isLocallyValid =
-      trimmed === currentPassword ||
-      trimmed === 'Sun123@' ||
-      trimmed === 'Sushant2026@' ||
-      (!!inputHash && (inputHash === cachedHash || inputHash === DEFAULT_MASTER_HASH || inputHash === FALLBACK_MASTER_HASH));
-
-    if (isLocallyValid) {
-      handleUnlockSuccess(trimmed);
-      return;
-    }
-
-    // Zero-delay rejection: wrong password rejected in <1ms without blocking on remote network
-    if (isHashSynced || cachedHash) {
-      triggerErrorFeedback();
-      return;
-    }
-
-    // Remote verification fallback when hash has not finished initial background sync
     setIsVerifying(true);
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      const res = await apiFetch<{ valid: boolean; hash?: string }>('/api/settings/verify-password', {
+      const res = await apiFetch<{ valid: boolean; passwordUpdatedAt?: string | null }>('/api/settings/verify-password', {
         method: 'POST',
         body: { password: trimmed },
         signal: controller.signal,
@@ -365,11 +379,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId);
 
       if (res.valid) {
-        if (res.hash) setCachedMasterHash(res.hash);
-        handleUnlockSuccess(trimmed);
+        handleUnlockSuccess(res.passwordUpdatedAt || null);
       } else {
-        if (res.hash) setCachedMasterHash(res.hash);
-        setIsHashSynced(true);
         triggerErrorFeedback();
       }
     } catch {

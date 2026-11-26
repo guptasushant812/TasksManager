@@ -75,11 +75,25 @@ export async function regenerateToken(req: Request, res: Response, next: NextFun
   }
 }
 
+export async function getPasswordStatus(req: Request, res: Response, next: NextFunction) {
+  try {
+    const settings = await Settings.findOne({}, 'passwordUpdatedAt').lean();
+    res.json({
+      passwordUpdatedAt: settings?.passwordUpdatedAt ? new Date(settings.passwordUpdatedAt).toISOString() : null,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getMasterPasswordHash(req: Request, res: Response, next: NextFunction) {
   try {
-    const settings = await Settings.findOne({}, 'masterPasswordHash').lean();
-    const hash = settings?.masterPasswordHash || hashMasterPassword('Sun123@');
-    res.json({ hash });
+    const settings = await Settings.findOne({}, 'masterPasswordHash passwordUpdatedAt').lean();
+    const hash = settings?.masterPasswordHash || null;
+    res.json({ 
+      hash, 
+      passwordUpdatedAt: settings?.passwordUpdatedAt ? new Date(settings.passwordUpdatedAt).toISOString() : null 
+    });
   } catch (err) {
     next(err);
   }
@@ -96,17 +110,18 @@ export async function verifyMasterPassword(req: Request, res: Response, next: Ne
     const trimmed = password.trim();
     const inputHash = hashMasterPassword(trimmed);
 
-    const settings = await Settings.findOne({}, 'masterPasswordHash').lean();
-    const masterHash = settings?.masterPasswordHash || hashMasterPassword('Sun123@');
+    const settings = await Settings.findOne({}, 'masterPasswordHash passwordUpdatedAt').lean();
+    const passwordUpdatedAt = settings?.passwordUpdatedAt ? new Date(settings.passwordUpdatedAt).toISOString() : null;
 
     if (settings && settings.masterPasswordHash) {
-      res.json({ valid: settings.masterPasswordHash === inputHash, hash: masterHash });
+      const valid = settings.masterPasswordHash === inputHash;
+      res.json({ valid, passwordUpdatedAt: valid ? passwordUpdatedAt : null });
       return;
     }
 
-    // Fall back to default passcode if no custom password was set yet
-    const isDefault = trimmed === 'Sun123@' || trimmed === 'Sushant2026@';
-    res.json({ valid: isDefault, hash: masterHash });
+    const initialDefaultPassword = process.env.INITIAL_MASTER_PASSWORD;
+    const isDefault = initialDefaultPassword ? hashMasterPassword(initialDefaultPassword) === inputHash : false;
+    res.json({ valid: isDefault, passwordUpdatedAt });
   } catch (err) {
     next(err);
   }
@@ -126,11 +141,16 @@ export async function updateMasterPassword(req: Request, res: Response, next: Ne
     }
 
     const newHash = hashMasterPassword(newPassword);
+    const updatedAt = new Date();
     settings.masterPasswordHash = newHash;
-    settings.passwordUpdatedAt = new Date();
+    settings.passwordUpdatedAt = updatedAt;
     await settings.save();
 
-    res.json({ success: true, message: 'Master application password updated successfully', hash: newHash });
+    res.json({
+      success: true,
+      message: 'Master application password updated successfully',
+      passwordUpdatedAt: updatedAt.toISOString(),
+    });
   } catch (err) {
     next(err);
   }
