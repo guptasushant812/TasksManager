@@ -83,7 +83,7 @@ export function getShortDayName(date: Date): string {
 }
 
 /**
- * Returns an array of years from startYear to currentYear + 1.
+ * Returns an array of years from startYear to currentYear.
  */
 export function getYearRange(startYear: number): number[] {
   const currentYear = new Date().getFullYear();
