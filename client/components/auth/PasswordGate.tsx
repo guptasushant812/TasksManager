@@ -36,6 +36,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('Incorrect passcode. Please try again.');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -49,7 +50,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutInputRef = useRef<HTMLInputElement>(null);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hardTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const maxDurationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const checkSyncStateRef = useRef<() => void>(() => {});
   const lastThrottleRef = useRef<number>(0);
   const lastStorageWriteRef = useRef<number>(0);
@@ -72,19 +73,42 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     checkSyncStateRef.current();
   }, [saveCurrentReturnUrl]);
 
-  const scheduleTimeout = useCallback((delayMs: number) => {
+  const triggerMaxSessionExpiration = useCallback(() => {
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current);
       timeoutTimerRef.current = null;
     }
-    const { timeoutMs } = getSecurityConfig();
-    if (timeoutMs === 0 || !Number.isFinite(delayMs) || delayMs <= 0) {
-      return;
+    if (maxDurationTimerRef.current) {
+      clearTimeout(maxDurationTimerRef.current);
+      maxDurationTimerRef.current = null;
     }
-    timeoutTimerRef.current = setTimeout(() => {
-      triggerSessionTimeout();
-    }, delayMs);
-  }, [triggerSessionTimeout]);
+    saveCurrentReturnUrl();
+    lockSession('max_duration');
+    checkSyncStateRef.current();
+  }, [saveCurrentReturnUrl]);
+
+  const scheduleTimeout = useCallback((inactivityDelayMs: number, maxSessionDelayMs: number) => {
+    if (timeoutTimerRef.current) {
+      clearTimeout(timeoutTimerRef.current);
+      timeoutTimerRef.current = null;
+    }
+    if (maxDurationTimerRef.current) {
+      clearTimeout(maxDurationTimerRef.current);
+      maxDurationTimerRef.current = null;
+    }
+
+    if (inactivityDelayMs > 0 && Number.isFinite(inactivityDelayMs)) {
+      timeoutTimerRef.current = setTimeout(() => {
+        triggerSessionTimeout();
+      }, inactivityDelayMs);
+    }
+
+    if (maxSessionDelayMs > 0 && Number.isFinite(maxSessionDelayMs)) {
+      maxDurationTimerRef.current = setTimeout(() => {
+        triggerMaxSessionExpiration();
+      }, maxSessionDelayMs);
+    }
+  }, [triggerSessionTimeout, triggerMaxSessionExpiration]);
 
   const checkSyncState = useCallback(() => {
     if (isPublic) {
@@ -106,65 +130,52 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
         timeoutTimerRef.current = null;
       }
 
-      if (status.isTimedOut && status.remainingMs > 0 && Number.isFinite(status.remainingMs)) {
-        if (hardTimeoutTimerRef.current) {
-          clearTimeout(hardTimeoutTimerRef.current);
+      // If in Session Timeout stage, continue countdown toward maximum session expiration
+      if (status.isTimedOut && status.remainingMaxSessionMs > 0 && Number.isFinite(status.remainingMaxSessionMs)) {
+        if (maxDurationTimerRef.current) {
+          clearTimeout(maxDurationTimerRef.current);
         }
-        hardTimeoutTimerRef.current = setTimeout(() => {
-          checkSyncStateRef.current();
-        }, status.remainingMs);
-      } else if (hardTimeoutTimerRef.current) {
-        clearTimeout(hardTimeoutTimerRef.current);
-        hardTimeoutTimerRef.current = null;
+        maxDurationTimerRef.current = setTimeout(() => {
+          triggerMaxSessionExpiration();
+        }, status.remainingMaxSessionMs);
+      } else if (maxDurationTimerRef.current) {
+        clearTimeout(maxDurationTimerRef.current);
+        maxDurationTimerRef.current = null;
       }
 
       setLoading(false);
       return;
     }
 
-    if (hardTimeoutTimerRef.current) {
-      clearTimeout(hardTimeoutTimerRef.current);
-      hardTimeoutTimerRef.current = null;
-    }
-
     setIsLocked(false);
     setIsTimedOut(false);
     setLoading(false);
-    scheduleTimeout(status.remainingMs);
-  }, [isPublic, saveCurrentReturnUrl, scheduleTimeout]);
+    scheduleTimeout(status.remainingInactivityMs, status.remainingMaxSessionMs);
+  }, [isPublic, saveCurrentReturnUrl, scheduleTimeout, triggerMaxSessionExpiration]);
 
   checkSyncStateRef.current = checkSyncState;
 
   const handleUserActivity = useCallback(() => {
     if (isLocked || isTimedOut) return;
 
-    const { timeoutMs } = getSecurityConfig();
-    if (timeoutMs === 0) return;
+    const { timeoutMs, maxSessionMs } = getSecurityConfig();
+    if (timeoutMs === 0 && maxSessionMs === 0) return;
 
     const now = Date.now();
-    if (now - lastThrottleRef.current < 1000) return;
+    if (now - lastThrottleRef.current < 1500) return;
     lastThrottleRef.current = now;
 
-    // Throttle cross-tab storage writes to once every 4 seconds
-    if (now - lastStorageWriteRef.current > 4000) {
+    // Persist activity to storage throttled to avoid layout thrashing
+    if (now - lastStorageWriteRef.current > 3000) {
       persistActivityTimestamps(now);
       lastStorageWriteRef.current = now;
     }
 
-    scheduleTimeout(timeoutMs);
+    const status = getSessionStatus(false);
+    if (!status.isLocked) {
+      scheduleTimeout(status.remainingInactivityMs, status.remainingMaxSessionMs);
+    }
   }, [isLocked, isTimedOut, scheduleTimeout]);
-
-  // Periodic heartbeat safeguard against timer suspension in background tabs
-  useEffect(() => {
-    if (isPublic) return;
-    if (isLocked && !isTimedOut) return;
-
-    const interval = setInterval(() => {
-      checkSyncState();
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [isLocked, isTimedOut, isPublic, checkSyncState]);
 
   useEffect(() => {
     setMounted(true);
@@ -220,8 +231,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       if (timeoutTimerRef.current) {
         clearTimeout(timeoutTimerRef.current);
       }
-      if (hardTimeoutTimerRef.current) {
-        clearTimeout(hardTimeoutTimerRef.current);
+      if (maxDurationTimerRef.current) {
+        clearTimeout(maxDurationTimerRef.current);
       }
       activityEvents.forEach((ev) => {
         window.removeEventListener(ev, handleUserActivity);
@@ -234,11 +245,6 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     };
   }, [isPublic, handleUserActivity, checkSyncState, isLocked]);
 
-  // Synchronize lock state on route navigation
-  useEffect(() => {
-    checkSyncState();
-  }, [pathname, checkSyncState]);
-
   useEffect(() => {
     if (effectiveLocked && !isPublic) {
       saveCurrentReturnUrl();
@@ -250,15 +256,23 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }
   }, [effectiveLocked, isPublic, saveCurrentReturnUrl]);
 
-  const handleUnlockSuccess = (passwordUpdatedAt?: string | null) => {
+  const handleUnlockSuccess = (
+    passwordUpdatedAt?: string | null,
+    sessionToken?: string | null,
+    isResume: boolean = false
+  ) => {
     setIsUnlocking(true);
 
     setTimeout(() => {
-      unlockSession(passwordUpdatedAt);
+      unlockSession(passwordUpdatedAt, sessionToken, isResume);
 
-      if (hardTimeoutTimerRef.current) {
-        clearTimeout(hardTimeoutTimerRef.current);
-        hardTimeoutTimerRef.current = null;
+      if (timeoutTimerRef.current) {
+        clearTimeout(timeoutTimerRef.current);
+        timeoutTimerRef.current = null;
+      }
+      if (maxDurationTimerRef.current) {
+        clearTimeout(maxDurationTimerRef.current);
+        maxDurationTimerRef.current = null;
       }
 
       setIsLocked(false);
@@ -267,8 +281,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       setError(false);
       setPassword('');
 
-      const { timeoutMs } = getSecurityConfig();
-      scheduleTimeout(timeoutMs);
+      const status = getSessionStatus(false);
+      scheduleTimeout(status.remainingInactivityMs, status.remainingMaxSessionMs);
 
       if (typeof window !== 'undefined') {
         const returnUrl = sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL);
@@ -285,71 +299,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let active = true;
-
-    // Wake up backend and database connection pool immediately upon landing
+    // Ping health once on initial landing to pre-warm serverless or cold instances
     fetch(`${BASE_URL}/api/health`).catch(() => {});
-
-    // Clean up any legacy sensitive plain data from browser storage
-    try {
-      localStorage.removeItem('tasksmanager_master_hash');
-      localStorage.removeItem('tasksmanager_custom_ai_key');
-      localStorage.removeItem('tasksmanager_custom_ai_provider');
-      localStorage.removeItem('tasksmanager_ai_key_gemini');
-      localStorage.removeItem('tasksmanager_ai_key_groq');
-      localStorage.removeItem('tasksmanager_ai_key_grok');
-
-      const rawConfig = localStorage.getItem(STORAGE_KEYS.SECURITY_CONFIG);
-      if (rawConfig) {
-        const parsed = JSON.parse(rawConfig);
-        if (parsed.password) {
-          delete parsed.password;
-          localStorage.setItem(STORAGE_KEYS.SECURITY_CONFIG, JSON.stringify(parsed));
-        }
-      }
-    } catch {}
-
-    const checkPasswordSession = async () => {
-      try {
-        const res = await apiFetch<{ passwordUpdatedAt: string | null }>('/api/settings/password-status');
-        if (!active || !res) return;
-
-        const localUpdatedAt = localStorage.getItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
-        if (
-          res.passwordUpdatedAt &&
-          localUpdatedAt &&
-          new Date(res.passwordUpdatedAt).getTime() > new Date(localUpdatedAt).getTime() + 1000
-        ) {
-          lockSession('manual');
-          localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
-          sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
-          setIsLocked(true);
-        }
-      } catch {}
-    };
-
-    checkPasswordSession();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        checkPasswordSession();
-      }
-    };
-
-    const interval = setInterval(checkPasswordSession, 30000);
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('focus', handleVisibility);
-
-    return () => {
-      active = false;
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('focus', handleVisibility);
-    };
   }, []);
 
-  const triggerErrorFeedback = useCallback(() => {
+  const triggerErrorFeedback = useCallback((customMsg?: string) => {
     setError(true);
+    setErrorMessage(customMsg || 'Incorrect passcode. Please try again.');
     setShake(true);
     setTimeout(() => setShake(false), 380);
     const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
@@ -364,32 +320,36 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     const trimmed = password.trim();
     if (!trimmed || isVerifying || isUnlocking) return;
 
+    const isResume = effectiveTimedOut;
     setError(false);
     setIsVerifying(true);
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-      const res = await apiFetch<{ valid: boolean; passwordUpdatedAt?: string | null }>('/api/settings/verify-password', {
+      const { timeoutMs, maxSessionMs } = getSecurityConfig();
+      const res = await apiFetch<{
+        valid: boolean;
+        sessionToken?: string;
+        passwordUpdatedAt?: string | null;
+        error?: string;
+        locked?: boolean;
+        remainingSeconds?: number;
+      }>('/api/settings/verify-password', {
         method: 'POST',
-        body: { password: trimmed },
-        signal: controller.signal,
+        body: { password: trimmed, timeoutMs, maxSessionMs },
       });
-      clearTimeout(timeoutId);
 
       if (res.valid) {
-        handleUnlockSuccess(res.passwordUpdatedAt || null);
+        handleUnlockSuccess(res.passwordUpdatedAt || null, res.sessionToken || null, isResume);
       } else {
-        triggerErrorFeedback();
+        triggerErrorFeedback(res.error || 'Incorrect passcode. Please try again.');
       }
-    } catch {
-      triggerErrorFeedback();
+    } catch (err: any) {
+      const msg = err?.message || 'Verification failed. Please try again.';
+      triggerErrorFeedback(msg);
     } finally {
       setIsVerifying(false);
     }
   };
-
 
   if (isPublic) return <>{children}</>;
 
@@ -562,7 +522,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 </div>
                 {error && (
                   <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600 }}>
-                    Incorrect passcode. Please try again.
+                    {errorMessage}
                   </p>
                 )}
               </div>
@@ -720,7 +680,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                 </div>
                 {error && (
                   <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600 }}>
-                    Incorrect passcode. Please try again.
+                    {errorMessage}
                   </p>
                 )}
               </div>

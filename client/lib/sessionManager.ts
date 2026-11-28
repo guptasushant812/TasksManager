@@ -1,12 +1,15 @@
 export interface SecurityConfig {
   timeoutMs: number;
+  maxSessionMs: number;
 }
 
 export interface SessionStatus {
   isLocked: boolean;
   isTimedOut: boolean;
+  remainingInactivityMs: number;
+  remainingMaxSessionMs: number;
   remainingMs: number;
-  reason: 'timeout' | 'manual' | null;
+  reason: 'timeout' | 'manual' | 'max_duration' | null;
 }
 
 export interface TimeoutOption {
@@ -27,6 +30,7 @@ export const STORAGE_KEYS = {
   APP_LOCKED: 'isAppLocked',
   LAST_ACTIVE: 'lastActiveTime',
   SESSION_EXPIRES: 'sessionExpiresAt',
+  LOGIN_TIME: 'sessionLoginTime',
   LOCK_REASON: 'lockReason',
   SECURITY_CONFIG: 'securityConfig',
   SESSION_TOKEN: 'sessionAuthToken',
@@ -36,6 +40,7 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const DEFAULT_TIMEOUT_MS = 900000; // 15 minutes
+export const DEFAULT_MAX_SESSION_MS = 3600000; // 1 hour
 const BROADCAST_CHANNEL_NAME = 'tasksmanager_session_sync';
 
 export function getMaxAvailableTimeout(): number {
@@ -56,10 +61,9 @@ export function formatTimeoutDuration(ms: number): string {
   return `${minutes} minute${minutes > 1 ? 's' : ''}`;
 }
 
-// Returns configured inactivity timeout duration without storing passwords in browser storage
 export function getSecurityConfig(): SecurityConfig {
   if (typeof window === 'undefined') {
-    return { timeoutMs: DEFAULT_TIMEOUT_MS };
+    return { timeoutMs: DEFAULT_TIMEOUT_MS, maxSessionMs: DEFAULT_MAX_SESSION_MS };
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SECURITY_CONFIG);
@@ -72,132 +76,175 @@ export function getSecurityConfig(): SecurityConfig {
         } catch {}
       }
       const timeoutMs = Number(parsed.timeoutMs);
+      const validTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs >= 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
+
+      let maxSessionMs: number;
+      if (validTimeoutMs === 0) {
+        maxSessionMs = 0; // Never mode applies across session limits
+      } else if (Number.isFinite(Number(parsed.maxSessionMs)) && Number(parsed.maxSessionMs) > 0) {
+        maxSessionMs = Number(parsed.maxSessionMs);
+      } else {
+        // Standard maximum session duration: 3x inactivity timeout (e.g. 10m -> 30m, 15m -> 45m/1h)
+        maxSessionMs = Math.max(validTimeoutMs * 3, getMaxAvailableTimeout());
+      }
+
       return {
-        timeoutMs: Number.isFinite(timeoutMs) && timeoutMs >= 0 ? timeoutMs : DEFAULT_TIMEOUT_MS,
+        timeoutMs: validTimeoutMs,
+        maxSessionMs,
       };
     }
   } catch {}
-  return { timeoutMs: DEFAULT_TIMEOUT_MS };
+  return { timeoutMs: DEFAULT_TIMEOUT_MS, maxSessionMs: DEFAULT_MAX_SESSION_MS };
 }
 
-// Evaluates timestamp deadline against current time without depending on active timers
 export function getSessionStatus(isPublicRoute: boolean = false): SessionStatus {
   if (isPublicRoute || typeof window === 'undefined') {
-    return { isLocked: false, isTimedOut: false, remainingMs: Infinity, reason: null };
-  }
-
-  const rawLastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
-  const rawExpiresAt = localStorage.getItem(STORAGE_KEYS.SESSION_EXPIRES);
-  const lockedFlag = localStorage.getItem(STORAGE_KEYS.APP_LOCKED);
-  const rawReason = localStorage.getItem(STORAGE_KEYS.LOCK_REASON);
-  const reason = rawReason === 'timeout' || rawReason === 'manual' ? rawReason : null;
-
-  // Uninitialized session without prior activity defaults to locked workspace
-  if (!rawLastActive && !rawExpiresAt) {
-    return { isLocked: true, isTimedOut: false, remainingMs: 0, reason: 'manual' };
-  }
-
-  const now = Date.now();
-  const lastActive = rawLastActive ? parseInt(rawLastActive, 10) : NaN;
-  const elapsedSinceActive = !isNaN(lastActive) ? now - lastActive : Infinity;
-
-  // Support fresh initialization from programmatic unlocks and automated test runs
-  const rawVisitActive = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEYS.VISIT_ACTIVE) : null;
-  let isVisitActive = rawVisitActive === 'true';
-  if (!isVisitActive && lockedFlag === 'false' && !isNaN(lastActive) && now - lastActive < 60000) {
-    isVisitActive = true;
-    try {
-      sessionStorage.setItem(STORAGE_KEYS.VISIT_ACTIVE, 'true');
-    } catch {}
-  }
-
-  // Guard against backward system clock skew
-  if (!isNaN(lastActive) && now < lastActive - 60000) {
-    lockSession('manual');
-    return { isLocked: true, isTimedOut: false, remainingMs: 0, reason: 'manual' };
-  }
-
-  // Real new browser visit without active visit authorization requires 1-time passcode
-  if (!isVisitActive) {
-    return {
-      isLocked: true,
-      isTimedOut: false,
-      remainingMs: 0,
-      reason: 'manual',
-    };
-  }
-
-  // User explicitly locked or logged out
-  if (lockedFlag === 'true' && reason === 'manual') {
-    return {
-      isLocked: true,
-      isTimedOut: false,
-      remainingMs: 0,
-      reason: 'manual',
-    };
-  }
-
-  const { timeoutMs } = getSecurityConfig();
-
-  // "Never" timeout mode: active session never experiences inactivity pause
-  if (timeoutMs === 0) {
     return {
       isLocked: false,
       isTimedOut: false,
+      remainingInactivityMs: Infinity,
+      remainingMaxSessionMs: Infinity,
       remainingMs: Infinity,
       reason: null,
     };
   }
 
-  const maxTimeout = getMaxAvailableTimeout();
-  const isPastMax = elapsedSinceActive >= maxTimeout;
+  const rawLastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
+  const rawLoginTime = localStorage.getItem(STORAGE_KEYS.LOGIN_TIME);
+  const rawExpiresAt = localStorage.getItem(STORAGE_KEYS.SESSION_EXPIRES);
+  const lockedFlag = localStorage.getItem(STORAGE_KEYS.APP_LOCKED);
+  const rawReason = localStorage.getItem(STORAGE_KEYS.LOCK_REASON);
+  const token = localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN);
 
-  if (lockedFlag === 'true') {
-    const isTimeoutModal = reason === 'timeout' && !isPastMax;
-    const remainingToMax = Math.max(0, maxTimeout - elapsedSinceActive);
+  // Uninitialized session without prior activity or explicit unlocked flag defaults to main Password Gate
+  if (lockedFlag === null || (!rawLastActive && lockedFlag !== 'false') || (!token && lockedFlag !== 'false')) {
     return {
       isLocked: true,
-      isTimedOut: isTimeoutModal,
-      remainingMs: isTimeoutModal ? remainingToMax : 0,
-      reason: reason || 'manual',
+      isTimedOut: false,
+      remainingInactivityMs: 0,
+      remainingMaxSessionMs: 0,
+      remainingMs: 0,
+      reason: 'manual',
+    };
+  }
+
+  const now = Date.now();
+  const { timeoutMs, maxSessionMs } = getSecurityConfig();
+
+  const lastActive = rawLastActive ? parseInt(rawLastActive, 10) : NaN;
+  let loginTime = rawLoginTime ? parseInt(rawLoginTime, 10) : NaN;
+  if (isNaN(loginTime)) {
+    loginTime = !isNaN(lastActive) ? lastActive : now;
+    try {
+      localStorage.setItem(STORAGE_KEYS.LOGIN_TIME, loginTime.toString());
+    } catch {}
+  }
+
+  // Stage 2: Check Maximum Session Duration
+  const isMaxSessionExpired = maxSessionMs > 0 && now - loginTime >= maxSessionMs;
+
+  if (isMaxSessionExpired) {
+    lockSession('max_duration');
+    return {
+      isLocked: true,
+      isTimedOut: false,
+      remainingInactivityMs: 0,
+      remainingMaxSessionMs: 0,
+      remainingMs: 0,
+      reason: 'max_duration',
+    };
+  }
+
+  const remainingMaxSessionMs = maxSessionMs > 0 ? Math.max(0, maxSessionMs - (now - loginTime)) : Infinity;
+
+  // Handle explicitly locked or timed out states
+  if (lockedFlag === 'true') {
+    if (rawReason === 'timeout') {
+      // Inactivity timeout page (Stage 1) - user can enter passcode to continue before max duration
+      return {
+        isLocked: true,
+        isTimedOut: true,
+        remainingInactivityMs: 0,
+        remainingMaxSessionMs,
+        remainingMs: remainingMaxSessionMs,
+        reason: 'timeout',
+      };
+    }
+
+    // Main Password Gate
+    return {
+      isLocked: true,
+      isTimedOut: false,
+      remainingInactivityMs: 0,
+      remainingMaxSessionMs: 0,
+      remainingMs: 0,
+      reason: rawReason === 'max_duration' ? 'max_duration' : 'manual',
+    };
+  }
+
+  // "Never" timeout mode: active session never expires due to inactivity
+  if (timeoutMs === 0) {
+    return {
+      isLocked: false,
+      isTimedOut: false,
+      remainingInactivityMs: Infinity,
+      remainingMaxSessionMs,
+      remainingMs: remainingMaxSessionMs,
+      reason: null,
+    };
+  }
+
+  if (isNaN(lastActive)) {
+    return {
+      isLocked: true,
+      isTimedOut: false,
+      remainingInactivityMs: 0,
+      remainingMaxSessionMs: 0,
+      remainingMs: 0,
+      reason: 'manual',
     };
   }
 
   let expiresAt = rawExpiresAt ? parseInt(rawExpiresAt, 10) : NaN;
   if (isNaN(expiresAt)) {
-    expiresAt = (!isNaN(lastActive) ? lastActive : now) + timeoutMs;
+    expiresAt = lastActive + timeoutMs;
     try {
       localStorage.setItem(STORAGE_KEYS.SESSION_EXPIRES, expiresAt.toString());
     } catch {}
   }
 
-  if (now >= expiresAt || isPastMax) {
+  // Stage 1: Check Inactivity Timeout
+  if (now >= expiresAt || now - lastActive >= timeoutMs) {
     lockSession('timeout');
-    const isTimeoutModal = !isPastMax;
-    const remainingToMax = Math.max(0, maxTimeout - elapsedSinceActive);
     return {
       isLocked: true,
-      isTimedOut: isTimeoutModal,
-      remainingMs: isTimeoutModal ? remainingToMax : 0,
+      isTimedOut: true,
+      remainingInactivityMs: 0,
+      remainingMaxSessionMs,
+      remainingMs: remainingMaxSessionMs,
       reason: 'timeout',
     };
   }
 
-  const remainingToInactivity = Math.max(0, expiresAt - now);
-  const remainingToMax = Math.max(0, maxTimeout - elapsedSinceActive);
+  const remainingInactivityMs = Math.max(0, expiresAt - now);
+  const effectiveRemainingMs = Math.min(remainingInactivityMs, remainingMaxSessionMs);
 
   return {
     isLocked: false,
     isTimedOut: false,
-    remainingMs: Math.min(remainingToInactivity, remainingToMax),
+    remainingInactivityMs,
+    remainingMaxSessionMs,
+    remainingMs: effectiveRemainingMs,
     reason: null,
   };
 }
 
-// Updates session timestamps in storage
 export function persistActivityTimestamps(now: number = Date.now()): void {
   if (typeof window === 'undefined') return;
   try {
+    const lockedFlag = localStorage.getItem(STORAGE_KEYS.APP_LOCKED);
+    if (lockedFlag === 'true') return;
+
     const { timeoutMs } = getSecurityConfig();
     const expiresAt = timeoutMs > 0 ? now + timeoutMs : Infinity;
     localStorage.setItem(STORAGE_KEYS.LAST_ACTIVE, now.toString());
@@ -205,17 +252,18 @@ export function persistActivityTimestamps(now: number = Date.now()): void {
   } catch {}
 }
 
-// Locks workspace immediately and clears session auth token
-export function lockSession(reason: 'timeout' | 'manual', returnUrl?: string): void {
+export function lockSession(reason: 'timeout' | 'manual' | 'max_duration', returnUrl?: string): void {
   if (typeof window === 'undefined') return;
+  const token = localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN);
+
   try {
     localStorage.setItem(STORAGE_KEYS.APP_LOCKED, 'true');
     localStorage.setItem(STORAGE_KEYS.LOCK_REASON, reason);
-    localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
 
-    if (reason === 'manual') {
-      sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
+    if (reason === 'manual' || reason === 'max_duration') {
+      localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+      localStorage.removeItem(STORAGE_KEYS.LOGIN_TIME);
     }
 
     if (returnUrl && returnUrl !== '/' && !sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL)) {
@@ -223,26 +271,61 @@ export function lockSession(reason: 'timeout' | 'manual', returnUrl?: string): v
     }
   } catch {}
 
+  // Notify backend in background for audit tracking
+  try {
+    const endpoint = reason === 'timeout'
+      ? '/api/settings/session-timeout'
+      : '/api/settings/logout';
+
+    const reasonLabel = reason === 'timeout'
+      ? 'Session Timeout'
+      : reason === 'max_duration'
+        ? 'Maximum Session Duration Reached'
+        : 'Manual Logout';
+
+    if (navigator.sendBeacon) {
+      const data = JSON.stringify({ sessionToken: token, reason: reasonLabel });
+      const blob = new Blob([data], { type: 'application/json' });
+      navigator.sendBeacon(endpoint, blob);
+    } else {
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'x-session-token': token } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ sessionToken: token, reason: reasonLabel }),
+      }).catch(() => {});
+    }
+  } catch {}
+
   broadcastSessionEvent(reason === 'timeout' ? 'timeout' : 'lock');
 }
 
-// Unlocks workspace and issues a fresh session authorization token
-export function unlockSession(passwordUpdatedAt?: string | null): string {
+export function unlockSession(
+  passwordUpdatedAt?: string | null,
+  customToken?: string | null,
+  isResume: boolean = false
+): string {
   if (typeof window === 'undefined') return '';
   const now = Date.now();
   const { timeoutMs } = getSecurityConfig();
   const expiresAt = timeoutMs > 0 ? now + timeoutMs : Infinity;
-  const token = typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `tok_${now}_${Math.random().toString(36).slice(2, 10)}`;
+  const token = customToken || localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN) || '';
 
   try {
-    sessionStorage.setItem(STORAGE_KEYS.VISIT_ACTIVE, 'true');
     localStorage.setItem(STORAGE_KEYS.APP_LOCKED, 'false');
     localStorage.setItem(STORAGE_KEYS.LOCK_REASON, '');
     localStorage.setItem(STORAGE_KEYS.LAST_ACTIVE, now.toString());
     localStorage.setItem(STORAGE_KEYS.SESSION_EXPIRES, expiresAt.toString());
     localStorage.setItem(STORAGE_KEYS.SESSION_TOKEN, token);
+
+    // Only fresh logins establish a new session login timestamp.
+    // Continuing from Session Timeout preserves the original login timestamp.
+    if (!isResume || !localStorage.getItem(STORAGE_KEYS.LOGIN_TIME)) {
+      localStorage.setItem(STORAGE_KEYS.LOGIN_TIME, now.toString());
+    }
 
     if (passwordUpdatedAt) {
       localStorage.setItem(STORAGE_KEYS.PASSWORD_UPDATED_AT, passwordUpdatedAt);
@@ -253,7 +336,6 @@ export function unlockSession(passwordUpdatedAt?: string | null): string {
   return token;
 }
 
-// Broadcasts session lifecycle changes across tabs using BroadcastChannel with storage fallback
 export function broadcastSessionEvent(type: 'lock' | 'unlock' | 'activity' | 'timeout'): void {
   if (typeof window === 'undefined') return;
   try {
@@ -266,7 +348,6 @@ export function broadcastSessionEvent(type: 'lock' | 'unlock' | 'activity' | 'ti
   window.dispatchEvent(new Event('storage'));
 }
 
-// Subscribes to cross-tab session synchronization events
 export function subscribeToSessionEvents(onEvent: (type: string) => void): () => void {
   if (typeof window === 'undefined') return () => {};
 
@@ -276,15 +357,6 @@ export function subscribeToSessionEvents(onEvent: (type: string) => void): () =>
       channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
       channel.onmessage = (event) => {
         if (event.data?.type) {
-          if (event.data.type === 'unlock') {
-            try {
-              sessionStorage.setItem(STORAGE_KEYS.VISIT_ACTIVE, 'true');
-            } catch {}
-          } else if (event.data.type === 'lock') {
-            try {
-              sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
-            } catch {}
-          }
           onEvent(event.data.type);
         }
       };
@@ -297,6 +369,7 @@ export function subscribeToSessionEvents(onEvent: (type: string) => void): () =>
       !key ||
       key === STORAGE_KEYS.APP_LOCKED ||
       key === STORAGE_KEYS.SESSION_EXPIRES ||
+      key === STORAGE_KEYS.LOGIN_TIME ||
       key === STORAGE_KEYS.LOCK_REASON ||
       key === STORAGE_KEYS.SECURITY_CONFIG ||
       key === STORAGE_KEYS.LAST_ACTIVE
@@ -317,7 +390,6 @@ export function subscribeToSessionEvents(onEvent: (type: string) => void): () =>
   };
 }
 
-// Helper for defense-in-depth API protection
 export function isSessionActive(): boolean {
   return !getSessionStatus().isLocked;
 }
