@@ -11,6 +11,7 @@ import {
   checkBruteForceLock,
   recordFailedAttempt,
   resetFailedAttempts,
+  getSessionCookieOptions,
 } from '../utils/security';
 
 function extractRequestToken(req: Request): string | undefined {
@@ -24,17 +25,6 @@ function extractRequestToken(req: Request): string | undefined {
   }
   const raw = req.body?.sessionToken || cookieToken || (typeof headerToken === 'string' ? headerToken : undefined) || bearerToken;
   return typeof raw === 'string' && raw.trim() ? raw.trim() : undefined;
-}
-
-function getSessionCookieOptions(maxAge?: number) {
-  const isProd = process.env.NODE_ENV === 'production';
-  return {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
-    path: '/',
-    ...(typeof maxAge === 'number' && maxAge > 0 ? { maxAge } : {}),
-  };
 }
 
 // In-memory cache for passwordUpdatedAt to avoid redundant DB queries on every request

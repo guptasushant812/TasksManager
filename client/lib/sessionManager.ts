@@ -283,12 +283,18 @@ export function lockSession(reason: 'timeout' | 'manual' | 'max_duration', retur
         ? 'Maximum Session Duration Reached'
         : 'Manual Logout';
 
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+    const apiBase = rawApiUrl && (rawApiUrl.startsWith('http://') || rawApiUrl.startsWith('https://'))
+      ? rawApiUrl.replace(/\/+$/, '').replace(/\/api$/, '')
+      : '';
+    const fullEndpoint = `${apiBase}${endpoint}`;
+
     if (navigator.sendBeacon) {
       const data = JSON.stringify({ sessionToken: token, reason: reasonLabel });
       const blob = new Blob([data], { type: 'application/json' });
-      navigator.sendBeacon(endpoint, blob);
+      navigator.sendBeacon(fullEndpoint, blob);
     } else {
-      fetch(endpoint, {
+      fetch(fullEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

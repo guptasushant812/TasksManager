@@ -52,9 +52,17 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
       if (typeof window !== 'undefined') {
         const isPasswordChanged = err.error === 'PASSWORD_CHANGED';
         const isSessionExpired = err.error === 'SESSION_EXPIRED';
-        lockSession(isPasswordChanged ? 'manual' : isSessionExpired ? 'timeout' : 'manual');
-        if (isPasswordChanged) {
-          localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+        const isVerifyEndpoint = path.includes('/verify-password');
+
+        if (!isVerifyEndpoint) {
+          if (isPasswordChanged) {
+            lockSession('manual');
+            localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+          } else if (isSessionExpired) {
+            lockSession('timeout');
+          } else if (err.error === 'INVALID_SESSION' || err.error === 'UNAUTHORIZED' || err.error === 'LOGGED_OUT') {
+            lockSession('manual');
+          }
         }
       }
     }

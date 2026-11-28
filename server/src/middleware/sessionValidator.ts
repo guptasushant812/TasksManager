@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getCachedPasswordUpdatedAt } from '../controllers/settingsController';
-import { isOriginAllowed } from '../utils/security';
+import { isOriginAllowed, getSessionCookieOptions } from '../utils/security';
 import AuthSession from '../models/AuthSession';
 
 interface CachedSession {
@@ -126,33 +126,9 @@ export async function sessionValidator(req: Request, res: Response, next: NextFu
   const cleanHeader = typeof headerToken === 'string' && headerToken.trim() ? headerToken.trim() : undefined;
   const cleanBearer = typeof bearerToken === 'string' && bearerToken.trim() ? bearerToken.trim() : undefined;
 
-  // Strict Token Conflict Guard: If multiple credentials are provided, they must match identically
-  if (cleanCookie && cleanHeader && cleanCookie !== cleanHeader) {
-    res.status(401).json({
-      error: 'TOKEN_CONFLICT',
-      message: 'Conflicting session tokens detected between HttpOnly cookie and x-session-token header.',
-    });
-    return;
-  }
-
-  if (cleanCookie && cleanBearer && cleanCookie !== cleanBearer) {
-    res.status(401).json({
-      error: 'TOKEN_CONFLICT',
-      message: 'Conflicting session tokens detected between HttpOnly cookie and Bearer authorization.',
-    });
-    return;
-  }
-
-  if (cleanHeader && cleanBearer && cleanHeader !== cleanBearer) {
-    res.status(401).json({
-      error: 'TOKEN_CONFLICT',
-      message: 'Conflicting session tokens detected between x-session-token and Bearer authorization.',
-    });
-    return;
-  }
-
-  // Authoritative credential preference: HttpOnly cookie is preferred over client-exposed headers
-  const sessionToken = cleanCookie || cleanHeader || cleanBearer || null;
+  // Authoritative credential preference: Header/Bearer sent explicitly by client takes precedence,
+  // with fallback to HttpOnly cookie.
+  let sessionToken = cleanHeader || cleanBearer || cleanCookie || null;
 
   // Strict server verification: Every protected API request must have a session token
   if (!sessionToken) {
@@ -173,7 +149,17 @@ export async function sessionValidator(req: Request, res: Response, next: NextFu
   let sessionData = activeSessionCache.get(sessionToken);
 
   if (!sessionData || now - sessionData.cachedAt > 15000) {
-    const session = await AuthSession.findOne({ sessionToken }, 'status expiresAt loginAt').lean();
+    let session = await AuthSession.findOne({ sessionToken }, 'status expiresAt loginAt').lean();
+
+    // Fallback: If header token wasn't found in DB but cookie is present and differs, check cookie
+    if (!session && cleanCookie && cleanCookie !== sessionToken) {
+      const cookieSession = await AuthSession.findOne({ sessionToken: cleanCookie }, 'status expiresAt loginAt').lean();
+      if (cookieSession) {
+        sessionToken = cleanCookie;
+        session = cookieSession;
+      }
+    }
+
     if (!session) {
       res.status(401).json({
         error: 'INVALID_SESSION',
@@ -189,6 +175,13 @@ export async function sessionValidator(req: Request, res: Response, next: NextFu
       cachedAt: now,
     };
     activeSessionCache.set(sessionToken, sessionData);
+  }
+
+  // If client provided a different/stale cookie, refresh it to keep them in sync
+  if (cleanCookie && cleanCookie !== sessionToken) {
+    try {
+      res.cookie('tasksmanager_session_token', sessionToken, getSessionCookieOptions());
+    } catch {}
   }
 
   // Check if master password was updated after session login

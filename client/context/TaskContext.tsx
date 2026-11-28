@@ -4,7 +4,7 @@ import { TaskFilters, WorkStatus, Summary } from '@/types/task';
 import { useSummary } from '@/hooks/useSummary';
 import { getYearRange } from '@/lib/dates';
 import { BASE_URL } from '@/lib/api';
-import { subscribeToSessionEvents } from '@/lib/sessionManager';
+import { subscribeToSessionEvents, isSessionActive } from '@/lib/sessionManager';
 
 interface TaskContextValue {
   filters: TaskFilters;
@@ -90,9 +90,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, [summaryFilters, fetchSummary]);
 
   useEffect(() => {
+    if (!isSessionActive()) return;
     fetchSummary(summaryFilters);
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
+      if (!isSessionActive()) return;
       fetchSummary(summaryFilters, true);
     }, 5000);
     return () => clearInterval(interval);

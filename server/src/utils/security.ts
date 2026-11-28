@@ -121,3 +121,15 @@ export function isOriginAllowed(origin?: string): boolean {
   } catch {}
   return false;
 }
+
+export function getSessionCookieOptions(maxAge?: number) {
+  const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
+    path: '/',
+    ...(typeof maxAge === 'number' && maxAge > 0 ? { maxAge } : {}),
+  };
+}
+

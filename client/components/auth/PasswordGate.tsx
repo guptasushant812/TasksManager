@@ -243,7 +243,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       window.removeEventListener('pageshow', checkSyncState);
       window.removeEventListener('focus', onFocus);
     };
-  }, [isPublic, handleUserActivity, checkSyncState, isLocked]);
+  }, [isPublic, handleUserActivity, checkSyncState]);
 
   useEffect(() => {
     if (effectiveLocked && !isPublic) {
@@ -263,39 +263,37 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   ) => {
     setIsUnlocking(true);
 
-    setTimeout(() => {
-      unlockSession(passwordUpdatedAt, sessionToken, isResume);
+    unlockSession(passwordUpdatedAt, sessionToken, isResume);
 
-      if (timeoutTimerRef.current) {
-        clearTimeout(timeoutTimerRef.current);
-        timeoutTimerRef.current = null;
-      }
-      if (maxDurationTimerRef.current) {
-        clearTimeout(maxDurationTimerRef.current);
-        maxDurationTimerRef.current = null;
-      }
+    if (timeoutTimerRef.current) {
+      clearTimeout(timeoutTimerRef.current);
+      timeoutTimerRef.current = null;
+    }
+    if (maxDurationTimerRef.current) {
+      clearTimeout(maxDurationTimerRef.current);
+      maxDurationTimerRef.current = null;
+    }
 
-      setIsLocked(false);
-      setIsTimedOut(false);
-      setIsUnlocking(false);
-      setError(false);
-      setPassword('');
+    setIsLocked(false);
+    setIsTimedOut(false);
+    setIsUnlocking(false);
+    setError(false);
+    setPassword('');
 
-      const status = getSessionStatus(false);
-      scheduleTimeout(status.remainingInactivityMs, status.remainingMaxSessionMs);
+    const status = getSessionStatus(false);
+    scheduleTimeout(status.remainingInactivityMs, status.remainingMaxSessionMs);
 
-      if (typeof window !== 'undefined') {
-        const returnUrl = sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL);
-        if (returnUrl) {
-          sessionStorage.removeItem(STORAGE_KEYS.LOCKED_RETURN_URL);
-          if (pathname === '/' && returnUrl !== '/') {
-            router.replace(returnUrl);
-          } else {
-            window.history.replaceState(null, '', returnUrl);
-          }
+    if (typeof window !== 'undefined') {
+      const returnUrl = sessionStorage.getItem(STORAGE_KEYS.LOCKED_RETURN_URL);
+      if (returnUrl) {
+        sessionStorage.removeItem(STORAGE_KEYS.LOCKED_RETURN_URL);
+        if (pathname === '/' && returnUrl !== '/') {
+          router.replace(returnUrl);
+        } else {
+          window.history.replaceState(null, '', returnUrl);
         }
       }
-    }, 160);
+    }
   };
 
   useEffect(() => {
