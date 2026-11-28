@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface IAuthSession extends Document {
   sessionToken: string;
@@ -8,14 +9,20 @@ export interface IAuthSession extends Document {
   os: string;
   device: string;
   loginAt: Date;
+  loginAtIST?: string;
   lastActiveAt: Date;
+  lastActiveAtIST?: string;
   expiresAt: Date | null;
+  expiresAtIST?: string | null;
   logoutAt: Date | null;
+  logoutAtIST?: string | null;
   durationSeconds: number;
   status: 'active' | 'logged_out' | 'expired' | 'revoked';
   logoutReason: string | null;
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const AuthSessionSchema: Schema = new Schema(
@@ -41,5 +48,7 @@ const AuthSessionSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(AuthSessionSchema, ['loginAt', 'lastActiveAt', 'expiresAt', 'logoutAt']);
 
 export default mongoose.model<IAuthSession>('AuthSession', AuthSessionSchema);

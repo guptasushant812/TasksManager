@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface ILoginAttempt extends Document {
   ipAddress: string;
@@ -8,7 +9,12 @@ export interface ILoginAttempt extends Document {
   device: string;
   success: boolean;
   attemptedAt: Date;
+  attemptedAtIST?: string;
   failureReason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const LoginAttemptSchema: Schema = new Schema(
@@ -24,5 +30,7 @@ const LoginAttemptSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(LoginAttemptSchema, ['attemptedAt']);
 
 export default mongoose.model<ILoginAttempt>('LoginAttempt', LoginAttemptSchema);

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export type FollowUpMethod = 'Phone' | 'WhatsApp' | 'Email' | 'InPerson' | 'Teams' | 'GoogleMeet' | 'Other';
 
@@ -10,6 +11,7 @@ export interface IFollowUp extends Document {
   taskId: mongoose.Types.ObjectId;
   followUpNumber: number;
   followUpDate: Date;
+  followUpDateIST?: string;
   method: FollowUpMethod;
   methodOther: string;
   contactPerson: string;
@@ -18,11 +20,14 @@ export interface IFollowUp extends Document {
   notes: string;
   nextAction: string;
   nextFollowUpDate: Date | null;
+  nextFollowUpDateIST?: string | null;
   isDeleted: boolean;
   deletedReason: string;
   attachments: { url: string; public_id: string; filename: string }[];
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const FollowUpSchema = new Schema<IFollowUp>(
@@ -58,6 +63,8 @@ const FollowUpSchema = new Schema<IFollowUp>(
     toObject: { virtuals: true },
   }
 );
+
+applyISTTimestamps(FollowUpSchema, ['followUpDate', 'nextFollowUpDate']);
 
 FollowUpSchema.index({ taskId: 1, followUpNumber: 1 });
 FollowUpSchema.index({ taskId: 1, isDeleted: 1, followUpDate: -1 });

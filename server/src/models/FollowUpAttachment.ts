@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface IFollowUpAttachment extends Document {
   followUpId: mongoose.Types.ObjectId;
@@ -10,6 +11,8 @@ export interface IFollowUpAttachment extends Document {
   data?: Buffer;
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const FollowUpAttachmentSchema = new Schema<IFollowUpAttachment>(
@@ -24,6 +27,8 @@ const FollowUpAttachmentSchema = new Schema<IFollowUpAttachment>(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(FollowUpAttachmentSchema);
 
 const FollowUpAttachment: Model<IFollowUpAttachment> =
   mongoose.models.FollowUpAttachment || mongoose.model<IFollowUpAttachment>('FollowUpAttachment', FollowUpAttachmentSchema);

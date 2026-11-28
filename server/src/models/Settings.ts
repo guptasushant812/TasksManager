@@ -1,11 +1,13 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import crypto from 'crypto';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface ISettings extends Document {
   isPublicShareEnabled: boolean;
   publicShareToken: string;
   masterPasswordHash?: string | null;
   passwordUpdatedAt?: Date | null;
+  passwordUpdatedAtIST?: string | null;
   aiKeys?: {
     gemini?: string;
     groq?: string;
@@ -13,6 +15,10 @@ export interface ISettings extends Document {
   };
   preferredAiModel?: string;
   activeAiProvider?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const SettingsSchema: Schema = new Schema(
@@ -34,5 +40,7 @@ const SettingsSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(SettingsSchema, ['passwordUpdatedAt']);
 
 export default mongoose.model<ISettings>('Settings', SettingsSchema);

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface IAiDraftState extends Document {
   userId: string;
@@ -8,8 +9,11 @@ export interface IAiDraftState extends Document {
   manualDrafts?: any[];
   taskInstructions?: Map<string, string>;
   clearedAt?: Date | null;
+  clearedAtIST?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const AiDraftStateSchema: Schema = new Schema(
@@ -24,5 +28,7 @@ const AiDraftStateSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(AiDraftStateSchema, ['clearedAt']);
 
 export default mongoose.model<IAiDraftState>('AiDraftState', AiDraftStateSchema);

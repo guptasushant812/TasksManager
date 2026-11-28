@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { normalizeGivenBy } from '../utils/normalizeGivenBy';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export type Priority = 'High' | 'Medium' | 'Low';
 export type WorkStatus = 'InProgress' | 'Pending' | 'Completed';
@@ -19,12 +20,17 @@ export interface ITask extends Document {
   pendingReason: string;
   completedRemarks: string;
   date: Date;
+  dateIST?: string;
   dueDate: Date | null;
+  dueDateIST?: string | null;
   isDeleted: boolean;
   deletedAt: Date | null;
+  deletedAtIST?: string | null;
   deletedReason: string;
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 // Auto-increment taskId counter
@@ -84,11 +90,13 @@ const TaskSchema = new Schema<ITask>(
     deletedReason: { type: String, default: '' },
   },
   {
-    timestamps: true, // auto-manages createdAt & updatedAt
+    timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
+
+applyISTTimestamps(TaskSchema, ['date', 'dueDate', 'deletedAt']);
 
 TaskSchema.index({ date: -1, workStatus: 1 });
 TaskSchema.index({ workStatus: 1 });

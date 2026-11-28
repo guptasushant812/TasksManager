@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { applyISTTimestamps } from '../utils/istDate';
 
 export interface IRecipientItem {
   email: string;
@@ -18,6 +19,8 @@ export interface IEscalationSettings extends Document {
   ccEmail: string;
   createdAt: Date;
   updatedAt: Date;
+  createdAtIST?: string;
+  updatedAtIST?: string;
 }
 
 const RecipientItemSchema = new Schema<IRecipientItem>(
@@ -42,6 +45,8 @@ const EscalationSettingsSchema = new Schema<IEscalationSettings>(
   },
   { timestamps: true }
 );
+
+applyISTTimestamps(EscalationSettingsSchema);
 
 const EscalationSettings: Model<IEscalationSettings> =
   mongoose.models.EscalationSettings || mongoose.model<IEscalationSettings>('EscalationSettings', EscalationSettingsSchema);
