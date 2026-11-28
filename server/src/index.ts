@@ -15,35 +15,29 @@ import escalationRoutes from './routes/escalations';
 import { downloadAttachment } from './controllers/attachmentController';
 import { errorHandler } from './middleware/errorHandler';
 import { sessionValidator } from './middleware/sessionValidator';
+import { isOriginAllowed } from './utils/security';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  process.env.CLIENT_URL,
-].filter(Boolean) as string[];
+// Configure Express trust proxy securely
+// In production behind reverse proxies (Render, Cloudflare, Vercel, Nginx), trust immediate upstream hop
+const trustProxyEnv = process.env.TRUST_PROXY;
+if (trustProxyEnv) {
+  app.set('trust proxy', trustProxyEnv === 'true' ? true : isNaN(Number(trustProxyEnv)) ? trustProxyEnv : Number(trustProxyEnv));
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+} else {
+  app.set('trust proxy', false);
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      try {
-        const { hostname } = new URL(origin);
-        if (
-          allowedOrigins.includes(origin) ||
-          hostname === 'localhost' ||
-          hostname === '127.0.0.1' ||
-          hostname.endsWith('.vercel.app') ||
-          process.env.NODE_ENV !== 'production'
-        ) {
-          return callback(null, true);
-        }
-      } catch {
-        // invalid origin url
+      if (!origin || isOriginAllowed(origin)) {
+        return callback(null, true);
       }
-      return callback(new Error('Blocked by CORS policy'));
+      return callback(null, false);
     },
     credentials: true,
     exposedHeaders: ['Content-Disposition'],
