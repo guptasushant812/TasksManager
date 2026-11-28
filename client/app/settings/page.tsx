@@ -332,7 +332,6 @@ export default function SettingsPage() {
       setTimeout(() => {
         lockSession('manual');
         localStorage.removeItem('sessionPasswordUpdatedAt');
-        sessionStorage.removeItem('tasksmanager_visit_active');
       }, 1200);
     } catch (err: any) {
       setPasswordError(err instanceof Error ? err.message : 'Could not save password to server.');
