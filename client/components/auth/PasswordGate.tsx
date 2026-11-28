@@ -256,6 +256,59 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     }
   }, [effectiveLocked, isPublic, saveCurrentReturnUrl]);
 
+  useEffect(() => {
+    if (!effectiveLocked || isPublic) return;
+
+    const timer = setTimeout(() => {
+      const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
+      if (activeInput) {
+        activeInput.focus();
+      }
+    }, 50);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
+
+      // 1. Ctrl + A (or Cmd + A): Select ONLY the passcode input box text
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        if (activeInput) {
+          e.preventDefault();
+          activeInput.focus();
+          activeInput.select();
+        }
+        return;
+      }
+
+      // 2. Escape: Clear the passcode input box and keep focus
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setPassword('');
+        setError(false);
+        if (activeInput) {
+          activeInput.focus();
+        }
+        return;
+      }
+
+      // 3. Enter: Trigger unlock if not already focused on submit button or input
+      if (e.key === 'Enter') {
+        if (document.activeElement !== activeInput) {
+          const submitBtn = document.querySelector('form button[type="submit"]') as HTMLButtonElement | null;
+          if (submitBtn && !submitBtn.disabled) {
+            e.preventDefault();
+            submitBtn.click();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [effectiveLocked, effectiveTimedOut, isPublic]);
+
   const handleUnlockSuccess = (
     passwordUpdatedAt?: string | null,
     sessionToken?: string | null,
@@ -306,11 +359,14 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     setErrorMessage(customMsg || 'Incorrect passcode. Please try again.');
     setShake(true);
     setTimeout(() => setShake(false), 380);
-    const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
-    if (activeInput) {
-      activeInput.focus();
-      activeInput.select();
-    }
+
+    setTimeout(() => {
+      const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
+      if (activeInput) {
+        activeInput.focus();
+        activeInput.select();
+      }
+    }, 40);
   }, [effectiveTimedOut]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -346,6 +402,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
       triggerErrorFeedback(msg);
     } finally {
       setIsVerifying(false);
+      setTimeout(() => {
+        const activeInput = effectiveTimedOut ? timeoutInputRef.current : inputRef.current;
+        if (activeInput) {
+          activeInput.focus();
+          activeInput.select();
+        }
+      }, 50);
     }
   };
 
@@ -399,10 +462,17 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
             opacity: isUnlocking ? 0 : 1,
             transform: isUnlocking ? 'scale(0.98)' : 'scale(1)',
             transition: 'opacity 0.16s ease-out, transform 0.16s ease-out',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
           }}
         >
           <div
             className={`card animate-slide-up ${shake ? 'animate-shake' : ''}`}
+            onCopy={(e: React.ClipboardEvent<HTMLDivElement>) => {
+              if (document.activeElement !== timeoutInputRef.current) {
+                e.preventDefault();
+              }
+            }}
             style={{
               width: '100%',
               maxWidth: 420,
@@ -413,6 +483,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               background: 'var(--bg-surface)',
               position: 'relative',
               overflow: 'hidden',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
             }}
           >
             <div
@@ -426,7 +498,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               }}
             />
 
-            <div style={{ textAlign: 'center', marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center', marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div
                 style={{
                   width: 48,
@@ -453,11 +525,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   letterSpacing: '-0.02em',
                   marginBottom: 8,
                   color: 'var(--text-primary)',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
                 }}
               >
                 Session Timed Out
               </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.5, maxWidth: 340 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.5, maxWidth: 340, userSelect: 'none', WebkitUserSelect: 'none' }}>
                 You have been inactive for <strong style={{ color: 'var(--text-primary)', fontWeight: 650 }}>{configuredPeriodText}</strong>. To safeguard your workspace, your session has been paused.
               </p>
             </div>
@@ -466,7 +540,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               <div>
                 <label
                   htmlFor="timeout-passcode"
-                  style={{ display: 'block', fontSize: 12, fontWeight: 650, color: 'var(--text-secondary)', marginBottom: 6 }}
+                  style={{ display: 'block', fontSize: 12, fontWeight: 650, color: 'var(--text-secondary)', marginBottom: 6, userSelect: 'none', WebkitUserSelect: 'none' }}
                 >
                   Enter Passcode to Continue
                 </label>
@@ -481,6 +555,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setPassword(e.target.value);
                       setError(false);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setPassword('');
+                        setError(false);
+                      }
+                    }}
                     disabled={isVerifying || isUnlocking}
                     className={`input ${shake ? 'animate-shake' : ''}`}
                     style={{
@@ -491,6 +572,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       boxShadow: 'var(--shadow-taste-sm)',
                       cursor: isVerifying || isUnlocking ? 'not-allowed' : undefined,
                       opacity: isVerifying || isUnlocking ? 0.7 : 1,
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
                     }}
                     autoFocus
                   />
@@ -512,6 +595,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       justifyContent: 'center',
                       padding: 4,
                       opacity: isVerifying || isUnlocking ? 0.5 : 1,
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
                     }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -519,7 +604,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   </button>
                 </div>
                 {error && (
-                  <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600 }}>
+                  <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600, userSelect: 'none', WebkitUserSelect: 'none' }}>
                     {errorMessage}
                   </p>
                 )}
@@ -539,6 +624,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   boxShadow: 'var(--shadow-taste-sm)',
                   cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
                   opacity: isVerifying || isUnlocking ? 0.7 : 1,
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
                 }}
               >
                 {isUnlocking ? 'Resuming...' : isVerifying ? 'Verifying...' : 'Continue Session'}
@@ -566,10 +653,17 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
             opacity: isUnlocking ? 0 : 1,
             transform: isUnlocking ? 'scale(0.98)' : 'scale(1)',
             transition: 'opacity 0.16s ease-out, transform 0.16s ease-out',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
           }}
         >
           <div
             className={`card animate-slide-up ${shake ? 'animate-shake' : ''}`}
+            onCopy={(e: React.ClipboardEvent<HTMLDivElement>) => {
+              if (document.activeElement !== inputRef.current) {
+                e.preventDefault();
+              }
+            }}
             style={{
               width: '100%',
               maxWidth: 400,
@@ -580,6 +674,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               background: 'var(--bg-surface)',
               position: 'relative',
               overflow: 'hidden',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
             }}
           >
             <div
@@ -594,7 +690,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               }}
             />
 
-            <div style={{ textAlign: 'center', marginBottom: 28, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center', marginBottom: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div
                 style={{
                   width: 44,
@@ -612,10 +708,10 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               >
                 <Lock size={20} />
               </div>
-              <h1 style={{ fontSize: 22, fontWeight: 750, letterSpacing: '-0.02em', marginBottom: 6, color: 'var(--text-primary)' }}>
+              <h1 style={{ fontSize: 22, fontWeight: 750, letterSpacing: '-0.02em', marginBottom: 6, color: 'var(--text-primary)', userSelect: 'none', WebkitUserSelect: 'none' }}>
                 Secure Workspace
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.4 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.4, userSelect: 'none', WebkitUserSelect: 'none' }}>
                 Enter your passcode to unlock TasksManager.
               </p>
             </div>
@@ -624,7 +720,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
               <div>
                 <label
                   htmlFor="workspace-password"
-                  style={{ display: 'block', fontSize: 12, fontWeight: 650, color: 'var(--text-secondary)', marginBottom: 6 }}
+                  style={{ display: 'block', fontSize: 12, fontWeight: 650, color: 'var(--text-secondary)', marginBottom: 6, userSelect: 'none', WebkitUserSelect: 'none' }}
                 >
                   Passcode
                 </label>
@@ -639,6 +735,13 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       setPassword(e.target.value);
                       setError(false);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setPassword('');
+                        setError(false);
+                      }
+                    }}
                     disabled={isVerifying || isUnlocking}
                     className={`input ${shake ? 'animate-shake' : ''}`}
                     style={{
@@ -649,6 +752,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       boxShadow: 'var(--shadow-taste-sm)',
                       cursor: isVerifying || isUnlocking ? 'not-allowed' : undefined,
                       opacity: isVerifying || isUnlocking ? 0.7 : 1,
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
                     }}
                     autoFocus
                   />
@@ -670,6 +775,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                       justifyContent: 'center',
                       padding: 4,
                       opacity: isVerifying || isUnlocking ? 0.5 : 1,
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
                     }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -677,7 +784,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   </button>
                 </div>
                 {error && (
-                  <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600 }}>
+                  <p style={{ color: 'var(--high)', fontSize: 12, margin: '6px 0 0 0', fontWeight: 600, userSelect: 'none', WebkitUserSelect: 'none' }}>
                     {errorMessage}
                   </p>
                 )}
@@ -696,6 +803,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
                   boxShadow: 'var(--shadow-taste-sm)',
                   cursor: isVerifying || isUnlocking ? 'not-allowed' : 'pointer',
                   opacity: isVerifying || isUnlocking ? 0.7 : 1,
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
                 }}
               >
                 {isUnlocking ? 'Unlocking...' : isVerifying ? 'Verifying...' : 'Unlock Workspace'}
