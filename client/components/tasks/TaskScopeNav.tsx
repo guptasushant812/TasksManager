@@ -371,7 +371,7 @@ export default function TaskScopeNav({
     }));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="task-scope-nav-container" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div className="dashboard-scope-container">
         <div className="dashboard-scope-bar">
           <div className="scope-bar-left">
@@ -539,7 +539,7 @@ export default function TaskScopeNav({
       )}
 
       {!isToday && filters.month && (
-        <div className="card animate-slide-down" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card animate-slide-down scope-weeks-card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',

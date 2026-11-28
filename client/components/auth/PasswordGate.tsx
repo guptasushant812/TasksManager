@@ -309,6 +309,40 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     };
   }, [effectiveLocked, effectiveTimedOut, isPublic]);
 
+  useEffect(() => {
+    if (effectiveLocked || isPublic) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        const target = e.target as HTMLElement | null;
+        const tagName = target?.tagName?.toLowerCase();
+        const isInput = tagName === 'input' || tagName === 'textarea' || target?.isContentEditable;
+        if (!isInput) {
+          const selection = window.getSelection();
+          const anchorNode = selection?.anchorNode;
+          const tableBody = anchorNode
+            ? (anchorNode instanceof HTMLElement ? anchorNode : anchorNode.parentElement)?.closest('tbody')
+            : null;
+          if (tableBody) {
+            e.preventDefault();
+            const range = document.createRange();
+            range.selectNodeContents(tableBody);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+            return;
+          }
+          // Prevent accidental whole-page selection of navigation, scope filters, and chrome
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [effectiveLocked, isPublic]);
+
   const handleUnlockSuccess = (
     passwordUpdatedAt?: string | null,
     sessionToken?: string | null,

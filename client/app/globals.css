@@ -12022,24 +12022,6 @@ html[data-theme="kanso"] .fu-modal-footer {
   gap: 12px;
 }
 
-.filter-date-input {
-  cursor: pointer;
-  position: relative;
-}
-
-.filter-date-input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.8;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  transition: opacity 0.15s ease, transform 0.1s ease;
-}
-
-.filter-date-input::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-  transform: scale(1.15);
-}
-
 .filter-sort-controls-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 116px;
@@ -12077,3 +12059,244 @@ html[data-theme="kanso"] .fu-modal-footer {
     letter-spacing: 0;
   }
 }
+
+/* Static text protection for navigation, controls, scope filters, and table headers */
+.app-sidebar,
+.app-sidebar *,
+.sidebar,
+.sidebar *,
+.app-header,
+.app-header *,
+.header,
+.header *,
+.page-header,
+.page-header *,
+.task-scope-nav-container,
+.task-scope-nav-container *,
+.dashboard-scope-container,
+.dashboard-scope-container *,
+.dashboard-scope-bar,
+.dashboard-scope-bar *,
+.scope-weeks-card,
+.scope-weeks-card *,
+.scope-weeks-header,
+.scope-weeks-header *,
+.scope-weeks-title,
+.scope-weeks-grid,
+.scope-weeks-grid *,
+.scope-week-btn,
+.scope-week-btn *,
+.scope-week-label,
+.scope-week-dates,
+.scope-bar-left,
+.scope-bar-left *,
+.scope-bar-right,
+.scope-bar-right *,
+.scope-bar-label,
+.scope-bar-label *,
+.scope-toggle-group,
+.scope-toggle-group *,
+.scope-toggle-btn,
+.scope-toggle-btn *,
+.scope-selects-group,
+.scope-selects-group *,
+.scope-dropdown,
+.scope-dropdown *,
+.scope-btn-reset,
+.scope-btn-reset *,
+.scope-btn-sync,
+.scope-btn-sync *,
+.summary-cards-container,
+.summary-cards-container *,
+.summary-cards-grid,
+.summary-cards-grid *,
+.summary-card,
+.summary-card *,
+.stat-card,
+.stat-card *,
+.metric-card,
+.metric-card *,
+.task-toolbar,
+.task-toolbar-actions,
+.task-toolbar-actions *,
+.task-toolbar-filter,
+.task-toolbar-filter *,
+.task-toolbar-btn,
+.task-toolbar-btn *,
+.task-toolbar-badge,
+.task-toolbar-export,
+.task-toolbar-export *,
+.task-active-filters,
+.task-active-filters *,
+.filter-sort-panel,
+.filter-sort-panel *,
+.filter-sort-drawer,
+.filter-sort-drawer *,
+.filter-sort-chip,
+.filter-sort-chip *,
+.table-pagination,
+.table-pagination *,
+.pagination,
+.pagination *,
+.modal-header,
+.modal-header *,
+.modal-footer,
+.modal-footer *,
+.app-dialog-header,
+.app-dialog-header *,
+.app-dialog-footer,
+.app-dialog-footer *,
+.settings-nav,
+.settings-nav *,
+.settings-tab,
+.settings-tab *,
+.settings-section-title,
+.settings-section-desc,
+.settings-card-header,
+.settings-card-header *,
+.nav-item,
+.nav-item *,
+.sidebar-brand,
+.sidebar-brand *,
+.app-sidebar-brand,
+.app-sidebar-brand *,
+.sidebar-section-title,
+button,
+button *,
+.btn,
+.btn *,
+[role="button"],
+[role="button"] *,
+[role="tab"],
+[role="tab"] *,
+[role="tablist"],
+[role="tablist"] *,
+[role="menu"],
+[role="menu"] *,
+[role="menuitem"],
+[role="menuitem"] *,
+[role="switch"],
+label,
+label *,
+legend,
+select,
+thead,
+thead *,
+th,
+th *,
+.task-table thead,
+.task-table thead *,
+.badge,
+.badge *,
+.status-badge,
+.status-badge *,
+.chip,
+.chip *,
+.pill,
+.pill *,
+.tag,
+.tag *,
+svg,
+svg *,
+[aria-hidden="true"] {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Explicitly preserve selection for dynamic data, inputs, and editable content */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+tbody td,
+.table-data-cell,
+.task-table tbody td,
+.task-cell,
+.task-title,
+.task-desc,
+.task-notes,
+.task-id,
+.task-remarks,
+.follow-up-item,
+.fu-item-note,
+.fu-history-item,
+.fu-note,
+.help-topic-content,
+.help-topic-body,
+.article-content,
+.prose,
+pre,
+code,
+kbd,
+samp {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Ensure users can always highlight and copy error messages, warnings, and alerts */
+[role="alert"],
+[role="status"],
+[aria-live],
+.app-inline-alert,
+.app-inline-alert *,
+.app-toast,
+.app-toast *,
+.ai-test-alert,
+.ai-test-alert *,
+.app-dialog-desc,
+.fu-error-text,
+.fu-submit-error,
+.validation-error,
+.error-message,
+.error-text,
+.error-banner,
+.alert-error,
+.alert-danger,
+.alert-warning,
+.form-error,
+.toast,
+.toast-message,
+[class*="error"]:not(.btn):not([role="button"]):not(.summary-card),
+[class*="danger"]:not(.btn):not([role="button"]):not(.summary-card),
+[class*="alert"]:not(button):not([role="button"]):not(.summary-card),
+[class*="toast"],
+[class*="validation"],
+form span[style*="var(--high)"],
+form p[style*="var(--high)"],
+.modal-box span[style*="var(--high)"],
+.modal-box p[style*="var(--high)"],
+.card span[style*="var(--high)"],
+.card p[style*="var(--high)"],
+.input-error-msg {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Utility classes for manual selection control */
+.selectable,
+.user-select-text,
+.select-text,
+.allow-select,
+.copyable {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+.unselectable,
+.user-select-none,
+.select-none,
+.prevent-select {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
