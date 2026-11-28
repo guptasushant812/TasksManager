@@ -31,10 +31,12 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     method,
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
+      'x-requested-with': 'XMLHttpRequest',
       ...(sessionToken && { 'x-session-token': sessionToken }),
       ...(passwordUpdatedAt && { 'x-password-updated-at': passwordUpdatedAt }),
       ...headers,
     },
+    credentials: 'include',
     signal,
   };
 
@@ -46,11 +48,14 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    if (res.status === 401 && err.error === 'PASSWORD_CHANGED') {
+    if (res.status === 401) {
       if (typeof window !== 'undefined') {
-        lockSession('manual');
-        localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
-        sessionStorage.removeItem(STORAGE_KEYS.VISIT_ACTIVE);
+        const isPasswordChanged = err.error === 'PASSWORD_CHANGED';
+        const isSessionExpired = err.error === 'SESSION_EXPIRED';
+        lockSession(isPasswordChanged ? 'manual' : isSessionExpired ? 'timeout' : 'manual');
+        if (isPasswordChanged) {
+          localStorage.removeItem(STORAGE_KEYS.PASSWORD_UPDATED_AT);
+        }
       }
     }
     const errorMessage = err.message || err.error || (res.statusText ? `${res.status} ${res.statusText}` : `Request failed with status ${res.status}`);
@@ -58,6 +63,33 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   }
 
   return res.json() as Promise<T>;
+}
+
+export async function apiFetchRaw(path: string, options: FetchOptions = {}): Promise<Response> {
+  const { method = 'GET', body, headers = {}, signal } = options;
+
+  const sessionToken = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN) : null;
+  const passwordUpdatedAt = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.PASSWORD_UPDATED_AT) : null;
+  const isFormData = body instanceof FormData;
+  const config: RequestInit = {
+    method,
+    headers: {
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
+      'x-requested-with': 'XMLHttpRequest',
+      ...(sessionToken && { 'x-session-token': sessionToken }),
+      ...(passwordUpdatedAt && { 'x-password-updated-at': passwordUpdatedAt }),
+      ...headers,
+    },
+    credentials: 'include',
+    signal,
+  };
+
+  if (body !== undefined) {
+    config.body = isFormData ? (body as any) : JSON.stringify(body);
+  }
+
+  const url = path.startsWith('http://') || path.startsWith('https://') ? path : `${BASE_URL}${path}`;
+  return fetch(url, config);
 }
 
 export function buildQueryString(params: Record<string, string | number | undefined | null>): string {

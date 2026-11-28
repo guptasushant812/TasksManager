@@ -1,5 +1,5 @@
 'use client';
-import { BASE_URL, buildQueryString } from '@/lib/api';
+import { BASE_URL, buildQueryString, apiFetch, apiFetchRaw } from '@/lib/api';
 import { TaskFilters } from '@/types/task';
 import { useState } from 'react';
 import { formatDate, SHORT_MONTHS } from '@/lib/dates';
@@ -81,10 +81,8 @@ export default function ExportMenu({
       const params = getFilterParams();
       params.limit = '1';
       const qs = buildQueryString(params);
-      const res = await fetch(`${BASE_URL}/api/tasks${qs}`);
-      if (!res.ok) return 0;
-      const json = await res.json();
-      return json.pagination?.total ?? json.data?.length ?? 0;
+      const res = await apiFetch<{ pagination?: { total?: number }; data?: any[] }>(`/api/tasks${qs}`);
+      return res.pagination?.total ?? res.data?.length ?? 0;
     } catch {
       return 0;
     } finally {
@@ -107,7 +105,7 @@ export default function ExportMenu({
 
       // Fetch file as blob to trigger direct browser download
       const downloadUrl = buildExportUrl(format);
-      const res = await fetch(downloadUrl);
+      const res = await apiFetchRaw(downloadUrl);
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Export failed' }));

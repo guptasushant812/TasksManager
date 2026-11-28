@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Clock, Key, ArrowRight, ExternalLink, RefreshCw, X, Check, ShieldCheck, Cpu } from 'lucide-react';
 import { RateLimitState } from '@/hooks/useAiDraft';
+import { apiFetch } from '@/lib/api';
 
 interface AiQuotaModalProps {
   rateLimitInfo: RateLimitState;
@@ -49,12 +50,10 @@ export default function AiQuotaModal({
     const provider = key.startsWith('gsk_') ? 'groq' : key.startsWith('xai-') ? 'grok' : 'gemini';
 
     try {
-      const res = await fetch('/api/ai-draft/validate-key', {
+      const data = await apiFetch<{ valid: boolean; message?: string }>('/api/ai-draft/validate-key', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: key, provider }),
+        body: { apiKey: key, provider },
       });
-      const data = await res.json().catch(() => ({ valid: true }));
       if (data && data.valid === false) {
         setValidationError(data.message || 'Key validation failed. Please check your key.');
         setValidating(false);
